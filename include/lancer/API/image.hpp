@@ -8,21 +8,32 @@ namespace lancer {
     // Vookoo-Like 
     class Image : public std::enable_shared_from_this<Image> {
         protected: 
-            api::ImageCreateInfo imc = {};
-            api::Image lastimg = {}; // least allocation, may be vector 
+            std::shared_ptr<Device> device = {};
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
+            api::Image* lastimg = nullptr; // least allocation, may be vector 
+            api::ImageCreateInfo imc = {};
 
         public: 
-            Image() {
-                
+            Image(api::Image* lastimg = nullptr, api::ImageCreateInfo imc = {}) : lastimg(lastimg),imc(imc) {
             };
 
             ~Image(){ // Here will notification about free memory
-
             };
 
-            void Create(api::Image* img, const std::shared_ptr<Allocator>& mem) {
-                mem->AllocateForImage(img,allocation,imc); if (img) lastimg = *img;
+            // Get original Vulkan link 
+            vk::Image& Least() { return *lastimg; };
+            operator vk::Image&() { return *lastimg; };
+            const vk::Image& Least() const { return *lastimg; };
+            operator const vk::Image&() const { return *lastimg; };
+
+            std::shared_ptr<Image>& LinkImage(api::Image& img) { lastimg = &img; return shared_from_this(); };
+            std::shared_ptr<Image>& Allocate(const std::shared_ptr<Allocator>& mem) {
+                mem->AllocateForImage(lastimg,allocation,imc); 
+                return shared_from_this();
+            };
+            std::shared_ptr<Image>& Create() {
+                *lastimg = device->Least().createImage(imc);
+                return shared_from_this();
             };
     };
 

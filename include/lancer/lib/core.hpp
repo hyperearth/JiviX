@@ -214,4 +214,6 @@ namespace lancer {
         const T& operator->() const { return that; };
     };
 
+    class Device;
+
 };

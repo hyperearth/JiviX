@@ -35,15 +35,15 @@ namespace lancer {
             //}
     };
 
-    class VMAllocator : public std::enable_shared_from_this<VMAllocator>, public Allocator {
+    class VMAllocator : public Allocator, public std::enable_shared_from_this<VMAllocator> {
         protected: 
             std::shared_ptr<Device> dvc = {};
             VmaAllocationCreateInfo amc = {}; // Template
             VmaAllocator vma = {};
 
         public: 
-            VMAllocator(std::shared_ptr<Device>& device){
-                dvc = device;
+            VMAllocator(std::shared_ptr<Device>& dvc){
+                device = dvc;
             };
 
             virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}) override {

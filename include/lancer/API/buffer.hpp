@@ -7,33 +7,45 @@ namespace lancer {
     // Vookoo-Like 
     class Buffer : public std::enable_shared_from_this<Buffer> {
         protected: 
-            // TODO: add device as tool
-            api::BufferCreateInfo bfc = {};
-            api::Buffer lastbuf = {}; // least allocation, may be vector 
+            std::shared_ptr<Device> device = {};
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
+            api::Buffer* lastbuf = nullptr;
+            api::BufferCreateInfo bfc = {};
 
         public: 
-            Buffer(const std::shared_ptr<Device>& device, const size_t& size = 16u, const api::BufferUsageFlags& usage = api::BufferUsageFlagBits::eStorageBuffer) {
-                bfc.sharingMode = api::SharingMode::eExclusive;
-                bfc.usage = usage;
-                bfc.size = size;
+            Buffer(api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = {}) : lastbuf(lastbuf),bfc(bfc) {
             };
 
             ~Buffer(){ // Here will notification about free memory
-                
             };
 
-            void Create(api::Buffer* buf, const std::shared_ptr<Allocator>& mem){
-                mem->AllocateForBuffer(buf,allocation,bfc); if (buf) lastbuf = *buf;
+            std::shared_ptr<Buffer>& Create() { // 
+                *lastbuf = device->Least().createBuffer(bfc);
+                return shared_from_this();
             };
 
-            // TODO: create buffer view itself 
-            void CreateView(api::BufferView* bfv, const api::Buffer& buf, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
-                auto civ = api::BufferViewCreateInfo{ {}, buf?buf:lastbuf, format, offset, size };
+            // Get original Vulkan link 
+            vk::Buffer& Least() { return *lastbuf; };
+            operator vk::Buffer&() { return *lastbuf; };
+            const vk::Buffer& Least() const { return *lastbuf; };
+            operator const vk::Buffer&() const { return *lastbuf; };
+
+            // Link Editable Buffer 
+            std::shared_ptr<Buffer>& LinkBuffer(api::Buffer& buf) { lastbuf = &buf; return shared_from_this(); };
+            std::shared_ptr<Buffer>& Allocate(const std::shared_ptr<Allocator>& mem){ 
+                mem->AllocateForBuffer(lastbuf,allocation,bfc); return shared_from_this(); 
             };
 
-            void CreateRegion(api::DescriptorBufferInfo* reg, const api::Buffer& buf, const uintptr_t& offset = 0u, const size_t& size = 16u) {
-                *reg = {buf, offset, size};
+            // Create With Buffer View 
+            std::shared_ptr<Buffer>& CreateView(api::BufferView& bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+                (bfv = allocation->GetDevice()->Least().createBufferView(api::BufferViewCreateInfo{{}, *lastbuf, format, offset, size}));
+                return shared_from_this();
+            };
+
+            // Create With Region
+            std::shared_ptr<Buffer>& CreateRegion(api::DescriptorBufferInfo& reg, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+                (reg = api::DescriptorBufferInfo{*lastbuf, offset, size});
+                return shared_from_this();
             };
     };
 };
