@@ -17,7 +17,7 @@ namespace lancer {
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
 
         public:
-            DescriptorSet(){
+            DescriptorSet(api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info) {
             };
 
             vk::DescriptorSet& Least() { return *lastdst; };

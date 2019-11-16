@@ -5,6 +5,15 @@
 
 namespace lancer {
     
+    class Device;
+
+    class Instance : public std::enable_shared_from_this<Instance> {
+        protected: 
+
+        public: 
+        
+    };
+
     class Device : public std::enable_shared_from_this<Device> {
         protected: 
             std::vector<api::PhysicalDevice> devices = {};

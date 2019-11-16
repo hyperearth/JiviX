@@ -8,6 +8,8 @@ namespace lancer {
 
     class Allocation : public std::enable_shared_from_this<Allocation> {
         protected: 
+            friend Allocator;
+
             std::shared_ptr<Allocator> allocator = nullptr;
             api::MemoryHeap memory = {};
             uint8_t* mapped = nullptr;

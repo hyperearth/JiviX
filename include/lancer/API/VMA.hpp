@@ -8,11 +8,14 @@
 
 namespace lancer {
 
+    class VMAllocator;
+
     class VMAllocation : public Allocation, public std::enable_shared_from_this<VMAllocation> {
         protected: 
             //std::shared_ptr<VMAllocator> allocator = {};
             VmaAllocation alloc = {};
             VmaAllocationInfo alcmc = {}; // least registered allocation, not necessary
+            friend VMAllocator;
 
         public: 
             // unique constructor 
