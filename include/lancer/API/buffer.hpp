@@ -13,11 +13,11 @@ namespace lancer {
             api::BufferCreateInfo bfc = {};
 
         public: 
-            Buffer(api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = {}) : lastbuf(lastbuf),bfc(bfc) {
+            Buffer(api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(vk::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc) {
             };
 
-            ~Buffer(){ // Here will notification about free memory
-            };
+            ~Buffer(){
+            }; // Here will notification about free memory
 
             std::shared_ptr<Buffer>& Create() { // 
                 *lastbuf = device->Least().createBuffer(bfc);
