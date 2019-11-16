@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../lib/core.hpp"
+#include "../API/memory.hpp"
 
 namespace lancer {
     // Vookoo-Like 
@@ -12,7 +13,7 @@ namespace lancer {
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
 
         public: 
-            Buffer(const std::shared_ptr<Device>& device, const sizei_t& size = 16u, const api::BufferUsageFlags& usage = api::BufferUsage::eStorageBufferBit) {
+            Buffer(const std::shared_ptr<Device>& device, const size_t& size = 16u, const api::BufferUsageFlags& usage = api::BufferUsageFlagBits::eStorageBuffer) {
                 bfc.sharingMode = api::SharingMode::eExclusive;
                 bfc.usage = usage;
                 bfc.size = size;
@@ -27,12 +28,12 @@ namespace lancer {
             };
 
             // TODO: create buffer view itself 
-            void CreateView(api::BufferView* buf, const api::Buffer& buf, const api::Format& format, const uintptr_t& offset = 0u, const usizei_t& size = 16u) {
-                auto civ = api::BufferViewCreateInfo{ buf?buf:lastbuf, format, offset, size };
+            void CreateView(api::BufferView* bfv, const api::Buffer& buf, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+                auto civ = api::BufferViewCreateInfo{ {}, buf?buf:lastbuf, format, offset, size };
             };
 
-            void CreateRegion(api::DescriptorBufferInfo* buf, const api::Buffer& buf, const uintptr_t& offset = 0u, const usizei_t& size = 16u) {
-                *buf = {buf, offset, size};
+            void CreateRegion(api::DescriptorBufferInfo* reg, const api::Buffer& buf, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+                *reg = {buf, offset, size};
             };
     };
 };

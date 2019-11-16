@@ -1,5 +1,8 @@
 {
     "files.associations": {
+        "*.cjson": "jsonc",
+        "*.wxss": "css",
+        "*.wxs": "javascript",
         "initializer_list": "cpp",
         "type_traits": "cpp",
         "xutility": "cpp",
@@ -34,6 +37,22 @@
         "xlocale": "cpp",
         "xlocinfo": "cpp",
         "xlocnum": "cpp",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "vector": "cpp",
+        "atomic": "cpp",
+        "iterator": "cpp",
+        "list": "cpp",
+        "mutex": "cpp",
+        "shared_mutex": "cpp",
+        "thread": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp",
+        "algorithm": "cpp",
+        "array": "cpp",
+        "cctype": "cpp",
+        "chrono": "cpp",
+        "condition_variable": "cpp",
+        "ratio": "cpp",
+        "string": "cpp"
     }
 }

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "../lib/core.hpp"
-#include "../API/buffer.hpp"
+#include "../API/device.hpp"
+#include "../API/memory.hpp"
+#include <VMA/vk_mem_alloc.h>
 //#inc;ude <vulkan/VMA.hpp>
 
 namespace lancer {
@@ -10,28 +12,18 @@ namespace lancer {
         protected: 
             //std::shared_ptr<VMAllocator> allocator = {};
             VmaAllocation alloc = {};
-            VmaAllocationInfo almc = {}; // least registered allocation, not necessary
+            VmaAllocationInfo alcmc = {}; // least registered allocation, not necessary
 
         public: 
-            VMAllocation(VmaAllocation& allocation){
-                alloc = std::move(allocation);
-            };
+            // unique constructor 
+            VMAllocation(VmaAllocation& allocation, VmaAllocationInfo& alloc_info) : alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {};
 
             virtual void Free() override { // after notify for de-allocation
 
             };
 
-            virtual void SetCIP(const uintptr_t& cip) override {
-                almc = *((VmaAllocationInfo*)cip);
-            };
-
-            virtual uintptr_t GetCIP() override {
-                return uintptr_t(&almc);
-            };
-
-            virtual uintptr_t GetPtr() override {
-                return uintptr_t(&alloc);
-            };
+            virtual uintptr_t GetCIP() override { return uintptr_t(&alcmc); };
+            virtual uintptr_t GetPtr() override { return uintptr_t(&alloc); };
 
             virtual uint8_t* GetMapped() override {
                 return nullptr; // TODO: get mapped memory 
@@ -43,11 +35,11 @@ namespace lancer {
             //}
     };
 
-    class VMAllocator : public Allocator, public std::enable_shared_from_this<VMAllocator> {
+    class VMAllocator : public std::enable_shared_from_this<VMAllocator>, public Allocator {
         protected: 
             std::shared_ptr<Device> dvc = {};
+            VmaAllocationCreateInfo amc = {}; // Template
             VmaAllocator vma = {};
-            VmaAllocationInfo almc = {}; // Template
 
         public: 
             VMAllocator(std::shared_ptr<Device>& device){
@@ -55,13 +47,11 @@ namespace lancer {
             };
 
             virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}) override {
-                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, &almc, (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), nullptr);
-                allocation->SetCIP(almc);
+                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, &amc, (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
         
             virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& imc = {}) override {
-                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, &almc, (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), nullptr);
-                allocation->SetCIP(almc);
+                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, &amc, (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
     };
     

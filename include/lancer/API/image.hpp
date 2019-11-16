@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../lib/core.hpp"
+#include "../API/memory.hpp"
 
 namespace lancer {
 
