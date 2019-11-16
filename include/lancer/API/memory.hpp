@@ -4,34 +4,36 @@
 
 namespace lancer {
     
-    /*
-    template<class A>
-    class Memory : public std::enable_shared_from_this<Memory<A>> {
+    class Allocation : public std::enable_shared_from_this<Allocation> {
         protected: 
-            std::shared_ptr<A> allocator = nullptr;
-
+            std::Memory memory = {};
+            uint8_t* mapped = nullptr;
 
         public: 
+            virtual void Free() {};
+            virtual uintptr_t GetPtr() { return 0u; }; // xPEH TB
+            virtual uint8_t* GetMapped() {  return nullptr; };
+            virtual uintptr_t GetCIP() { return 0u; };
+            virtual void SetCIP(const uintptr_t& cip) {};
 
-        Memory(){ allocator = std::make_shared_ptr<A>(); };
-        Memory(const std::shared_ptr<A>& ptr) : allocator(ptr) {};
+            Allocation(){};
 
-        void SetSize(const size_t& size = 0ull) {
-            allocator->SetSize(size);
-        };
-
-        void Allocate(const uintptr_t& ptr = 0ull) {
-            allocator->Allocate(ptr);
-        };
-
-        void AllocateForBuffer(const Buffer& buffer, const uintptr_t& ptr = 0ull){
-            allocator->AllocateForBuffer(buffer, ptr);
-        };
-
-        void AllocateForImage(const Image& image, const uintptr_t& ptr = 0ull){
-            allocator->AllocateForImage(image, ptr);
-        };
+            ~Allocation(){
+                this->Free();
+            }
     };
-    */
+
+    class Allocator : public std::enable_shared_from_this<Allocator> {
+        protected: 
+            std::Memory memory = {};
+            uint8_t* mapped = nullptr;
+            
+        public: 
+            Allocator(){};
+            
+            virtual void AllocateForBuffer(vk::Buffer* buffer, std::shared_ptr<Allocation>& allocation, api::BufferCreateInfo bfc = {});
+            virtual void AllocateForImage(vk::Image* image, std::shared_ptr<Allocation>& allocation, api::ImageCreateInfo bfc = {});
+    };
+
 
 };
