@@ -20,7 +20,7 @@ namespace lancer {
 
             };
 
-            void Create(vk::Image* img, const std::shared_ptr<Allocator>& mem) {
+            void Create(api::Image* img, const std::shared_ptr<Allocator>& mem) {
                 mem->AllocateForImage(img,allocation,imc); if (img) lastimg = *img;
             };
     };

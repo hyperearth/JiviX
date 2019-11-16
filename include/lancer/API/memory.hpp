@@ -3,7 +3,7 @@
 #include "../lib/core.hpp"
 
 namespace lancer {
-    
+
     class Allocation : public std::enable_shared_from_this<Allocation> {
         protected: 
             std::Memory memory = {};
@@ -31,8 +31,8 @@ namespace lancer {
         public: 
             Allocator(){};
             
-            virtual void AllocateForBuffer(vk::Buffer* buffer, std::shared_ptr<Allocation>& allocation, api::BufferCreateInfo bfc = {});
-            virtual void AllocateForImage(vk::Image* image, std::shared_ptr<Allocation>& allocation, api::ImageCreateInfo bfc = {});
+            virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, api::BufferCreateInfo bfc = {});
+            virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, api::ImageCreateInfo bfc = {});
     };
 
 
