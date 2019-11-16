@@ -6,8 +6,9 @@ namespace lancer {
 
     class Allocation : public std::enable_shared_from_this<Allocation> {
         protected: 
-            std::Memory memory = {};
+            api::Memory memory = {};
             uint8_t* mapped = nullptr;
+            std::shared_ptr<Allocator> allocator = nullptr;
 
         public: 
             virtual void Free() {};
@@ -17,22 +18,31 @@ namespace lancer {
             virtual void SetCIP(const uintptr_t& cip) {};
 
             Allocation(){};
+            ~Allocation(){ this->Free(); };
 
-            ~Allocation(){
-                this->Free();
-            }
+            virtual const std::shared_ptr<Device>& GetDevice() const {
+                return allocator->GetDevice();
+            };
     };
 
     class Allocator : public std::enable_shared_from_this<Allocator> {
         protected: 
-            std::Memory memory = {};
+            api::Memory memory = {};
             uint8_t* mapped = nullptr;
+            std::shared_ptr<Device> device = nullptr;
+            std::vector<std::weak_ptr<Allocation>> allocations = {};
             
         public: 
             Allocator(){};
-            
+            ~Allocator(){};
+
+            virtual void Free() {};
             virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, api::BufferCreateInfo bfc = {});
             virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, api::ImageCreateInfo bfc = {});
+
+            virtual const std::shared_ptr<Device>& GetDevice() const {
+                return device;
+            };
     };
 
 

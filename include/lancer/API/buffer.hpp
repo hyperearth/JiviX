@@ -27,13 +27,12 @@ namespace lancer {
             };
 
             // TODO: create buffer view itself 
-            void CreateView(api::BufferView* buf, const api::Buffer& buf, const api::Format& format, const uintptr_t& offset, const usizei_t& size){
+            void CreateView(api::BufferView* buf, const api::Buffer& buf, const api::Format& format, const uintptr_t& offset = 0u, const usizei_t& size = 16u) {
                 auto civ = api::BufferViewCreateInfo{ buf?buf:lastbuf, format, offset, size };
             };
 
-            void CreateRegion(api::DescriptorBufferInfo* buf, const api::Buffer& buf, const uintptr_t& offset, const usizei_t& size){
+            void CreateRegion(api::DescriptorBufferInfo* buf, const api::Buffer& buf, const uintptr_t& offset = 0u, const usizei_t& size = 16u) {
                 *buf = {buf, offset, size};
             };
     };
-
 };
