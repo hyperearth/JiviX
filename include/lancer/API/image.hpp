@@ -9,6 +9,8 @@ namespace lancer {
 
     // TODO: Add Sampler Support 
 
+    #define DEFAULT_IMC api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive).setInitialLayout(api::ImageLayout::eUndefined)
+
     // Vookoo-Like 
     class Image : public std::enable_shared_from_this<Image> {
         protected: 
@@ -23,9 +25,8 @@ namespace lancer {
             api::ImageSubresourceRange sbr = { api::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u };
 
         public: 
-            Image(const std::shared_ptr<Device>& device, api::Image* lastimg = nullptr, api::ImageCreateInfo imc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive).setInitialLayout(api::ImageLayout::eUndefined)) : lastimg(lastimg),imc(imc),device(device) { imc.extent = {1u,1u,1u}; };
-            ~Image(){
-            }; // Here will notification about free memory
+             Image(const std::shared_ptr<Device>& device, api::Image* lastimg = nullptr, api::ImageCreateInfo imc = DEFAULT_IMC) : lastimg(lastimg),imc(imc),device(device) { imc.extent = {1u,1u,1u}; };
+            ~Image(){}; // Here will notification about free memory
 
             // Get original Vulkan link 
             api::Image& Least() { return *lastimg; };
@@ -99,7 +100,7 @@ namespace lancer {
                 *lastimg = device->Least().createImage(imc);
                 return shared_from_this(); };
 
-            // 
+            // Create ImageView 
             std::shared_ptr<Image>& CreateImageView(api::ImageView& imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
                 imv.image = *lastimg;
                 imv.viewType = viewType;
@@ -107,6 +108,12 @@ namespace lancer {
                 imv.components = compmap;
                 imv.subresourceRange = sbr;
                 imgv = device->Least().createImageView(imv); lastimv = &imgv;
+                return shared_from_this(); };
+
+            // Stub for write both in descriptor
+            std::shared_ptr<Image>& CreateImageInfo(api::DescriptorImageInfo& imd){
+                imd.imageView = *lastimv;
+                imd.imageLayout = targetLayout;
                 return shared_from_this(); };
 
             // TODO: add and write into command buffer ImageLayout switch (from originLayout to targetLayout)

@@ -2,6 +2,7 @@
 
 #include "../lib/core.hpp"
 #include "../API/device.hpp"
+
 namespace lancer {
 
     class Allocator;
@@ -13,16 +14,16 @@ namespace lancer {
             std::shared_ptr<Allocator> allocator = nullptr;
             api::MemoryHeap memory = {};
             uint8_t* mapped = nullptr;
-            
+
         public: 
             virtual void Free() {};
             virtual uintptr_t GetPtr() { return 0u; }; // xPEH TB
             virtual uintptr_t GetCIP() { return 0u; }; // xPEH TB
             virtual uint8_t* GetMapped() {  return nullptr; };
 
-            Allocation() = default;
-            Allocation(const std::shared_ptr<Allocator>& allocator){};
             ~Allocation(){ this->Free(); };
+             Allocation() = default;
+             Allocation(const std::shared_ptr<Allocator>& allocator){};
 
             const std::shared_ptr<Device>& GetDevice() const { return allocator->GetDevice(); };
     };
@@ -31,11 +32,11 @@ namespace lancer {
         protected: 
             std::shared_ptr<Device> device = {};
             std::vector<std::weak_ptr<Allocation>> allocations = {};
-            
+
         public: 
-            Allocator() = default;
-            Allocator(const std::shared_ptr<Device>& dvc);
             ~Allocator(){};
+             Allocator() = default;
+             Allocator(const std::shared_ptr<Device>& dvc);
 
             virtual void Free() {};
             virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {});
@@ -43,6 +44,5 @@ namespace lancer {
             const std::shared_ptr<Device>& GetDevice() const { return device; };
 
     };
-
 
 };

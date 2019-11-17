@@ -53,6 +53,8 @@
         "chrono": "cpp",
         "condition_variable": "cpp",
         "ratio": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "fstream": "cpp",
+        "functional": "cpp"
     }
 }

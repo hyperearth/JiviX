@@ -21,11 +21,13 @@ namespace lancer {
             DescriptorSet(const std::shared_ptr<Device>& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
             };
 
+            // 
             api::DescriptorSet& Least() { return *lastdst; };
             operator api::DescriptorSet&() { return *lastdst; };
             const api::DescriptorSet& Least() const { return *lastdst; };
             operator const api::DescriptorSet&() const { return *lastdst; };
 
+            // 
             api::DescriptorImageInfo& AddImageDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = true, const std::vector<api::Sampler>& samplers = {}) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::DescriptorImageInfo)*descriptorCount);
@@ -33,6 +35,7 @@ namespace lancer {
                 return *(api::DescriptorImageInfo*)(&descriptorHeap[pt0]);
             };
 
+            // 
             api::DescriptorBufferInfo& AddBufferDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::DescriptorBufferInfo)*descriptorCount);
@@ -40,6 +43,7 @@ namespace lancer {
                 return *(api::DescriptorBufferInfo*)(&descriptorHeap[pt0]);
             };
 
+            // 
             api::BufferView& AddBufferViewDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::BufferView)*descriptorCount);
@@ -58,6 +62,7 @@ namespace lancer {
                 dlayout = &lays; 
                 return shared_from_this(); };
 
+            // 
             std::shared_ptr<DescriptorSet>& Apply(){
                 api::DescriptorUpdateTemplateCreateInfo createInfo{};
                 createInfo.templateType = api::DescriptorUpdateTemplateType::eDescriptorSet;

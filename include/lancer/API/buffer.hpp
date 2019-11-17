@@ -13,11 +13,8 @@ namespace lancer {
             api::BufferCreateInfo bfc = {};
 
         public: 
-            Buffer(const std::shared_ptr<Device>& device, api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc), device(device) {
-            };
-
-            ~Buffer(){
-            }; // Here will notification about free memory
+             Buffer(const std::shared_ptr<Device>& device, api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc), device(device) {};
+            ~Buffer(){}; // Here will notification about free memory
 
             // Get original Vulkan link 
             api::Buffer& Least() { return *lastbuf; };
