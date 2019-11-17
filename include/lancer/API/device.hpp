@@ -40,8 +40,8 @@ namespace lancer {
             operator const api::Device&() const { return *lastdev; };
 
             // 
-            std::shared_ptr<Device>& Link(api::Device& dev) { lastdev = &dev; return shared_from_this(); };
-            std::shared_ptr<Device>& LinkDescriptorPool(api::DescriptorPool& pool) {
+            std::shared_ptr<Device>&& Link(api::Device& dev) { lastdev = &dev; return shared_from_this(); };
+            std::shared_ptr<Device>&& LinkDescriptorPool(api::DescriptorPool& pool) {
                 dscp = &pool; return shared_from_this();
             };
     };

@@ -10,6 +10,7 @@ namespace lancer {
             std::shared_ptr<Device> device = {};
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
             api::Buffer* lastbuf = nullptr;
+            api::BufferView* lbv = nullptr;
             api::BufferCreateInfo bfc = {};
 
         public: 
@@ -28,35 +29,33 @@ namespace lancer {
             };
 
             //  
-            std::shared_ptr<Buffer>& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            std::shared_ptr<Buffer>&& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 bfc.queueFamilyIndexCount = indices.size();
                 bfc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
 
             // Link Editable Buffer 
-            std::shared_ptr<Buffer>& Link(api::Buffer& buf) { lastbuf = &buf; 
+            std::shared_ptr<Buffer>&& Link(api::Buffer* buf) { lastbuf = buf; 
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Buffer>& Allocate(const std::shared_ptr<Allocator>& mem) {
+            std::shared_ptr<Buffer>&& Allocate(const std::shared_ptr<Allocator>& mem) {
                 mem->AllocateForBuffer(lastbuf,allocation,bfc); 
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Buffer>& Create() { // 
+            std::shared_ptr<Buffer>&& Create() { // 
                 *lastbuf = device->Least().createBuffer(bfc);
                 return shared_from_this(); };
 
             // Create With Buffer View 
-            std::shared_ptr<Buffer>& CreateView(api::BufferView& bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
-                (bfv = allocation->GetDevice()->Least().createBufferView(api::BufferViewCreateInfo{{}, *lastbuf, format, offset, size}));
+            std::shared_ptr<Buffer>&& CreateView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+                (*bfv = allocation->GetDevice()->Least().createBufferView(api::BufferViewCreateInfo{{}, *lastbuf, format, offset, size})); lbv = bfv;
                 return shared_from_this(); };
 
             // Create With Region
-            // TODO: Unify with Vectors
-            std::shared_ptr<Buffer>& CreateRegion(api::DescriptorBufferInfo& reg, const uintptr_t& offset = 0u, const size_t& size = 16u) {
-                (reg = api::DescriptorBufferInfo{*lastbuf, offset, size});
-                return shared_from_this(); };
+            // TODO: another format 
+            std::shared_ptr<BufferRegion<uint8_t>>&& CreateRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = 16u);
     };
 
 
@@ -108,6 +107,14 @@ namespace lancer {
         api::DescriptorBufferInfo* bufInfo = {};
     };
 
+    // defer implement 
+    // TODO: another format 
+    std::shared_ptr<BufferRegion<uint8_t>>&& Buffer::CreateRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+        (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
+        return std::move(std::make_shared<BufferRegion<uint8_t>>(shared_from_this(), reg, offset, size));
+    };
+
+    // Wrap as Vector (like STD)
     template<class T = uint8_t>
     class Vector {
     public:
