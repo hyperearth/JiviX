@@ -22,6 +22,10 @@ namespace lancer {
             const api::Buffer& Least() const { return *lastbuf; };
             operator const api::Buffer&() const { return *lastbuf; };
 
+            // Mapping from Allocator
+            uint8_t* GetMapped(){
+                return allocation->GetMapped();
+            };
 
             //  
             std::shared_ptr<Buffer>& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
