@@ -19,8 +19,9 @@ namespace lancer {
 
     class Device : public std::enable_shared_from_this<Device> {
         protected: 
-            api::Device* lastdev = nullptr;
             api::DeviceCreateInfo div = {};
+            api::Device* lastdev = nullptr;
+            api::DescriptorPool *dscp = nullptr;
 
         public: 
             Device(const std::shared_ptr<Instance>& instance) {
@@ -40,6 +41,9 @@ namespace lancer {
 
             // 
             std::shared_ptr<Device>& Link(api::Device& dev) { lastdev = &dev; return shared_from_this(); };
+            std::shared_ptr<Device>& LinkDescriptorPool(api::DescriptorPool& pool) {
+                dscp = &pool; return shared_from_this();
+            };
     };
 
 

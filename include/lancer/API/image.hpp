@@ -12,6 +12,8 @@ namespace lancer {
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
             api::Image* lastimg = nullptr; // least allocation, may be vector 
             api::ImageCreateInfo imc = {};
+            api::ImageLayout originLayout = api::ImageLayout::eUndefined;
+            api::ImageLayout targetLayout = api::ImageLayout::eGeneral;
 
         public: 
             Image(const std::shared_ptr<Device>& device, api::Image* lastimg = nullptr, api::ImageCreateInfo imc = {}) : lastimg(lastimg),imc(imc),device(device) {
@@ -26,20 +28,22 @@ namespace lancer {
             const vk::Image& Least() const { return *lastimg; };
             operator const vk::Image&() const { return *lastimg; };
 
+            // TODO: add and write into command buffer ImageLayout switch (from originLayout to targetLayout)
+
             // 
             std::shared_ptr<Image>& Link(api::Image& img) { lastimg = &img; return shared_from_this(); };
             std::shared_ptr<Image>& Allocate(const std::shared_ptr<Allocator>& mem) {
                 mem->AllocateForImage(lastimg,allocation,imc); 
-                return shared_from_this();
-            };
+                return shared_from_this(); };
 
             // 
             std::shared_ptr<Image>& Create() {
                 *lastimg = device->Least().createImage(imc);
-                return shared_from_this();
-            };
+                return shared_from_this(); };
 
             // TODO: create ImageView 
+            // TODO: write targetLayout into api::DescriptorImageInfo 
+            // TODO: create for api::DescriptorImageInfo 
     };
 
 };

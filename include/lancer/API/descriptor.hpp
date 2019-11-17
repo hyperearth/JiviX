@@ -7,13 +7,15 @@ namespace lancer {
     
     class DescriptorSet {
         protected: 
-            std::shared_ptr<Device> device = {};
-            api::DescriptorSet* lastdst = {};
+            std::shared_ptr<Device>    device = {};
+            
+            api::DescriptorSet       *lastdst = nullptr;
+            api::DescriptorPool      *dscpool = nullptr;
+            api::DescriptorSetLayout *dlayout = nullptr;
             api::DescriptorSetAllocateInfo info = {};
-            api::DescriptorSetLayout layout = nullptr;
-            api::DescriptorUpdateTemplate descriptorTemplate = nullptr;
             std::vector<uint8_t> descriptorHeap = {}; // sparse descriptor array 
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
+            api::DescriptorUpdateTemplate descriptorTemplate = nullptr;
 
         public:
             DescriptorSet(const std::shared_ptr<Device>& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
@@ -45,13 +47,16 @@ namespace lancer {
                 return *(api::BufferView*)(&descriptorHeap[pt0]);
             };
 
+            std::shared_ptr<DescriptorSet>& Create(const api::DescriptorPool& pool) { // TODO: create descriptor set and layout
+                return shared_from_this(); };
+
             std::shared_ptr<DescriptorSet>& Link(api::DescriptorSet& desc) { 
-                lastdst = &desc; return shared_from_this();
-            };
+                lastdst = &desc; 
+                return shared_from_this(); };
 
             std::shared_ptr<DescriptorSet>& LinkLayout(api::DescriptorSetLayout& lays) { 
-                layout = &lays; return shared_from_this(); 
-            };
+                dlayout = &lays; 
+                return shared_from_this(); };
 
             std::shared_ptr<DescriptorSet>& Apply(){
                 api::DescriptorUpdateTemplateCreateInfo createInfo{};
@@ -59,7 +64,7 @@ namespace lancer {
                 createInfo.flags = {};
                 createInfo.descriptorUpdateEntryCount = descriptorEntries.size();
                 createInfo.pDescriptorUpdateEntries = descriptorEntries.data();
-                createInfo.descriptorSetLayout = layout;
+                createInfo.descriptorSetLayout = *dlayout;
 
                 // IGNORE due isn't push descriptor 
                 //createInfo.pipelineBindPoint = 0u;
@@ -68,11 +73,10 @@ namespace lancer {
 
                 // 
                 device->Least().createDescriptorUpdateTemplate(&createInfo,nullptr,&descriptorTemplate); // TODO: destroy previous template 
-                device->Least().updateDescriptorSetWithTemplate(dsmc?dsmc:lastdst,descriptorTemplate,descriptorHeap.data()); // 
-                if (dsmc) dsmc = lastdst; // Apply already got descriptorSet
+                device->Least().updateDescriptorSetWithTemplate(*lastdst,descriptorTemplate,descriptorHeap.data()); // 
 
-                return shared_from_this(); 
-            };
+                // 
+                return shared_from_this(); };
         
     }; 
 
