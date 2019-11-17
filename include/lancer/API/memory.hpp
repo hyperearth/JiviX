@@ -39,8 +39,8 @@ namespace lancer {
              Allocator(const std::shared_ptr<Device>& dvc);
 
             virtual void Free() {};
-            virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}, const uint32_t& ptx = 0u);
-            virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& bfc = {}, const uint32_t& ptx = 0u);
+            virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
+            virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
             const std::shared_ptr<Device>& GetDevice() const { return device; };
 
     };
