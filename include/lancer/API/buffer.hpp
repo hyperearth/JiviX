@@ -39,8 +39,8 @@ namespace lancer {
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Buffer>&& Allocate(const std::shared_ptr<Allocator>& mem) {
-                mem->AllocateForBuffer(lastbuf,allocation,bfc); 
+            std::shared_ptr<Buffer>&& Allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
+                mem->AllocateForBuffer(lastbuf,allocation=std::make_shared<Allocation>(),bfc,ptx); 
                 return shared_from_this(); };
 
             // 

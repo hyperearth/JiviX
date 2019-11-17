@@ -17,8 +17,8 @@ namespace lancer {
             std::shared_ptr<Device> device = {};
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
             api::Image* lastimg = nullptr; // least allocation, may be vector 
-            api::ImageCreateInfo imc = {};
             api::ImageView* lastimv = nullptr;
+            api::ImageCreateInfo imc = {};
             api::ImageViewCreateInfo imv = {};
             api::ImageLayout originLayout = api::ImageLayout::eUndefined;
             api::ImageLayout targetLayout = api::ImageLayout::eGeneral;
@@ -68,8 +68,8 @@ namespace lancer {
 
             // 
             std::shared_ptr<Image>&& Link(api::Image* img) { lastimg = img; return shared_from_this(); };
-            std::shared_ptr<Image>&& Allocate(const std::shared_ptr<Allocator>& mem) {
-                mem->AllocateForImage(lastimg,allocation,imc);
+            std::shared_ptr<Image>&& Allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
+                mem->AllocateForImage(lastimg,allocation=std::make_shared<Allocation>(),imc,ptx);
                 return shared_from_this(); };
 
             // TODO: unify types 

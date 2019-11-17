@@ -23,14 +23,12 @@ namespace lancer {
             VMAllocation(VmaAllocation& allocation, VmaAllocationInfo& alloc_info) : alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {};
 
             virtual void Free() override { // after notify for de-allocation
-
+                
             };
 
             virtual uintptr_t GetCIP() override { return uintptr_t(&alcmc); };
             virtual uintptr_t GetPtr() override { return uintptr_t(&alloc); };
-            virtual uint8_t* GetMapped() override {
-                return nullptr; // TODO: get mapped memory 
-            };
+            virtual uint8_t* GetMapped() override { return (uint8_t*)alcmc.pMappedData; };
 
             // TODO: smart de-allocate memory 
             //~VMAllocation(){
@@ -45,16 +43,16 @@ namespace lancer {
             VmaAllocator vma = {};
 
         public: 
-            VMAllocator(const std::shared_ptr<Device>& dvc) : dvc(device) {};
+            VMAllocator(const std::shared_ptr<Device>& dvc) : dvc(device) {}; // TODO: Allocator Construction 
 
             // 
-            virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}) override {
-                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, &amc, (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
+            virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}, const uint32_t& ptx = 0u) override {
+                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, ptx?(VmaAllocationCreateInfo*)(ptx):(&amc), (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
 
             // 
-            virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& imc = {}) override {
-                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, &amc, (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
+            virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& imc = {}, const uint32_t& ptx = 0u) override {
+                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, ptx?(VmaAllocationCreateInfo*)(ptx):(&amc), (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
     };
 
