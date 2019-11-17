@@ -25,6 +25,13 @@ namespace lancer {
             const vk::Buffer& Least() const { return *lastbuf; };
             operator const vk::Buffer&() const { return *lastbuf; };
 
+
+            //  
+            std::shared_ptr<Buffer>& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+                bfc.queueFamilyIndexCount = indices.size();
+                bfc.pQueueFamilyIndices = indices.data();
+                return shared_from_this(); };
+
             // Link Editable Buffer 
             std::shared_ptr<Buffer>& Link(api::Buffer& buf) { lastbuf = &buf; 
                 return shared_from_this(); };

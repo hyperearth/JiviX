@@ -15,8 +15,8 @@ namespace lancer {
             std::shared_ptr<Device> device = {};
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
             api::Image* lastimg = nullptr; // least allocation, may be vector 
-            api::ImageView* lastimv = nullptr;
             api::ImageCreateInfo imc = {};
+            api::ImageView* lastimv = nullptr;
             api::ImageViewCreateInfo imv = {};
             api::ImageLayout originLayout = api::ImageLayout::eUndefined;
             api::ImageLayout targetLayout = api::ImageLayout::eGeneral;
@@ -24,7 +24,6 @@ namespace lancer {
 
         public: 
             Image(const std::shared_ptr<Device>& device, api::Image* lastimg = nullptr, api::ImageCreateInfo imc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive).setInitialLayout(api::ImageLayout::eUndefined)) : lastimg(lastimg),imc(imc),device(device) { imc.extent = {1u,1u,1u}; };
-
             ~Image(){
             }; // Here will notification about free memory
 
@@ -40,23 +39,28 @@ namespace lancer {
                 sbr = subres; // For ImageView create 
                 return shared_from_this(); };
 
+            // 
             std::shared_ptr<Image>& MipLevels(const uint32_t& mipLevels = 1) {
                 imc.mipLevels = mipLevels;
                 return shared_from_this(); };
 
+            // 
             std::shared_ptr<Image>& SampleCount(const api::SampleCountFlagBits& samples = api::SampleCountFlagBits::e1) {
                 imc.samples = samples;
                 return shared_from_this(); };
 
+            // 
             std::shared_ptr<Image>& Tiling(const api::ImageTiling& tiling = api::ImageTiling::eOptimal) {
                 imc.tiling = tiling;
                 return shared_from_this(); };
 
+            // 
             std::shared_ptr<Image>& Usage(const api::ImageUsageFlags& usage = api::ImageUsageFlagBits::eStorage) {
                 imc.usage = usage;
                 return shared_from_this(); };
 
-             std::shared_ptr<Image>& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            // 
+            std::shared_ptr<Image>& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 imc.queueFamilyIndexCount = indices.size();
                 imc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
