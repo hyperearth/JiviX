@@ -45,17 +45,14 @@ namespace lancer {
             VmaAllocator vma = {};
 
         public: 
-            VMAllocator(std::shared_ptr<Device>& dvc){
-                device = dvc;
-            };
+            VMAllocator(const std::shared_ptr<Device>& dvc) : dvc(device) {};
 
             virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}) override {
                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, &amc, (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
-        
+
             virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& imc = {}) override {
                 vmaCreateImage(vma, (VkImageCreateInfo*)&imc, &amc, (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
     };
-    
 };

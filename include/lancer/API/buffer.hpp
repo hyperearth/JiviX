@@ -13,16 +13,11 @@ namespace lancer {
             api::BufferCreateInfo bfc = {};
 
         public: 
-            Buffer(api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(vk::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc) {
+            Buffer(const std::shared_ptr<Device>& device, api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(vk::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc), device(device) {
             };
 
             ~Buffer(){
             }; // Here will notification about free memory
-
-            std::shared_ptr<Buffer>& Create() { // 
-                *lastbuf = device->Least().createBuffer(bfc);
-                return shared_from_this();
-            };
 
             // Get original Vulkan link 
             vk::Buffer& Least() { return *lastbuf; };
@@ -31,9 +26,15 @@ namespace lancer {
             operator const vk::Buffer&() const { return *lastbuf; };
 
             // Link Editable Buffer 
-            std::shared_ptr<Buffer>& LinkBuffer(api::Buffer& buf) { lastbuf = &buf; return shared_from_this(); };
+            std::shared_ptr<Buffer>& Link(api::Buffer& buf) { lastbuf = &buf; return shared_from_this(); };
             std::shared_ptr<Buffer>& Allocate(const std::shared_ptr<Allocator>& mem){ 
                 mem->AllocateForBuffer(lastbuf,allocation,bfc); return shared_from_this(); 
+            };
+
+            // 
+            std::shared_ptr<Buffer>& Create() { // 
+                *lastbuf = device->Least().createBuffer(bfc);
+                return shared_from_this();
             };
 
             // Create With Buffer View 

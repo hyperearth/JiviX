@@ -20,7 +20,8 @@ namespace lancer {
             virtual uintptr_t GetCIP() { return 0u; }; // xPEH TB
             virtual uint8_t* GetMapped() {  return nullptr; };
 
-            Allocation(){};
+            Allocation() = default;
+            Allocation(const std::shared_ptr<Allocator>& allocator){};
             ~Allocation(){ this->Free(); };
 
             const std::shared_ptr<Device>& GetDevice() const { return allocator->GetDevice(); };
@@ -32,7 +33,8 @@ namespace lancer {
             std::vector<std::weak_ptr<Allocation>> allocations = {};
             
         public: 
-            Allocator(){};
+            Allocator() = default;
+            Allocator(const std::shared_ptr<Device>& dvc);
             ~Allocator(){};
 
             virtual void Free() {};

@@ -6,7 +6,6 @@
 namespace lancer {
     
     class DescriptorSet {
-        
         protected: 
             std::shared_ptr<Device> device = {};
             api::DescriptorSet* lastdst = {};
@@ -17,7 +16,7 @@ namespace lancer {
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
 
         public:
-            DescriptorSet(api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info) {
+            DescriptorSet(const std::shared_ptr<Device>& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
             };
 
             vk::DescriptorSet& Least() { return *lastdst; };
@@ -46,11 +45,11 @@ namespace lancer {
                 return *(api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            std::shared_ptr<DescriptorSet>& LinkDescriptorSet(api::DescriptorSet& desc) { 
+            std::shared_ptr<DescriptorSet>& Link(api::DescriptorSet& desc) { 
                 lastdst = &desc; return shared_from_this();
             };
-            
-            std::shared_ptr<DescriptorSet>& LinkDescriptorSetLayout(api::DescriptorSetLayout& lays) { 
+
+            std::shared_ptr<DescriptorSet>& LinkLayout(api::DescriptorSetLayout& lays) { 
                 layout = &lays; return shared_from_this(); 
             };
 
