@@ -21,10 +21,10 @@ namespace lancer {
             DescriptorSet(const std::shared_ptr<Device>& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
             };
 
-            vk::DescriptorSet& Least() { return *lastdst; };
-            operator vk::DescriptorSet&() { return *lastdst; };
-            const vk::DescriptorSet& Least() const { return *lastdst; };
-            operator const vk::DescriptorSet&() const { return *lastdst; };
+            api::DescriptorSet& Least() { return *lastdst; };
+            operator api::DescriptorSet&() { return *lastdst; };
+            const api::DescriptorSet& Least() const { return *lastdst; };
+            operator const api::DescriptorSet&() const { return *lastdst; };
 
             api::DescriptorImageInfo& AddImageDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = true, const std::vector<api::Sampler>& samplers = {}) {
                 const uintptr_t pt0 = descriptorHeap.size();
