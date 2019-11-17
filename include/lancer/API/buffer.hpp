@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include "../lib/core.hpp"
 #include "../API/memory.hpp"
 
@@ -109,7 +110,7 @@ namespace lancer {
 
     // defer implement 
     // TODO: another format 
-    std::shared_ptr<BufferRegion<uint8_t>>&& Buffer::CreateRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+    inline std::shared_ptr<BufferRegion<uint8_t>>&& Buffer::CreateRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
         (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
         return std::move(std::make_shared<BufferRegion<uint8_t>>(shared_from_this(), reg, offset, size));
     };
