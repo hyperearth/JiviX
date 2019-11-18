@@ -44,7 +44,9 @@ namespace lancer {
             VmaAllocator vma = {};
 
         public: 
-            VMAllocator(const std::shared_ptr<Device>& dvc) : dvc(device) {}; // TODO: Allocator Construction 
+            VMAllocator(const std::shared_ptr<Device>& dvc) : dvc(device) {
+                this->Initialize(dvc);
+            };
 
             // 
             virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
@@ -57,7 +59,7 @@ namespace lancer {
             };
 
             // 
-            virtual void Initialize(const std::shared_ptr<Device>& device = {}) override (const std::shared_ptr<Device>& device) {
+            virtual void Initialize(const std::shared_ptr<Device>& device = {}) override {
 #ifdef VOLK_H_
                 // load API calls for context
                 volkLoadDevice(api::Device(*device));

@@ -8,7 +8,6 @@ namespace lancer {
     class DescriptorSet {
         protected: 
             std::shared_ptr<Device>    device = {};
-            
             api::DescriptorSet       *lastdst = nullptr;
             api::DescriptorPool      *dscpool = nullptr;
             api::DescriptorSetLayout *dlayout = nullptr;

@@ -119,9 +119,11 @@ namespace vkt
     public:
         ComputeFramework() {};
 
+        std::shared_ptr<Instance> instance = {};
+        std::shared_ptr<Device> device = {};
         api::Queue queue = {};
-        api::Device device = {};
-        api::Instance instance = {};
+        api::Device _device = {};
+        api::Instance _instance = {};
         api::PhysicalDevice physicalDevice = {};
         api::Fence fence = {};
         api::CommandPool commandPool = {};
@@ -163,7 +165,7 @@ namespace vkt
         } applicationWindow = {};
 
     public:
-        api::Instance createInstance() {
+        std::shared_ptr<Instance> createInstance() {
 
 #ifdef VOLK_H_
             volkInitialize();
@@ -214,7 +216,7 @@ namespace vkt
             auto appinfo = VkApplicationInfo(api::ApplicationInfo{});
             appinfo.pNext = nullptr;
             appinfo.pApplicationName = "VKTest";
-            appinfo.apiVersion = VK_MAKE_VERSION(1, 1, 106);
+            appinfo.apiVersion = VK_MAKE_VERSION(1, 1, 126);
 
             // create instance info
             auto cinstanceinfo = VkInstanceCreateInfo(api::InstanceCreateInfo{});
@@ -224,16 +226,18 @@ namespace vkt
             cinstanceinfo.enabledLayerCount = layers.size();
             cinstanceinfo.ppEnabledLayerNames = layers.data();
 
-            // create instance
-            vkCreateInstance(&cinstanceinfo, {}, (VkInstance*)& instance);
+            // 
+            instance = std::make_shared<Instance>(&_instance, cinstanceinfo)->Create();
 
             // get physical device for application
-            physicalDevices = instance.enumeratePhysicalDevices();
+            physicalDevices = _instance.enumeratePhysicalDevices();
 
+            // 
             return instance;
         };
 
-        api::Device createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
+        std::shared_ptr<Device> createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
+            // TODO: merge into Device class 
 
             // use extensions
             auto deviceExtensions = std::vector<const char*>();
@@ -293,9 +297,9 @@ namespace vkt
 
             // if have supported queue family, then use this device
             if (queueCreateInfos.size() > 0) {
-                // create device
                 this->physicalDevice = physicalDevice;
-                this->device = physicalDevice.createDevice(api::DeviceCreateInfo().setFlags(api::DeviceCreateFlags())
+                this->physicalHelper = std::make_shared<PhysicalDeviceHelper>(this->physicalDevice);
+                this->device = std::make_shared<Device>(this->physicalHelper, &_device, api::DeviceCreateInfo().setFlags(api::DeviceCreateFlags())
                     .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
                     .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
                     .setPpEnabledExtensionNames(deviceExtensions.data()).setEnabledExtensionCount(deviceExtensions.size())
@@ -304,14 +308,12 @@ namespace vkt
 
             // return device with queue pointer
             const uint32_t qptr = 0;
-            this->fence = this->device.createFence(api::FenceCreateInfo().setFlags({}));
+            this->fence = this->_device.createFence(api::FenceCreateInfo().setFlags({}));
             this->queueFamilyIndex = queueFamilyIndices[qptr];
-            this->commandPool = this->device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
-            this->queue = this->device.getQueue(queueFamilyIndex, 0); // deferred getting of queue
-
-            // 
-            return device;
-        }
+            this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
+            this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
+            return device->Allocator(this->allocator=std::make_shared<VMAllocator>(device))->Initialize();
+        };
 
         // create window and surface for this application (multi-window not supported)
         inline SurfaceWindow& createWindowSurface(GLFWwindow * window, uint32_t WIDTH, uint32_t HEIGHT, std::string title = "TestApp") {
