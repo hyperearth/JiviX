@@ -55,6 +55,22 @@
         "ratio": "cpp",
         "string": "cpp",
         "fstream": "cpp",
-        "functional": "cpp"
-    }
+        "functional": "cpp",
+        "cfenv": "cpp",
+        "cinttypes": "cpp",
+        "cstdarg": "cpp",
+        "ctime": "cpp",
+        "iomanip": "cpp",
+        "locale": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "sstream": "cpp",
+        "unordered_set": "cpp",
+        "xlocbuf": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp",
+        "xtree": "cpp"
+    },
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }
