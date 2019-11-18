@@ -44,8 +44,8 @@ namespace lancer {
             VmaAllocator vma = {};
 
         public: 
-            VMAllocator(const std::shared_ptr<Device>& dvc) : dvc(device) {
-                this->Initialize(dvc);
+            VMAllocator(const std::shared_ptr<Device>& dvc = {}) : dvc(device) {
+                if (dvc) { this->Initialize(dvc); };
             };
 
             // 

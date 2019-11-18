@@ -121,14 +121,17 @@ namespace vkt
 
         std::shared_ptr<Instance> instance = {};
         std::shared_ptr<Device> device = {};
+        std::shared_ptr<Allocator> allocator = {};
         api::Fence fence = {};
         api::Queue queue = {};
         api::Device _device = {};
         api::Instance _instance = {};
+        api::DescriptorPool descriptorPool = {};
         api::PhysicalDevice physicalDevice = {};
         api::CommandPool commandPool = {};
-        api::DescriptorPool descPool = {};
         api::RenderPass renderpass = {};
+        api::Image depthImage = {};
+        api::ImageView depthImageView = {};
         uint32_t queueFamilyIndex = 0;
 
         std::vector<api::PhysicalDevice> physicalDevices = {};
@@ -237,7 +240,7 @@ namespace vkt
             return instance;
         };
 
-        std::shared_ptr<Device> createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
+        std::shared_ptr<Device>& createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
             // TODO: merge into Device class 
 
             // use extensions
@@ -298,8 +301,7 @@ namespace vkt
 
             // if have supported queue family, then use this device
             if (queueCreateInfos.size() > 0) {
-                this->physicalDevice = physicalDevice;
-                this->physicalHelper = std::make_shared<PhysicalDeviceHelper>(this->physicalDevice);
+                this->physicalHelper = std::make_shared<PhysicalDeviceHelper>(this->physicalDevice = physicalDevice);
                 this->device = std::make_shared<Device>(this->physicalHelper, &_device, api::DeviceCreateInfo().setFlags(api::DeviceCreateFlags())
                     .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
                     .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
@@ -316,7 +318,7 @@ namespace vkt
             return device
                 ->Link(_device)
                 ->LinkPhysicalHelper(this->physicalHelper)
-                ->LinkDescriptorPool(this->descPool)
+                ->LinkDescriptorPool(this->descriptorPool)
                 ->LinkAllocator(this->allocator=std::make_shared<VMAllocator>(device))->Initialize(); // Finally Initiate Device 
         };
 
@@ -426,7 +428,7 @@ namespace vkt
             return sfd;
         }
 
-        inline api::RenderPass createRenderpass(const std::shared_ptr<lancer::Device> & devp)
+        inline api::RenderPass createRenderpass()
         {
             auto formats = applicationWindow.surfaceFormat;
 
@@ -505,84 +507,79 @@ namespace vkt
         }
 
         // update swapchain framebuffer
-        inline void updateSwapchainFramebuffer(const std::shared_ptr<lancer::Device> & devp, api::SwapchainKHR & swapchain, api::RenderPass & renderpass, std::vector<Framebuffer> & swapchainBuffers)
-        { // TODO: No VMA support i.e. unified allocator 
-            /*
+        inline void updateSwapchainFramebuffer(api::SwapchainKHR & swapchain, api::RenderPass & renderpass, std::vector<Framebuffer> & swapchainBuffers)
+        {
             // The swapchain handles allocating frame images.
             auto formats = applicationWindow.surfaceFormat;
             auto gpuMemoryProps = physicalDevice.getMemoryProperties();
 
-            auto imageInfoVK = VkImageCreateInfo(api::ImageCreateInfo{});
+            // 
+            auto imageInfoVK = api::ImageCreateInfo{};
             imageInfoVK.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             imageInfoVK.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageInfoVK.flags = 0;
             imageInfoVK.pNext = nullptr;
             imageInfoVK.arrayLayers = 1;
-            imageInfoVK.extent = VkExtent3D{ applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 };
-            imageInfoVK.format = VkFormat(formats.depthFormat);
+            imageInfoVK.extent = { applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 };
+            imageInfoVK.format = { formats.depthFormat };
             imageInfoVK.imageType = VK_IMAGE_TYPE_2D;
             imageInfoVK.mipLevels = 1;
-            //imageInfoVK.pQueueFamilyIndices = &queue->device->queues[1]->familyIndex;
-            //imageInfoVK.queueFamilyIndexCount = 1;
             imageInfoVK.samples = VK_SAMPLE_COUNT_1_BIT;
             imageInfoVK.tiling = VK_IMAGE_TILING_OPTIMAL;
             imageInfoVK.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-            VkImage depthImage = {};
-
+            // 
             VmaAllocationCreateInfo allocCreateInfo = {};
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-            VmaAllocation _allocation = {};
-            vmaCreateImage(*devp, &imageInfoVK, &allocCreateInfo, &depthImage, &_allocation, nullptr); // allocators planned structs
+            // next-gen create image
+            auto imageMaker = std::make_shared<Image>(device, &depthImage, imageInfoVK);
+            imageMaker->Create2D(formats.depthFormat, applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height)->Allocate(allocator, (uintptr_t)&allocCreateInfo); // 
 
             // image view for usage
-            auto vinfo = VkImageViewCreateInfo(api::ImageViewCreateInfo{});
+            auto vinfo = api::ImageViewCreateInfo{};
             vinfo.subresourceRange = api::ImageSubresourceRange{ api::ImageAspectFlagBits::eDepth | api::ImageAspectFlagBits::eStencil, 0, 1, 0, 1 };
             vinfo.flags = 0;
-
             vinfo.pNext = nullptr;
             vinfo.components = VkComponentMapping{ VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
             vinfo.format = VkFormat(formats.depthFormat);
             vinfo.image = depthImage;
             vinfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            depthImageView = api::Device(*device).createImageView(api::ImageViewCreateInfo(vinfo));
 
-            VkImageView depthImageView = {};
-            depthImageView = api::Device(*devp).createImageView(api::ImageViewCreateInfo(vinfo));
-
-            auto swapchainImages = api::Device(*devp).getSwapchainImagesKHR(swapchain);
+            // 
+            auto swapchainImages = api::Device(*device).getSwapchainImagesKHR(swapchain);
             swapchainBuffers.resize(swapchainImages.size());
             for (int i = 0; i < swapchainImages.size(); i++)
             { // create framebuffers
                 api::Image image = swapchainImages[i]; // prelink images
                 std::array<api::ImageView, 2> views = {}; // predeclare views
-                views[0] = api::Device(*devp).createImageView(api::ImageViewCreateInfo{ {}, image, api::ImageViewType::e2D, formats.colorFormat, api::ComponentMapping(), api::ImageSubresourceRange{api::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
+                views[0] = api::Device(*device).createImageView(api::ImageViewCreateInfo{ {}, image, api::ImageViewType::e2D, formats.colorFormat, api::ComponentMapping(), api::ImageSubresourceRange{api::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
                 views[1] = depthImageView; // depth view
-                swapchainBuffers[i].frameBuffer = api::Device(*devp).createFramebuffer(api::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 });
+                swapchainBuffers[i].frameBuffer = api::Device(*device).createFramebuffer(api::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 });
             }
-            */
         }
 
-        inline std::vector<Framebuffer> createSwapchainFramebuffer(const std::shared_ptr<lancer::Device> & devp, api::SwapchainKHR swapchain, api::RenderPass renderpass) {
+        inline std::vector<Framebuffer> createSwapchainFramebuffer(api::SwapchainKHR swapchain, api::RenderPass renderpass) {
             // framebuffers vector
             std::vector<Framebuffer> swapchainBuffers = {};
-            updateSwapchainFramebuffer(devp, swapchain, renderpass, swapchainBuffers);
+            updateSwapchainFramebuffer(device, swapchain, renderpass, swapchainBuffers);
             for (int i = 0; i < swapchainBuffers.size(); i++)
             { // create semaphore
-                swapchainBuffers[i].semaphore = api::Device(*devp).createSemaphore(api::SemaphoreCreateInfo());
-                swapchainBuffers[i].waitFence = api::Device(*devp).createFence(api::FenceCreateInfo().setFlags(api::FenceCreateFlagBits::eSignaled));
+                swapchainBuffers[i].semaphore = api::Device(*device).createSemaphore(api::SemaphoreCreateInfo());
+                swapchainBuffers[i].waitFence = api::Device(*device).createFence(api::FenceCreateInfo().setFlags(api::FenceCreateFlagBits::eSignaled));
             }
             return swapchainBuffers;
         }
 
         // create swapchain template
-        inline api::SwapchainKHR createSwapchain(const std::shared_ptr<lancer::Device> & devp)
+        inline api::SwapchainKHR createSwapchain()
         {
             api::SurfaceKHR surface = applicationWindow.surface;
             SurfaceFormat& formats = applicationWindow.surfaceFormat;
 
-            auto surfaceCapabilities = api::PhysicalDevice(*devp).getSurfaceCapabilitiesKHR(surface);
-            auto surfacePresentModes = api::PhysicalDevice(*devp).getSurfacePresentModesKHR(surface);
+            auto surfaceCapabilities = api::PhysicalDevice(*device).getSurfaceCapabilitiesKHR(surface);
+            auto surfacePresentModes = api::PhysicalDevice(*device).getSurfacePresentModesKHR(surface);
 
             // check the surface width/height.
             if (!(surfaceCapabilities.currentExtent.width == -1 ||
@@ -611,15 +608,13 @@ namespace vkt
             swapchainCreateInfo.imageArrayLayers = 1;
             swapchainCreateInfo.imageUsage = api::ImageUsageFlagBits::eColorAttachment;
             swapchainCreateInfo.imageSharingMode = api::SharingMode::eExclusive;
-            //swapchainCreateInfo.queueFamilyIndexCount = 1;
-            //swapchainCreateInfo.pQueueFamilyIndices = &queue->device->queues[1]->familyIndex;
             swapchainCreateInfo.preTransform = api::SurfaceTransformFlagBitsKHR::eIdentity;
             swapchainCreateInfo.compositeAlpha = api::CompositeAlphaFlagBitsKHR::eOpaque;
             swapchainCreateInfo.presentMode = presentMode;
             swapchainCreateInfo.clipped = true;
 
             // create swapchain
-            return api::Device(*devp).createSwapchainKHR(swapchainCreateInfo, nullptr);
+            return api::Device(*device).createSwapchainKHR(swapchainCreateInfo, nullptr);
         }
     };
 

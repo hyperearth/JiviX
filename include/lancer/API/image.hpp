@@ -72,7 +72,7 @@ namespace lancer {
                 mem->AllocateForImage(lastimg,allocation=std::make_shared<Allocation>(),imc,ptx);
                 return shared_from_this(); };
 
-            // TODO: unify types 
+
             // Create 1D "Canvas" 
             std::shared_ptr<Image>&& Create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
                 imc.imageType = api::ImageType::e1D;
