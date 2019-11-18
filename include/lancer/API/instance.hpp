@@ -15,7 +15,7 @@ namespace lancer {
             
         public: 
             Instance(api::Instance* instance = nullptr, api::InstanceCreateInfo info = {}) : lastinst(instance), cif(info) {
-                
+                *instance = vk::createInstance(info);
             };
     };
 

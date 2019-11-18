@@ -182,11 +182,10 @@ namespace lancer {
 
     class Device : public std::enable_shared_from_this<Device> {
         protected: 
-            api::PipelineCache pipelineCache = {};
-            api::DescriptorPool descriptorPool = {};
             api::DeviceCreateInfo dfc = {};
+            api::PipelineCache pipelineCache = {};
+            api::DescriptorPool* descriptorPool = nullptr;
             api::Device* device = nullptr;
-            api::DescriptorPool *dscp = nullptr;
             std::shared_ptr<PhysicalDeviceHelper> physicalHelper = {};
             std::shared_ptr<Allocator> allocator = {};
 
@@ -203,10 +202,10 @@ namespace lancer {
 
             // 
             std::shared_ptr<Device>&& Initialize();
-            std::shared_ptr<Device>&& Allocator(const std::shared_ptr<Allocator>& allocator) { this->allocator = allocator; return shared_from_this(); };
-            std::shared_ptr<Device>&& PhysicalHelper(const std::shared_ptr<PhysicalDeviceHelper>& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
+            std::shared_ptr<Device>&& LinkAllocator(const std::shared_ptr<Allocator>& allocator) { this->allocator = allocator; return shared_from_this(); };
+            std::shared_ptr<Device>&& LinkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
+            std::shared_ptr<Device>&& LinkPhysicalHelper(const std::shared_ptr<PhysicalDeviceHelper>& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
             std::shared_ptr<Device>&& Link(api::Device& dev) { device = &dev; return shared_from_this(); };
-            std::shared_ptr<Device>&& LinkDescriptorPool(api::DescriptorPool& pool) { dscp = &pool; return shared_from_this(); };
             const std::shared_ptr<PhysicalDeviceHelper>& GetHelper() const { return physicalHelper; };
     };
 
@@ -220,7 +219,7 @@ namespace lancer {
         if ( this->allocator) { Allocator->Initialize(shared_from_this()); };
 
         // descriptor pool
-        if (!this->descriptorPool)
+        if ( this->descriptorPool && *this->descriptorPool == nullptr)
         {
             // pool sizes, and create descriptor pool
             std::vector<api::DescriptorPoolSize> psizes = { };
@@ -230,9 +229,8 @@ namespace lancer {
             psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eUniformBuffer).setDescriptorCount(128));
             psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eAccelerationStructureNV).setDescriptorCount(128));
 
-            api::DescriptorPoolInlineUniformBlockCreateInfoEXT inlineDescPool{};
-            inlineDescPool.maxInlineUniformBlockBindings = 2;
-            this->descriptorPool = api::Device(*this).createDescriptorPool(api::DescriptorPoolCreateInfo().setPNext(&inlineDescPool).setPPoolSizes(psizes.data()).setPoolSizeCount(psizes.size()).setMaxSets(256).setFlags(api::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | api::DescriptorPoolCreateFlagBits::eUpdateAfterBindEXT));
+            api::DescriptorPoolInlineUniformBlockCreateInfoEXT inlineDescPool{.maxInlineUniformBlockBindings = 2};
+            *this->descriptorPool = api::Device(*this).createDescriptorPool(api::DescriptorPoolCreateInfo().setPNext(&inlineDescPool).setPPoolSizes(psizes.data()).setPoolSizeCount(psizes.size()).setMaxSets(256).setFlags(api::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | api::DescriptorPoolCreateFlagBits::eUpdateAfterBindEXT));
         };
 
         // pipeline cache 

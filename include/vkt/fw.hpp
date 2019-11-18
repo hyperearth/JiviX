@@ -121,12 +121,13 @@ namespace vkt
 
         std::shared_ptr<Instance> instance = {};
         std::shared_ptr<Device> device = {};
+        api::Fence fence = {};
         api::Queue queue = {};
         api::Device _device = {};
         api::Instance _instance = {};
         api::PhysicalDevice physicalDevice = {};
-        api::Fence fence = {};
         api::CommandPool commandPool = {};
+        api::DescriptorPool descPool = {};
         api::RenderPass renderpass = {};
         uint32_t queueFamilyIndex = 0;
 
@@ -227,7 +228,7 @@ namespace vkt
             cinstanceinfo.ppEnabledLayerNames = layers.data();
 
             // 
-            instance = std::make_shared<Instance>(&_instance, cinstanceinfo)->Create();
+            instance = std::make_shared<Instance>(&_instance, cinstanceinfo);//->Create();
 
             // get physical device for application
             physicalDevices = _instance.enumeratePhysicalDevices();
@@ -312,7 +313,11 @@ namespace vkt
             this->queueFamilyIndex = queueFamilyIndices[qptr];
             this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
             this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
-            return device->Allocator(this->allocator=std::make_shared<VMAllocator>(device))->Initialize();
+            return device
+                ->Link(_device)
+                ->LinkPhysicalHelper(this->physicalHelper)
+                ->LinkDescriptorPool(this->descPool)
+                ->LinkAllocator(this->allocator=std::make_shared<VMAllocator>(device))->Initialize(); // Finally Initiate Device 
         };
 
         // create window and surface for this application (multi-window not supported)
@@ -447,7 +452,6 @@ namespace vkt
                     .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
                     .setInitialLayout(api::ImageLayout::eUndefined)
                     .setFinalLayout(api::ImageLayout::eDepthStencilAttachmentOptimal)
-
             };
 
             // attachments references
@@ -502,7 +506,7 @@ namespace vkt
 
         // update swapchain framebuffer
         inline void updateSwapchainFramebuffer(const std::shared_ptr<lancer::Device> & devp, api::SwapchainKHR & swapchain, api::RenderPass & renderpass, std::vector<Framebuffer> & swapchainBuffers)
-        { // TODO: No VMA support 
+        { // TODO: No VMA support i.e. unified allocator 
             /*
             // The swapchain handles allocating frame images.
             auto formats = applicationWindow.surfaceFormat;
