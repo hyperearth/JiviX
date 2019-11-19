@@ -52,16 +52,16 @@ namespace lancer {
 
             // 
             virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
-                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, ptx?(VmaAllocationCreateInfo*)(ptx):(&amc), (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
+                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
 
             // 
             virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
-                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, ptx?(VmaAllocationCreateInfo*)(ptx):(&amc), (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
+                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
 
             // Sometimes required special allocation
-            virtual std::shared_ptr<Allocation>&& CreateAllocation() override { return std::dynamic_cast<Allocation>(std::make_shared<VMAllocation>(*this)); };
+            virtual std::shared_ptr<Allocation>&& CreateAllocation() override { return std::dynamic_pointer_cast<Allocation>(std::make_shared<VMAllocation>(*this)); };
 
             // 
             virtual void Initialize(const std::shared_ptr<Device>& device = {}) override {
