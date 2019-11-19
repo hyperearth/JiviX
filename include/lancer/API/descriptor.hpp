@@ -5,7 +5,7 @@
 
 namespace lancer {
 
-    class DescriptorSet {
+    class DescriptorSet : public std::enable_shared_from_this<DescriptorSet> {
         protected: 
             std::shared_ptr<Device>    device = {};
             api::DescriptorSet       *lastdst = nullptr;
