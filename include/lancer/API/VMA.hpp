@@ -98,7 +98,7 @@ namespace lancer {
 #ifdef VOLK_H_
                 amc.pVulkanFunctions = &vfuncs;
 #endif
-                amc.physicalDevice = (vk::PhysicalDevice&)(*(device->GetHelper()));
+                amc.physicalDevice = (api::PhysicalDevice&)(*(device->GetHelper()));
                 amc.device = api::Device(*device);
                 amc.preferredLargeHeapBlockSize = 16 * sizeof(uint32_t);
                 amc.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT || VMA_ALLOCATION_CREATE_MAPPED_BIT;

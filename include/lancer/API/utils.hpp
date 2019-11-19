@@ -86,8 +86,8 @@ namespace lancer {
     static inline auto&& makeComputePipelineStageInfo(const api::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", const uint32_t& subgroupSize = 0u) {
         auto f = FixConstruction{};
 
-        f.spi = api::PipelineShaderStageCreateInfo{};
-        f.spi.flags = api::PipelineShaderStageCreateFlags(VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT_EXT);
+        f.spi = api::PipelineShaderStageCreateInfo{};;
+        f.spi.flags = api::PipelineShaderStageCreateFlagBits::eRequireFullSubgroupsEXT;
         createShaderModuleIntrusive(device, code, f.spi.module);
         f.spi.pName = entry;
         f.spi.stage = api::ShaderStageFlagBits::eCompute;
@@ -158,8 +158,8 @@ namespace lancer {
 
 	// add dispatch in command buffer (with default pipeline barrier)
 	static inline api::Result cmdDispatch(api::CommandBuffer cmd, api::Pipeline pipeline, uint32_t x = 1, uint32_t y = 1, uint32_t z = 1, bool barrier = true) {
-		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-		vkCmdDispatch(cmd, x, y, z);
+        cmd.bindPipeline(api::PipelineBindPoint::eCompute, pipeline);
+        cmd.dispatch(x, y, z);
 		if (barrier) {
 			commandBarrier(cmd); // put shader barrier
 		}
@@ -195,7 +195,7 @@ namespace lancer {
 	// template function for fill buffer by constant value
 	// use for create repeat variant
 	template<uint32_t Rv>
-	static inline api::Result cmdFillBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize size = VK_WHOLE_SIZE, api::DeviceSize offset = 0) {
+	static inline api::Result cmdFillBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize size = 0xFFFFFFFF, api::DeviceSize offset = 0) {
 		api::CommandBuffer(cmd).fillBuffer(api::Buffer(dstBuffer), offset, size, Rv);
 		//updateCommandBarrier(cmd);
 		return api::Result::eSuccess;

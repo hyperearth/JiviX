@@ -5,7 +5,45 @@
 
 namespace lancer {
 
+
+    class DescriptorSetLayout : public std::enable_shared_from_this<DescriptorSetLayout> {
+
+        protected: 
+
+            std::shared_ptr<Device>    device = {};
+            api::DescriptorSetLayout *dlayout = nullptr;
+            std::vector<api::DescriptorSetLayoutBinding> _bindings = {};
+            std::vector<api::DescriptorBindingFlagsEXT> _flags = {};
+
+
+        public: 
+
+            std::shared_ptr<DescriptorSetLayout>&& Link(api::DescriptorSetLayout& lays) { 
+                dlayout = &lays; 
+                return shared_from_this(); };
+
+            std::shared_ptr<DescriptorSetLayout>&& PushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
+                _bindings.push_back(binding); _flags.push_back(flag);
+                return shared_from_this(); };
+
+            // Editable Current State 
+                  api::DescriptorSetLayoutBinding& GetBinding() { return _bindings.back(); };
+                  api::DescriptorBindingFlagsEXT& GetFlags() { return _flags.back(); };
+
+            // Viewable Current State 
+            const api::DescriptorSetLayoutBinding& GetBinding() const { return _bindings.back(); };
+            const api::DescriptorBindingFlagsEXT& GetFlags() const { return _flags.back(); };
+
+            // 
+            std::shared_ptr<DescriptorSetLayout>&& Create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
+                const auto vkfl = api::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_flags.data()).setBindingCount(_flags.size());
+                *dlayout = device->Least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
+                return shared_from_this(); };
+            
+    };
+
     class DescriptorSet : public std::enable_shared_from_this<DescriptorSet> {
+        
         protected: 
             std::shared_ptr<Device>    device = {};
             api::DescriptorSet       *lastdst = nullptr;
@@ -81,6 +119,4 @@ namespace lancer {
                 // 
                 return shared_from_this(); };
     };
-
 };
-

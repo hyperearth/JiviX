@@ -4,6 +4,7 @@
 #include "../lib/core.hpp"
 #include "../API/memory.hpp"
 
+
 namespace lancer {
     // Vookoo-Like 
     class Buffer : public std::enable_shared_from_this<Buffer> {

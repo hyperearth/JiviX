@@ -36,14 +36,14 @@ namespace lancer {
 
     auto&& InitialDepthStencil(){
         api::PipelineDepthStencilStateCreateInfo depthStencilState_ = {};
-        depthStencilState_.depthTestEnable = VK_FALSE;
-        depthStencilState_.depthWriteEnable = VK_TRUE;
+        depthStencilState_.depthTestEnable = false;
+        depthStencilState_.depthWriteEnable = true;
         depthStencilState_.depthCompareOp = api::CompareOp::eLessOrEqual;
-        depthStencilState_.depthBoundsTestEnable = VK_FALSE;
+        depthStencilState_.depthBoundsTestEnable = false;
         depthStencilState_.back.failOp = api::StencilOp::eKeep;
         depthStencilState_.back.passOp = api::StencilOp::eKeep;
         depthStencilState_.back.compareOp = api::CompareOp::eAlways;
-        depthStencilState_.stencilTestEnable = VK_FALSE;
+        depthStencilState_.stencilTestEnable = false;
         depthStencilState_.front = depthStencilState_.back;
         return std::move(depthStencilState_);
     };
