@@ -109,11 +109,6 @@ namespace lancer {
         };
     };
 
-
-
-
-    class Device;
-
     class Instance : public std::enable_shared_from_this<Instance> {
         protected: 
             std::vector<api::PhysicalDevice> devices = {};
@@ -182,6 +177,8 @@ namespace lancer {
 
     class Device : public std::enable_shared_from_this<Device> {
         protected: 
+
+            friend Allocator;
             api::DeviceCreateInfo dfc = {};
             api::PipelineCache pipelineCache = {};
             api::DescriptorPool* descriptorPool = nullptr;
@@ -190,16 +187,15 @@ namespace lancer {
             std::shared_ptr<Allocator> allocator = {};
 
         public: 
-            Device(const std::shared_ptr<lancer::PhysicalDeviceHelper>& physicalHelper = {}, api::Device* device = nullptr, api::DeviceCreateInfo dfc = {}) : device(device), dfc(dfc) {
-                *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc);
-            };
+            Device(const std::shared_ptr<lancer::PhysicalDeviceHelper>& physicalHelper = {}, api::Device* device = nullptr, api::DeviceCreateInfo dfc = {}) : device(device), dfc(dfc), physicalHelper(physicalHelper) {
+                if (physicalHelper && device && !(*device)) { *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc); };};
 
             // Get original Vulkan link 
             api::PipelineCache& GetPipelineCache() { return pipelineCache; };
             const api::PipelineCache& GetPipelineCache() const { return pipelineCache; };
             api::Device& Least() { return *device; };
-            operator api::Device&() { return *device; };
             const api::Device& Least() const { return *device; };
+            operator api::Device&() { return *device; };
             operator const api::Device&() const { return *device; };
 
             // 
@@ -213,8 +209,9 @@ namespace lancer {
 
     // 
     std::shared_ptr<Device>&& Device::Initialize() {
-        //if (physicalHelper) { this->physicalHelper = physicalHelper; };
-        //if (device) this->device = &device; // Useless Feature 
+        if (physicalHelper && device && !(*device)) {
+            *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc);
+        };
 
         // get VMA allocator for device
         if (!this->allocator && this->physicalHelper->allocator) { this->allocator = this->physicalHelper->allocator; };

@@ -18,6 +18,8 @@ namespace lancer {
             VmaAllocation alloc = {};
             VmaAllocationInfo alcmc = {}; // least registered allocation, not necessary
             friend VMAllocator;
+            friend Allocator;
+            friend Device;
 
         public: 
             // unique constructor 
@@ -39,6 +41,9 @@ namespace lancer {
             std::shared_ptr<Device> dvc = {};
             VmaAllocationCreateInfo amc = {}; // Template
             VmaAllocator vma = {};
+            
+            friend Allocator;
+            friend Device;
 
         public: 
             VMAllocator(const std::shared_ptr<Device>& dvc = {}) : dvc(device) {

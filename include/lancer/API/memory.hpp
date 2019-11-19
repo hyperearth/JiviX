@@ -5,11 +5,14 @@
 
 namespace lancer {
 
+    class Allocation;
     class Allocator;
+    class Device;
 
     class Allocation : public std::enable_shared_from_this<Allocation> {
         protected: 
             friend Allocator;
+            friend Device;
 
             std::shared_ptr<Allocator> allocator = nullptr;
             api::MemoryHeap memory = {};
@@ -32,6 +35,7 @@ namespace lancer {
         protected: 
             std::shared_ptr<Device> device = {};
             std::vector<std::weak_ptr<Allocation>> allocations = {};
+            friend Device;
 
         public: 
             ~Allocator(){};
