@@ -12,9 +12,9 @@ namespace lancer {
             api::DescriptorPool      *dscpool = nullptr;
             api::DescriptorSetLayout *dlayout = nullptr;
             api::DescriptorSetAllocateInfo info = {};
+            api::DescriptorUpdateTemplate descriptorTemplate = nullptr;
             std::vector<uint8_t> descriptorHeap = {}; // sparse descriptor array 
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
-            api::DescriptorUpdateTemplate descriptorTemplate = nullptr;
 
         public:
             DescriptorSet(const std::shared_ptr<Device>& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
@@ -50,19 +50,19 @@ namespace lancer {
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            std::shared_ptr<DescriptorSet>& Create(const api::DescriptorPool& pool) { // TODO: create descriptor set and layout
+            std::shared_ptr<DescriptorSet>&& Create(const api::DescriptorPool& pool) { // TODO: create descriptor set and layout
                 return shared_from_this(); };
 
-            std::shared_ptr<DescriptorSet>& Link(api::DescriptorSet& desc) { 
+            std::shared_ptr<DescriptorSet>&& Link(api::DescriptorSet& desc) { 
                 lastdst = &desc; 
                 return shared_from_this(); };
 
-            std::shared_ptr<DescriptorSet>& LinkLayout(api::DescriptorSetLayout& lays) { 
+            std::shared_ptr<DescriptorSet>&& LinkLayout(api::DescriptorSetLayout& lays) { 
                 dlayout = &lays; 
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<DescriptorSet>& Apply(){
+            std::shared_ptr<DescriptorSet>&& Apply(){
                 api::DescriptorUpdateTemplateCreateInfo createInfo{};
                 createInfo.templateType = api::DescriptorUpdateTemplateType::eDescriptorSet;
                 createInfo.flags = {};

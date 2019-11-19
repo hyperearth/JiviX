@@ -153,13 +153,33 @@ namespace lancer {
                 dynamicState_.push_back(state);
                 return shared_from_this(); };
 
-            std::shared_ptr<GraphicsPipeline>&& PushBlendState(const api::PipelineColorBlendAttachmentState& state){
-                colorBlendAttachments_.push_back(state);
+            std::shared_ptr<GraphicsPipeline>&& PushBlendState(const api::PipelineColorBlendAttachmentState& state = {}) {
+                colorBlendAttachments_.push_back(state ? state : InitialBlendState());
                 return shared_from_this(); };
 
             std::shared_ptr<GraphicsPipeline>&& Link(api::Pipeline* pipeline = nullptr) {
                 this->pipeline = pipeline;
                 return shared_from_this(); };
+
+            // Edit States 
+            api::PipelineColorBlendAttachmentState& GetColorBlendAttachment() {
+                return colorBlendAttachments_.back(); };
+
+            api::VertexInputBindingDescription& GetVertexBindingDescription() {
+                return vertexBindingDescriptions_.back(); };
+
+            api::VertexInputAttributeDescription& GetVertexAttributeDescription() {
+                return vertexAttributeDescriptions_.back(); };
+
+            // View States 
+            const api::PipelineColorBlendAttachmentState& GetColorBlendAttachment() const {
+                return colorBlendAttachments_.back(); };
+
+            const api::VertexInputBindingDescription& GetVertexBindingDescription() const {
+                return vertexBindingDescriptions_.back(); };
+
+            const api::VertexInputAttributeDescription& GetVertexAttributeDescription() const {
+                return vertexAttributeDescriptions_.back(); };
 
             std::shared_ptr<GraphicsPipeline>&& Create(const api::PipelineCache &pipelineCache, const api::PipelineLayout &pipelineLayout, const api::RenderPass &renderPass, bool defaultBlend=true) {
 
