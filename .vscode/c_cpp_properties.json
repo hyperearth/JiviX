@@ -4,6 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/include/**",
                 "${vcpkgRoot}/x64-windows/include",
                 "${vcpkgRoot}/x86-windows/include"
             ],

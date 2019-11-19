@@ -39,7 +39,7 @@ namespace lancer {
     class VMAllocator : public Allocator, public std::enable_shared_from_this<VMAllocator> {
         protected: 
             std::shared_ptr<Device> dvc = {};
-            VmaAllocationCreateInfo amc = {}; // Template
+            VmaAllocatorCreateInfo  amc = {}; // Template
             VmaAllocator vma = {};
             
             friend Allocator;
@@ -95,17 +95,16 @@ namespace lancer {
 #endif
 
                 // create Vma allocator
-                //VmaAllocatorCreateInfo amc = {};
 #ifdef VOLK_H_
                 amc.pVulkanFunctions = &vfuncs;
 #endif
-                amc.physicalDevice = device->GetHelper();
+                amc.physicalDevice = (vk::PhysicalDevice&)(*(device->GetHelper()));
                 amc.device = api::Device(*device);
                 amc.preferredLargeHeapBlockSize = 16 * sizeof(uint32_t);
                 amc.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT || VMA_ALLOCATION_CREATE_MAPPED_BIT;
                 amc.pAllocationCallbacks = nullptr;
                 amc.pHeapSizeLimit = nullptr;
-                vmaCreateAllocator(&amc,vma);
+                vmaCreateAllocator(&amc,&vma);
             };
     };
 };

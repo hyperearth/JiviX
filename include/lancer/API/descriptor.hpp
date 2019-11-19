@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../lib/core.hpp"
-#include "../lib/device.hpp"
+#include "../API/device.hpp"
 
 namespace lancer {
 

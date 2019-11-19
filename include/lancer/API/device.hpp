@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../lib/core.hpp"
-#include "../lib/memory.hpp"
+#include "../API/memory.hpp"
 
 namespace lancer {
     
@@ -215,10 +215,10 @@ namespace lancer {
 
         // get VMA allocator for device
         if (!this->allocator && this->physicalHelper->allocator) { this->allocator = this->physicalHelper->allocator; };
-        if ( this->allocator) { Allocator->Initialize(shared_from_this()); };
+        if ( this->allocator) { this->allocator->Initialize(shared_from_this()); };
 
         // descriptor pool
-        if ( this->descriptorPool && *this->descriptorPool == nullptr)
+        if ( this->descriptorPool && !(*this->descriptorPool))
         {
             // pool sizes, and create descriptor pool
             std::vector<api::DescriptorPoolSize> psizes = { };
@@ -228,7 +228,7 @@ namespace lancer {
             psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eUniformBuffer).setDescriptorCount(128));
             psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eAccelerationStructureNV).setDescriptorCount(128));
 
-            api::DescriptorPoolInlineUniformBlockCreateInfoEXT inlineDescPool{.maxInlineUniformBlockBindings = 2};
+            const auto inlineDescPool = api::DescriptorPoolInlineUniformBlockCreateInfoEXT().setMaxInlineUniformBlockBindings(2u);
             *this->descriptorPool = api::Device(*this).createDescriptorPool(api::DescriptorPoolCreateInfo().setPNext(&inlineDescPool).setPPoolSizes(psizes.data()).setPoolSizeCount(psizes.size()).setMaxSets(256).setFlags(api::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | api::DescriptorPoolCreateFlagBits::eUpdateAfterBindEXT));
         };
 
