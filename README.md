@@ -8,7 +8,7 @@ Writing for C++20 prior...
 ```MD
 - Architecture    : vRt (9:Gen)
 - RHI             : Yes, Vulkan-HPP
-- Support OS      : Windows 10 (1903 and Newer)
+- Support OS      : Windows 10 (1903 or Newer)
 - Support HW      : RTX 2070 or familiar...
 - Project Type    : Experimental, Personal
 - Portfolio       : Planned
