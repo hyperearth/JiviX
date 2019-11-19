@@ -49,6 +49,7 @@ namespace lancer {
     };
 
     class GraphicsPipeline : public std::enable_shared_from_this<GraphicsPipeline> {
+        
         protected: 
             
             std::shared_ptr<Device> device = {};
@@ -80,13 +81,10 @@ namespace lancer {
                 viewport_ = api::Viewport{0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f};
                 scissor_ = api::Rect2D{{0, 0}, {width, height}};
 
-                // Set up depth test, but do not enable it.
-                depthStencilState_ = InitialDepthStencil();
-
                 // 
                 info.pInputAssemblyState = &inputAssemblyState_;
                 info.pRasterizationState = &rasterizationState_;
-                info.pDepthStencilState = &depthStencilState_;
+                info.pDepthStencilState = &(depthStencilState_ = InitialDepthStencil());
                 info.pMultisampleState = &multisampleState_;
                 info.pVertexInputState = &vertexInputState_;
                 info.pColorBlendState = &colorBlendState_;
