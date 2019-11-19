@@ -69,9 +69,8 @@ namespace lancer {
             // 
             std::shared_ptr<Image>&& Link(api::Image* img) { lastimg = img; return shared_from_this(); };
             std::shared_ptr<Image>&& Allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
-                mem->AllocateForImage(lastimg,allocation=std::make_shared<Allocation>(),imc,ptx);
+                mem->AllocateForImage(lastimg,allocation=mem->CreateAllocation(),imc,ptx);
                 return shared_from_this(); };
-
 
             // Create 1D "Canvas" 
             std::shared_ptr<Image>&& Create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {

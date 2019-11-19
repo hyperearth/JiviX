@@ -58,6 +58,9 @@ namespace lancer {
                 vmaCreateImage(vma, (VkImageCreateInfo*)&imc, ptx?(VmaAllocationCreateInfo*)(ptx):(&amc), (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
             };
 
+            // Sometimes required special allocation
+            virtual std::shared_ptr<Allocation>&& CreateAllocation() override { return std::dynamic_cast<Allocation>(std::make_shared<VMAllocation>(*this)); };
+
             // 
             virtual void Initialize(const std::shared_ptr<Device>& device = {}) override {
 #ifdef VOLK_H_
