@@ -135,27 +135,27 @@ namespace lancer {
             std::shared_ptr<GraphicsPipeline>&& SetDynamicState(const api::DynamicState& value) { dynamicState_.push_back(value); return shared_from_this(); }
 
             // 
-            std::shared_ptr<GraphicsPipeline>&& VertexBinding(const uint32_t& binding_, const uint32_t& stride_, const api::VertexInputRate& inputRate_ = api::VertexInputRate::eVertex) {
+            std::shared_ptr<GraphicsPipeline>&& PushVertexBinding(const uint32_t& binding_, const uint32_t& stride_ = 4u, const api::VertexInputRate& inputRate_ = api::VertexInputRate::eVertex) {
                 vertexBindingDescriptions_.push_back({binding_, stride_, inputRate_});
                 return shared_from_this(); };
 
-            std::shared_ptr<GraphicsPipeline>&& VertexBinding(const api::VertexInputBindingDescription &desc) {
+            std::shared_ptr<GraphicsPipeline>&& PushVertexBinding(const api::VertexInputBindingDescription &desc = {}) {
                 vertexBindingDescriptions_.push_back(desc);
                 return shared_from_this(); };
 
-            std::shared_ptr<GraphicsPipeline>&& VertexAttribute(const uint32_t& location_, const uint32_t& binding_, api::Format format_, const uint32_t& offset_) {
+            std::shared_ptr<GraphicsPipeline>&& PushVertexAttribute(const uint32_t& location_, const uint32_t& binding_ = 0u, api::Format format_ = api::Format::eR32G32B32A32Sfloat, const uint32_t& offset_ = 0u) {
                 vertexAttributeDescriptions_.push_back({location_, binding_, format_, offset_});
                 return shared_from_this(); };
 
-            std::shared_ptr<GraphicsPipeline>&& VertexAttribute(const api::VertexInputAttributeDescription &desc) {
+            std::shared_ptr<GraphicsPipeline>&& PushVertexAttribute(const api::VertexInputAttributeDescription &desc = {}) {
                 vertexAttributeDescriptions_.push_back(desc);
                 return shared_from_this(); };
 
-            std::shared_ptr<GraphicsPipeline>&& DynamicState(const api::DynamicState& state){ // TODO: existence check 
+            std::shared_ptr<GraphicsPipeline>&& PushDynamicState(const api::DynamicState& state = {}){ // TODO: existence check 
                 dynamicState_.push_back(state);
                 return shared_from_this(); };
 
-            std::shared_ptr<GraphicsPipeline>&& PushBlendState(const api::PipelineColorBlendAttachmentState& state = {}) {
+            std::shared_ptr<GraphicsPipeline>&& PushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = {}) {
                 colorBlendAttachments_.push_back(state ? state : InitialBlendState());
                 return shared_from_this(); };
 
