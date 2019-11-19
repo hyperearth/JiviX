@@ -4,7 +4,7 @@
 #include "../lib/device.hpp"
 
 namespace lancer {
-    
+
     class DescriptorSet {
         protected: 
             std::shared_ptr<Device>    device = {};

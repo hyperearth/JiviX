@@ -6,10 +6,8 @@
 namespace lancer {
 
     #define DEFAULT_COMPONENTS api::ComponentMapping{api::ComponentSwizzle::eR,api::ComponentSwizzle::eG,api::ComponentSwizzle::eB,api::ComponentSwizzle::eA}
-
-    // TODO: Add Sampler Support 
-
     #define DEFAULT_IMC api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive).setInitialLayout(api::ImageLayout::eUndefined)
+    // TODO: Add Sampler Support 
 
     // Vookoo-Like 
     class Image : public std::enable_shared_from_this<Image> {

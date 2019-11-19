@@ -135,7 +135,7 @@ namespace lancer {
 
             // required (if there is no, will generated)
             std::shared_ptr<paths::DriverWrapBase> driverWrap = {};
-            
+
             virtual api::Result getFeaturesWithProperties(){
                 this->features = physicalDevice.getFeatures2();
                 this->properties = physicalDevice.getProperties2();
