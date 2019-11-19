@@ -258,38 +258,50 @@ namespace lancer {
 	};
 
 
-
-    class RenderpassMaker {
+    // 
+    class RenderpassMaker : public std::enable_shared_from_this<RenderpassMaker> {
         public:
             RenderpassMaker() {}
 
+            api::AttachmentDescription& GetAttachmentDescription() { return attachmentDescriptions.back(); };
+            api::SubpassDescription& GetSubpassDescription() { return subpassDescriptions.back(); };
+            api::SubpassDependency& GetSubpassDependency() { return subpassDependencies.back(); };
+
+            const api::AttachmentDescription& GetAttachmentDescription() const { return attachmentDescriptions.back(); };
+            const api::SubpassDescription& GetSubpassDescription() const { return subpassDescriptions.back(); };
+            const api::SubpassDependency& GetSubpassDependency() const { return subpassDependencies.back(); };
+
+
             /// Begin an attachment description.
             /// After this you can call attachment* many times
-            void attachmentBegin(api::Format format) {
+            std::shared_ptr<RenderpassMaker>&& attachmentBegin(api::Format format) {
                 api::AttachmentDescription desc{{}, format};
                 s.attachmentDescriptions.push_back(desc);
-            }
+                return shared_from_this();
+            };
 
-            void attachmentFlags(api::AttachmentDescriptionFlags value) { s.attachmentDescriptions.back().flags = value; };
-            void attachmentFormat(api::Format value) { s.attachmentDescriptions.back().format = value; };
-            void attachmentSamples(api::SampleCountFlagBits value) { s.attachmentDescriptions.back().samples = value; };
-            void attachmentLoadOp(api::AttachmentLoadOp value) { s.attachmentDescriptions.back().loadOp = value; };
-            void attachmentStoreOp(api::AttachmentStoreOp value) { s.attachmentDescriptions.back().storeOp = value; };
-            void attachmentStencilLoadOp(api::AttachmentLoadOp value) { s.attachmentDescriptions.back().stencilLoadOp = value; };
-            void attachmentStencilStoreOp(api::AttachmentStoreOp value) { s.attachmentDescriptions.back().stencilStoreOp = value; };
-            void attachmentInitialLayout(api::ImageLayout value) { s.attachmentDescriptions.back().initialLayout = value; };
-            void attachmentFinalLayout(api::ImageLayout value) { s.attachmentDescriptions.back().finalLayout = value; };
+
+            std::shared_ptr<RenderpassMaker>&& attachmentFlags(api::AttachmentDescriptionFlags value) { s.attachmentDescriptions.back().flags = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentFormat(api::Format value) { s.attachmentDescriptions.back().format = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentSamples(api::SampleCountFlagBits value) { s.attachmentDescriptions.back().samples = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentLoadOp(api::AttachmentLoadOp value) { s.attachmentDescriptions.back().loadOp = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentStoreOp(api::AttachmentStoreOp value) { s.attachmentDescriptions.back().storeOp = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentStencilLoadOp(api::AttachmentLoadOp value) { s.attachmentDescriptions.back().stencilLoadOp = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentStencilStoreOp(api::AttachmentStoreOp value) { s.attachmentDescriptions.back().stencilStoreOp = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentInitialLayout(api::ImageLayout value) { s.attachmentDescriptions.back().initialLayout = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& attachmentFinalLayout(api::ImageLayout value) { s.attachmentDescriptions.back().finalLayout = value; return shared_from_this(); };
 
             /// Start a subpass description.
             /// After this you can can call subpassColorAttachment many times
             /// and subpassDepthStencilAttachment once.
-            void subpassBegin(api::PipelineBindPoint bp) {
+            std::shared_ptr<RenderpassMaker>&& subpassBegin(api::PipelineBindPoint bp) {
                 api::SubpassDescription desc{};
                 desc.pipelineBindPoint = bp;
                 s.subpassDescriptions.push_back(desc);
+                return shared_from_this();
             }
 
-            void subpassColorAttachment(api::ImageLayout layout, uint32_t attachment) {
+            std::shared_ptr<RenderpassMaker>&& subpassColorAttachment(api::ImageLayout layout, uint32_t attachment) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
@@ -298,14 +310,16 @@ namespace lancer {
                     subpass.pColorAttachments = p;
                 }
                 subpass.colorAttachmentCount++;
+                return shared_from_this();
             }
 
-            void subpassDepthStencilAttachment(api::ImageLayout layout, uint32_t attachment) {
+            std::shared_ptr<RenderpassMaker>&& subpassDepthStencilAttachment(api::ImageLayout layout, uint32_t attachment) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
                 p->attachment = attachment;
                 subpass.pDepthStencilAttachment = p;
+                return shared_from_this();
             }
 
             api::RenderPass create(const api::Device &device) const {
@@ -319,27 +333,28 @@ namespace lancer {
                 return device.createRenderPass(renderPassInfo);
             }
 
-            void dependencyBegin(uint32_t srcSubpass, uint32_t dstSubpass) {
+            std::shared_ptr<RenderpassMaker>&& dependencyBegin(uint32_t srcSubpass, uint32_t dstSubpass) {
                 api::SubpassDependency desc{};
                 desc.srcSubpass = srcSubpass;
                 desc.dstSubpass = dstSubpass;
                 s.subpassDependencies.push_back(desc);
+                return shared_from_this();
             }
 
-            void dependencySrcSubpass(uint32_t value) { s.subpassDependencies.back().srcSubpass = value; };
-            void dependencyDstSubpass(uint32_t value) { s.subpassDependencies.back().dstSubpass = value; };
-            void dependencySrcStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().srcStageMask = value; };
-            void dependencyDstStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().dstStageMask = value; };
-            void dependencySrcAccessMask(api::AccessFlags value) { s.subpassDependencies.back().srcAccessMask = value; };
-            void dependencyDstAccessMask(api::AccessFlags value) { s.subpassDependencies.back().dstAccessMask = value; };
-            void dependencyDependencyFlags(api::DependencyFlags value) { s.subpassDependencies.back().dependencyFlags = value; };
+            std::shared_ptr<RenderpassMaker>&& dependencySrcSubpass(uint32_t value) { s.subpassDependencies.back().srcSubpass = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& dependencyDstSubpass(uint32_t value) { s.subpassDependencies.back().dstSubpass = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& dependencySrcStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().srcStageMask = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& dependencyDstStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().dstStageMask = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& dependencySrcAccessMask(api::AccessFlags value) { s.subpassDependencies.back().srcAccessMask = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& dependencyDstAccessMask(api::AccessFlags value) { s.subpassDependencies.back().dstAccessMask = value; return shared_from_this(); };
+            std::shared_ptr<RenderpassMaker>&& dependencyDependencyFlags(api::DependencyFlags value) { s.subpassDependencies.back().dependencyFlags = value; return shared_from_this(); };
             
         private:
             constexpr static int max_refs = 64;
 
             api::AttachmentReference *getAttachmentReference() {
                 return (s.num_refs < max_refs) ? &s.attachmentReferences[s.num_refs++] : nullptr;
-            }
+            };
             
             struct State {
                 std::vector<api::AttachmentDescription> attachmentDescriptions;
