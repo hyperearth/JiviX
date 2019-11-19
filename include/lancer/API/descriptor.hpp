@@ -9,7 +9,6 @@ namespace lancer {
         protected: 
             std::shared_ptr<Device>    device = {};
             api::DescriptorSet       *lastdst = nullptr;
-            api::DescriptorPool      *dscpool = nullptr;
             api::DescriptorSetLayout *dlayout = nullptr;
             api::DescriptorSetAllocateInfo info = {};
             api::DescriptorUpdateTemplate descriptorTemplate = nullptr;
@@ -50,7 +49,7 @@ namespace lancer {
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            std::shared_ptr<DescriptorSet>&& Create(const api::DescriptorPool& pool) { // TODO: create descriptor set and layout
+            std::shared_ptr<DescriptorSet>&& Create() { // TODO: create descriptor set and layout
                 return shared_from_this(); };
 
             std::shared_ptr<DescriptorSet>&& Link(api::DescriptorSet& desc) { 
@@ -81,8 +80,7 @@ namespace lancer {
 
                 // 
                 return shared_from_this(); };
-        
-    }; 
+    };
 
 };
 

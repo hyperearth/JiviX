@@ -8,7 +8,6 @@
 //#include <windows.h>
 
 //#include <vulkan/vulkan.hpp>
-#include <lancer/lib/core.hpp>
 #include <misc/args.hxx>
 #include <misc/half.hpp>
 #include <misc/pcg_random.hpp>
@@ -28,6 +27,10 @@
 #include <sstream>
 #include <chrono>
 
+#include <lancer/lib/core.hpp>
+#include <lancer/API/memory.hpp>
+#include <lancer/API/device.hpp>
+#include <lancer/API/VMA.hpp>
 
 #ifdef USE_CIMG
 #include "tinyexr.h"
@@ -38,7 +41,7 @@
 #endif
 
 #ifndef NSM
-#define NSM vkt
+#define NSM api
 #endif
 
 

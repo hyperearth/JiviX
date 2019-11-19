@@ -1,6 +1,9 @@
 #pragma once
 
+#include "./utils.hpp"
+
 namespace vkt {
+    using namespace lancer;
 
     // application surface format information structure
     //struct SurfaceFormat : public std::enable_shared_from_this<SurfaceFormat> {

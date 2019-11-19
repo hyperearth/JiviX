@@ -70,6 +70,7 @@
         "xlocmes": "cpp",
         "xlocmon": "cpp",
         "xloctime": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "*.hpp\u0000p": "cpp"
     }
 }

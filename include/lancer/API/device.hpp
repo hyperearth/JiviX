@@ -130,8 +130,8 @@ namespace lancer {
             api::PhysicalDevice physicalDevice = {};
             api::PhysicalDeviceFeatures2 features = {};
             api::PhysicalDeviceProperties2 properties = {};
-            std::vector<uint32_t> queueFamilyIndices = {};
             std::shared_ptr<Allocator> allocator = {};
+            std::vector<uint32_t> queueFamilyIndices = {};
 
             // required (if there is no, will generated)
             std::shared_ptr<paths::DriverWrapBase> driverWrap = {};

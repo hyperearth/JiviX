@@ -125,8 +125,8 @@ namespace lancer {
     // general command buffer pipeline barrier
     static inline void commandBarrier(const api::CommandBuffer& cmdBuffer) {
         api::MemoryBarrier memoryBarrier = {};
-        memoryBarrier.srcAccessMask = (vk::AccessFlagBits::eTransferWrite); 
-        memoryBarrier.dstAccessMask = (vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eUniformRead);
+        memoryBarrier.srcAccessMask = (api::AccessFlagBits::eTransferWrite); 
+        memoryBarrier.dstAccessMask = (api::AccessFlagBits::eShaderRead | api::AccessFlagBits::eTransferRead | api::AccessFlagBits::eUniformRead);
         cmdBuffer.pipelineBarrier(
             //api::PipelineStageFlagBits::eTransfer | api::PipelineStageFlagBits::eComputeShader,
             api::PipelineStageFlagBits::eComputeShader,
@@ -140,16 +140,16 @@ namespace lancer {
 
         api::CommandBufferAllocateInfo cmdi = api::CommandBufferAllocateInfo{};
 		cmdi.commandPool = cmdPool;
-		cmdi.level = (secondary ? vk::CommandBufferLevel::eSecondary : vk::CommandBufferLevel::ePrimary);
+		cmdi.level = (secondary ? api::CommandBufferLevel::eSecondary : api::CommandBufferLevel::ePrimary);
 		cmdi.commandBufferCount = 1;
         cmdBuffer = (device.allocateCommandBuffers(cmdi))[0];
 
         api::CommandBufferInheritanceInfo inhi = api::CommandBufferInheritanceInfo{};
-		inhi.pipelineStatistics = vk::QueryPipelineStatisticFlagBits::eComputeShaderInvocations;
+		inhi.pipelineStatistics = api::QueryPipelineStatisticFlagBits::eComputeShaderInvocations;
 
         api::CommandBufferBeginInfo bgi = api::CommandBufferBeginInfo{};
 		bgi.flags = {};
-		bgi.flags = once ? vk::CommandBufferUsageFlagBits::eOneTimeSubmit : vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+		bgi.flags = once ? api::CommandBufferUsageFlagBits::eOneTimeSubmit : api::CommandBufferUsageFlagBits::eSimultaneousUse;
 		bgi.pInheritanceInfo = secondary ? &inhi : nullptr;
         cmdBuffer.begin(bgi);
 
@@ -163,7 +163,7 @@ namespace lancer {
 		if (barrier) {
 			commandBarrier(cmd); // put shader barrier
 		}
-		return vk::Result::eSuccess;
+		return api::Result::eSuccess;
 	};
 
 	// low level copy command between (prefer for host and device)
@@ -171,7 +171,7 @@ namespace lancer {
 		if (srcBuffer && dstBuffer && regions.size() > 0) {
 			api::CommandBuffer(cmd).copyBuffer(srcBuffer, dstBuffer, regions); barrierFn(cmd); // put copy barrier
 		};
-		return vk::Result::eSuccess;
+		return api::Result::eSuccess;
 	};
 
 
@@ -180,7 +180,7 @@ namespace lancer {
 	static inline api::Result cmdUpdateBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize offset, const std::vector<T>& data) {
 		api::CommandBuffer(cmd).updateBuffer(dstBuffer, offset, data);
 		//updateCommandBarrier(cmd);
-		return vk::Result::eSuccess;
+		return api::Result::eSuccess;
 	};
 
 	// short data set with command buffer (alike push constant)
@@ -188,7 +188,7 @@ namespace lancer {
 	static inline api::Result cmdUpdateBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize offset, api::DeviceSize size, const T* data) {
 		api::CommandBuffer(cmd).updateBuffer(dstBuffer, offset, size, data);
 		//updateCommandBarrier(cmd);
-		return vk::Result::eSuccess;
+		return api::Result::eSuccess;
 	};
 
 
@@ -198,7 +198,7 @@ namespace lancer {
 	static inline api::Result cmdFillBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize size = VK_WHOLE_SIZE, api::DeviceSize offset = 0) {
 		api::CommandBuffer(cmd).fillBuffer(api::Buffer(dstBuffer), offset, size, Rv);
 		//updateCommandBarrier(cmd);
-		return vk::Result::eSuccess;
+		return api::Result::eSuccess;
 	};
 
 
@@ -265,62 +265,62 @@ namespace lancer {
 
             /// Begin an attachment description.
             /// After this you can call attachment* many times
-            void attachmentBegin(vk::Format format) {
-                vk::AttachmentDescription desc{{}, format};
+            void attachmentBegin(api::Format format) {
+                api::AttachmentDescription desc{{}, format};
                 s.attachmentDescriptions.push_back(desc);
             }
 
-            void attachmentFlags(vk::AttachmentDescriptionFlags value) { s.attachmentDescriptions.back().flags = value; };
-            void attachmentFormat(vk::Format value) { s.attachmentDescriptions.back().format = value; };
-            void attachmentSamples(vk::SampleCountFlagBits value) { s.attachmentDescriptions.back().samples = value; };
-            void attachmentLoadOp(vk::AttachmentLoadOp value) { s.attachmentDescriptions.back().loadOp = value; };
-            void attachmentStoreOp(vk::AttachmentStoreOp value) { s.attachmentDescriptions.back().storeOp = value; };
-            void attachmentStencilLoadOp(vk::AttachmentLoadOp value) { s.attachmentDescriptions.back().stencilLoadOp = value; };
-            void attachmentStencilStoreOp(vk::AttachmentStoreOp value) { s.attachmentDescriptions.back().stencilStoreOp = value; };
-            void attachmentInitialLayout(vk::ImageLayout value) { s.attachmentDescriptions.back().initialLayout = value; };
-            void attachmentFinalLayout(vk::ImageLayout value) { s.attachmentDescriptions.back().finalLayout = value; };
+            void attachmentFlags(api::AttachmentDescriptionFlags value) { s.attachmentDescriptions.back().flags = value; };
+            void attachmentFormat(api::Format value) { s.attachmentDescriptions.back().format = value; };
+            void attachmentSamples(api::SampleCountFlagBits value) { s.attachmentDescriptions.back().samples = value; };
+            void attachmentLoadOp(api::AttachmentLoadOp value) { s.attachmentDescriptions.back().loadOp = value; };
+            void attachmentStoreOp(api::AttachmentStoreOp value) { s.attachmentDescriptions.back().storeOp = value; };
+            void attachmentStencilLoadOp(api::AttachmentLoadOp value) { s.attachmentDescriptions.back().stencilLoadOp = value; };
+            void attachmentStencilStoreOp(api::AttachmentStoreOp value) { s.attachmentDescriptions.back().stencilStoreOp = value; };
+            void attachmentInitialLayout(api::ImageLayout value) { s.attachmentDescriptions.back().initialLayout = value; };
+            void attachmentFinalLayout(api::ImageLayout value) { s.attachmentDescriptions.back().finalLayout = value; };
 
             /// Start a subpass description.
             /// After this you can can call subpassColorAttachment many times
             /// and subpassDepthStencilAttachment once.
-            void subpassBegin(vk::PipelineBindPoint bp) {
-                vk::SubpassDescription desc{};
+            void subpassBegin(api::PipelineBindPoint bp) {
+                api::SubpassDescription desc{};
                 desc.pipelineBindPoint = bp;
                 s.subpassDescriptions.push_back(desc);
             }
 
-            void subpassColorAttachment(vk::ImageLayout layout, uint32_t attachment) {
-                vk::SubpassDescription &subpass = s.subpassDescriptions.back();
+            void subpassColorAttachment(api::ImageLayout layout, uint32_t attachment) {
+                api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
                 p->attachment = attachment;
                 if (subpass.colorAttachmentCount == 0) {
-                subpass.pColorAttachments = p;
+                    subpass.pColorAttachments = p;
                 }
                 subpass.colorAttachmentCount++;
             }
 
-            void subpassDepthStencilAttachment(vk::ImageLayout layout, uint32_t attachment) {
-                vk::SubpassDescription &subpass = s.subpassDescriptions.back();
+            void subpassDepthStencilAttachment(api::ImageLayout layout, uint32_t attachment) {
+                api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
                 p->attachment = attachment;
                 subpass.pDepthStencilAttachment = p;
             }
 
-            vk::UniqueRenderPass createUnique(const vk::Device &device) const {
-                vk::RenderPassCreateInfo renderPassInfo{};
+            api::RenderPass create(const api::Device &device) const {
+                api::RenderPassCreateInfo renderPassInfo{};
                 renderPassInfo.attachmentCount = (uint32_t)s.attachmentDescriptions.size();
                 renderPassInfo.pAttachments = s.attachmentDescriptions.data();
                 renderPassInfo.subpassCount = (uint32_t)s.subpassDescriptions.size();
                 renderPassInfo.pSubpasses = s.subpassDescriptions.data();
                 renderPassInfo.dependencyCount = (uint32_t)s.subpassDependencies.size();
                 renderPassInfo.pDependencies = s.subpassDependencies.data();
-                return device.createRenderPassUnique(renderPassInfo);
+                return device.createRenderPass(renderPassInfo);
             }
 
             void dependencyBegin(uint32_t srcSubpass, uint32_t dstSubpass) {
-                vk::SubpassDependency desc{};
+                api::SubpassDependency desc{};
                 desc.srcSubpass = srcSubpass;
                 desc.dstSubpass = dstSubpass;
                 s.subpassDependencies.push_back(desc);
@@ -328,24 +328,24 @@ namespace lancer {
 
             void dependencySrcSubpass(uint32_t value) { s.subpassDependencies.back().srcSubpass = value; };
             void dependencyDstSubpass(uint32_t value) { s.subpassDependencies.back().dstSubpass = value; };
-            void dependencySrcStageMask(vk::PipelineStageFlags value) { s.subpassDependencies.back().srcStageMask = value; };
-            void dependencyDstStageMask(vk::PipelineStageFlags value) { s.subpassDependencies.back().dstStageMask = value; };
-            void dependencySrcAccessMask(vk::AccessFlags value) { s.subpassDependencies.back().srcAccessMask = value; };
-            void dependencyDstAccessMask(vk::AccessFlags value) { s.subpassDependencies.back().dstAccessMask = value; };
-            void dependencyDependencyFlags(vk::DependencyFlags value) { s.subpassDependencies.back().dependencyFlags = value; };
+            void dependencySrcStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().srcStageMask = value; };
+            void dependencyDstStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().dstStageMask = value; };
+            void dependencySrcAccessMask(api::AccessFlags value) { s.subpassDependencies.back().srcAccessMask = value; };
+            void dependencyDstAccessMask(api::AccessFlags value) { s.subpassDependencies.back().dstAccessMask = value; };
+            void dependencyDependencyFlags(api::DependencyFlags value) { s.subpassDependencies.back().dependencyFlags = value; };
             
         private:
             constexpr static int max_refs = 64;
 
-            vk::AttachmentReference *getAttachmentReference() {
+            api::AttachmentReference *getAttachmentReference() {
                 return (s.num_refs < max_refs) ? &s.attachmentReferences[s.num_refs++] : nullptr;
             }
             
             struct State {
-                std::vector<vk::AttachmentDescription> attachmentDescriptions;
-                std::vector<vk::SubpassDescription> subpassDescriptions;
-                std::vector<vk::SubpassDependency> subpassDependencies;
-                std::array<vk::AttachmentReference, max_refs> attachmentReferences;
+                std::vector<api::AttachmentDescription> attachmentDescriptions;
+                std::vector<api::SubpassDescription> subpassDescriptions;
+                std::vector<api::SubpassDependency> subpassDependencies;
+                std::array<api::AttachmentReference, max_refs> attachmentReferences;
                 int num_refs = 0;
                 bool ok_ = false;
             };

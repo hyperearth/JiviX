@@ -17,10 +17,6 @@
 #include "structs.hpp"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
-#include <lancer/lib/core.hpp>
-#include <lancer/API/memory.hpp>
-#include <lancer/API/device.hpp>
-#include <lancer/API/VMA.hpp>
 
 namespace vkt
 {

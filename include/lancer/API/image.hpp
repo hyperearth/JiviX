@@ -32,6 +32,11 @@ namespace lancer {
             const api::Image& Least() const { return *lastimg; };
             operator const api::Image&() const { return *lastimg; };
 
+            // Get Image Layout for 
+            const api::ImageLayout& GetOriginLayout() const { return originLayout; };
+            const api::ImageLayout& GetTargetLayout() const { return targetLayout; };
+            api::ImageLayout& GetOriginLayout() { return originLayout; };
+            api::ImageLayout& GetTargetLayout() { return targetLayout; };
 
             // 
             std::shared_ptr<Image>&& ImageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
