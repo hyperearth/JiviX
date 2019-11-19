@@ -195,6 +195,8 @@ namespace lancer {
             };
 
             // Get original Vulkan link 
+            api::PipelineCache& GetPipelineCache() { return pipelineCache; };
+            const api::PipelineCache& GetPipelineCache() const { return pipelineCache; };
             api::Device& Least() { return *device; };
             operator api::Device&() { return *device; };
             const api::Device& Least() const { return *device; };

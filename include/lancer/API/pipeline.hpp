@@ -50,6 +50,7 @@ namespace lancer {
 
     class GraphicsPipeline : public std::enable_shared_from_this<GraphicsPipeline> {
         protected: 
+            
             std::shared_ptr<Device> device = {};
             api::Pipeline* pipeline = nullptr;
             api::GraphicsPipelineCreateInfo info = {};
@@ -71,6 +72,8 @@ namespace lancer {
             uint32_t subpass_ = 0u;
 
         public: 
+
+            // 
             GraphicsPipeline(const std::shared_ptr<Device>& device, api::Pipeline* pipeline = nullptr, api::GraphicsPipelineCreateInfo info = {}, const uint32_t& width = 1u, const uint32_t& height = 1u) : pipeline(pipeline), info(info) {
                 inputAssemblyState_.topology = api::PrimitiveTopology::eTriangleList;
                 rasterizationState_.lineWidth = 1.0f;
@@ -91,7 +94,6 @@ namespace lancer {
                 info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
                 info.subpass = subpass_;
             };
-
 
             // Editable 
             auto& GetPipelineCreateInfo() { return info; };
@@ -181,7 +183,8 @@ namespace lancer {
             const api::VertexInputAttributeDescription& GetVertexAttributeDescription() const {
                 return vertexAttributeDescriptions_.back(); };
 
-            std::shared_ptr<GraphicsPipeline>&& Create(const api::PipelineCache &pipelineCache, const api::PipelineLayout &pipelineLayout, const api::RenderPass &renderPass, bool defaultBlend=true) {
+            // 
+            std::shared_ptr<GraphicsPipeline>&& Create(const api::PipelineLayout &pipelineLayout, const api::RenderPass &renderPass, bool defaultBlend=true) {
 
                 // Add default colour blend attachment if necessary.
                 if (colorBlendAttachments_.empty() && defaultBlend) {
@@ -209,7 +212,7 @@ namespace lancer {
                 info.subpass = subpass_;
 
                 // 
-                *pipeline = device->Least().createGraphicsPipeline(pipelineCache, info);
+                *pipeline = device->Least().createGraphicsPipeline(device->GetPipelineCache(), info);
 
                 // 
                 return shared_from_this(); };
