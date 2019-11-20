@@ -201,6 +201,7 @@ namespace lancer {
                 vertexInputState_.pVertexBindingDescriptions = vertexBindingDescriptions_.data();
 
                 // 
+                info.dynamicCount = dynamicState_.size();
                 info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
                 info.pViewportState = &(viewportState_ = {{}, 1, &viewport_, 1, &scissor_});
                 info.layout = pipelineLayout;
