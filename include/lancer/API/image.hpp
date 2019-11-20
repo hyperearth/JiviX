@@ -138,7 +138,7 @@ namespace lancer {
                 imageMemoryBarriers.dstAccessMask = dstMask;
 
                 // barrier
-                api::CommandBuffer(cmd).pipelineBarrier(api::PipelineStageFlagBits::eAllCommands, api::PipelineStageFlagBits::eAllCommands, {}, {}, {}, std::array<api::ImageMemoryBarrier, 1>{imageMemoryBarriers});
+                cmd.pipelineBarrier(api::PipelineStageFlagBits::eAllCommands, api::PipelineStageFlagBits::eAllCommands, {}, {}, {}, std::array<api::ImageMemoryBarrier, 1>{imageMemoryBarriers});
 
                 //image->_initialLayout = (VkImageLayout)imageMemoryBarriers.newLayout;
                 return shared_from_this(); };
