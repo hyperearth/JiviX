@@ -94,7 +94,7 @@ namespace lancer {
             };
 
             // Editable 
-            auto& GetPipelineCreateInfo() { return info; };
+            auto& GetCreateInfo() { return info; };
             auto& GetViewport() { return  viewport_; };
             auto& GetScissor() { return  scissor_; };
             auto& GetColorBlendState() { return colorBlendState_; };
@@ -108,7 +108,7 @@ namespace lancer {
             auto& GetVertexAttributeDescriptions() { return vertexAttributeDescriptions_ };
 
             // Viewable 
-            const auto& GetPipelineCreateInfo() const { return info; };
+            const auto& GetCreateInfo() const { return info; };
             const auto& GetViewport() const { return viewport_; };
             const auto& GetScissor() const { return  scissor_; };
             const auto& GetColorBlendState() const { return colorBlendState_; };
@@ -122,7 +122,7 @@ namespace lancer {
             const auto& GetVertexAttributeDescriptions() const { return vertexAttributeDescriptions_ };
 
             // 
-            std::shared_ptr<GraphicsPipeline>&& SetPipelineCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
+            std::shared_ptr<GraphicsPipeline>&& SetCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
             std::shared_ptr<GraphicsPipeline>&& SetViewport(const api::Viewport &value) { viewport_ = value; return shared_from_this(); };
             std::shared_ptr<GraphicsPipeline>&& SetScissor(const api::Rect2D &value) { scissor_ = value; return shared_from_this(); };
             std::shared_ptr<GraphicsPipeline>&& SetColorBlendState(const api::PipelineColorBlendStateCreateInfo  &value) { colorBlendState_ = value; return shared_from_this(); }

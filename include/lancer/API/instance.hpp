@@ -2,6 +2,7 @@
 
 #include "../lib/core.hpp"
 
+// TODO: Add Instance Methods (Enumerations)
 
 namespace lancer {
     class Instance : public std::enable_shared_from_this<Instance> {

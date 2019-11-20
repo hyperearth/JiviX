@@ -9,14 +9,14 @@ namespace lancer {
     class DescriptorSetLayout : public std::enable_shared_from_this<DescriptorSetLayout> {
 
         protected: 
-
             std::shared_ptr<Device>    device = {};
             api::DescriptorSetLayout *dlayout = nullptr;
             std::vector<api::DescriptorSetLayoutBinding> _bindings = {};
             std::vector<api::DescriptorBindingFlagsEXT> _flags = {};
 
-
         public: 
+            DescriptorSetLayout(const std::shared_ptr<Device>& device, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout) {
+            };
 
             std::shared_ptr<DescriptorSetLayout>&& Link(api::DescriptorSetLayout& lays) { 
                 dlayout = &lays; 
