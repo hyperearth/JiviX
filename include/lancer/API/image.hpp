@@ -38,6 +38,11 @@ namespace lancer {
             std::shared_ptr<Sampler>&& Create(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
                 *sampler = device->Least().createSampler(smc);
                 return shared_from_this(); };
+
+            // Stub for write both in descriptor
+            std::shared_ptr<Sampler>&& WriteForDIF(api::DescriptorImageInfo* imd){
+                imd->sampler = *sampler;
+                return shared_from_this(); };
     };
 
 
@@ -151,7 +156,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Stub for write both in descriptor
-            std::shared_ptr<Image>&& CreateImageInfo(api::DescriptorImageInfo* imd){
+            std::shared_ptr<Image>&& WriteForDIF(api::DescriptorImageInfo* imd){
                 imd->imageView = *lastimv;
                 imd->imageLayout = targetLayout;
                 return shared_from_this(); };
