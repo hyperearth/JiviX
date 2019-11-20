@@ -239,5 +239,4 @@ namespace lancer {
         return shared_from_this();
     };
 
-
 };

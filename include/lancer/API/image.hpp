@@ -7,7 +7,39 @@ namespace lancer {
 
     #define DEFAULT_COMPONENTS api::ComponentMapping{api::ComponentSwizzle::eR,api::ComponentSwizzle::eG,api::ComponentSwizzle::eB,api::ComponentSwizzle::eA}
     #define DEFAULT_IMC api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive).setInitialLayout(api::ImageLayout::eUndefined)
-    // TODO: Add Sampler Support 
+
+    class Sampler : public std::enable_shared_from_this<Sampler> {
+        protected: 
+            std::shared_ptr<Device> device = {};
+            api::Sampler* sampler = nullptr; // least allocation, may be vector 
+            api::SamplerCreateInfo smc = {};
+
+        public: 
+            ~Sampler(){};
+             Sampler(const std::shared_ptr<Device>& device, api::Sampler* sampler = nullptr, const api::SamplerCreateInfo& smc = {}) : device(device), sampler(sampler), smc(smc) {
+             };
+
+            // 
+            std::shared_ptr<Sampler>&& Link(api::Sampler* smi) { sampler = smi; return shared_from_this(); };
+
+            // Editable Fields 
+            api::SamplerCreateInfo& GetCreateInfo() { return smc; };
+            const api::SamplerCreateInfo& GetCreateInfo() const { return smc; };
+
+            // Get original Vulkan link 
+            api::Sampler& Least() { return *sampler; };
+            const api::Sampler& Least() const { return *sampler; };
+
+            // Get original Vulkan link 
+            operator api::Sampler&() { return *sampler; };
+            operator const api::Sampler&() const { return *sampler; };
+
+            // Create Sampler 
+            std::shared_ptr<Sampler>&& Create(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
+                *sampler = device->Least().createSampler(smc);
+                return shared_from_this(); };
+    };
+
 
     // Vookoo-Like 
     class Image : public std::enable_shared_from_this<Image> {
@@ -16,8 +48,8 @@ namespace lancer {
             std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
             api::Image* lastimg = nullptr; // least allocation, may be vector 
             api::ImageView* lastimv = nullptr;
-            api::ImageCreateInfo imc = {};
             api::ImageViewCreateInfo imv = {};
+            api::ImageCreateInfo imc = {};
             api::ImageLayout originLayout = api::ImageLayout::eUndefined;
             api::ImageLayout targetLayout = api::ImageLayout::eGeneral;
             api::ImageSubresourceRange sbr = { api::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u };
@@ -26,17 +58,23 @@ namespace lancer {
              Image(const std::shared_ptr<Device>& device, api::Image* lastimg = nullptr, api::ImageCreateInfo imc = DEFAULT_IMC) : lastimg(lastimg),imc(imc),device(device) { imc.extent = {1u,1u,1u}; };
             ~Image(){}; // Here will notification about free memory
 
-            // Get original Vulkan link 
+            // 
             api::Image& Least() { return *lastimg; };
-            operator api::Image&() { return *lastimg; };
             const api::Image& Least() const { return *lastimg; };
+
+            // Get original Vulkan link 
+            operator api::Image&() { return *lastimg; };
             operator const api::Image&() const { return *lastimg; };
 
             // Get Image Layout for 
             const api::ImageLayout& GetOriginLayout() const { return originLayout; };
             const api::ImageLayout& GetTargetLayout() const { return targetLayout; };
+            const api::ImageViewCreateInfo& GetViewCreateInfo() const { return imv; };
+            const api::ImageCreateInfo& GetCreateInfo() const { return imc; };
             api::ImageLayout& GetOriginLayout() { return originLayout; };
             api::ImageLayout& GetTargetLayout() { return targetLayout; };
+            api::ImageViewCreateInfo& GetViewCreateInfo() { return imv; };
+            api::ImageCreateInfo& GetCreateInfo() { return imc; };
 
             // 
             std::shared_ptr<Image>&& ImageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {

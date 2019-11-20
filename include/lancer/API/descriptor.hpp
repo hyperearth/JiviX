@@ -23,7 +23,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             std::shared_ptr<DescriptorSetLayout>&& PushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
-                _bindings.push_back(binding); _flags.push_back(flag);
+                _bindings.push_back(binding); _flags.push_back(flags);
                 return shared_from_this(); };
 
             // Editable Current State 
