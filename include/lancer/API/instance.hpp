@@ -16,9 +16,9 @@ namespace lancer {
                 *instance = api::createInstance(info);
             };
 
-            api::Instance& Least() { return *lastinst; };
+            inline api::Instance& Least() { return *lastinst; };
+            inline const api::Instance& Least() const { return *lastinst; };
             operator api::Instance&() { return *lastinst; };
-            const api::Instance& Least() const { return *lastinst; };
             operator const api::Instance&() const { return *lastinst; };
     };
 

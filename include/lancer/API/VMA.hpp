@@ -4,6 +4,7 @@
 #include "../API/memory.hpp"
 #include "../API/device.hpp"
 #include "../API/buffer.hpp"
+#include "../API/image.hpp"
 #include <VMA/vk_mem_alloc.h>
 //#inc;ude <vulkan/VMA.hpp>
 

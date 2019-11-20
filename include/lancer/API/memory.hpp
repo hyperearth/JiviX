@@ -28,7 +28,7 @@ namespace lancer {
              Allocation() = default;
              Allocation(const std::shared_ptr<Allocator>& allocator){};
 
-            const std::shared_ptr<Device>& GetDevice() const { return allocator->GetDevice(); };
+            inline const std::shared_ptr<Device>& GetDevice() const { return allocator->GetDevice(); };
     };
 
     class Allocator : public std::enable_shared_from_this<Allocator> {
@@ -47,7 +47,7 @@ namespace lancer {
             virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
             virtual void Initialize(const std::shared_ptr<Device>& device = {});
             virtual std::shared_ptr<Allocation>&& CreateAllocation() { return std::make_shared<Allocation>(*this); };
-            const std::shared_ptr<Device>& GetDevice() const { return device; };
+            inline const std::shared_ptr<Device>& GetDevice() const { return device; };
     };
 
     // TODO: Any implementations after device

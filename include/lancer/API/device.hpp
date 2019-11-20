@@ -157,11 +157,11 @@ namespace lancer {
 
             // getter of vendor name 
             operator const std::shared_ptr<paths::DriverWrapBase>&() const { return driverWrap; };
-            std::string getPath(const std::string fpath) const { return driverWrap->getPath(fpath); };
-            std::string getDriverName() const { return driverWrap->getDriverName(); };
+            inline std::string getPath(const std::string fpath) const { return driverWrap->getPath(fpath); };
+            inline std::string getDriverName() const { return driverWrap->getDriverName(); };
 
             // 
-            uint32_t getRecommendedSubgroupSize() {
+            inline uint32_t getRecommendedSubgroupSize() {
                 if (driverWrap->getDriverName() == "turing") { return 16u; }; // SM7!
                 if (driverWrap->getDriverName() == "amdvlk") { return 16u; }; // GCN!
                 if (driverWrap->getDriverName() == "vega10") { return 16u; }; // GCN!
@@ -191,24 +191,24 @@ namespace lancer {
                 if (physicalHelper && device && !(*device)) { *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc); };};
 
             // Get original Vulkan link 
-            api::PipelineCache& GetPipelineCache() { return pipelineCache; };
-            const api::PipelineCache& GetPipelineCache() const { return pipelineCache; };
-            api::Device& Least() { return *device; };
-            const api::Device& Least() const { return *device; };
+            inline api::PipelineCache& GetPipelineCache() { return pipelineCache; };
+            inline const api::PipelineCache& GetPipelineCache() const { return pipelineCache; };
+            inline api::Device& Least() { return *device; };
+            inline const api::Device& Least() const { return *device; };
             operator api::Device&() { return *device; };
             operator const api::Device&() const { return *device; };
 
             // 
-            std::shared_ptr<Device>&& Initialize();
-            std::shared_ptr<Device>&& LinkAllocator(const std::shared_ptr<Allocator>& allocator) { this->allocator = allocator; return shared_from_this(); };
-            std::shared_ptr<Device>&& LinkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
-            std::shared_ptr<Device>&& LinkPhysicalHelper(const std::shared_ptr<PhysicalDeviceHelper>& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
-            std::shared_ptr<Device>&& Link(api::Device& dev) { device = &dev; return shared_from_this(); };
-            const std::shared_ptr<PhysicalDeviceHelper>& GetHelper() const { return physicalHelper; };
+            inline std::shared_ptr<Device>&& Initialize();
+            inline std::shared_ptr<Device>&& LinkAllocator(const std::shared_ptr<Allocator>& allocator) { this->allocator = allocator; return shared_from_this(); };
+            inline std::shared_ptr<Device>&& LinkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
+            inline std::shared_ptr<Device>&& LinkPhysicalHelper(const std::shared_ptr<PhysicalDeviceHelper>& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
+            inline std::shared_ptr<Device>&& Link(api::Device& dev) { device = &dev; return shared_from_this(); };
+            inline const std::shared_ptr<PhysicalDeviceHelper>& GetHelper() const { return physicalHelper; };
     };
 
     // 
-    std::shared_ptr<Device>&& Device::Initialize() {
+    inline std::shared_ptr<Device>&& Device::Initialize() {
         if (physicalHelper && device && !(*device)) {
             *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc);
         };

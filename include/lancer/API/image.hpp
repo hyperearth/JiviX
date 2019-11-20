@@ -20,27 +20,27 @@ namespace lancer {
              };
 
             // 
-            std::shared_ptr<Sampler>&& Link(api::Sampler* smi) { sampler = smi; return shared_from_this(); };
+            inline std::shared_ptr<Sampler>&& Link(api::Sampler* smi) { sampler = smi; return shared_from_this(); };
 
             // Editable Fields 
-            api::SamplerCreateInfo& GetCreateInfo() { return smc; };
-            const api::SamplerCreateInfo& GetCreateInfo() const { return smc; };
+            inline api::SamplerCreateInfo& GetCreateInfo() { return smc; };
+            inline const api::SamplerCreateInfo& GetCreateInfo() const { return smc; };
 
             // Get original Vulkan link 
-            api::Sampler& Least() { return *sampler; };
-            const api::Sampler& Least() const { return *sampler; };
+            inline api::Sampler& Least() { return *sampler; };
+            inline const api::Sampler& Least() const { return *sampler; };
 
             // Get original Vulkan link 
             operator api::Sampler&() { return *sampler; };
             operator const api::Sampler&() const { return *sampler; };
 
             // Create Sampler 
-            std::shared_ptr<Sampler>&& Create(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
+            inline std::shared_ptr<Sampler>&& Create(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
                 *sampler = device->Least().createSampler(smc);
                 return shared_from_this(); };
 
             // Stub for write both in descriptor
-            std::shared_ptr<Sampler>&& WriteForDIF(api::DescriptorImageInfo* imd){
+            inline std::shared_ptr<Sampler>&& WriteForDIF(api::DescriptorImageInfo* imd){
                 imd->sampler = *sampler;
                 return shared_from_this(); };
     };
@@ -64,62 +64,126 @@ namespace lancer {
             ~Image(){}; // Here will notification about free memory
 
             // 
-            api::Image& Least() { return *lastimg; };
-            const api::Image& Least() const { return *lastimg; };
+            inline api::Image& Least() { return *lastimg; };
+            inline const api::Image& Least() const { return *lastimg; };
 
             // Get original Vulkan link 
             operator api::Image&() { return *lastimg; };
             operator const api::Image&() const { return *lastimg; };
 
             // Get Image Layout for 
-            const api::ImageLayout& GetOriginLayout() const { return originLayout; };
-            const api::ImageLayout& GetTargetLayout() const { return targetLayout; };
-            const api::ImageViewCreateInfo& GetViewCreateInfo() const { return imv; };
-            const api::ImageCreateInfo& GetCreateInfo() const { return imc; };
-            api::ImageLayout& GetOriginLayout() { return originLayout; };
-            api::ImageLayout& GetTargetLayout() { return targetLayout; };
-            api::ImageViewCreateInfo& GetViewCreateInfo() { return imv; };
-            api::ImageCreateInfo& GetCreateInfo() { return imc; };
+            inline const api::ImageLayout& GetOriginLayout() const { return originLayout; };
+            inline const api::ImageLayout& GetTargetLayout() const { return targetLayout; };
+            inline const api::ImageViewCreateInfo& GetViewCreateInfo() const { return imv; };
+            inline const api::ImageCreateInfo& GetCreateInfo() const { return imc; };
+            inline api::ImageLayout& GetOriginLayout() { return originLayout; };
+            inline api::ImageLayout& GetTargetLayout() { return targetLayout; };
+            inline api::ImageViewCreateInfo& GetViewCreateInfo() { return imv; };
+            inline api::ImageCreateInfo& GetCreateInfo() { return imc; };
+
+
+
+
+            // transition texture layout
+            inline auto ImageBarrier(const api::CommandBuffer& cmd) {
+                api::Result result = api::Result::eSuccess; // planned to complete
+                if (originLayout == targetLayout) return shared_from_this(); // no need transfering more
+
+                api::ImageMemoryBarrier imageMemoryBarriers = {};
+                imageMemoryBarriers.srcQueueFamilyIndex = ~0U;
+                imageMemoryBarriers.dstQueueFamilyIndex = ~0U;
+                imageMemoryBarriers.oldLayout = originLayout;
+                imageMemoryBarriers.newLayout = targetLayout;
+                imageMemoryBarriers.subresourceRange = sbr;
+                imageMemoryBarriers.image = *lastimg;
+
+                // Put barrier on top
+                const auto  srcStageMask = api::PipelineStageFlags{ api::PipelineStageFlagBits::eBottomOfPipe };
+                const auto  dstStageMask = api::PipelineStageFlags{ api::PipelineStageFlagBits::eTopOfPipe };
+                const auto  dependencyFlags = api::DependencyFlags{};
+                      auto  srcMask = api::AccessFlags{}, dstMask = api::AccessFlags{};
+
+                typedef api::ImageLayout il;
+                typedef api::AccessFlagBits afb;
+
+                // Is it me, or are these the same?
+                switch (originLayout) {
+                    case il::eUndefined: break;
+                    case il::eGeneral: srcMask = afb::eTransferWrite; break;
+                    case il::eColorAttachmentOptimal: srcMask = afb::eColorAttachmentWrite; break;
+                    case il::eDepthStencilAttachmentOptimal: srcMask = afb::eDepthStencilAttachmentWrite; break;
+                    case il::eDepthStencilReadOnlyOptimal: srcMask = afb::eDepthStencilAttachmentRead; break;
+                    case il::eShaderReadOnlyOptimal: srcMask = afb::eShaderRead; break;
+                    case il::eTransferSrcOptimal: srcMask = afb::eTransferRead; break;
+                    case il::eTransferDstOptimal: srcMask = afb::eTransferWrite; break;
+                    case il::ePreinitialized: srcMask = afb::eTransferWrite | afb::eHostWrite; break;
+                    case il::ePresentSrcKHR: srcMask = afb::eMemoryRead; break;
+                };
+
+                switch (targetLayout) {
+                    case il::eUndefined: break;
+                    case il::eGeneral: dstMask = afb::eTransferWrite; break;
+                    case il::eColorAttachmentOptimal: dstMask = afb::eColorAttachmentWrite; break;
+                    case il::eDepthStencilAttachmentOptimal: dstMask = afb::eDepthStencilAttachmentWrite; break;
+                    case il::eDepthStencilReadOnlyOptimal: dstMask = afb::eDepthStencilAttachmentRead; break;
+                    case il::eShaderReadOnlyOptimal: dstMask = afb::eShaderRead; break;
+                    case il::eTransferSrcOptimal: dstMask = afb::eTransferRead; break;
+                    case il::eTransferDstOptimal: dstMask = afb::eTransferWrite; break;
+                    case il::ePreinitialized: dstMask = afb::eTransferWrite; break;
+                    case il::ePresentSrcKHR: dstMask = afb::eMemoryRead; break;
+                };
+
+                // assign access masks
+                imageMemoryBarriers.srcAccessMask = srcMask;
+                imageMemoryBarriers.dstAccessMask = dstMask;
+
+                // barrier
+                api::CommandBuffer(cmd).pipelineBarrier(api::PipelineStageFlagBits::eAllCommands, api::PipelineStageFlagBits::eAllCommands, {}, {}, {}, std::array<api::ImageMemoryBarrier, 1>{imageMemoryBarriers});
+
+                //image->_initialLayout = (VkImageLayout)imageMemoryBarriers.newLayout;
+                return shared_from_this(); };
+
+
 
             // 
-            std::shared_ptr<Image>&& ImageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
+            inline std::shared_ptr<Image>&& ImageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
                 sbr = subres; // For ImageView create 
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Image>&& MipLevels(const uint32_t& mipLevels = 1) {
+            inline std::shared_ptr<Image>&& MipLevels(const uint32_t& mipLevels = 1) {
                 imc.mipLevels = mipLevels;
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Image>&& SampleCount(const api::SampleCountFlagBits& samples = api::SampleCountFlagBits::e1) {
+            inline std::shared_ptr<Image>&& SampleCount(const api::SampleCountFlagBits& samples = api::SampleCountFlagBits::e1) {
                 imc.samples = samples;
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Image>&& Tiling(const api::ImageTiling& tiling = api::ImageTiling::eOptimal) {
+            inline std::shared_ptr<Image>&& Tiling(const api::ImageTiling& tiling = api::ImageTiling::eOptimal) {
                 imc.tiling = tiling;
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Image>&& Usage(const api::ImageUsageFlags& usage = api::ImageUsageFlagBits::eStorage) {
+            inline std::shared_ptr<Image>&& Usage(const api::ImageUsageFlags& usage = api::ImageUsageFlagBits::eStorage) {
                 imc.usage = usage;
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Image>&& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            inline std::shared_ptr<Image>&& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 imc.queueFamilyIndexCount = indices.size();
                 imc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Image>&& Link(api::Image* img) { lastimg = img; return shared_from_this(); };
-            std::shared_ptr<Image>&& Allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
+            inline std::shared_ptr<Image>&& Link(api::Image* img) { lastimg = img; return shared_from_this(); };
+            inline std::shared_ptr<Image>&& Allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
                 mem->AllocateForImage(lastimg,allocation=mem->CreateAllocation(),imc,ptx);
                 return shared_from_this(); };
 
             // Create 1D "Canvas" 
-            std::shared_ptr<Image>&& Create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
+            inline std::shared_ptr<Image>&& Create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
                 imc.imageType = api::ImageType::e1D;
                 imc.extent = {w,1u,1u};
                 imc.arrayLayers = 1u;
@@ -128,7 +192,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Create 2D "Canvas" 
-            std::shared_ptr<Image>&& Create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) {
+            inline std::shared_ptr<Image>&& Create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) {
                 imc.imageType = api::ImageType::e2D;
                 imc.extent = {w,h,1u};
                 imc.arrayLayers = 1u;
@@ -137,7 +201,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Create 3D "Canvas" 
-            std::shared_ptr<Image>&& Create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
+            inline std::shared_ptr<Image>&& Create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
                 imc.imageType = api::ImageType::e3D;
                 imc.extent = {w,h,d};
                 imc.arrayLayers = d;
@@ -146,7 +210,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Create ImageView 
-            std::shared_ptr<Image>&& CreateImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
+            inline std::shared_ptr<Image>&& CreateImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
                 imv.image = *lastimg;
                 imv.viewType = viewType;
                 imv.format = format!=api::Format::eUndefined?format:imc.format;
@@ -156,7 +220,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Stub for write both in descriptor
-            std::shared_ptr<Image>&& WriteForDIF(api::DescriptorImageInfo* imd){
+            inline std::shared_ptr<Image>&& WriteForDIF(api::DescriptorImageInfo* imd){
                 imd->imageView = *lastimv;
                 imd->imageLayout = targetLayout;
                 return shared_from_this(); };

@@ -20,48 +20,48 @@ namespace lancer {
             ~Buffer(){}; // Here will notification about free memory
 
             // Get original Vulkan link 
-            api::Buffer& Least() { return *lastbuf; };
+            inline api::Buffer& Least() { return *lastbuf; };
             operator api::Buffer&() { return *lastbuf; };
-            const api::Buffer& Least() const { return *lastbuf; };
+            inline const api::Buffer& Least() const { return *lastbuf; };
             operator const api::Buffer&() const { return *lastbuf; };
 
             // Editable BufferCreateInfo
-            api::BufferCreateInfo& GetCreateInfo() { return bfc; };
-            const api::BufferCreateInfo& GetCreateInfo() const { return bfc; };
+            inline api::BufferCreateInfo& GetCreateInfo() { return bfc; };
+            inline const api::BufferCreateInfo& GetCreateInfo() const { return bfc; };
 
             // Mapping from Allocator
-            uint8_t* GetMapped(){
+            inline uint8_t* GetMapped(){
                 return allocation->GetMapped();
             };
 
             //  
-            std::shared_ptr<Buffer>&& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            inline std::shared_ptr<Buffer>&& QueueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 bfc.queueFamilyIndexCount = indices.size();
                 bfc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
 
             // Link Editable Buffer 
-            std::shared_ptr<Buffer>&& Link(api::Buffer* buf) { lastbuf = buf; 
+            inline std::shared_ptr<Buffer>&& Link(api::Buffer* buf) { lastbuf = buf; 
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Buffer>&& Allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
+            inline std::shared_ptr<Buffer>&& Allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
                 mem->AllocateForBuffer(lastbuf,allocation=mem->CreateAllocation(),bfc,ptx); 
                 return shared_from_this(); };
 
             // 
-            std::shared_ptr<Buffer>&& Create() { // 
+            inline std::shared_ptr<Buffer>&& Create() { // 
                 *lastbuf = device->Least().createBuffer(bfc);
                 return shared_from_this(); };
 
             // Create With Buffer View 
-            std::shared_ptr<Buffer>&& CreateView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+            inline std::shared_ptr<Buffer>&& CreateView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
                 (*bfv = allocation->GetDevice()->Least().createBufferView(api::BufferViewCreateInfo{{}, *lastbuf, format, offset, size})); lbv = bfv;
                 return shared_from_this(); };
 
             // Create With Region
             // TODO: another format 
-            std::shared_ptr<BufferRegion<uint8_t>>&& CreateRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = 16u);
+            inline std::shared_ptr<BufferRegion<uint8_t>>&& CreateRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = 16u);
     };
 
 
@@ -80,7 +80,7 @@ namespace lancer {
 
         T* const& map() { mapped = (T*)((uint8_t*)buffer->GetMapped() + bufInfo->offset); return mapped; };
         T* const& data() { this->map(); return mapped; };
-        const T*& data() const { return mapped; };
+        inline const T*& data() const { return mapped; };
 
         // 
         size_t size() const { return size_t(bufInfo->range / sizeof(T)); };
@@ -105,7 +105,7 @@ namespace lancer {
         // 
         operator const api::DescriptorBufferInfo&() const { return &bufInfo; };
         operator const api::Buffer&() const { return *buffer; };
-        const api::DeviceSize& offset() const { return bufInfo->offset; };
+        inline const api::DeviceSize& offset() const { return bufInfo->offset; };
 
     protected:
         T* mapped = {};
@@ -133,7 +133,7 @@ namespace lancer {
 
         // map through
         T* const& map() { return region->map(); };
-        void unmap() { return region->unmap(); };
+        inline void unmap() { return region->unmap(); };
 
         T* const& data() { return region->data(); };
         const T*& data() const { return region->data(); };
@@ -161,7 +161,7 @@ namespace lancer {
         // 
         operator const api::DescriptorBufferInfo&() const { return *region; };
         operator const api::Buffer&() const { return *region; };
-        const api::DeviceSize& offset() const { return region->offset(); };
+        inline const api::DeviceSize& offset() const { return region->offset(); };
 
     protected:
         std::shared_ptr<BufferRegion<T>> region = {};

@@ -3,8 +3,8 @@
 #include <vulkan/vulkan.hpp>
 
 namespace lancer {
-    #define api vk
-
+    //#define api vk  // C-style
+    namespace api { using namespace vk; }; // safer version 
     
     template<class T, class U = uint32_t> class BitOps { protected: U n = 0u; //friend BitOps<T,U>;
         public: BitOps<T,U>(const T& v = 0u) : n((U&)v){};
@@ -192,10 +192,12 @@ namespace lancer {
         // 
         operator std::pair<T&,R&>(){ return std::pair(that,result); };
         operator std::pair<const T&,const R&>() const { return std::pair(that,result); };
-        operator T&(){ return that; };
+        
+        // 
         operator const T&() const { return that; };
-        operator R&(){ return result; };
         operator const R&() const { return result; };
+        operator T&(){ return that; };
+        operator R&(){ return result; };
 
         T& ref() { return that; };
         const T& ref() const { return that; };
