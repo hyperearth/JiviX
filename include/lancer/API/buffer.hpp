@@ -25,6 +25,10 @@ namespace lancer {
             const api::Buffer& Least() const { return *lastbuf; };
             operator const api::Buffer&() const { return *lastbuf; };
 
+            // Editable BufferCreateInfo
+            api::BufferCreateInfo& GetCreateInfo() { return bfc; };
+            const api::BufferCreateInfo& GetCreateInfo() const { return bfc; };
+
             // Mapping from Allocator
             uint8_t* GetMapped(){
                 return allocation->GetMapped();
