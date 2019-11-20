@@ -26,6 +26,7 @@ namespace lancer {
                 return shared_from_this();
             };
 
+/* LEGACY, RESERVED
             inline std::shared_ptr<RenderpassMaker>&& Link(api::RenderpassMaker* rps) { renderpass = rps; return shared_from_this(); };
             inline std::shared_ptr<RenderpassMaker>&& attachmentFlags(api::AttachmentDescriptionFlags value) { s.attachmentDescriptions.back().flags = value; return shared_from_this(); };
             inline std::shared_ptr<RenderpassMaker>&& attachmentFormat(api::Format value) { s.attachmentDescriptions.back().format = value; return shared_from_this(); };
@@ -36,6 +37,14 @@ namespace lancer {
             inline std::shared_ptr<RenderpassMaker>&& attachmentStencilStoreOp(api::AttachmentStoreOp value) { s.attachmentDescriptions.back().stencilStoreOp = value; return shared_from_this(); };
             inline std::shared_ptr<RenderpassMaker>&& attachmentInitialLayout(api::ImageLayout value) { s.attachmentDescriptions.back().initialLayout = value; return shared_from_this(); };
             inline std::shared_ptr<RenderpassMaker>&& attachmentFinalLayout(api::ImageLayout value) { s.attachmentDescriptions.back().finalLayout = value; return shared_from_this(); };
+            inline std::shared_ptr<RenderpassMaker>&& dependencySrcSubpass(uint32_t value) { s.subpassDependencies.back().srcSubpass = value; return shared_from_this(); };
+            inline std::shared_ptr<RenderpassMaker>&& dependencyDstSubpass(uint32_t value) { s.subpassDependencies.back().dstSubpass = value; return shared_from_this(); };
+            inline std::shared_ptr<RenderpassMaker>&& dependencySrcStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().srcStageMask = value; return shared_from_this(); };
+            inline std::shared_ptr<RenderpassMaker>&& dependencyDstStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().dstStageMask = value; return shared_from_this(); };
+            inline std::shared_ptr<RenderpassMaker>&& dependencyDependencyFlags(api::DependencyFlags value) { s.subpassDependencies.back().dependencyFlags = value; return shared_from_this(); };
+            inline std::shared_ptr<RenderpassMaker>&& dependencySrcAccessMask(api::AccessFlags value) { s.subpassDependencies.back().srcAccessMask = value; return shared_from_this(); };
+            inline std::shared_ptr<RenderpassMaker>&& dependencyDstAccessMask(api::AccessFlags value) { s.subpassDependencies.back().dstAccessMask = value; return shared_from_this(); };
+*/
 
             /// Start a subpass description.
             /// After this you can can call subpassColorAttachment many times
@@ -86,14 +95,6 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline std::shared_ptr<RenderpassMaker>&& dependencySrcSubpass(uint32_t value) { s.subpassDependencies.back().srcSubpass = value; return shared_from_this(); };
-            inline std::shared_ptr<RenderpassMaker>&& dependencyDstSubpass(uint32_t value) { s.subpassDependencies.back().dstSubpass = value; return shared_from_this(); };
-            inline std::shared_ptr<RenderpassMaker>&& dependencySrcStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().srcStageMask = value; return shared_from_this(); };
-            inline std::shared_ptr<RenderpassMaker>&& dependencyDstStageMask(api::PipelineStageFlags value) { s.subpassDependencies.back().dstStageMask = value; return shared_from_this(); };
-            inline std::shared_ptr<RenderpassMaker>&& dependencyDependencyFlags(api::DependencyFlags value) { s.subpassDependencies.back().dependencyFlags = value; return shared_from_this(); };
-            inline std::shared_ptr<RenderpassMaker>&& dependencySrcAccessMask(api::AccessFlags value) { s.subpassDependencies.back().srcAccessMask = value; return shared_from_this(); };
-            inline std::shared_ptr<RenderpassMaker>&& dependencyDstAccessMask(api::AccessFlags value) { s.subpassDependencies.back().dstAccessMask = value; return shared_from_this(); };
-            
         protected: 
             constexpr static int max_refs = 64;
             std::shared_ptr<Device> device = {};
