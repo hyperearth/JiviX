@@ -225,9 +225,8 @@ namespace lancer {
                 imd->imageLayout = targetLayout;
                 return shared_from_this(); };
 
-            // TODO: add and write into command buffer ImageLayout switch (from originLayout to targetLayout)
-            // TODO: write targetLayout into api::DescriptorImageInfo 
-            // TODO: create for api::DescriptorImageInfo 
+            
+            // TODO: re-make or improve  api::DescriptorImageInfo  interaction
     };
 
 };
