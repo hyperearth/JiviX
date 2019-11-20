@@ -118,12 +118,13 @@ namespace vkt
         std::shared_ptr<Instance> instance = {};
         std::shared_ptr<Device> device = {};
         std::shared_ptr<Allocator> allocator = {};
+        std::shared_ptr<PhysicalDeviceHelper> physicalHelper = {};
         api::Fence fence = {};
         api::Queue queue = {};
         api::Device _device = {};
         api::Instance _instance = {};
-        api::DescriptorPool descriptorPool = {};
-        api::PhysicalDevice physicalDevice = {};
+        api::DescriptorPool _descriptorPool = {};
+        api::PhysicalDevice _physicalDevice = {};
         api::CommandPool commandPool = {};
         api::RenderPass renderpass = {};
         api::Image depthImage = {};
@@ -134,14 +135,13 @@ namespace vkt
         std::vector<uint32_t> queueFamilyIndices = {};
 
         //api::Device createDevice(bool isComputePrior = true, std::string shaderPath = "./", bool enableAdvancedAcceleration = true);
-
-        const api::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { return (physicalDevice = physicalDevices[gpuID]); };
-        const api::PhysicalDevice& getPhysicalDevice() const { return this->physicalDevice; };
-        const api::Device& getDevice() const { return this->device; };
+        const api::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { _physicalDevice = physicalDevices[gpuID]; return _physicalDevice; };
+        const api::PhysicalDevice& getPhysicalDevice() const { return (*this->physicalHelper); };
+        const api::Device& getDevice() const { return *this->device; };
         const api::Queue& getQueue() const { return this->queue; };
         const api::Fence& getFence() const { return this->fence; };
-        const api::Instance& getInstance() const { return this->instance; };
-        const api::CommandPool& getCommandPool() const { return this->commandPool; };
+        const api::Instance& getInstance() const { return (api::Instance&)(*this->instance); };
+        const api::CommandPool& getCommandPool() const { return (api::CommandPool&)(this->commandPool); };
 
         void submitCommandWithSync(const api::CommandBuffer & cmdBuf) {
             // submit command
@@ -152,9 +152,9 @@ namespace vkt
             // submit commands
             auto fence = getFence(); {
                 getQueue().submit(sbmi, fence);
-                device.waitForFences({ fence }, true, INT32_MAX);
+                _device.waitForFences({ fence }, true, INT32_MAX);
             };
-            device.resetFences({ 1, &fence });
+            _device.resetFences({ 1, &fence });
         }
 
         struct SurfaceWindow {
@@ -236,12 +236,12 @@ namespace vkt
             return instance;
         };
 
-        std::shared_ptr<Device>& createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
+        std::shared_ptr<Device>&& createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
             // TODO: merge into Device class 
 
             // use extensions
             auto deviceExtensions = std::vector<const char*>();
-            auto gpuExtensions = physicalDevice.enumerateDeviceExtensionProperties();
+            auto gpuExtensions = _physicalDevice.enumerateDeviceExtensionProperties();
             for (auto w : wantedDeviceExtensions) {
                 for (auto i : gpuExtensions) {
                     if (std::string(i.extensionName).compare(w) == 0) {
@@ -253,7 +253,7 @@ namespace vkt
             // use layers
             auto layers = std::vector<const char*>();
             auto deviceValidationLayers = std::vector<const char*>();
-            auto gpuLayers = physicalDevice.enumerateDeviceLayerProperties();
+            auto gpuLayers = _physicalDevice.enumerateDeviceLayerProperties();
             for (auto w : wantedLayers) {
                 for (auto i : gpuLayers) {
                     if (std::string(i.layerName).compare(w) == 0) {
@@ -274,11 +274,11 @@ namespace vkt
             gFeatures.features.shaderInt16 = true;
             gFeatures.features.shaderInt64 = true;
             gFeatures.features.shaderUniformBufferArrayDynamicIndexing = true;
-            physicalDevice.getFeatures2(&gFeatures);
+            _physicalDevice.getFeatures2(&gFeatures);
 
             // get features and queue family properties
             //auto gpuFeatures = gpu.getFeatures();
-            auto gpuQueueProps = physicalDevice.getQueueFamilyProperties();
+            auto gpuQueueProps = _physicalDevice.getQueueFamilyProperties();
 
             // queue family initial
             float priority = 1.0f;
@@ -288,7 +288,7 @@ namespace vkt
             // compute/graphics queue family
             for (auto queuefamily : gpuQueueProps) {
                 graphicsFamilyIndex++;
-                if (queuefamily.queueFlags & (api::QueueFlagBits::eCompute) && queuefamily.queueFlags & (api::QueueFlagBits::eGraphics) && physicalDevice.getSurfaceSupportKHR(graphicsFamilyIndex, surface())) {
+                if (queuefamily.queueFlags & (api::QueueFlagBits::eCompute) && queuefamily.queueFlags & (api::QueueFlagBits::eGraphics) && _physicalDevice.getSurfaceSupportKHR(graphicsFamilyIndex, surface())) {
                     queueCreateInfos.push_back(api::DeviceQueueCreateInfo(api::DeviceQueueCreateFlags()).setQueueFamilyIndex(graphicsFamilyIndex).setQueueCount(1).setPQueuePriorities(&priority));
                     queueFamilyIndices.push_back(graphicsFamilyIndex);
                     break;
@@ -297,7 +297,7 @@ namespace vkt
 
             // if have supported queue family, then use this device
             if (queueCreateInfos.size() > 0) {
-                this->physicalHelper = std::make_shared<PhysicalDeviceHelper>(this->physicalDevice = physicalDevice);
+                this->physicalHelper = std::make_shared<PhysicalDeviceHelper>(this->_physicalDevice);
                 this->device = std::make_shared<Device>(this->physicalHelper, &_device, api::DeviceCreateInfo().setFlags(api::DeviceCreateFlags())
                     .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
                     .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
@@ -311,18 +311,18 @@ namespace vkt
             this->queueFamilyIndex = queueFamilyIndices[qptr];
             this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
             this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
-            return device
+            return std::move(this->device
                 ->Link(_device)
+                ->LinkDescriptorPool(_descriptorPool)
                 ->LinkPhysicalHelper(this->physicalHelper)
-                ->LinkDescriptorPool(this->descriptorPool)
-                ->LinkAllocator(this->allocator=std::make_shared<VMAllocator>(device))->Initialize(); // Finally Initiate Device 
+                ->LinkAllocator(this->allocator=std::make_shared<VMAllocator>(device))->Initialize()); // Finally Initiate Device 
         };
 
         // create window and surface for this application (multi-window not supported)
         inline SurfaceWindow& createWindowSurface(GLFWwindow * window, uint32_t WIDTH, uint32_t HEIGHT, std::string title = "TestApp") {
             applicationWindow.window = window;
             applicationWindow.surfaceSize = api::Extent2D{ WIDTH, HEIGHT };
-            auto result = glfwCreateWindowSurface(instance, applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
+            auto result = glfwCreateWindowSurface((VkInstance&)(*instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
             if (result != VK_SUCCESS) { glfwTerminate(); exit(result); };
             return applicationWindow;
         }
@@ -331,7 +331,7 @@ namespace vkt
         inline SurfaceWindow& createWindowSurface(uint32_t WIDTH, uint32_t HEIGHT, std::string title = "TestApp") {
             applicationWindow.window = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), nullptr, nullptr);
             applicationWindow.surfaceSize = api::Extent2D{ WIDTH, HEIGHT };
-            auto result = glfwCreateWindowSurface(instance, applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
+            auto result = glfwCreateWindowSurface((VkInstance&)(*instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
             if (result != VK_SUCCESS) { glfwTerminate(); exit(result); };
             return applicationWindow;
         }
@@ -496,7 +496,7 @@ namespace vkt
             };
 
             // create renderpass
-            return (renderpass = device.createRenderPass(api::RenderPassCreateInfo(
+            return (renderpass = _device.createRenderPass(api::RenderPassCreateInfo(
                 api::RenderPassCreateFlags(), attachmentDescriptions.size(),
                 attachmentDescriptions.data(), subpasses.size(), subpasses.data(),
                 dependencies.size(), dependencies.data())));
@@ -507,59 +507,59 @@ namespace vkt
         {
             // The swapchain handles allocating frame images.
             auto formats = applicationWindow.surfaceFormat;
-            auto gpuMemoryProps = physicalDevice.getMemoryProperties();
+            auto gpuMemoryProps = _physicalDevice.getMemoryProperties();
 
             // 
             auto imageInfoVK = api::ImageCreateInfo{};
-            imageInfoVK.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            imageInfoVK.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            imageInfoVK.flags = 0;
+            imageInfoVK.initialLayout = api::ImageLayout::eUndefined;
+            imageInfoVK.sharingMode = api::SharingMode::eExclusive;
+            imageInfoVK.flags = {};
             imageInfoVK.pNext = nullptr;
             imageInfoVK.arrayLayers = 1;
             imageInfoVK.extent = { applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 };
             imageInfoVK.format = { formats.depthFormat };
-            imageInfoVK.imageType = VK_IMAGE_TYPE_2D;
+            imageInfoVK.imageType = api::ImageType::e2D;
             imageInfoVK.mipLevels = 1;
-            imageInfoVK.samples = VK_SAMPLE_COUNT_1_BIT;
-            imageInfoVK.tiling = VK_IMAGE_TILING_OPTIMAL;
-            imageInfoVK.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+            imageInfoVK.samples = api::SampleCountFlagBits::e1;
+            imageInfoVK.tiling = api::ImageTiling::eOptimal;
+            imageInfoVK.usage = api::ImageUsageFlagBits::eDepthStencilAttachment|api::ImageUsageFlagBits::eTransferSrc;
 
             // 
             VmaAllocationCreateInfo allocCreateInfo = {};
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
             // next-gen create image
-            auto imageMaker = std::make_shared<Image>(device, &depthImage, imageInfoVK);
+            auto imageMaker = std::make_shared<lancer::Image>(device, &depthImage, imageInfoVK);
             imageMaker->Create2D(formats.depthFormat, applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height)->Allocate(allocator, (uintptr_t)&allocCreateInfo); // 
 
             // image view for usage
             auto vinfo = api::ImageViewCreateInfo{};
             vinfo.subresourceRange = api::ImageSubresourceRange{ api::ImageAspectFlagBits::eDepth | api::ImageAspectFlagBits::eStencil, 0, 1, 0, 1 };
-            vinfo.flags = 0;
+            vinfo.flags = {};
             vinfo.pNext = nullptr;
-            vinfo.components = VkComponentMapping{ VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-            vinfo.format = VkFormat(formats.depthFormat);
+            vinfo.components = api::ComponentMapping{api::ComponentSwizzle::eR,api::ComponentSwizzle::eG,api::ComponentSwizzle::eB,api::ComponentSwizzle::eA};
+            vinfo.format = formats.depthFormat;
             vinfo.image = depthImage;
-            vinfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            depthImageView = api::Device(*device).createImageView(api::ImageViewCreateInfo(vinfo));
+            vinfo.viewType = api::ImageViewType::e2D;
+            depthImageView = _device.createImageView(api::ImageViewCreateInfo(vinfo));
 
             // 
-            auto swapchainImages = api::Device(*device).getSwapchainImagesKHR(swapchain);
+            auto swapchainImages = _device.getSwapchainImagesKHR(swapchain);
             swapchainBuffers.resize(swapchainImages.size());
             for (int i = 0; i < swapchainImages.size(); i++)
             { // create framebuffers
                 api::Image image = swapchainImages[i]; // prelink images
                 std::array<api::ImageView, 2> views = {}; // predeclare views
-                views[0] = api::Device(*device).createImageView(api::ImageViewCreateInfo{ {}, image, api::ImageViewType::e2D, formats.colorFormat, api::ComponentMapping(), api::ImageSubresourceRange{api::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
+                views[0] = _device.createImageView(api::ImageViewCreateInfo{ {}, image, api::ImageViewType::e2D, formats.colorFormat, api::ComponentMapping(), api::ImageSubresourceRange{api::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
                 views[1] = depthImageView; // depth view
-                swapchainBuffers[i].frameBuffer = api::Device(*device).createFramebuffer(api::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 });
+                swapchainBuffers[i].frameBuffer = _device.createFramebuffer(api::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 });
             }
         }
 
         inline std::vector<Framebuffer> createSwapchainFramebuffer(api::SwapchainKHR swapchain, api::RenderPass renderpass) {
             // framebuffers vector
             std::vector<Framebuffer> swapchainBuffers = {};
-            updateSwapchainFramebuffer(device, swapchain, renderpass, swapchainBuffers);
+            updateSwapchainFramebuffer(swapchain, renderpass, swapchainBuffers);
             for (int i = 0; i < swapchainBuffers.size(); i++)
             { // create semaphore
                 swapchainBuffers[i].semaphore = api::Device(*device).createSemaphore(api::SemaphoreCreateInfo());
@@ -574,8 +574,8 @@ namespace vkt
             api::SurfaceKHR surface = applicationWindow.surface;
             SurfaceFormat& formats = applicationWindow.surfaceFormat;
 
-            auto surfaceCapabilities = api::PhysicalDevice(*device).getSurfaceCapabilitiesKHR(surface);
-            auto surfacePresentModes = api::PhysicalDevice(*device).getSurfacePresentModesKHR(surface);
+            auto surfaceCapabilities = _physicalDevice.getSurfaceCapabilitiesKHR(surface);
+            auto surfacePresentModes = _physicalDevice.getSurfacePresentModesKHR(surface);
 
             // check the surface width/height.
             if (!(surfaceCapabilities.currentExtent.width == -1 ||
