@@ -64,12 +64,12 @@ namespace lancer {
     };
 
     // create shader module
-    static inline auto createShaderModuleIntrusive(const api::Device& device, const std::vector<uint32_t>& code, api::ShaderModule& hndl) {
+    static inline auto& createShaderModuleIntrusive(const api::Device& device, const std::vector<uint32_t>& code, api::ShaderModule& hndl) {
         return (hndl = device.createShaderModule(makeShaderModuleInfo(code)));
     };
 
-    static inline auto createShaderModule(const api::Device& device, const std::vector<uint32_t>& code) {
-        auto sm = api::ShaderModule{}; return createShaderModuleIntrusive(device, code, sm); return sm;
+    static inline auto&& createShaderModule(const api::Device& device, const std::vector<uint32_t>& code) {
+        auto sm = api::ShaderModule{}; return std::move(createShaderModuleIntrusive(device, code, sm));
     };
 
     struct FixConstruction {
