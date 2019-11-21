@@ -28,11 +28,11 @@ namespace lancer {
 
             // Editable Current State 
             inline api::DescriptorSetLayoutBinding& getBinding() { return _bindings.back(); };
-            inline api::DescriptorBindingFlagsEXT& getFlags() { return _flags.back(); };
+            inline api::DescriptorBindingFlagsEXT& getBindingFlags() { return _flags.back(); };
 
             // Viewable Current State 
             inline const api::DescriptorSetLayoutBinding& getBinding() const { return _bindings.back(); };
-            inline const api::DescriptorBindingFlagsEXT& getFlags() const { return _flags.back(); };
+            inline const api::DescriptorBindingFlagsEXT& getBindingFlags() const { return _flags.back(); };
 
             // 
             inline DescriptorSetLayout&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
