@@ -216,6 +216,34 @@ namespace lancer {
         const T& operator->() const { return that; };
     };
 
-    class Device;
+    class Device_T;
+    class Buffer_T;
+    class Image_T;
+    class DescriptorSet_T;
+    class DescriptorSetLayout_T;
+    class Instance_T;
+    class PipelineLayout_T;
+    class RenderPass_T;
+    class Allocation_T;
+    class Allocator_T;
+    class PhysicalDeviceHelper_T;
+    class Sampler_T;
+    class GraphicsPipeline_T;
+
+    using Sampler = std::shared_ptr<Sampler_T>;
+    using Buffer = std::shared_ptr<Buffer_T>;
+    using Device = std::shared_ptr<Device_T>;
+    using Image = std::shared_ptr<Image_T>;
+    using DescriptorSet = std::shared_ptr<DescriptorSet_T>;
+    using DescriptorSetLayout = std::shared_ptr<DescriptorSetLayout_T>;
+    using Instance = std::shared_ptr<Instance_T>;
+    using PipelineLayout = std::shared_ptr<PipelineLayout_T>;
+    using RenderPass = std::shared_ptr<RenderPass_T>;
+    using Allocation = std::shared_ptr<Allocation_T>;
+    using Allocator = std::shared_ptr<Allocator_T>;
+    using PhysicalDeviceHelper = std::shared_ptr<PhysicalDeviceHelper_T>;
+    using BufferRegionU8_T = BufferRegion_T<uint8_t>;
+    using BufferRegionU8 = std::shared_ptr<BufferRegionU8_T>;
+    using GraphicsPipeline = std::shared_ptr<GraphicsPipeline_T>;
 
 };

@@ -7,17 +7,17 @@
 
 namespace lancer {
     // Vookoo-Like 
-    class Buffer : public std::enable_shared_from_this<Buffer> {
+    class Buffer_T : public std::enable_shared_from_this<Buffer_T> {
         protected: 
-            std::shared_ptr<Device> device = {};
-            std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
+            Device device = {};
+            Allocation allocation = {}; // least allocation, may be vector 
             api::Buffer* lastbuf = nullptr;
             api::BufferView* lbv = nullptr;
             api::BufferCreateInfo bfc = {};
 
         public: 
-             Buffer(const std::shared_ptr<Device>& device, api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc), device(device) {};
-            ~Buffer(){}; // Here will notification about free memory
+             Buffer_T(const Device& device, api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc), device(device) {};
+            ~Buffer_T(){}; // Here will notification about free memory
 
             // Get original Vulkan link 
             inline api::Buffer& least() { return *lastbuf; };
@@ -35,33 +35,33 @@ namespace lancer {
             };
 
             //  
-            inline std::shared_ptr<Buffer>&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            inline Buffer&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 bfc.queueFamilyIndexCount = indices.size();
                 bfc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
 
             // Link Editable Buffer 
-            inline std::shared_ptr<Buffer>&& link(api::Buffer* buf) { lastbuf = buf; 
+            inline Buffer&& link(api::Buffer* buf) { lastbuf = buf; 
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Buffer>&& allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
+            inline Buffer&& allocate(const Allocator& mem, const uintptr_t& ptx = 0u) {
                 mem->allocateForBuffer(lastbuf,allocation=mem->createAllocation(),bfc,ptx); 
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Buffer>&& create() { // 
+            inline Buffer&& create() { // 
                 *lastbuf = device->least().createBuffer(bfc);
                 return shared_from_this(); };
 
             // Create With Buffer View 
-            inline std::shared_ptr<Buffer>&& createView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+            inline Buffer&& createView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
                 (*bfv = allocation->getDevice()->least().createBufferView(api::BufferViewCreateInfo{{}, *lastbuf, format, offset, size})); lbv = bfv;
                 return shared_from_this(); };
 
             // Create With Region
             // TODO: another format 
-            inline std::shared_ptr<BufferRegion<uint8_t>>&& createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = 16u);
+            inline BufferRegionU8&& createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = 16u);
     };
 
 
@@ -69,9 +69,9 @@ namespace lancer {
     // TODO: unify functionality 
 
     template<class T = uint8_t>
-    class BufferRegion {
+    class BufferRegion_T {
         public:
-            BufferRegion(const std::shared_ptr<Buffer>& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& size = 0ull, const api::DeviceSize& offset = 0u) : buffer(buffer) {
+            BufferRegion(const Buffer& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& size = 0ull, const api::DeviceSize& offset = 0u) : buffer(buffer) {
                 bufInfo->buffer = (api::Buffer)(*buffer);
                 bufInfo->offset = offset;
                 bufInfo->range = size * sizeof(T);
@@ -109,15 +109,15 @@ namespace lancer {
 
         protected:
             T* mapped = {};
-            std::shared_ptr<Buffer> buffer = {};
+            Buffer buffer = {};
             api::DescriptorBufferInfo* bufInfo = {};
     };
 
     // defer implement 
     // TODO: another format of BufferRegion
-    inline std::shared_ptr<BufferRegion<uint8_t>>&& Buffer::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+    inline BufferRegionU8&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
         (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
-        return std::move(std::make_shared<BufferRegion<uint8_t>>(shared_from_this(), reg, offset, size));
+        return std::move(std::make_shared<BufferRegionU8>(shared_from_this(), reg, offset, size));
     };
 
     // Wrap as Vector (like STD)
@@ -125,7 +125,7 @@ namespace lancer {
     class Vector {
         public:
             Vector() {}
-            Vector(const std::shared_ptr<Buffer>& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& size = 0ull, const api::DeviceSize& offset = 0u) {
+            Vector(const Buffer& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& size = 0ull, const api::DeviceSize& offset = 0u) {
                 region = std::make_shared<BufferRegion<T>>(buffer, bufInfo, size, offset);
             };
             Vector(const std::shared_ptr<BufferRegion<T>>& region) : region(region) {};

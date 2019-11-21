@@ -8,19 +8,19 @@ namespace lancer {
     #define DEFAULT_COMPONENTS api::ComponentMapping{api::ComponentSwizzle::eR,api::ComponentSwizzle::eG,api::ComponentSwizzle::eB,api::ComponentSwizzle::eA}
     #define DEFAULT_IMC api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive).setInitialLayout(api::ImageLayout::eUndefined)
 
-    class Sampler : public std::enable_shared_from_this<Sampler> {
+    class Sampler_T : public std::enable_shared_from_this<Sampler_T> {
         protected: 
-            std::shared_ptr<Device> device = {};
+            Device device = {};
             api::Sampler* sampler = nullptr; // least allocation, may be vector 
             api::SamplerCreateInfo smc = {};
 
         public: 
-            ~Sampler(){};
-             Sampler(const std::shared_ptr<Device>& device, api::Sampler* sampler = nullptr, const api::SamplerCreateInfo& smc = {}) : device(device), sampler(sampler), smc(smc) {
+            ~Sampler_T(){};
+             Sampler_T(const Device& device, api::Sampler* sampler = nullptr, const api::SamplerCreateInfo& smc = {}) : device(device), sampler(sampler), smc(smc) {
              };
 
             // 
-            inline std::shared_ptr<Sampler>&& link(api::Sampler* smi) { sampler = smi; return shared_from_this(); };
+            inline Sampler&& link(api::Sampler* smi) { sampler = smi; return shared_from_this(); };
 
             // Editable Fields 
             inline api::SamplerCreateInfo& getCreateInfo() { return smc; };
@@ -35,22 +35,22 @@ namespace lancer {
             operator const api::Sampler&() const { return *sampler; };
 
             // Create Sampler 
-            inline std::shared_ptr<Sampler>&& create(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
+            inline Sampler&& create(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
                 *sampler = device->least().createSampler(smc);
                 return shared_from_this(); };
 
             // Stub for write both in descriptor
-            inline std::shared_ptr<Sampler>&& writeForDIF(api::DescriptorImageInfo* imd){
+            inline Sampler&& writeForDIF(api::DescriptorImageInfo* imd){
                 imd->sampler = *sampler;
                 return shared_from_this(); };
     };
 
 
     // Vookoo-Like 
-    class Image : public std::enable_shared_from_this<Image> {
+    class Image_T : public std::enable_shared_from_this<Image_T> {
         protected: 
-            std::shared_ptr<Device> device = {};
-            std::shared_ptr<Allocation> allocation = {}; // least allocation, may be vector 
+            Device device = {};
+            Allocation allocation = {}; // least allocation, may be vector 
             api::Image* lastimg = nullptr; // least allocation, may be vector 
             api::ImageView* lastimv = nullptr;
             api::ImageViewCreateInfo imv = {};
@@ -60,8 +60,8 @@ namespace lancer {
             api::ImageSubresourceRange sbr = { api::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u };
 
         public: 
-             Image(const std::shared_ptr<Device>& device, api::Image* lastimg = nullptr, api::ImageCreateInfo imc = DEFAULT_IMC) : lastimg(lastimg),imc(imc),device(device) { imc.extent = {1u,1u,1u}; };
-            ~Image(){}; // Here will notification about free memory
+             Image_T(const Device& device, api::Image* lastimg = nullptr, api::ImageCreateInfo imc = DEFAULT_IMC) : lastimg(lastimg),imc(imc),device(device) { imc.extent = {1u,1u,1u}; };
+            ~Image_T(){}; // Here will notification about free memory
 
             // 
             inline api::Image& least() { return *lastimg; };
@@ -146,44 +146,44 @@ namespace lancer {
 
 
             // 
-            inline std::shared_ptr<Image>&& imageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
+            inline Image&& imageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
                 sbr = subres; // For ImageView create 
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Image>&& mipLevels(const uint32_t& mipLevels = 1) {
+            inline Image&& mipLevels(const uint32_t& mipLevels = 1) {
                 imc.mipLevels = mipLevels;
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Image>&& sampleCount(const api::SampleCountFlagBits& samples = api::SampleCountFlagBits::e1) {
+            inline Image&& sampleCount(const api::SampleCountFlagBits& samples = api::SampleCountFlagBits::e1) {
                 imc.samples = samples;
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Image>&& tiling(const api::ImageTiling& tiling = api::ImageTiling::eOptimal) {
+            inline Image&& tiling(const api::ImageTiling& tiling = api::ImageTiling::eOptimal) {
                 imc.tiling = tiling;
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Image>&& usage(const api::ImageUsageFlags& usage = api::ImageUsageFlagBits::eStorage) {
+            inline Image&& usage(const api::ImageUsageFlags& usage = api::ImageUsageFlagBits::eStorage) {
                 imc.usage = usage;
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Image>&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            inline Image&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 imc.queueFamilyIndexCount = indices.size();
                 imc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<Image>&& link(api::Image* img) { lastimg = img; return shared_from_this(); };
-            inline std::shared_ptr<Image>&& allocate(const std::shared_ptr<Allocator>& mem, const uintptr_t& ptx = 0u) {
+            inline Image&& link(api::Image* img) { lastimg = img; return shared_from_this(); };
+            inline Image&& allocate(const Allocator& mem, const uintptr_t& ptx = 0u) {
                 mem->allocateForImage(lastimg,allocation=mem->createAllocation(),imc,ptx);
                 return shared_from_this(); };
 
             // Create 1D "Canvas" 
-            inline std::shared_ptr<Image>&& create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
+            inline Image&& create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
                 imc.imageType = api::ImageType::e1D;
                 imc.extent = {w,1u,1u};
                 imc.arrayLayers = 1u;
@@ -192,7 +192,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Create 2D "Canvas" 
-            inline std::shared_ptr<Image>&& create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) {
+            inline Image&& create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) {
                 imc.imageType = api::ImageType::e2D;
                 imc.extent = {w,h,1u};
                 imc.arrayLayers = 1u;
@@ -201,7 +201,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Create 3D "Canvas" 
-            inline std::shared_ptr<Image>&& create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
+            inline Image&& create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
                 imc.imageType = api::ImageType::e3D;
                 imc.extent = {w,h,d};
                 imc.arrayLayers = d;
@@ -210,7 +210,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Create ImageView 
-            inline std::shared_ptr<Image>&& createImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
+            inline Image&& createImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
                 imv.image = *lastimg;
                 imv.viewType = viewType;
                 imv.format = format!=api::Format::eUndefined?format:imc.format;
@@ -220,7 +220,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Stub for write both in descriptor
-            inline std::shared_ptr<Image>&& writeForDIF(api::DescriptorImageInfo* imd){
+            inline Image&& writeForDIF(api::DescriptorImageInfo* imd){
                 imd->imageView = *lastimv;
                 imd->imageLayout = targetLayout;
                 return shared_from_this(); };

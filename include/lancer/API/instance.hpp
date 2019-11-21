@@ -5,7 +5,7 @@
 // TODO: Add Instance Methods (Enumerations)
 
 namespace lancer {
-    class Instance : public std::enable_shared_from_this<Instance> {
+    class Instance_T : public std::enable_shared_from_this<Instance_T> {
         protected: 
             std::vector<api::PhysicalDevice> devices = {};
             api::Instance* lastinst = {};

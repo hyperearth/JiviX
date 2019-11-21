@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../lib/core.hpp"
-#include "../API/memory.hpp"
+//#include "../API/memory.hpp"
 
 namespace lancer {
     
@@ -120,13 +120,13 @@ namespace lancer {
             };
     };
 
-    class PhysicalDeviceHelper : public std::enable_shared_from_this<PhysicalDeviceHelper> {
+    class PhysicalDeviceHelper_T : public std::enable_shared_from_this<PhysicalDeviceHelper_T> {
         protected:
             api::PhysicalDevice physicalDevice = {};
             api::PhysicalDeviceFeatures2 features = {};
             api::PhysicalDeviceProperties2 properties = {};
-            std::shared_ptr<Allocator> allocator = {};
             std::vector<uint32_t> queueFamilyIndices = {};
+            Allocator allocator = {};
 
             // required (if there is no, will generated)
             std::shared_ptr<paths::DriverWrapBase> driverWrap = {};
@@ -145,13 +145,16 @@ namespace lancer {
         public:
             friend lancer::Device;
 
+            Allocator& getAllocator() { return allocator; };
+            const Allocator& getAllocator() const { return allocator; };
+
             // require to generate both VMA and vendor name 
-            PhysicalDeviceHelper(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
+            PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
                 this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
             };
 
             // require vendor name 
-            PhysicalDeviceHelper(const api::PhysicalDevice& physicalDevice, const std::shared_ptr<Allocator>& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
+            PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice, const Allocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
                 this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
             };
 
@@ -175,7 +178,7 @@ namespace lancer {
             operator const api::PhysicalDevice&() const { return physicalDevice; };
     };
 
-    class Device : public std::enable_shared_from_this<Device> {
+    class Device_T : public std::enable_shared_from_this<Device_T> {
         protected: 
 
             friend Allocator;
@@ -183,12 +186,12 @@ namespace lancer {
             api::PipelineCache pipelineCache = {};
             api::DescriptorPool* descriptorPool = nullptr;
             api::Device* device = nullptr;
-            std::shared_ptr<PhysicalDeviceHelper> physicalHelper = {};
-            std::shared_ptr<Allocator> allocator = {};
+            PhysicalDeviceHelper physicalHelper = {};
+            Allocator allocator = {};
 
         public: 
-            Device(const std::shared_ptr<lancer::PhysicalDeviceHelper>& physicalHelper = {}, api::Device* device = nullptr, api::DeviceCreateInfo dfc = {}) : device(device), dfc(dfc), physicalHelper(physicalHelper) {
-                if (physicalHelper && device && !(*device)) { *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc); };};
+            Device_T(const PhysicalDeviceHelper& physicalHelper = {}, api::Device* device = nullptr, api::DeviceCreateInfo dfc = {}) : device(device), dfc(dfc), physicalHelper(physicalHelper) {
+                if (physicalHelper && device && !(*device)) { *device = ((api::PhysicalDevice&)(*physicalHelper)).createDevice(dfc); };};
 
             // Get original Vulkan link 
             inline api::PipelineCache& getPipelineCache() { return pipelineCache; };
@@ -199,44 +202,12 @@ namespace lancer {
             operator const api::Device&() const { return *device; };
 
             // 
-            inline std::shared_ptr<Device>&& initialize();
-            inline std::shared_ptr<Device>&& linkAllocator(const std::shared_ptr<Allocator>& allocator) { this->allocator = allocator; return shared_from_this(); };
-            inline std::shared_ptr<Device>&& linkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
-            inline std::shared_ptr<Device>&& linkPhysicalHelper(const std::shared_ptr<PhysicalDeviceHelper>& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
-            inline std::shared_ptr<Device>&& link(api::Device& dev) { device = &dev; return shared_from_this(); };
-            inline const std::shared_ptr<PhysicalDeviceHelper>& getHelper() const { return physicalHelper; };
-    };
-
-    // 
-    inline std::shared_ptr<Device>&& Device::initialize() {
-        if (physicalHelper && device && !(*device)) {
-            *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc);
-        };
-
-        // get VMA allocator for device
-        if (!this->allocator && this->physicalHelper->allocator) { this->allocator = this->physicalHelper->allocator; };
-        if ( this->allocator) { this->allocator->initialize(shared_from_this()); };
-
-        // descriptor pool
-        if ( this->descriptorPool && !(*this->descriptorPool))
-        {
-            // pool sizes, and create descriptor pool
-            std::vector<api::DescriptorPoolSize> psizes = { };
-            psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eStorageBuffer).setDescriptorCount(128));
-            psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eStorageTexelBuffer).setDescriptorCount(128));
-            psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eInlineUniformBlockEXT).setDescriptorCount(128));
-            psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eUniformBuffer).setDescriptorCount(128));
-            psizes.push_back(api::DescriptorPoolSize().setType(api::DescriptorType::eAccelerationStructureNV).setDescriptorCount(128));
-
-            const auto inlineDescPool = api::DescriptorPoolInlineUniformBlockCreateInfoEXT().setMaxInlineUniformBlockBindings(2u);
-            *this->descriptorPool = api::Device(*this).createDescriptorPool(api::DescriptorPoolCreateInfo().setPNext(&inlineDescPool).setPPoolSizes(psizes.data()).setPoolSizeCount(psizes.size()).setMaxSets(256).setFlags(api::DescriptorPoolCreateFlagBits::eFreeDescriptorSet | api::DescriptorPoolCreateFlagBits::eUpdateAfterBindEXT));
-        };
-
-        // pipeline cache 
-        if (!this->pipelineCache) { this->pipelineCache = api::Device(*this).createPipelineCache(api::PipelineCacheCreateInfo()); };
-
-        // 
-        return shared_from_this();
+            inline Device&& initialize();
+            inline Device&& linkAllocator(const Allocator& allocator) { this->allocator = allocator; return shared_from_this(); };
+            inline Device&& linkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
+            inline Device&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
+            inline Device&& link(api::Device& dev) { device = &dev; return shared_from_this(); };
+            inline const PhysicalDeviceHelper& getHelper() const { return physicalHelper; };
     };
 
 };

@@ -9,20 +9,20 @@ namespace lancer {
     class DescriptorSetLayout : public std::enable_shared_from_this<DescriptorSetLayout> {
 
         protected: 
-            std::shared_ptr<Device>    device = {};
+            Device    device = {};
             api::DescriptorSetLayout *dlayout = nullptr;
             std::vector<api::DescriptorSetLayoutBinding> _bindings = {};
             std::vector<api::DescriptorBindingFlagsEXT> _flags = {};
 
         public: 
-            DescriptorSetLayout(const std::shared_ptr<Device>& device, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout) {
+            DescriptorSetLayout(const Device& device, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout) {
             };
 
-            inline std::shared_ptr<DescriptorSetLayout>&& link(api::DescriptorSetLayout& lays) { 
+            inline DescriptorSetLayout&& link(api::DescriptorSetLayout& lays) { 
                 dlayout = &lays; 
                 return shared_from_this(); };
 
-            inline std::shared_ptr<DescriptorSetLayout>&& pushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
+            inline DescriptorSetLayout&& pushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
                 _bindings.push_back(binding); _flags.push_back(flags);
                 return shared_from_this(); };
 
@@ -35,7 +35,7 @@ namespace lancer {
             inline const api::DescriptorBindingFlagsEXT& getFlags() const { return _flags.back(); };
 
             // 
-            inline std::shared_ptr<DescriptorSetLayout>&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
+            inline DescriptorSetLayout&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
                 const auto vkfl = api::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_flags.data()).setBindingCount(_flags.size());
                 *dlayout = device->Least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
                 return shared_from_this(); };
@@ -45,7 +45,7 @@ namespace lancer {
     class DescriptorSet : public std::enable_shared_from_this<DescriptorSet> {
         
         protected: 
-            std::shared_ptr<Device>    device = {};
+            Device                    device = {};
             api::DescriptorSet       *lastdst = nullptr;
             api::DescriptorSetLayout *dlayout = nullptr;
             api::DescriptorSetAllocateInfo info = {};
@@ -54,7 +54,7 @@ namespace lancer {
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
 
         public:
-            DescriptorSet(const std::shared_ptr<Device>& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
+            DescriptorSet(const Device& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
             };
 
             // 
@@ -87,19 +87,19 @@ namespace lancer {
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            inline std::shared_ptr<DescriptorSet>&& create() { // TODO: create descriptor set and layout
+            inline DescriptorSet&& create() { // TODO: create descriptor set and layout
                 return shared_from_this(); };
 
-            inline std::shared_ptr<DescriptorSet>&& link(api::DescriptorSet& desc) { 
+            inline DescriptorSet&& link(api::DescriptorSet& desc) { 
                 lastdst = &desc; 
                 return shared_from_this(); };
 
-            inline std::shared_ptr<DescriptorSet>&& linkLayout(api::DescriptorSetLayout& lays) { 
+            inline DescriptorSet&& linkLayout(api::DescriptorSetLayout& lays) { 
                 dlayout = &lays; 
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<DescriptorSet>&& apply(){
+            inline DescriptorSet&& apply(){
                 api::DescriptorUpdateTemplateCreateInfo createInfo{};
                 createInfo.templateType = api::DescriptorUpdateTemplateType::eDescriptorSet;
                 createInfo.flags = {};
