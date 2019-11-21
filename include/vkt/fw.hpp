@@ -115,10 +115,11 @@ namespace vkt
     public:
         ComputeFramework() {};
 
-        std::shared_ptr<Instance> instance = {};
-        std::shared_ptr<Device> device = {};
-        std::shared_ptr<Allocator> allocator = {};
-        std::shared_ptr<PhysicalDeviceHelper> physicalHelper = {};
+        Instance instance = {};
+        Device device = {};
+        Allocator allocator = {};
+        PhysicalDeviceHelper physicalHelper = {};
+        
         api::Fence fence = {};
         api::Queue queue = {};
         api::Device _device = {};
@@ -136,12 +137,12 @@ namespace vkt
 
         //api::Device createDevice(bool isComputePrior = true, std::string shaderPath = "./", bool enableAdvancedAcceleration = true);
         const api::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { _physicalDevice = physicalDevices[gpuID]; return _physicalDevice; };
-        const api::PhysicalDevice& getPhysicalDevice() const { return (*this->physicalHelper); };
-        const api::Device& getDevice() const { return *this->device; };
-        const api::Queue& getQueue() const { return this->queue; };
-        const api::Fence& getFence() const { return this->fence; };
-        const api::Instance& getInstance() const { return (api::Instance&)(*this->instance); };
-        const api::CommandPool& getCommandPool() const { return (api::CommandPool&)(this->commandPool); };
+        const api::PhysicalDevice& getPhysicalDevice() const { return _physicalDevice; };
+        const api::Device& getDevice() const { return _device; };
+        const api::Queue& getQueue() const { return queue; };
+        const api::Fence& getFence() const { return fence; };
+        const api::Instance& getInstance() const { return _instance; };
+        const api::CommandPool& getCommandPool() const { return commandPool; };
 
         void submitCommandWithSync(const api::CommandBuffer & cmdBuf) {
             // submit command
@@ -165,7 +166,7 @@ namespace vkt
         } applicationWindow = {};
 
     public:
-        std::shared_ptr<Instance> createInstance() {
+        Instance createInstance() {
 
 #ifdef VOLK_H_
             volkInitialize();
@@ -236,7 +237,7 @@ namespace vkt
             return instance;
         };
 
-        std::shared_ptr<Device>&& createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
+        Device&& createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
             // TODO: merge into Device class 
 
             // use extensions
@@ -297,8 +298,8 @@ namespace vkt
 
             // if have supported queue family, then use this device
             if (queueCreateInfos.size() > 0) {
-                this->physicalHelper = std::make_shared<PhysicalDeviceHelper>(this->_physicalDevice);
-                this->device = std::make_shared<Device>(this->physicalHelper, &_device, api::DeviceCreateInfo().setFlags(api::DeviceCreateFlags())
+                this->physicalHelper = std::make_shared<PhysicalDeviceHelper_T>(this->_physicalDevice);
+                this->device = std::make_shared<Device_T>(this->physicalHelper, &_device, api::DeviceCreateInfo().setFlags(api::DeviceCreateFlags())
                     .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
                     .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
                     .setPpEnabledExtensionNames(deviceExtensions.data()).setEnabledExtensionCount(deviceExtensions.size())
@@ -311,11 +312,11 @@ namespace vkt
             this->queueFamilyIndex = queueFamilyIndices[qptr];
             this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
             this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
-            return std::move(this->device
-                ->Link(_device)
-                ->LinkDescriptorPool(_descriptorPool)
-                ->LinkPhysicalHelper(this->physicalHelper)
-                ->LinkAllocator(this->allocator=std::make_shared<VMAllocator>(device))->Initialize()); // Finally Initiate Device 
+            return this->device
+                ->link(&_device)
+                ->linkDescriptorPool(this->_descriptorPool)
+                ->linkPhysicalHelper(this-> physicalHelper)
+                ->linkAllocator(this->allocator=std::make_shared<VMAllocator_T>(device))->initialize(); // Finally Initiate Device 
         };
 
         // create window and surface for this application (multi-window not supported)
@@ -529,8 +530,8 @@ namespace vkt
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
             // next-gen create image
-            auto imageMaker = std::make_shared<lancer::Image>(device, &depthImage, imageInfoVK);
-            imageMaker->Create2D(formats.depthFormat, applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height)->Allocate(allocator, (uintptr_t)&allocCreateInfo); // 
+            auto imageMaker = std::make_shared<lancer::Image_T>(device, &depthImage, imageInfoVK);
+            imageMaker->create2D(formats.depthFormat, applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height)->allocate(allocator, (uintptr_t)&allocCreateInfo); // 
 
             // image view for usage
             auto vinfo = api::ImageViewCreateInfo{};

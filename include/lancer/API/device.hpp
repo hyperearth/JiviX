@@ -206,8 +206,7 @@ namespace lancer {
             inline Device&& linkAllocator(const Allocator& allocator) { this->allocator = allocator; return shared_from_this(); };
             inline Device&& linkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
             inline Device&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
-            inline Device&& link(api::Device& dev) { device = &dev; return shared_from_this(); };
+            inline Device&& link(api::Device* dev) { device = dev; return shared_from_this(); };
             inline const PhysicalDeviceHelper& getHelper() const { return physicalHelper; };
     };
-
 };
