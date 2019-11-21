@@ -24,7 +24,7 @@ namespace lancer {
 
         public: 
             // unique constructor 
-            VMAllocation(VmaAllocation& allocation, VmaAllocationInfo& alloc_info) : alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {};
+            VMAllocation(const VmaAllocation& allocation = {}, const VmaAllocationInfo& alloc_info = {}) : alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {};
 
             virtual void Free() override {}; // after notify for de-allocation
             virtual uintptr_t GetCIP() override { return uintptr_t(&alcmc); };

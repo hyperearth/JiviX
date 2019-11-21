@@ -71,7 +71,7 @@ namespace lancer {
     static inline auto createShaderModule(const api::Device& device, const std::vector<uint32_t>& code) {
         auto sm = api::ShaderModule{}; return createShaderModuleIntrusive(device, code, sm); return sm;
     };
-    
+
     struct FixConstruction {
         api::PipelineShaderStageCreateInfo spi = {};
         api::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT sgmp = {};
@@ -80,6 +80,16 @@ namespace lancer {
         operator const api::PipelineShaderStageCreateInfo& () const { return spi; };
         operator api::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT& () { return sgmp; };
         operator const api::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT& () const { return sgmp; };
+    };
+
+    // create shader module
+    static inline auto&& makePipelineStageInfo(const api::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", api::ShaderStageFlagBits stage = api::ShaderStageFlagBits::eCompute) {
+        api::PipelineShaderStageCreateInfo spi = {};
+        createShaderModuleIntrusive(device, code, spi.module);
+        spi.pName = entry;
+        spi.stage = stage;
+        spi.pSpecializationInfo = {};
+        return std::move(spi);
     };
 
     // create shader module
@@ -256,9 +266,5 @@ namespace lancer {
 		if (signaled) info.setFlags(api::FenceCreateFlagBits::eSignaled);
 		return api::Device(device).createFence(info);
 	};
-
-
-
-
 
 };
