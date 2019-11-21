@@ -9,8 +9,6 @@
 
 namespace lancer {
 
-    // TODO: planned utils for simplify Vulkan API 
-
     template <typename T>
     static inline auto sgn(const T& val) { return (T(0) < val) - (val < T(0)); }
 

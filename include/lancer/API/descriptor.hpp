@@ -39,6 +39,8 @@ namespace lancer {
                 const auto vkfl = api::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_flags.data()).setBindingCount(_flags.size());
                 *dlayout = device->Least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
                 return shared_from_this(); };
+
+            // TODO: allocate descriptor sets
             
     };
 
@@ -67,7 +69,7 @@ namespace lancer {
             inline api::DescriptorImageInfo* addImageDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = true, const std::vector<api::Sampler>& samplers = {}) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::DescriptorImageInfo)*descriptorCount);
-                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(api::DescriptorType::eSampledImage):(api::DescriptorType::eStorageImage),pt0,sizeof(api::DescriptorImageInfo)}); // TODO: SSBO or UBO support
+                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(api::DescriptorType::eSampledImage):(api::DescriptorType::eStorageImage),pt0,sizeof(api::DescriptorImageInfo)});
                 return (api::DescriptorImageInfo*)(&descriptorHeap[pt0]);
             };
 
@@ -75,7 +77,7 @@ namespace lancer {
             inline api::DescriptorBufferInfo* addBufferDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::DescriptorBufferInfo)*descriptorCount);
-                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(api::DescriptorType::eUniformBuffer):(api::DescriptorType::eStorageBuffer),pt0,sizeof(api::DescriptorBufferInfo)}); // TODO: SSBO or UBO support
+                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(api::DescriptorType::eUniformBuffer):(api::DescriptorType::eStorageBuffer),pt0,sizeof(api::DescriptorBufferInfo)});
                 return (api::DescriptorBufferInfo*)(&descriptorHeap[pt0]);
             };
 
@@ -83,7 +85,7 @@ namespace lancer {
             inline api::BufferView* addBufferViewDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::BufferView)*descriptorCount);
-                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?api::DescriptorType::eUniformTexelBuffer:api::DescriptorType::eStorageTexelBuffer,pt0,sizeof(api::BufferView)}); // TODO: SSBO or UBO support
+                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?api::DescriptorType::eUniformTexelBuffer:api::DescriptorType::eStorageTexelBuffer,pt0,sizeof(api::BufferView)});
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
