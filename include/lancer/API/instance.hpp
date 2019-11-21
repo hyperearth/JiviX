@@ -12,7 +12,7 @@ namespace lancer {
             api::InstanceCreateInfo cif = {};
             
         public: 
-            Instance(api::Instance* instance = nullptr, api::InstanceCreateInfo info = {}) : lastinst(instance), cif(info) {
+            Instance_T(api::Instance* instance = nullptr, api::InstanceCreateInfo info = {}) : lastinst(instance), cif(info) {
                 *instance = api::createInstance(info);
             };
 

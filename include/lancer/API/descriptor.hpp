@@ -6,7 +6,7 @@
 namespace lancer {
 
 
-    class DescriptorSetLayout : public std::enable_shared_from_this<DescriptorSetLayout> {
+    class DescriptorSetLayout_T : public std::enable_shared_from_this<DescriptorSetLayout_T> {
 
         protected: 
             Device    device = {};
@@ -15,7 +15,7 @@ namespace lancer {
             std::vector<api::DescriptorBindingFlagsEXT> _flags = {};
 
         public: 
-            DescriptorSetLayout(const Device& device, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout) {
+            DescriptorSetLayout_T(const Device& device, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout) {
             };
 
             inline DescriptorSetLayout&& link(api::DescriptorSetLayout& lays) { 
@@ -42,7 +42,7 @@ namespace lancer {
             
     };
 
-    class DescriptorSet : public std::enable_shared_from_this<DescriptorSet> {
+    class DescriptorSet_T : public std::enable_shared_from_this<DescriptorSet_T> {
         
         protected: 
             Device                    device = {};
@@ -54,7 +54,7 @@ namespace lancer {
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
 
         public:
-            DescriptorSet(const Device& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
+            DescriptorSet_T(const Device& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
             };
 
             // 
