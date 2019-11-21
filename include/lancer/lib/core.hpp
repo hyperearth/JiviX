@@ -242,8 +242,8 @@ namespace lancer {
     using Allocation = std::shared_ptr<Allocation_T>;
     using Allocator = std::shared_ptr<Allocator_T>;
     using PhysicalDeviceHelper = std::shared_ptr<PhysicalDeviceHelper_T>;
+    using GraphicsPipeline = std::shared_ptr<GraphicsPipeline_T>;
     using BufferRegionU8_T = BufferRegion_T<uint8_t>;
     using BufferRegionU8 = std::shared_ptr<BufferRegionU8_T>;
-    using GraphicsPipeline = std::shared_ptr<GraphicsPipeline_T>;
 
 };
