@@ -18,24 +18,24 @@ namespace lancer {
             DescriptorSetLayout(const std::shared_ptr<Device>& device, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout) {
             };
 
-            inline std::shared_ptr<DescriptorSetLayout>&& Link(api::DescriptorSetLayout& lays) { 
+            inline std::shared_ptr<DescriptorSetLayout>&& link(api::DescriptorSetLayout& lays) { 
                 dlayout = &lays; 
                 return shared_from_this(); };
 
-            inline std::shared_ptr<DescriptorSetLayout>&& PushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
+            inline std::shared_ptr<DescriptorSetLayout>&& pushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
                 _bindings.push_back(binding); _flags.push_back(flags);
                 return shared_from_this(); };
 
             // Editable Current State 
-            inline api::DescriptorSetLayoutBinding& GetBinding() { return _bindings.back(); };
-            inline api::DescriptorBindingFlagsEXT& GetFlags() { return _flags.back(); };
+            inline api::DescriptorSetLayoutBinding& getBinding() { return _bindings.back(); };
+            inline api::DescriptorBindingFlagsEXT& getFlags() { return _flags.back(); };
 
             // Viewable Current State 
-            inline const api::DescriptorSetLayoutBinding& GetBinding() const { return _bindings.back(); };
-            inline const api::DescriptorBindingFlagsEXT& GetFlags() const { return _flags.back(); };
+            inline const api::DescriptorSetLayoutBinding& getBinding() const { return _bindings.back(); };
+            inline const api::DescriptorBindingFlagsEXT& getFlags() const { return _flags.back(); };
 
             // 
-            inline std::shared_ptr<DescriptorSetLayout>&& Create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
+            inline std::shared_ptr<DescriptorSetLayout>&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
                 const auto vkfl = api::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_flags.data()).setBindingCount(_flags.size());
                 *dlayout = device->Least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
                 return shared_from_this(); };
@@ -58,13 +58,13 @@ namespace lancer {
             };
 
             // 
-            inline api::DescriptorSet& Least() { return *lastdst; };
+            inline api::DescriptorSet& least() { return *lastdst; };
             operator api::DescriptorSet&() { return *lastdst; };
             inline const api::DescriptorSet& Least() const { return *lastdst; };
             operator const api::DescriptorSet&() const { return *lastdst; };
 
             // 
-            inline api::DescriptorImageInfo* AddImageDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = true, const std::vector<api::Sampler>& samplers = {}) {
+            inline api::DescriptorImageInfo* addImageDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = true, const std::vector<api::Sampler>& samplers = {}) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::DescriptorImageInfo)*descriptorCount);
                 descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(api::DescriptorType::eSampledImage):(api::DescriptorType::eStorageImage),pt0,sizeof(api::DescriptorImageInfo)}); // TODO: SSBO or UBO support
@@ -72,7 +72,7 @@ namespace lancer {
             };
 
             // 
-            inline api::DescriptorBufferInfo* AddBufferDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
+            inline api::DescriptorBufferInfo* addBufferDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::DescriptorBufferInfo)*descriptorCount);
                 descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(api::DescriptorType::eUniformBuffer):(api::DescriptorType::eStorageBuffer),pt0,sizeof(api::DescriptorBufferInfo)}); // TODO: SSBO or UBO support
@@ -80,26 +80,26 @@ namespace lancer {
             };
 
             // 
-            inline api::BufferView* AddBufferViewDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
+            inline api::BufferView* addBufferViewDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = false) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::BufferView)*descriptorCount);
                 descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?api::DescriptorType::eUniformTexelBuffer:api::DescriptorType::eStorageTexelBuffer,pt0,sizeof(api::BufferView)}); // TODO: SSBO or UBO support
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            inline std::shared_ptr<DescriptorSet>&& Create() { // TODO: create descriptor set and layout
+            inline std::shared_ptr<DescriptorSet>&& create() { // TODO: create descriptor set and layout
                 return shared_from_this(); };
 
-            inline std::shared_ptr<DescriptorSet>&& Link(api::DescriptorSet& desc) { 
+            inline std::shared_ptr<DescriptorSet>&& link(api::DescriptorSet& desc) { 
                 lastdst = &desc; 
                 return shared_from_this(); };
 
-            inline std::shared_ptr<DescriptorSet>&& LinkLayout(api::DescriptorSetLayout& lays) { 
+            inline std::shared_ptr<DescriptorSet>&& linkLayout(api::DescriptorSetLayout& lays) { 
                 dlayout = &lays; 
                 return shared_from_this(); };
 
             // 
-            inline std::shared_ptr<DescriptorSet>&& Apply(){
+            inline std::shared_ptr<DescriptorSet>&& apply(){
                 api::DescriptorUpdateTemplateCreateInfo createInfo{};
                 createInfo.templateType = api::DescriptorUpdateTemplateType::eDescriptorSet;
                 createInfo.flags = {};
@@ -113,8 +113,8 @@ namespace lancer {
                 createInfo.set = {};
 
                 // 
-                device->Least().createDescriptorUpdateTemplate(&createInfo,nullptr,&descriptorTemplate); // TODO: destroy previous template 
-                device->Least().updateDescriptorSetWithTemplate(*lastdst,descriptorTemplate,descriptorHeap.data()); // 
+                device->least().createDescriptorUpdateTemplate(&createInfo,nullptr,&descriptorTemplate); // TODO: destroy previous template 
+                device->least().updateDescriptorSetWithTemplate(*lastdst,descriptorTemplate,descriptorHeap.data()); // 
 
                 // 
                 return shared_from_this(); };

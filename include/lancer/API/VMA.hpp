@@ -26,10 +26,10 @@ namespace lancer {
             // unique constructor 
             VMAllocation(const VmaAllocation& allocation = {}, const VmaAllocationInfo& alloc_info = {}) : alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {};
 
-            virtual void Free() override {}; // after notify for de-allocation
-            virtual uintptr_t GetCIP() override { return uintptr_t(&alcmc); };
-            virtual uintptr_t GetPtr() override { return uintptr_t(&alloc); };
-            virtual uint8_t* GetMapped() override { return (uint8_t*)alcmc.pMappedData; };
+            virtual void free() override {}; // after notify for de-allocation
+            virtual uintptr_t getCIP() override { return uintptr_t(&alcmc); };
+            virtual uintptr_t getPtr() override { return uintptr_t(&alloc); };
+            virtual uint8_t* getMapped() override { return (uint8_t*)alcmc.pMappedData; };
 
             // TODO: smart de-allocate memory 
             //~VMAllocation(){
@@ -48,24 +48,24 @@ namespace lancer {
 
         public: 
             VMAllocator(const std::shared_ptr<Device>& dvc = {}) : dvc(device) {
-                if (dvc) { this->Initialize(dvc); };
+                if (dvc) { this->initialize(dvc); };
             };
 
             // 
-            virtual void AllocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
-                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
+            virtual void allocateForBuffer(api::Buffer* buffer, std::shared_ptr<Allocation>& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
+                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
             };
 
             // 
-            virtual void AllocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
-                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->GetPtr(), (VmaAllocationInfo*)allocation->GetCIP());
+            virtual void allocateForImage(api::Image* image, std::shared_ptr<Allocation>& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
+                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
             };
 
             // Sometimes required special allocation
-            virtual std::shared_ptr<Allocation>&& CreateAllocation() override { return std::dynamic_pointer_cast<Allocation>(std::make_shared<VMAllocation>(*this)); };
+            virtual std::shared_ptr<Allocation>&& createAllocation() override { return std::dynamic_pointer_cast<Allocation>(std::make_shared<VMAllocation>(*this)); };
 
             // 
-            virtual void Initialize(const std::shared_ptr<Device>& device = {}) override {
+            virtual void initialize(const std::shared_ptr<Device>& device = {}) override {
 #ifdef VOLK_H_
                 // load API calls for context
                 volkLoadDevice(api::Device(*device));
@@ -99,7 +99,7 @@ namespace lancer {
 #ifdef VOLK_H_
                 amc.pVulkanFunctions = &vfuncs;
 #endif
-                amc.physicalDevice = (api::PhysicalDevice&)(*(device->GetHelper()));
+                amc.physicalDevice = (api::PhysicalDevice&)(*(device->getHelper()));
                 amc.device = api::Device(*device);
                 amc.preferredLargeHeapBlockSize = 16 * sizeof(uint32_t);
                 amc.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT || VMA_ALLOCATION_CREATE_MAPPED_BIT;

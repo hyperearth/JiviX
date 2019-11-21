@@ -191,31 +191,31 @@ namespace lancer {
                 if (physicalHelper && device && !(*device)) { *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc); };};
 
             // Get original Vulkan link 
-            inline api::PipelineCache& GetPipelineCache() { return pipelineCache; };
-            inline const api::PipelineCache& GetPipelineCache() const { return pipelineCache; };
-            inline api::Device& Least() { return *device; };
-            inline const api::Device& Least() const { return *device; };
+            inline api::PipelineCache& getPipelineCache() { return pipelineCache; };
+            inline const api::PipelineCache& getPipelineCache() const { return pipelineCache; };
+            inline api::Device& least() { return *device; };
+            inline const api::Device& least() const { return *device; };
             operator api::Device&() { return *device; };
             operator const api::Device&() const { return *device; };
 
             // 
-            inline std::shared_ptr<Device>&& Initialize();
-            inline std::shared_ptr<Device>&& LinkAllocator(const std::shared_ptr<Allocator>& allocator) { this->allocator = allocator; return shared_from_this(); };
-            inline std::shared_ptr<Device>&& LinkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
-            inline std::shared_ptr<Device>&& LinkPhysicalHelper(const std::shared_ptr<PhysicalDeviceHelper>& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
-            inline std::shared_ptr<Device>&& Link(api::Device& dev) { device = &dev; return shared_from_this(); };
-            inline const std::shared_ptr<PhysicalDeviceHelper>& GetHelper() const { return physicalHelper; };
+            inline std::shared_ptr<Device>&& initialize();
+            inline std::shared_ptr<Device>&& linkAllocator(const std::shared_ptr<Allocator>& allocator) { this->allocator = allocator; return shared_from_this(); };
+            inline std::shared_ptr<Device>&& linkDescriptorPool(api::DescriptorPool& pool) { descriptorPool = &pool; return shared_from_this(); };
+            inline std::shared_ptr<Device>&& linkPhysicalHelper(const std::shared_ptr<PhysicalDeviceHelper>& physicalHelper) { this->physicalHelper = physicalHelper; return shared_from_this(); };
+            inline std::shared_ptr<Device>&& link(api::Device& dev) { device = &dev; return shared_from_this(); };
+            inline const std::shared_ptr<PhysicalDeviceHelper>& getHelper() const { return physicalHelper; };
     };
 
     // 
-    inline std::shared_ptr<Device>&& Device::Initialize() {
+    inline std::shared_ptr<Device>&& Device::initialize() {
         if (physicalHelper && device && !(*device)) {
             *device = api::PhysicalDevice(*physicalHelper).createDevice(dfc);
         };
 
         // get VMA allocator for device
         if (!this->allocator && this->physicalHelper->allocator) { this->allocator = this->physicalHelper->allocator; };
-        if ( this->allocator) { this->allocator->Initialize(shared_from_this()); };
+        if ( this->allocator) { this->allocator->initialize(shared_from_this()); };
 
         // descriptor pool
         if ( this->descriptorPool && !(*this->descriptorPool))

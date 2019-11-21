@@ -6,7 +6,7 @@
 namespace lancer {
     // Vookoo-Like 
 
-    inline auto&& DisabledBlendState(){
+    inline auto&& disabledBlendState(){
         api::PipelineColorBlendAttachmentState blend{};
         blend.blendEnable = 0;
         blend.srcColorBlendFactor = api::BlendFactor::eOne;
@@ -20,7 +20,7 @@ namespace lancer {
         return std::move(blend);
     };
 
-    inline auto&& InitialBlendState(const bool& enable = true){
+    inline auto&& initialBlendState(const bool& enable = true){
         api::PipelineColorBlendAttachmentState blend = {};
         blend.blendEnable = enable;
         blend.srcColorBlendFactor = api::BlendFactor::eSrcAlpha;
@@ -34,7 +34,7 @@ namespace lancer {
         return std::move(blend);
     };
 
-    inline auto&& InitialDepthStencil(){
+    inline auto&& initialDepthStencil(){
         api::PipelineDepthStencilStateCreateInfo depthStencilState_ = {};
         depthStencilState_.depthTestEnable = false;
         depthStencilState_.depthWriteEnable = true;
@@ -94,95 +94,95 @@ namespace lancer {
             };
 
             // Editable 
-            inline auto& GetCreateInfo() { return info; };
-            inline auto& GetViewport() { return  viewport_; };
-            inline auto& GetScissor() { return  scissor_; };
-            inline auto& GetColorBlendState() { return colorBlendState_; };
-            inline auto& GetDepthStencilState() { return depthStencilState_; };
-            inline auto& GetMultisampleState() { return multisampleState_; };
-            inline auto& GetRasterizationState() { return rasterizationState_; };
-            inline auto& GetInputAssemblyState() { return inputAssemblyState_; };
-            inline auto& GetDynamicState() { return dynamicState_; };
-            inline auto& GetVertexInputState() { return vertexInputState_; };
-            inline auto& GetVertexBindingDescriptions() { return vertexBindingDescriptions_ };
-            inline auto& GetVertexAttributeDescriptions() { return vertexAttributeDescriptions_ };
+            inline auto& getCreateInfo() { return info; };
+            inline auto& getViewport() { return  viewport_; };
+            inline auto& getScissor() { return  scissor_; };
+            inline auto& getColorBlendState() { return colorBlendState_; };
+            inline auto& getDepthStencilState() { return depthStencilState_; };
+            inline auto& getMultisampleState() { return multisampleState_; };
+            inline auto& getRasterizationState() { return rasterizationState_; };
+            inline auto& getInputAssemblyState() { return inputAssemblyState_; };
+            inline auto& getDynamicState() { return dynamicState_; };
+            inline auto& getVertexInputState() { return vertexInputState_; };
+            inline auto& getVertexBindingDescriptions() { return vertexBindingDescriptions_ };
+            inline auto& getVertexAttributeDescriptions() { return vertexAttributeDescriptions_ };
 
             // Viewable 
-            inline const auto& GetCreateInfo() const { return info; };
-            inline const auto& GetViewport() const { return viewport_; };
-            inline const auto& GetScissor() const { return  scissor_; };
-            inline const auto& GetColorBlendState() const { return colorBlendState_; };
-            inline const auto& GetDepthStencilState() const { return depthStencilState_; };
-            inline const auto& GetMultisampleState() const { return multisampleState_; };
-            inline const auto& GetRasterizationState() const { return rasterizationState_; };
-            inline const auto& GetInputAssemblyState() const { return inputAssemblyState_; };
-            inline const auto& GetDynamicState() const { return dynamicState_; };
-            inline const auto& GetVertexInputState() const { return vertexInputState_; };
-            inline const auto& GetVertexBindingDescriptions() const { return vertexBindingDescriptions_ };
-            inline const auto& GetVertexAttributeDescriptions() const { return vertexAttributeDescriptions_ };
+            inline const auto& getCreateInfo() const { return info; };
+            inline const auto& getViewport() const { return viewport_; };
+            inline const auto& getScissor() const { return  scissor_; };
+            inline const auto& getColorBlendState() const { return colorBlendState_; };
+            inline const auto& getDepthStencilState() const { return depthStencilState_; };
+            inline const auto& getMultisampleState() const { return multisampleState_; };
+            inline const auto& getRasterizationState() const { return rasterizationState_; };
+            inline const auto& getInputAssemblyState() const { return inputAssemblyState_; };
+            inline const auto& getDynamicState() const { return dynamicState_; };
+            inline const auto& getVertexInputState() const { return vertexInputState_; };
+            inline const auto& getVertexBindingDescriptions() const { return vertexBindingDescriptions_ };
+            inline const auto& getVertexAttributeDescriptions() const { return vertexAttributeDescriptions_ };
 
             // 
-            inline std::shared_ptr<GraphicsPipeline>&& SetCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
-            inline std::shared_ptr<GraphicsPipeline>&& SetViewport(const api::Viewport &value) { viewport_ = value; return shared_from_this(); };
-            inline std::shared_ptr<GraphicsPipeline>&& SetScissor(const api::Rect2D &value) { scissor_ = value; return shared_from_this(); };
-            inline std::shared_ptr<GraphicsPipeline>&& SetColorBlendState(const api::PipelineColorBlendStateCreateInfo  &value) { colorBlendState_ = value; return shared_from_this(); }
-            inline std::shared_ptr<GraphicsPipeline>&& SetDepthStencilState(const api::PipelineDepthStencilStateCreateInfo &value) { depthStencilState_ = value; return shared_from_this(); }
-            inline std::shared_ptr<GraphicsPipeline>&& SetMultisampleState(const api::PipelineMultisampleStateCreateInfo &value) { multisampleState_ = value; return shared_from_this(); }
-            inline std::shared_ptr<GraphicsPipeline>&& SetRasterizationState(const api::PipelineRasterizationStateCreateInfo &value) { rasterizationState_ = value; return shared_from_this(); }
-            inline std::shared_ptr<GraphicsPipeline>&& SetInputAssemblyState(const api::PipelineInputAssemblyStateCreateInfo &value) { inputAssemblyState_ = value; return shared_from_this(); }
-            inline std::shared_ptr<GraphicsPipeline>&& SetDynamicState(const api::DynamicState& value) { dynamicState_.push_back(value); return shared_from_this(); }
+            inline std::shared_ptr<GraphicsPipeline>&& setCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
+            inline std::shared_ptr<GraphicsPipeline>&& setViewport(const api::Viewport &value) { viewport_ = value; return shared_from_this(); };
+            inline std::shared_ptr<GraphicsPipeline>&& setScissor(const api::Rect2D &value) { scissor_ = value; return shared_from_this(); };
+            inline std::shared_ptr<GraphicsPipeline>&& setColorBlendState(const api::PipelineColorBlendStateCreateInfo  &value) { colorBlendState_ = value; return shared_from_this(); }
+            inline std::shared_ptr<GraphicsPipeline>&& setDepthStencilState(const api::PipelineDepthStencilStateCreateInfo &value) { depthStencilState_ = value; return shared_from_this(); }
+            inline std::shared_ptr<GraphicsPipeline>&& setMultisampleState(const api::PipelineMultisampleStateCreateInfo &value) { multisampleState_ = value; return shared_from_this(); }
+            inline std::shared_ptr<GraphicsPipeline>&& setRasterizationState(const api::PipelineRasterizationStateCreateInfo &value) { rasterizationState_ = value; return shared_from_this(); }
+            inline std::shared_ptr<GraphicsPipeline>&& setInputAssemblyState(const api::PipelineInputAssemblyStateCreateInfo &value) { inputAssemblyState_ = value; return shared_from_this(); }
+            inline std::shared_ptr<GraphicsPipeline>&& setDynamicState(const api::DynamicState& value) { dynamicState_.push_back(value); return shared_from_this(); }
 
             // 
-            inline std::shared_ptr<GraphicsPipeline>&& PushVertexBinding(const uint32_t& binding_, const uint32_t& stride_ = 4u, const api::VertexInputRate& inputRate_ = api::VertexInputRate::eVertex) {
+            inline std::shared_ptr<GraphicsPipeline>&& pushVertexBinding(const uint32_t& binding_, const uint32_t& stride_ = 4u, const api::VertexInputRate& inputRate_ = api::VertexInputRate::eVertex) {
                 vertexBindingDescriptions_.push_back({binding_, stride_, inputRate_});
                 return shared_from_this(); };
 
-            inline std::shared_ptr<GraphicsPipeline>&& PushVertexBinding(const api::VertexInputBindingDescription &desc = {}) {
+            inline std::shared_ptr<GraphicsPipeline>&& pushVertexBinding(const api::VertexInputBindingDescription &desc = {}) {
                 vertexBindingDescriptions_.push_back(desc);
                 return shared_from_this(); };
 
-            inline std::shared_ptr<GraphicsPipeline>&& PushVertexAttribute(const uint32_t& location_, const uint32_t& binding_ = 0u, api::Format format_ = api::Format::eR32G32B32A32Sfloat, const uint32_t& offset_ = 0u) {
+            inline std::shared_ptr<GraphicsPipeline>&& pushVertexAttribute(const uint32_t& location_, const uint32_t& binding_ = 0u, api::Format format_ = api::Format::eR32G32B32A32Sfloat, const uint32_t& offset_ = 0u) {
                 vertexAttributeDescriptions_.push_back({location_, binding_, format_, offset_});
                 return shared_from_this(); };
 
-            inline std::shared_ptr<GraphicsPipeline>&& PushVertexAttribute(const api::VertexInputAttributeDescription &desc = {}) {
+            inline std::shared_ptr<GraphicsPipeline>&& pushVertexAttribute(const api::VertexInputAttributeDescription &desc = {}) {
                 vertexAttributeDescriptions_.push_back(desc);
                 return shared_from_this(); };
 
-            inline std::shared_ptr<GraphicsPipeline>&& PushDynamicState(const api::DynamicState& state = {}){ // TODO: existence check 
+            inline std::shared_ptr<GraphicsPipeline>&& pushDynamicState(const api::DynamicState& state = {}){ // TODO: existence check 
                 dynamicState_.push_back(state);
                 return shared_from_this(); };
 
-            inline std::shared_ptr<GraphicsPipeline>&& PushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = {}) {
+            inline std::shared_ptr<GraphicsPipeline>&& pushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = {}) {
                 colorBlendAttachments_.push_back(state ? state : InitialBlendState());
                 return shared_from_this(); };
 
-            inline std::shared_ptr<GraphicsPipeline>&& Link(api::Pipeline* pipeline = nullptr) {
+            inline std::shared_ptr<GraphicsPipeline>&& link(api::Pipeline* pipeline = nullptr) {
                 this->pipeline = pipeline;
                 return shared_from_this(); };
 
             // Edit States 
-            inline api::PipelineColorBlendAttachmentState& GetColorBlendAttachment() {
+            inline api::PipelineColorBlendAttachmentState& getColorBlendAttachment() {
                 return colorBlendAttachments_.back(); };
 
-            inline api::VertexInputBindingDescription& GetVertexBindingDescription() {
+            inline api::VertexInputBindingDescription& getVertexBindingDescription() {
                 return vertexBindingDescriptions_.back(); };
 
-            inline api::VertexInputAttributeDescription& GetVertexAttributeDescription() {
+            inline api::VertexInputAttributeDescription& getVertexAttributeDescription() {
                 return vertexAttributeDescriptions_.back(); };
 
             // View States 
-            inline const api::PipelineColorBlendAttachmentState& GetColorBlendAttachment() const {
+            inline const api::PipelineColorBlendAttachmentState& getColorBlendAttachment() const {
                 return colorBlendAttachments_.back(); };
 
-            inline const api::VertexInputBindingDescription& GetVertexBindingDescription() const {
+            inline const api::VertexInputBindingDescription& getVertexBindingDescription() const {
                 return vertexBindingDescriptions_.back(); };
 
-            inline const api::VertexInputAttributeDescription& GetVertexAttributeDescription() const {
+            inline const api::VertexInputAttributeDescription& getVertexAttributeDescription() const {
                 return vertexAttributeDescriptions_.back(); };
 
             // 
-            inline std::shared_ptr<GraphicsPipeline>&& Create(const api::PipelineLayout &pipelineLayout, const api::RenderPass &renderPass, bool defaultBlend=true) {
+            inline std::shared_ptr<GraphicsPipeline>&& create(const api::PipelineLayout &pipelineLayout, const api::RenderPass &renderPass, bool defaultBlend=true) {
 
                 // Add default colour blend attachment if necessary.
                 if (colorBlendAttachments_.empty() && defaultBlend) {

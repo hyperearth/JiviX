@@ -10,13 +10,13 @@ namespace lancer {
         public:
             RenderpassMaker(const std::shared_ptr<Device> &device = {}, const api::RenderPass* renderpass = nullptr): device(device), renderpass(renderpass) {  }
 
-            inline api::AttachmentDescription& GetAttachmentDescription() { return attachmentDescriptions.back(); };
-            inline api::SubpassDescription& GetSubpassDescription() { return subpassDescriptions.back(); };
-            inline api::SubpassDependency& GetSubpassDependency() { return subpassDependencies.back(); };
+            inline api::AttachmentDescription& getAttachmentDescription() { return attachmentDescriptions.back(); };
+            inline api::SubpassDescription& getSubpassDescription() { return subpassDescriptions.back(); };
+            inline api::SubpassDependency& getSubpassDependency() { return subpassDependencies.back(); };
 
-            inline const api::AttachmentDescription& GetAttachmentDescription() const { return attachmentDescriptions.back(); };
-            inline const api::SubpassDescription& GetSubpassDescription() const { return subpassDescriptions.back(); };
-            inline const api::SubpassDependency& GetSubpassDependency() const { return subpassDependencies.back(); };
+            inline const api::AttachmentDescription& getAttachmentDescription() const { return attachmentDescriptions.back(); };
+            inline const api::SubpassDescription& getSubpassDescription() const { return subpassDescriptions.back(); };
+            inline const api::SubpassDependency& getSubpassDependency() const { return subpassDependencies.back(); };
 
             /// Begin an attachment description.
             /// After this you can call attachment* many times
