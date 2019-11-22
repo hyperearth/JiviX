@@ -177,8 +177,8 @@ namespace lancer {
                 return shared_from_this(); };
 
             // 
-            inline Image&& link(api::Image* img) { lastimg = img; return shared_from_this(); };
-            inline Image&& allocate(const Allocator& mem, const uintptr_t& ptx = 0u) {
+            inline Image&& link(api::Image* img = nullptr) { lastimg = img; return shared_from_this(); };
+            inline Image&& allocate(const Allocator& mem = {}, const uintptr_t& ptx = 0u) {
                 mem->allocateForImage(lastimg,allocation=mem->createAllocation(),imc,ptx);
                 return shared_from_this(); };
 

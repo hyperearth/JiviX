@@ -49,14 +49,14 @@ namespace lancer {
             /// Start a subpass description.
             /// After this you can can call subpassColorAttachment many times
             /// and subpassDepthStencilAttachment once.
-            inline RenderPass&& subpassBegin(api::PipelineBindPoint bp) {
+            inline RenderPass&& subpassBegin(const api::PipelineBindPoint& bp) {
                 api::SubpassDescription desc{};
                 desc.pipelineBindPoint = bp;
                 s.subpassDescriptions.push_back(desc);
                 return shared_from_this();
             };
 
-            inline RenderPass&& subpassColorAttachment(api::ImageLayout layout, uint32_t attachment) {
+            inline RenderPass&& subpassColorAttachment(const api::ImageLayout& layout, const uint32_t& attachment) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
@@ -68,7 +68,7 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline RenderPass&& subpassDepthStencilAttachment(api::ImageLayout layout, uint32_t attachment) {
+            inline RenderPass&& subpassDepthStencilAttachment(const api::ImageLayout& layout, uint32_t attachment) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
@@ -87,7 +87,7 @@ namespace lancer {
                 *renderPass = device.createRenderPass(renderPassInfo);
             };
 
-            inline RenderPass&& dependencyBegin(uint32_t srcSubpass, uint32_t dstSubpass) {
+            inline RenderPass&& dependencyBegin(const uint32_t& srcSubpass, const uint32_t& dstSubpass) {
                 api::SubpassDependency desc{};
                 desc.srcSubpass = srcSubpass;
                 desc.dstSubpass = dstSubpass;

@@ -143,7 +143,7 @@ namespace lancer {
 
 
 	// create secondary command buffers for batching compute invocations
-	static inline auto createCommandBuffer(api::Device device, api::CommandPool cmdPool, bool secondary = true, bool once = true) {
+	static inline auto createCommandBuffer(const api::Device& device, const api::CommandPool& cmdPool, bool secondary = true, bool once = true) {
         api::CommandBuffer cmdBuffer = {};
 
         api::CommandBufferAllocateInfo cmdi = api::CommandBufferAllocateInfo{};
@@ -165,7 +165,7 @@ namespace lancer {
 	};
 
 	// add dispatch in command buffer (with default pipeline barrier)
-	static inline api::Result cmdDispatch(api::CommandBuffer cmd, api::Pipeline pipeline, uint32_t x = 1, uint32_t y = 1, uint32_t z = 1, bool barrier = true) {
+	static inline api::Result cmdDispatch(const api::CommandBuffer& cmd, const api::Pipeline& pipeline, uint32_t x = 1, uint32_t y = 1, uint32_t z = 1, bool barrier = true) {
         cmd.bindPipeline(api::PipelineBindPoint::eCompute, pipeline);
         cmd.dispatch(x, y, z);
 		if (barrier) {
@@ -175,7 +175,7 @@ namespace lancer {
 	};
 
 	// low level copy command between (prefer for host and device)
-	static inline api::Result cmdCopyBufferL(api::CommandBuffer cmd, api::Buffer srcBuffer, api::Buffer dstBuffer, const std::vector<api::BufferCopy>& regions, std::function<void(api::CommandBuffer)> barrierFn = commandBarrier) {
+	static inline api::Result cmdCopyBufferL(const api::CommandBuffer& cmd, const api::Buffer& srcBuffer, const api::Buffer& dstBuffer, const std::vector<api::BufferCopy>& regions, std::function<void(api::CommandBuffer)> barrierFn = commandBarrier) {
 		if (srcBuffer && dstBuffer && regions.size() > 0) {
 			api::CommandBuffer(cmd).copyBuffer(srcBuffer, dstBuffer, regions); barrierFn(cmd); // put copy barrier
 		};
@@ -185,7 +185,7 @@ namespace lancer {
 
 	// short data set with command buffer (alike push constant)
 	template<class T>
-	static inline api::Result cmdUpdateBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize offset, const std::vector<T>& data) {
+	static inline api::Result cmdUpdateBuffer(const api::CommandBuffer& cmd, const api::Buffer& dstBuffer, const api::DeviceSize& offset, const std::vector<T>& data) {
 		api::CommandBuffer(cmd).updateBuffer(dstBuffer, offset, data);
 		//updateCommandBarrier(cmd);
 		return api::Result::eSuccess;
@@ -193,7 +193,7 @@ namespace lancer {
 
 	// short data set with command buffer (alike push constant)
 	template<class T>
-	static inline api::Result cmdUpdateBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize offset, api::DeviceSize size, const T* data) {
+	static inline api::Result cmdUpdateBuffer(const api::CommandBuffer& cmd, const api::Buffer& dstBuffer, const api::DeviceSize& offset, const api::DeviceSize& size, const T* data = nullptr) {
 		api::CommandBuffer(cmd).updateBuffer(dstBuffer, offset, size, data);
 		//updateCommandBarrier(cmd);
 		return api::Result::eSuccess;
@@ -203,7 +203,7 @@ namespace lancer {
 	// template function for fill buffer by constant value
 	// use for create repeat variant
 	template<uint32_t Rv>
-	static inline api::Result cmdFillBuffer(api::CommandBuffer cmd, api::Buffer dstBuffer, api::DeviceSize size = 0xFFFFFFFF, api::DeviceSize offset = 0) {
+	static inline api::Result cmdFillBuffer(const api::CommandBuffer& cmd, const api::Buffer& dstBuffer, const api::DeviceSize& size = 0xFFFFFFFF, const api::DeviceSize& offset = 0) {
 		api::CommandBuffer(cmd).fillBuffer(api::Buffer(dstBuffer), offset, size, Rv);
 		//updateCommandBarrier(cmd);
 		return api::Result::eSuccess;
@@ -211,7 +211,7 @@ namespace lancer {
 
 
 	// submit command (with async wait)
-	static inline void submitCmd(api::Device device, api::Queue queue, std::vector<api::CommandBuffer> cmds, api::SubmitInfo smbi = {}) {
+	static inline void submitCmd(const api::Device& device, const api::Queue& queue, const std::vector<api::CommandBuffer>& cmds, const api::SubmitInfo& smbi = {}) {
 		// no commands 
 		if (cmds.size() <= 0) return;
 
@@ -226,7 +226,7 @@ namespace lancer {
 	};
 
 	// once submit command buffer
-	static inline void submitOnce(api::Device device, api::Queue queue, api::CommandPool cmdPool, std::function<void(api::CommandBuffer)> cmdFn = {}, api::SubmitInfo smbi = {}) {
+	static inline void submitOnce(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer)>& cmdFn = {}, const api::SubmitInfo& smbi = {}) {
 		auto cmdBuf = createCommandBuffer(device, cmdPool, false); cmdFn(cmdBuf); cmdBuf.end();
 		submitCmd(device, queue, { cmdBuf }); device.freeCommandBuffers(cmdPool, 1, &cmdBuf); // free that command buffer
 	};
@@ -248,7 +248,7 @@ namespace lancer {
 	};
 
 	// once submit command buffer
-	static inline void submitOnceAsync(api::Device device, api::Queue queue, api::CommandPool cmdPool, std::function<void(api::CommandBuffer)> cmdFn = {}, std::function<void(api::CommandBuffer)> asyncCallback = {}, api::SubmitInfo smbi = {}) {
+	static inline void submitOnceAsync(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer)>& cmdFn = {}, std::function<void(api::CommandBuffer)> asyncCallback = {}, api::SubmitInfo smbi = {}) {
 		auto cmdBuf = createCommandBuffer(device, cmdPool, false); cmdFn(cmdBuf); cmdBuf.end();
 		submitCmdAsync(device, queue, { cmdBuf }, [&]() {
 			asyncCallback(cmdBuf); // call async callback
@@ -259,7 +259,7 @@ namespace lancer {
 	template <class T> static inline auto makeVector(const T * ptr, size_t size = 1) { std::vector<T>v(size); memcpy(v.data(), ptr, strided<T>(size)); return v; };
 
 	// create fence function
-	static inline api::Fence createFence(api::Device device, bool signaled = true) {
+	static inline api::Fence createFence(const api::Device& device, const bool signaled& = true) {
 		api::FenceCreateInfo info = {};
 		if (signaled) info.setFlags(api::FenceCreateFlagBits::eSignaled);
 		return api::Device(device).createFence(info);

@@ -41,7 +41,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Link Editable Buffer 
-            inline Buffer&& link(api::Buffer* buf) { lastbuf = buf; 
+            inline Buffer&& link(api::Buffer* buf = nullptr) { lastbuf = buf; 
                 return shared_from_this(); };
 
             // 

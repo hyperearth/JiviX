@@ -92,13 +92,8 @@ namespace lancer {
             inline DescriptorSet&& create() { // TODO: create descriptor set and layout
                 return shared_from_this(); };
 
-            inline DescriptorSet&& link(api::DescriptorSet& desc) { 
-                lastdst = &desc; 
-                return shared_from_this(); };
-
-            inline DescriptorSet&& linkLayout(api::DescriptorSetLayout& lays) { 
-                dlayout = &lays; 
-                return shared_from_this(); };
+            inline DescriptorSet&& link(api::DescriptorSet* desc) { lastdst = desc; return shared_from_this(); };
+            inline DescriptorSet&& linkLayout(api::DescriptorSetLayout* lays) { dlayout = lays; return shared_from_this(); };
 
             // 
             inline DescriptorSet&& apply(){
