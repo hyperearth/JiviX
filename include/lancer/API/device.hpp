@@ -201,7 +201,7 @@ namespace lancer {
             operator const api::Device&() const { return *device; };
 
             // 
-            DeviceMaker&& initialize();
+            inline DeviceMaker&& initialize();
             inline DeviceMaker&& linkDescriptorPool(api::DescriptorPool* pool = nullptr) { this->descriptorPool = pool; return shared_from_this(); };
             inline DeviceMaker&& linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
             inline DeviceMaker&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };

@@ -48,7 +48,7 @@ namespace lancer {
     };
 
     // 
-    DeviceMaker&& Device_T::initialize() {
+    inline DeviceMaker&& Device_T::initialize() {
         if (physicalHelper && device && !(*device)) {
             *device = ((api::PhysicalDevice&)(*physicalHelper)).createDevice(dfc);
         };
