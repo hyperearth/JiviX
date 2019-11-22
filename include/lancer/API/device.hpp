@@ -126,7 +126,7 @@ namespace lancer {
             api::PhysicalDeviceFeatures2 features = {};
             api::PhysicalDeviceProperties2 properties = {};
             std::vector<uint32_t> queueFamilyIndices = {};
-            Allocator allocator = {};
+            MemoryAllocator allocator = {};
 
             // required (if there is no, will generated)
             std::shared_ptr<paths::DriverWrapBase> driverWrap = {};
@@ -143,10 +143,10 @@ namespace lancer {
             };
 
         public:
-            friend lancer::Device;
+            friend lancer::DeviceMaker;
 
-            Allocator& getAllocator() { return allocator; };
-            const Allocator& getAllocator() const { return allocator; };
+            MemoryAllocator& getAllocator() { return allocator; };
+            const MemoryAllocator& getAllocator() const { return allocator; };
 
             // require to generate both VMA and vendor name 
             PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
@@ -154,7 +154,7 @@ namespace lancer {
             };
 
             // require vendor name 
-            PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice, const Allocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
+            PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice, const MemoryAllocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
                 this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
             };
 
@@ -180,14 +180,13 @@ namespace lancer {
 
     class Device_T : public std::enable_shared_from_this<Device_T> {
         protected: 
-
-            friend Allocator;
+            friend MemoryAllocator;
             api::DeviceCreateInfo dfc = {};
             api::PipelineCache pipelineCache = {};
             api::DescriptorPool* descriptorPool = nullptr;
             api::Device* device = nullptr;
             PhysicalDeviceHelper physicalHelper = {};
-            Allocator allocator = {};
+            MemoryAllocator allocator = {};
 
         public: 
             Device_T(const PhysicalDeviceHelper& physicalHelper = {}, api::Device* device = nullptr, api::DeviceCreateInfo dfc = {}) : device(device), dfc(dfc), physicalHelper(physicalHelper) {
@@ -202,11 +201,11 @@ namespace lancer {
             operator const api::Device&() const { return *device; };
 
             // 
-            inline Device&& initialize();
-            inline Device&& linkDescriptorPool(api::DescriptorPool* pool = nullptr) { this->descriptorPool = pool; return shared_from_this(); };
-            inline Device&& linkAllocator(const Allocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
-            inline Device&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
-            inline Device&& link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
+            DeviceMaker&& initialize();
+            inline DeviceMaker&& linkDescriptorPool(api::DescriptorPool* pool = nullptr) { this->descriptorPool = pool; return shared_from_this(); };
+            inline DeviceMaker&& linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
+            inline DeviceMaker&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
+            inline DeviceMaker&& link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
             inline const PhysicalDeviceHelper& getHelper() const { return physicalHelper; };
     };
 };

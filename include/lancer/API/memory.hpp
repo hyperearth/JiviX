@@ -5,12 +5,12 @@
 
 namespace lancer {
 
-    class Allocation_T : public std::enable_shared_from_this<Allocation_T> {
+    class MemoryAllocation_T : public std::enable_shared_from_this<MemoryAllocation_T> {
         protected: 
-            friend Allocator;
-            friend Device;
+            friend MemoryAllocator;
+            friend DeviceMaker;
 
-            Allocator allocator = nullptr;
+            MemoryAllocator allocator = nullptr;
             api::MemoryHeap memory = {};
             uint8_t* mapped = nullptr;
 
@@ -20,40 +20,45 @@ namespace lancer {
             virtual uintptr_t getCIP() { return 0u; }; // xPEH TB
             virtual uint8_t* getMapped() {  return nullptr; };
 
-            ~Allocation_T(){ this->free(); };
-             Allocation_T(const Allocator& allocator = {}) : allocator(allocator) {};
+            ~MemoryAllocation_T(){ this->free(); };
+             MemoryAllocation_T(const MemoryAllocator& allocator = {}) : allocator(allocator) {};
 
-            inline const Device& getDevice() const { return allocator->getDevice(); };
+            inline const DeviceMaker& getDevice() const { return allocator->getDevice(); };
     };
 
-    class Allocator_T : public std::enable_shared_from_this<Allocator_T> {
+    class MemoryAllocator_T : public std::enable_shared_from_this<MemoryAllocator_T> {
         protected: 
-            Device device = {};
-            std::vector<std::weak_ptr<Allocation_T>> allocations = {};
-            friend Device;
+            DeviceMaker device = {};
+            std::vector<std::weak_ptr<MemoryAllocation_T>> allocations = {};
+            friend DeviceMaker;
 
         public: 
-            ~Allocator_T(){};
-             Allocator_T(){};
-             Allocator_T(const Device& dvc){};
+            ~MemoryAllocator_T(){};
+             MemoryAllocator_T(){};
+             MemoryAllocator_T(const DeviceMaker& dvc){};
 
             virtual void free() {};
-            virtual void allocateForBuffer(api::Buffer* buffer, Allocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
-            virtual void allocateForImage(api::Image* image, Allocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
-            virtual void initialize(const Device& device = {});
-            virtual Allocation&& createAllocation() { return std::make_shared<Allocation_T>(*this); };
-            inline const Device& getDevice() const { return device; };
+            virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
+            virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
+            virtual MemoryAllocator&& initialize() {};
+            virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) {};
+            virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) {};
+            virtual MemoryAllocation&& createAllocation() { return std::make_shared<MemoryAllocation_T>(*this); };
+            inline const DeviceMaker& getDevice() const { return device; };
     };
 
     // 
-    inline Device&& Device_T::initialize() {
+    DeviceMaker&& Device_T::initialize() {
         if (physicalHelper && device && !(*device)) {
             *device = ((api::PhysicalDevice&)(*physicalHelper)).createDevice(dfc);
         };
 
         // get VMA allocator for device
         if (!this->allocator && this->physicalHelper->getAllocator()) { this->allocator = this->physicalHelper->getAllocator(); };
-        if ( this->allocator) { this->allocator->initialize(shared_from_this()); };
+        if ( this->allocator) {
+             this->allocator->linkDevice(shared_from_this());
+             this->allocator->initialize();
+        };
 
         // descriptor pool
         if ( this->descriptorPool && !(*this->descriptorPool))

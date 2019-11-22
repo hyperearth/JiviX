@@ -9,7 +9,7 @@ namespace lancer {
     class DescriptorSetLayout_T : public std::enable_shared_from_this<DescriptorSetLayout_T> {
 
         protected: 
-            Device    device = {};
+            DeviceMaker device = {};
             api::DescriptorSetLayout *dlayout = nullptr;
             std::vector<api::DescriptorSetLayoutBinding> _bindings = {};
             std::vector<api::DescriptorBindingFlagsEXT> _flags = {};
@@ -47,7 +47,7 @@ namespace lancer {
     class DescriptorSet_T : public std::enable_shared_from_this<DescriptorSet_T> {
         
         protected: 
-            Device                    device = {};
+            DeviceMaker                device = {};
             api::DescriptorSet       *lastdst = nullptr;
             api::DescriptorSetLayout *dlayout = nullptr;
             api::DescriptorSetAllocateInfo info = {};
@@ -89,14 +89,14 @@ namespace lancer {
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            inline DescriptorSet&& create() { // TODO: create descriptor set and layout
+            inline DescriptorSetMaker&& create() { // TODO: create descriptor set and layout
                 return shared_from_this(); };
 
-            inline DescriptorSet&& link(api::DescriptorSet* desc) { lastdst = desc; return shared_from_this(); };
-            inline DescriptorSet&& linkLayout(api::DescriptorSetLayout* lays) { dlayout = lays; return shared_from_this(); };
+            inline DescriptorSetMaker&& link(api::DescriptorSet* desc) { lastdst = desc; return shared_from_this(); };
+            inline DescriptorSetMaker&& linkLayout(api::DescriptorSetLayout* lays) { dlayout = lays; return shared_from_this(); };
 
             // 
-            inline DescriptorSet&& apply(){
+            inline DescriptorSetMaker&& apply(){
                 api::DescriptorUpdateTemplateCreateInfo createInfo{};
                 createInfo.templateType = api::DescriptorUpdateTemplateType::eDescriptorSet;
                 createInfo.flags = {};

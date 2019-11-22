@@ -12,25 +12,25 @@ namespace lancer {
 
     // 
     class VMAllocator_T;
-    using VMAllocator = std::shared_ptr<VMAllocator>;
+    using VMAllocator = std::shared_ptr<VMAllocator_T>;
     class VMAllocation_T;
-    using VMAllocation = std::shared_ptr<VMAllocation>;
+    using VMAllocation = std::shared_ptr<VMAllocation_T>;
 
 
-    class VMAllocation_T : public Allocation_T {
+    class VMAllocation_T : public MemoryAllocation_T {
         protected: 
             //std::shared_ptr<VMAllocator> allocator = {};
             VmaAllocation alloc = {};
             VmaAllocationInfo alcmc = {}; // least registered allocation, not necessary
             friend VMAllocator;
-            friend Allocator;
-            friend Device;
+            friend MemoryAllocator;
+            friend DeviceMaker;
 
         public: 
             // unique constructor 
             ~VMAllocation_T() {};
              VMAllocation_T() {};
-             VMAllocation_T(const Device& dvc);
+             VMAllocation_T(const DeviceMaker& dvc);
              VMAllocation_T(const VmaAllocation& allocation, const VmaAllocationInfo& alloc_info = {}) : alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {
             };
 
@@ -45,35 +45,35 @@ namespace lancer {
             //}
     };
 
-    class VMAllocator_T : public Allocator_T/*, public std::enable_shared_from_this<VMAllocator_T>*/ {
+    class VMAllocator_T : public MemoryAllocator_T/*, public std::enable_shared_from_this<VMAllocator_T>*/ {
         protected: 
-            Device dvc = {};
+            DeviceMaker dvc = {};
             VmaAllocatorCreateInfo  amc = {}; // Template
             VmaAllocator vma = {};
             
-            friend Allocator;
-            friend Device;
+            friend MemoryAllocator;
+            friend DeviceMaker;
 
         public: 
-            VMAllocator_T(const Device& dvc = {}) : dvc(device) {
-                if (dvc) { this->initialize(dvc); };
-            };
+            VMAllocator_T(const DeviceMaker& dvc = {}) : dvc(device) { if (dvc) { this->initialize(dvc); }; };
 
             // 
-            virtual void allocateForBuffer(api::Buffer* buffer, Allocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
+            virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
-            };
+                return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
 
             // 
-            virtual void allocateForImage(api::Image* image, Allocation& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
+            virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
                 vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
-            };
+                return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
 
             // Sometimes required special allocation
-            virtual Allocation&& createAllocation() override { return std::dynamic_pointer_cast<VMAllocation_T>(shared_from_this()); };
+            virtual MemoryAllocation&& createAllocation() override { return std::dynamic_pointer_cast<MemoryAllocation_T>(std::make_shared<VMAllocation_T>(dvc)); };
 
             // 
-            virtual void initialize(const Device& device = {}) override {
+            virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) override { this->dvc = std::move(device); return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+            virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) override { this->dvc = device; return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+            virtual MemoryAllocator&& initialize() override {
 #ifdef VOLK_H_
                 // load API calls for context
                 volkLoadDevice(api::Device(*device));
@@ -114,6 +114,9 @@ namespace lancer {
                 amc.pAllocationCallbacks = nullptr;
                 amc.pHeapSizeLimit = nullptr;
                 vmaCreateAllocator(&amc,&vma);
+
+                // 
+                return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this());
             };
     };
 };

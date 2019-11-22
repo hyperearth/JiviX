@@ -9,14 +9,14 @@ namespace lancer {
     // Vookoo-Like 
     class Buffer_T : public std::enable_shared_from_this<Buffer_T> {
         protected: 
-            Device device = {};
-            Allocation allocation = {}; // least allocation, may be vector 
+            DeviceMaker device = {};
+            MemoryAllocation allocation = {}; // least allocation, may be vector 
             api::Buffer* lastbuf = nullptr;
             api::BufferView* lbv = nullptr;
             api::BufferCreateInfo bfc = {};
 
         public: 
-             Buffer_T(const Device& device, api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc), device(device) {};
+             Buffer_T(const DeviceMaker& device, api::Buffer* lastbuf = nullptr, api::BufferCreateInfo bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive)) : lastbuf(lastbuf), bfc(bfc), device(device) {};
             ~Buffer_T(){}; // Here will notification about free memory
 
             // Get original Vulkan link 
@@ -35,34 +35,34 @@ namespace lancer {
             };
 
             //  
-            inline Buffer&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            inline BufferMaker&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 bfc.queueFamilyIndexCount = indices.size();
                 bfc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
 
             // Link Editable Buffer 
-            inline Buffer&& link(api::Buffer* buf = nullptr) { lastbuf = buf; 
+            inline BufferMaker&& link(api::Buffer* buf = nullptr) { lastbuf = buf; 
                 return shared_from_this(); };
 
             // 
-            inline Buffer&& allocate(const Allocator& mem, const uintptr_t& ptx = 0u) {
+            inline BufferMaker&& allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
                 mem->allocateForBuffer(lastbuf,allocation=mem->createAllocation(),bfc,ptx); 
                 return shared_from_this(); };
 
             // 
-            inline Buffer&& create() { // 
+            inline BufferMaker&& create() { // 
                 *lastbuf = device->least().createBuffer(bfc);
                 return shared_from_this(); };
 
             // Create With Buffer View 
-            inline Buffer&& createView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+            inline BufferMaker&& createView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
                 (*bfv = allocation->getDevice()->least().createBufferView(api::BufferViewCreateInfo{{}, *lastbuf, format, offset, size})); lbv = bfv;
                 return shared_from_this(); };
 
             // Create With Region
             // TODO: another format 
-            inline BufferRegionU8&& createRegion(api::DescriptorBufferInfo* reg = nullptr, const uintptr_t& offset = 0u, const size_t& size = 16u);
-            inline BufferRegionU8&& createRegion(api::DescriptorBufferInfo* reg);
+            inline BufferRegionU8Maker&& createRegion(api::DescriptorBufferInfo* reg = nullptr, const uintptr_t& offset = 0u, const size_t& size = 16u);
+            inline BufferRegionU8Maker&& createRegion(api::DescriptorBufferInfo* reg);
     };
 
 
@@ -117,8 +117,8 @@ namespace lancer {
 
     // defer implement 
     // TODO: another format of BufferRegion
-    inline BufferRegionU8&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg) { reg->buffer = *lastbuf; return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg)); };
-    inline BufferRegionU8&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg) { reg->buffer = *lastbuf; return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg)); };
+    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
         (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
         return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size));
     };
