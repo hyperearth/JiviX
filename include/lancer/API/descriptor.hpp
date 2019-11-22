@@ -37,7 +37,7 @@ namespace lancer {
             // 
             inline DescriptorSetLayout&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
                 const auto vkfl = api::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_flags.data()).setBindingCount(_flags.size());
-                *dlayout = device->Least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
+                *dlayout = device->least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
                 return shared_from_this(); };
 
             // TODO: allocate descriptor sets

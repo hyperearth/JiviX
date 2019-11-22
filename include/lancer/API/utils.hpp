@@ -232,7 +232,7 @@ namespace lancer {
 	};
 
 	// submit command (with async wait)
-	static inline void submitCmdAsync(api::Device device, api::Queue queue, std::vector<api::CommandBuffer> cmds, std::function<void()> asyncCallback = {}, api::SubmitInfo smbi = {}) {
+	static inline void submitCmdAsync(const api::Device& device, const api::Queue& queue, const std::vector<api::CommandBuffer>& cmds, const std::function<void()>& asyncCallback = {}, const api::SubmitInfo& smbi = {}) {
 		// no commands 
 		if (cmds.size() <= 0) return;
 
@@ -248,7 +248,7 @@ namespace lancer {
 	};
 
 	// once submit command buffer
-	static inline void submitOnceAsync(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer)>& cmdFn = {}, std::function<void(api::CommandBuffer)> asyncCallback = {}, api::SubmitInfo smbi = {}) {
+	static inline void submitOnceAsync(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer)>& cmdFn = {}, const std::function<void(api::CommandBuffer)>& asyncCallback = {}, const api::SubmitInfo& smbi = {}) {
 		auto cmdBuf = createCommandBuffer(device, cmdPool, false); cmdFn(cmdBuf); cmdBuf.end();
 		submitCmdAsync(device, queue, { cmdBuf }, [&]() {
 			asyncCallback(cmdBuf); // call async callback
@@ -256,7 +256,7 @@ namespace lancer {
 		});
 	};
 
-	template <class T> static inline auto makeVector(const T * ptr, size_t size = 1) { std::vector<T>v(size); memcpy(v.data(), ptr, strided<T>(size)); return v; };
+	template <class T> static inline auto makeVector(const T * ptr, const size_t& size = 1) { std::vector<T>v(size); memcpy(v.data(), ptr, strided<T>(size)); return v; };
 
 	// create fence function
 	static inline api::Fence createFence(const api::Device& device, const bool signaled& = true) {

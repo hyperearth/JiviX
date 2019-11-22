@@ -21,8 +21,7 @@ namespace lancer {
             virtual uint8_t* getMapped() {  return nullptr; };
 
             ~Allocation_T(){ this->free(); };
-             Allocation_T(){};
-             Allocation_T(const Allocator& allocator) : allocator(allocator) {};
+             Allocation_T(const Allocator& allocator = {}) : allocator(allocator) {};
 
             inline const Device& getDevice() const { return allocator->getDevice(); };
     };
