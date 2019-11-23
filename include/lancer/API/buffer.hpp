@@ -16,7 +16,7 @@ namespace lancer {
             api::BufferCreateInfo bfc = {};
 
         public: 
-             Buffer_T(const DeviceMaker& device, const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr) : lastbuf(lastbuf), bfc(bfc), device(device) {};
+             Buffer_T(const DeviceMaker& device = {}, const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr) : lastbuf(lastbuf), bfc(bfc), device(device) {};
             ~Buffer_T(){}; // Here will notification about free memory
 
             // Get original Vulkan link 

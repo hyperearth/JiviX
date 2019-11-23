@@ -9,10 +9,7 @@ namespace lancer {
         protected: 
             friend MemoryAllocator;
             friend DeviceMaker;
-
             MemoryAllocator allocator = nullptr;
-            api::MemoryHeap memory = {};
-            uint8_t* mapped = nullptr;
 
         public: 
             virtual void free() {};
@@ -34,8 +31,7 @@ namespace lancer {
 
         public: 
             ~MemoryAllocator_T(){};
-             MemoryAllocator_T(){};
-             MemoryAllocator_T(const DeviceMaker& dvc){};
+             MemoryAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {});
 
             virtual void free() {};
             virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);

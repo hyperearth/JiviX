@@ -52,7 +52,7 @@ namespace lancer {
         
         protected: 
             
-            Device device = {};
+            DeviceMaker device = {};
             api::Pipeline* pipeline = nullptr;
             api::GraphicsPipelineCreateInfo info = {};
             api::Viewport viewport_;
@@ -76,22 +76,22 @@ namespace lancer {
         public: 
 
             // 
-            GraphicsPipeline_T(const Device>& device, const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u) : pipeline(pipeline), info(info) {
+            GraphicsPipeline_T(const DeviceMaker& device, const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u) : pipeline(pipeline), info(info) {
                 inputAssemblyState_.topology = api::PrimitiveTopology::eTriangleList;
                 rasterizationState_.lineWidth = 1.0f;
                 viewport_ = api::Viewport{0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f};
                 scissor_ = api::Rect2D{{0, 0}, {width, height}};
 
                 // 
-                info.pInputAssemblyState = &inputAssemblyState_;
-                info.pRasterizationState = &rasterizationState_;
-                info.pDepthStencilState = &(depthStencilState_ = InitialDepthStencil());
-                info.pMultisampleState = &multisampleState_;
-                info.pVertexInputState = &vertexInputState_;
-                info.pColorBlendState = &colorBlendState_;
-                info.pViewportState = &(viewportState_ = {{}, 1, &viewport_, 1, &scissor_});
-                info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
-                info.subpass = subpass_;
+                this->info.pInputAssemblyState = &inputAssemblyState_;
+                this->info.pRasterizationState = &rasterizationState_;
+                this->info.pDepthStencilState = &(depthStencilState_ = initialDepthStencil());
+                this->info.pMultisampleState = &multisampleState_;
+                this->info.pVertexInputState = &vertexInputState_;
+                this->info.pColorBlendState = &colorBlendState_;
+                this->info.pViewportState = &(viewportState_ = {{}, 1, &viewport_, 1, &scissor_});
+                this->info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
+                this->info.subpass = subpass_;
             };
 
             // Editable 
@@ -105,8 +105,8 @@ namespace lancer {
             inline auto& getInputAssemblyState() { return inputAssemblyState_; };
             inline auto& getDynamicState() { return dynamicState_; };
             inline auto& getVertexInputState() { return vertexInputState_; };
-            inline auto& getVertexBindingDescriptions() { return vertexBindingDescriptions_ };
-            inline auto& getVertexAttributeDescriptions() { return vertexAttributeDescriptions_ };
+            inline auto& getVertexBindingDescriptions() { return vertexBindingDescriptions_; };
+            inline auto& getVertexAttributeDescriptions() { return vertexAttributeDescriptions_; };
 
             // Viewable 
             inline const auto& getCreateInfo() const { return info; };
@@ -119,8 +119,8 @@ namespace lancer {
             inline const auto& getInputAssemblyState() const { return inputAssemblyState_; };
             inline const auto& getDynamicState() const { return dynamicState_; };
             inline const auto& getVertexInputState() const { return vertexInputState_; };
-            inline const auto& getVertexBindingDescriptions() const { return vertexBindingDescriptions_ };
-            inline const auto& getVertexAttributeDescriptions() const { return vertexAttributeDescriptions_ };
+            inline const auto& getVertexBindingDescriptions() const { return vertexBindingDescriptions_; };
+            inline const auto& getVertexAttributeDescriptions() const { return vertexAttributeDescriptions_; };
 
             // 
             GraphicsPipelineMaker&& setCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
@@ -154,8 +154,8 @@ namespace lancer {
                 dynamicState_.push_back(state);
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& pushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = {}) {
-                colorBlendAttachments_.push_back(state ? state : InitialBlendState());
+            GraphicsPipelineMaker&& pushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = initialBlendState()) {
+                colorBlendAttachments_.push_back(state);
                 return shared_from_this(); };
 
             GraphicsPipelineMaker&& link(api::Pipeline* pipeline = nullptr) {
@@ -187,7 +187,7 @@ namespace lancer {
 
                 // Add default colour blend attachment if necessary.
                 if (colorBlendAttachments_.empty() && defaultBlend) {
-                    colorBlendAttachments_.push_back(DisabledBlendState());
+                    colorBlendAttachments_.push_back(disabledBlendState());
                 };
 
                 // Blend States 
@@ -202,7 +202,7 @@ namespace lancer {
                 vertexInputState_.pVertexBindingDescriptions = vertexBindingDescriptions_.data();
 
                 // 
-                info.dynamicCount = dynamicState_.size();
+                //info.dynamicCount = dynamicState_.size();
                 info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
                 info.pViewportState = &(viewportState_ = {{}, 1, &viewport_, 1, &scissor_});
                 info.layout = pipelineLayout;
@@ -212,7 +212,7 @@ namespace lancer {
                 info.subpass = subpass_;
 
                 // 
-                *pipeline = device->Least().createGraphicsPipeline(device->GetPipelineCache(), info);
+                *pipeline = device->least().createGraphicsPipeline(device->getPipelineCache(), info);
 
                 // 
                 return shared_from_this(); };

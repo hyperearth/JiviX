@@ -10,19 +10,17 @@ namespace lancer {
 
         protected: 
             DeviceMaker device = {};
+            api::DescriptorSetLayoutCreateInfo info = {};
             api::DescriptorSetLayout *dlayout = nullptr;
             std::vector<api::DescriptorSetLayoutBinding> _bindings = {};
             std::vector<api::DescriptorBindingFlagsEXT> _flags = {};
 
         public: 
-            DescriptorSetLayout_T(const Device& device, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout) {
+            DescriptorSetLayout_T(const DeviceMaker& device, const api::DescriptorSetLayoutCreateInfo& info = {}, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout), info(info) {
             };
 
-            inline DescriptorSetLayout&& link(api::DescriptorSetLayout& lays) { 
-                dlayout = &lays; 
-                return shared_from_this(); };
-
-            inline DescriptorSetLayout&& pushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
+            inline DescriptorSetLayoutMaker&& link(api::DescriptorSetLayout& lays) { dlayout = &lays; return shared_from_this(); };
+            inline DescriptorSetLayoutMaker&& pushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
                 _bindings.push_back(binding); _flags.push_back(flags);
                 return shared_from_this(); };
 
@@ -33,9 +31,9 @@ namespace lancer {
             // Viewable Current State 
             inline const api::DescriptorSetLayoutBinding& getBinding() const { return _bindings.back(); };
             inline const api::DescriptorBindingFlagsEXT& getBindingFlags() const { return _flags.back(); };
-
+//api::DescriptorSetLayout* dlayout = nullptr
             // 
-            inline DescriptorSetLayout&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
+            inline DescriptorSetLayoutMaker&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
                 const auto vkfl = api::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_flags.data()).setBindingCount(_flags.size());
                 *dlayout = device->least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
                 return shared_from_this(); };
@@ -56,7 +54,7 @@ namespace lancer {
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
 
         public:
-            DescriptorSet_T(const Device& device, api::DescriptorSet* lastdst = nullptr, api::DescriptorSetAllocateInfo info = {}) : lastdst(lastdst),info(info),device(device) {
+            DescriptorSet_T(const DeviceMaker& device = {}, api::DescriptorSetAllocateInfo info = {}, api::DescriptorSet* lastdst = nullptr) : lastdst(lastdst),info(info),device(device) {
             };
 
             // 

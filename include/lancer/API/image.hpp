@@ -16,7 +16,7 @@ namespace lancer {
 
         public: 
             ~Sampler_T(){};
-             Sampler_T(const DeviceMaker& device, const api::SamplerCreateInfo& smc = {}, api::Sampler* sampler = nullptr) : device(device), sampler(sampler), smc(smc) {
+             Sampler_T(const DeviceMaker& device = {}, const api::SamplerCreateInfo& smc = {}, api::Sampler* sampler = nullptr) : device(device), sampler(sampler), smc(smc) {
              };
 
             // 

@@ -19,24 +19,22 @@ namespace lancer {
 
     class VMAllocation_T : public MemoryAllocation_T {
         protected: 
-            //std::shared_ptr<VMAllocator> allocator = {};
-            VmaAllocation alloc = {};
+            VMAllocator allocator = {};
             VmaAllocationInfo alcmc = {}; // least registered allocation, not necessary
+            VmaAllocation alloc = {};
             friend VMAllocator;
             friend MemoryAllocator;
-            friend DeviceMaker;
+            friend MemoryAllocation;
 
         public: 
             // unique constructor 
             ~VMAllocation_T() {};
-             VMAllocation_T() {};
-             VMAllocation_T(const DeviceMaker& dvc);
-             VMAllocation_T(const VmaAllocation& allocation, const VmaAllocationInfo& alloc_info = {}) : alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {
+             VMAllocation_T(const VMAllocator& allocator = {}, const VmaAllocation& allocation = {}, const VmaAllocationInfo& alloc_info = {}) : allocator(allocator), alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {
             };
 
             virtual void free() override {}; // after notify for de-allocation
-            virtual uintptr_t getCIP() override { return uintptr_t(&alcmc); };
-            virtual uintptr_t getPtr() override { return uintptr_t(&alloc); };
+            virtual uintptr_t getCIP() override { return (uintptr_t)(&alcmc); };
+            virtual uintptr_t getPtr() override { return (uintptr_t)(&alloc); };
             virtual uint8_t* getMapped() override { return (uint8_t*)alcmc.pMappedData; };
 
             // TODO: smart de-allocate memory 
@@ -55,7 +53,7 @@ namespace lancer {
             friend DeviceMaker;
 
         public: 
-            VMAllocator_T(const DeviceMaker& dvc, const VmaAllocatorCreateInfo& info = {}) : dvc(device), amc(info) { this->initialize(); };
+            VMAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {}) : dvc(dvc) { amc = *((const VmaAllocatorCreateInfo*)info); this->initialize(); };
 
             // 
             virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
