@@ -55,7 +55,7 @@ namespace lancer {
             friend DeviceMaker;
 
         public: 
-            VMAllocator_T(const DeviceMaker& dvc = {}) : dvc(device) { if (dvc) { this->initialize(dvc); }; };
+            VMAllocator_T(const DeviceMaker& dvc, const VmaAllocatorCreateInfo& info = {}) : dvc(device), amc(info) { this->initialize(); };
 
             // 
             virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {

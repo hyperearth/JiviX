@@ -8,7 +8,7 @@ namespace lancer {
     // Vookoo-Like 
     class RenderPass_T : public std::enable_shared_from_this<RenderPass_T> {
         public:
-            RenderPass_T(const Device &device = {}, const api::RenderPass* renderpass = nullptr): device(device), renderpass(renderpass) {  }
+            RenderPass_T(const Device &device = {}, const api::RenderPassCreateInfo& info = {}, const api::RenderPass* renderpass = nullptr): device(device), renderpass(renderpass), renderPassInfo(info) {  };
 
             inline api::AttachmentDescription& getAttachmentDescription() { return attachmentDescriptions.back(); };
             inline api::SubpassDescription& getSubpassDescription() { return subpassDescriptions.back(); };
@@ -98,7 +98,7 @@ namespace lancer {
         protected: 
             constexpr static int max_refs = 64;
             DeviceMaker device = {};
-            api::RenderPass* renderPass = {};
+            api::RenderPass* renderPass = nullptr;
             api::RenderPassCreateInfo renderPassInfo = {};
 
             inline api::AttachmentReference *getAttachmentReference() {

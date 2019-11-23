@@ -16,7 +16,7 @@ namespace lancer {
 
         public: 
             ~Sampler_T(){};
-             Sampler_T(const DeviceMaker& device, api::Sampler* sampler = nullptr, const api::SamplerCreateInfo& smc = {}) : device(device), sampler(sampler), smc(smc) {
+             Sampler_T(const DeviceMaker& device, const api::SamplerCreateInfo& smc = {}, api::Sampler* sampler = nullptr) : device(device), sampler(sampler), smc(smc) {
              };
 
             // 
@@ -80,8 +80,6 @@ namespace lancer {
             inline api::ImageLayout& getTargetLayout() { return targetLayout; };
             inline api::ImageViewCreateInfo& getViewCreateInfo() { return imv; };
             inline api::ImageCreateInfo& getCreateInfo() { return imc; };
-
-
 
 
             // transition texture layout

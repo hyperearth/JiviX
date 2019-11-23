@@ -183,6 +183,8 @@ namespace lancer {
             // api::PhysicalDevice caster
             operator api::PhysicalDevice&() { return physicalDevice; };
             operator const api::PhysicalDevice&() const { return physicalDevice; };
+            api::PhysicalDevice& least() { return physicalDevice; };
+            const api::PhysicalDevice& least() const { return physicalDevice; };
     };
 
     class Device_T : public std::enable_shared_from_this<Device_T> {
@@ -196,8 +198,8 @@ namespace lancer {
             MemoryAllocator allocator = {};
 
         public: 
-            Device_T(const PhysicalDeviceHelper& physicalHelper = {}, api::Device* device = nullptr, api::DeviceCreateInfo dfc = {}) : device(device), dfc(dfc), physicalHelper(physicalHelper) {
-                if (physicalHelper && device && !(*device)) { *device = ((api::PhysicalDevice&)(*physicalHelper)).createDevice(dfc); };};
+            Device_T(const PhysicalDeviceHelper& physicalHelper = {}, api::DeviceCreateInfo dfc = {}, api::Device* device = nullptr) : device(device), dfc(dfc), physicalHelper(physicalHelper) {
+                if (physicalHelper && device && !(*device)) { *device = physicalHelper->least().createDevice(dfc); };};
 
             // Get original Vulkan link 
             inline api::PipelineCache& getPipelineCache() { return pipelineCache; };

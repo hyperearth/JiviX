@@ -50,7 +50,7 @@ namespace lancer {
     // 
     inline DeviceMaker&& Device_T::initialize() {
         if (physicalHelper && device && !(*device)) {
-            *device = ((api::PhysicalDevice&)(*physicalHelper)).createDevice(dfc);
+            *device = physicalHelper->least().createDevice(dfc);
         };
 
         // get VMA allocator for device

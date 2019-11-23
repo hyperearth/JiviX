@@ -76,7 +76,7 @@ namespace lancer {
         public: 
 
             // 
-            GraphicsPipeline_T(const Device>& device, api::Pipeline* pipeline = nullptr, const api::GraphicsPipelineCreateInfo& info = {}, const uint32_t& width = 1u, const uint32_t& height = 1u) : pipeline(pipeline), info(info) {
+            GraphicsPipeline_T(const Device>& device, const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u) : pipeline(pipeline), info(info) {
                 inputAssemblyState_.topology = api::PrimitiveTopology::eTriangleList;
                 rasterizationState_.lineWidth = 1.0f;
                 viewport_ = api::Viewport{0.0f, 0.0f, (float)width, (float)height, 0.0f, 1.0f};
