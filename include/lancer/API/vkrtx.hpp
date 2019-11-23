@@ -2,6 +2,8 @@
 
 #include "../lib/core.hpp"
 #include "../API/memory.hpp"
+#include "../API/buffer.hpp"
+#include "../API/VMA.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -33,6 +35,7 @@ namespace lancer {
         SBTHelper   addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
         SBTHelper   addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
         SBTHelper   linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); }; 
+        SBTHelper   linkBuffer(api::Buffer* buffer) { pSBT = buffer; };
         SBTHelper   linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
 
         uint32_t    getGroupsStride() const;
@@ -57,11 +60,14 @@ namespace lancer {
         std::vector<uint32_t>                                 mNumMissShaders;
         std::vector<api::PipelineShaderStageCreateInfo>       mStages;
         std::vector<api::RayTracingShaderGroupCreateInfoNV>   mGroups;
-        BufferMaker                                           mSBT;
+        
         DeviceMaker                                           mDevice;
-        api::Buffer                                           mSBT_;
+        BufferMaker                                           mSBT;
+        Vector<>                                              vSBT;
+        api::Buffer*                                          pSBT;
         api::Device                                           mDevice_;
         api::Pipeline*                                        mPipeline;
+        api::DescriptorBufferInfo                             mBufInfo;
     };
 #endif
 
@@ -79,7 +85,7 @@ namespace lancer {
 
         mStages.clear();
         mGroups.clear();
-
+        
         return shared_from_this();
     }
 
@@ -88,8 +94,6 @@ namespace lancer {
         mNumMissShaders.clear();
         mStages.clear();
         mGroups.clear();
-
-        //mSBT.Destroy();
     }
 
     SBTHelper SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
@@ -110,14 +114,12 @@ namespace lancer {
 
     SBTHelper SBTHelper_T::addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex) {
         // raygen stage should go first!
-        assert(!mStages.empty());
-
         assert(groupIndex < mNumHitShaders.size());
+        assert(!mStages.empty());
         assert(!stages.empty() && stages.size() <= 3);// only 3 hit shaders per group (intersection, any-hit and closest-hit)
         assert(mNumHitShaders[groupIndex] == 0);
 
         uint32_t offset = 1; // there's always raygen shader
-
         for (uint32_t i = 0; i <= groupIndex; ++i) {
             offset += mNumHitShaders[i];
         }
@@ -220,28 +222,24 @@ namespace lancer {
     bool SBTHelper_T::createSBT() {
         const size_t sbtSize = this->getSBTSize();
 
-        
+        VmaAllocationCreateInfo allocInfo = {};
+        allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+        allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-        //VkResult error = mSBT.Create(sbtSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_RAY_TRACING_BIT_NV, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-        //CHECK_VK_ERROR(error, "mSBT.Create");
+        (mSBT = mDevice->createBufferMaker(api::BufferCreateInfo().setSize(sbtSize).setUsage(
+            vk::BufferUsageFlagBits::eRayTracingNV|
+            vk::BufferUsageFlagBits::eTransferDst|
+            vk::BufferUsageFlagBits::eTransferSrc|
+            vk::BufferUsageFlagBits::eHostVisible
+        ), pSBT))->linkAllocator(mDevice->getAllocator())->linkDescriptorPool(mDevice->getDescriptorPool())->create()->allocate((uintptr_t)(&allocInfo));
+        vSBT = std::make_shared<Vector_T<>>(mSBT,&mBufInfo);
 
-        //if (VK_SUCCESS != error) {
-        //    return false;
-        //}
+        vk::Result result = mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0,this->getNumGroups(),sbtSize,mSBT->getMapped());
+        return (result == vk::Result::eSuccess);
+    };
 
-        //void* mem = mSBT.Map();
-        //error = vkGetRayTracingShaderGroupHandlesNV(device, rtPipeline, 0, this->GetNumGroups(), sbtSize, mem);
-        //CHECK_VK_ERROR(error, L"vkGetRaytracingShaderHandleNV");
-        //mSBT.Unmap();
-
-        //return (VK_SUCCESS == error);
-
-        return true;
-    }
-
-    api::Buffer SBTHelper_T::getSBTBuffer() const {
-        return mSBT_;
-    }
+    api::Buffer& SBTHelper_T::getSBTBuffer() { return *pSBT; };
+    const api::Buffer& SBTHelper_T::getSBTBuffer() const { return *pSBT; };
 
 #endif
 

@@ -34,6 +34,9 @@ namespace lancer {
                 return allocation->getMapped();
             };
 
+            // const MemoryAllocator& mem
+            inline BufferMaker&& linkAllocator(const MemoryAllocator& mem) { allocator = mem; return shared_from_this(); };
+
             //  
             inline BufferMaker&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 bfc.queueFamilyIndexCount = indices.size();
@@ -50,6 +53,12 @@ namespace lancer {
                 return shared_from_this(); };
 
             // 
+            inline BufferMaker&& allocate(const uintptr_t& ptx = 0u) {
+                const auto& mem = device->getAllocator();
+                mem->allocateForBuffer(lastbuf,allocation=mem->createAllocation(),bfc,ptx); 
+                return shared_from_this(); };
+
+            // 
             inline BufferMaker&& create() { // 
                 *lastbuf = device->least().createBuffer(bfc);
                 return shared_from_this(); };
@@ -61,8 +70,7 @@ namespace lancer {
 
             // Create With Region
             // TODO: another format 
-            inline BufferRegionU8Maker&& createRegion(api::DescriptorBufferInfo* reg = nullptr, const uintptr_t& offset = 0u, const size_t& size = 16u);
-            inline BufferRegionU8Maker&& createRegion(api::DescriptorBufferInfo* reg);
+            inline BufferRegionU8Maker&& createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
     };
 
 
@@ -73,8 +81,8 @@ namespace lancer {
     class BufferRegion_T {
         public:
             ~BufferRegion_T<T>(){};
-             BufferRegion_T<T>(const Buffer& buffer, api::DescriptorBufferInfo* bufInfo) : buffer(buffer), bufInfo(bufInfo) { bufInfo->buffer = *buffer; };
-             BufferRegion_T<T>(const Buffer& buffer = {}, api::DescriptorBufferInfo* bufInfo = nullptr, const api::DeviceSize& size = 16u, const api::DeviceSize& offset = 0u) : buffer(buffer), bufInfo(bufInfo) {
+             BufferRegion_T<T>(const BufferMake& buffer, api::DescriptorBufferInfo* bufInfo) : buffer(buffer), bufInfo(bufInfo) { bufInfo->buffer = *buffer; };
+             BufferRegion_T<T>(const BufferMake& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) : buffer(buffer), bufInfo(bufInfo) {
                 bufInfo->buffer = *buffer;
                 bufInfo->offset = offset;
                 bufInfo->range = size * sizeof(T);
@@ -111,14 +119,13 @@ namespace lancer {
 
         protected:
             T* mapped = {};
-            Buffer buffer = {};
+            BufferMake buffer = {};
             api::DescriptorBufferInfo* bufInfo = {};
     };
 
     // defer implement 
     // TODO: another format of BufferRegion
-    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg) { reg->buffer = *lastbuf; return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg)); };
-    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE) {
         (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
         return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size));
     };
@@ -129,8 +136,7 @@ namespace lancer {
         public:
             Vector~() {};
             //Vector () {};
-            Vector (const Buffer& buffer = {}, api::DescriptorBufferInfo& bufInfo = nullptr, const api::DeviceSize& size = 0ull, const api::DeviceSize& offset = 0u) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
-            Vector (const Buffer& buffer     , api::DescriptorBufferInfo& bufInfo) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo); };
+            Vector (const BufferMake& buffer, api::DescriptorBufferInfo& bufInfo, const api::DeviceSize& offset = 0u, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
             Vector (const Vector<T>& vector) : region(vector.region) {};
             Vector (const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
 

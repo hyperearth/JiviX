@@ -205,10 +205,6 @@ namespace lancer {
                 if (physicalHelper && device && !(*device)) { *device = physicalHelper->least().createDevice(dfc); };};
 
             // Get original Vulkan link 
-            inline api::PipelineCache& getPipelineCache() { return pipelineCache; };
-            inline const api::PipelineCache& getPipelineCache() const { return pipelineCache; };
-            inline api::Device& least() { return *device; };
-            inline const api::Device& least() const { return *device; };
             operator api::Device&() { return *device; };
             operator const api::Device&() const { return *device; };
 
@@ -218,10 +214,19 @@ namespace lancer {
             inline DeviceMaker&& linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
             inline DeviceMaker&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
             inline DeviceMaker&& link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
-            inline PhysicalDeviceHelper& getHelper() { return physicalHelper; };
-            inline const PhysicalDeviceHelper& getHelper() const { return physicalHelper; };
-            template<class T = MemoryAllocator_T> inline const std::shared_ptr<T>& getAllocator() const { return std::dynamic_pointer_cast<T>(allocator); };
-            template<class T = MemoryAllocator_T> inline std::shared_ptr<T>& getAllocator() { return std::dynamic_pointer_cast<T>(allocator); };
+
+            template<class T = MemoryAllocator_T> inline const auto& getAllocator() const { return std::dynamic_pointer_cast<T>(allocator); };
+            template<class T = MemoryAllocator_T> inline auto& getAllocator() { return std::dynamic_pointer_cast<T>(allocator); };
+
+            // 
+            inline auto& least() { return *device; };
+            inline const auto least() const { return *device; };
+            inline auto& getHelper() { return this->physicalHelper; };
+            inline const auto& getHelper() const { return this->physicalHelper; };
+            inline auto& getDescriptorPool() { return *this->descriptorPool; };
+            inline const auto& getDescriptorPool() const { return *this->descriptorPool; };
+            inline auto& getPipelineCache() { return *this->pipelineCache; };
+            inline const auto& getPipelineCache() const { return *this->pipelineCache; };
 
             // 
             inline BufferMaker&& createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);

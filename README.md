@@ -22,7 +22,7 @@ Writing for C++20 prior...
 - Commercial      : Under Consideration
 - Execute Day     : [2020:Q2]
 - Based On        : RadX, Voron, vkt
-- To Do           : Decapitalize Function and Method Namings
+- To Do           : Add VkResult and vk::Result supports, use dual-arguments
 
 Date: 19.11.2019 @helixd-2k18
 ```
