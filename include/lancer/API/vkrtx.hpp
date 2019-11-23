@@ -22,11 +22,9 @@ namespace lancer {
 
 #ifdef VKR
 
-    // TODO: unify and decapitalize methods 
-
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
     public:
-         SBTHelper_T(const DeviceMaker& device = {}, api::Pipeline* mPipeline = nullptr) : mDevice(device), mNumHitGroups(0u), mNumMissGroups(0u) {};
+         SBTHelper_T(const DeviceMaker& device = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mNumHitGroups(0u), mNumMissGroups(0u) {};
         ~SBTHelper_T() = default;
 
         void        destroy();
@@ -48,9 +46,10 @@ namespace lancer {
         const api::PipelineShaderStageCreateInfo*     getStages() const;
         const api::RayTracingShaderGroupCreateInfoNV* getGroups() const;
 
-        uint32_t       getSBTSize() const;
-        bool           createSBT();
-        api::Buffer    getSBTBuffer() const;
+        bool               createSBT();
+        uint32_t           getSBTSize() const;
+        const api::Buffer& getSBTBuffer() const;
+              api::Buffer& getSBTBuffer();
 
     private:
         uint32_t                                              mShaderHeaderSize;
@@ -65,7 +64,6 @@ namespace lancer {
         BufferMaker                                           mSBT;
         Vector<>                                              vSBT;
         api::Buffer*                                          pSBT;
-        api::Device                                           mDevice_;
         api::Pipeline*                                        mPipeline;
         api::DescriptorBufferInfo                             mBufInfo;
     };

@@ -34,7 +34,7 @@ namespace lancer {
         return std::make_shared<RenderPass_T>(shared_from_this(),info,renderpass);
     };
 
-    inline SBTHelper&& Device_T::createSBTHelper(api::Pipeline* pipeline) {
+    inline SBTHelper&& Device_T::createSBTHelper(api::Pipeline* rtPipeline) {
         return std::make_shared<SBTHelper_T>(shared_from_this(),pipeline);
     };
 
