@@ -53,10 +53,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // 
-            inline BufferMaker&& allocate(const uintptr_t& ptx = 0u) {
-                const auto& mem = device->getAllocator();
-                mem->allocateForBuffer(lastbuf,allocation=mem->createAllocation(),bfc,ptx); 
-                return shared_from_this(); };
+            inline BufferMaker&& allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocator(),ptx); };
 
             // 
             inline BufferMaker&& create() { // 

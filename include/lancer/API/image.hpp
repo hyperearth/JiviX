@@ -180,6 +180,8 @@ namespace lancer {
                 mem->allocateForImage(lastimg,allocation=mem->createAllocation(),imc,ptx);
                 return shared_from_this(); };
 
+            inline ImageMaker&& allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocator(),ptx); };
+
             // Create 1D "Canvas" 
             inline ImageMaker&& create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
                 imc.imageType = api::ImageType::e1D;
