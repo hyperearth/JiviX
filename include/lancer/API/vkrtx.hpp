@@ -229,8 +229,8 @@ namespace lancer {
             vk::BufferUsageFlagBits::eTransferDst|
             vk::BufferUsageFlagBits::eTransferSrc|
             vk::BufferUsageFlagBits::eHostVisible
-        ), pSBT))->linkAllocator(mDevice->getAllocator())->linkDescriptorPool(mDevice->getDescriptorPool())->create()->allocate((uintptr_t)(&allocInfo));
-        vSBT = std::make_shared<Vector_T<>>(mSBT,&mBufInfo);
+        ), pSBT))->allocate(mDevice->getAllocator(),(uintptr_t)(&allocInfo));
+        vSBT = std::make_shared<Vector_T<>>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
 
         vk::Result result = mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0,this->getNumGroups(),sbtSize,mSBT->getMapped());
         return (result == vk::Result::eSuccess);

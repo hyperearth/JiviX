@@ -11,9 +11,9 @@ namespace lancer {
         protected: 
             DeviceMaker device = {};
             MemoryAllocation allocation = {}; // least allocation, may be vector 
+            api::BufferCreateInfo bfc = {};
             api::Buffer* lastbuf = nullptr;
             api::BufferView* lbv = nullptr;
-            api::BufferCreateInfo bfc = {};
 
         public: 
              Buffer_T(const DeviceMaker& device = {}, const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr) : lastbuf(lastbuf), bfc(bfc), device(device) {};
@@ -21,8 +21,8 @@ namespace lancer {
 
             // Get original Vulkan link 
             inline api::Buffer& least() { return *lastbuf; };
-            operator api::Buffer&() { return *lastbuf; };
             inline const api::Buffer& least() const { return *lastbuf; };
+            operator api::Buffer&() { return *lastbuf; };
             operator const api::Buffer&() const { return *lastbuf; };
 
             // Editable BufferCreateInfo
@@ -35,7 +35,7 @@ namespace lancer {
             };
 
             // const MemoryAllocator& mem
-            inline BufferMaker&& linkAllocator(const MemoryAllocator& mem) { allocator = mem; return shared_from_this(); };
+            //inline BufferMaker&& linkAllocator(const MemoryAllocator& mem) { allocator = mem; return shared_from_this(); };
 
             //  
             inline BufferMaker&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
