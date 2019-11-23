@@ -232,7 +232,7 @@ namespace lancer {
             inline BufferMaker&& createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);
             inline ImageMaker&& createImageMaker(const api::ImageCreateInfo& bfc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastbuf = nullptr);
             inline RenderPassMaker&& createRenderPassMaker(const api::RenderPassCreateInfo& bfc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);
-            inline GraphicsPipelineMaker&& createGraphicsPipeline(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
+            inline GraphicsPipelineMaker&& createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
             inline DescriptorSetLayoutMaker&& createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* pipeline = nullptr);
             inline DescriptorSetMaker&& createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* pipeline = nullptr);
             inline SBTHelper&& createSBTHelper(api::Pipeline* pipeline = nullptr);
