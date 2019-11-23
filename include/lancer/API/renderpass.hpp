@@ -8,15 +8,15 @@ namespace lancer {
     // Vookoo-Like 
     class RenderPass_T : public std::enable_shared_from_this<RenderPass_T> {
         public:
-            RenderPass_T(const Device &device = {}, const api::RenderPassCreateInfo& info = {}, const api::RenderPass* renderpass = nullptr): device(device), renderpass(renderpass), renderPassInfo(info) {  };
+            RenderPass_T(const DeviceMaker &device = {}, const api::RenderPassCreateInfo& info = {}, api::RenderPass* renderPass = nullptr): device(device), renderPass(renderPass), renderPassInfo(info) {  };
 
-            inline api::AttachmentDescription& getAttachmentDescription() { return attachmentDescriptions.back(); };
-            inline api::SubpassDescription& getSubpassDescription() { return subpassDescriptions.back(); };
-            inline api::SubpassDependency& getSubpassDependency() { return subpassDependencies.back(); };
+            inline api::AttachmentDescription& getAttachmentDescription() { return s.attachmentDescriptions.back(); };
+            inline api::SubpassDescription& getSubpassDescription() { return s.subpassDescriptions.back(); };
+            inline api::SubpassDependency& getSubpassDependency() { return s.subpassDependencies.back(); };
 
-            inline const api::AttachmentDescription& getAttachmentDescription() const { return attachmentDescriptions.back(); };
-            inline const api::SubpassDescription& getSubpassDescription() const { return subpassDescriptions.back(); };
-            inline const api::SubpassDependency& getSubpassDependency() const { return subpassDependencies.back(); };
+            inline const api::AttachmentDescription& getAttachmentDescription() const { return s.attachmentDescriptions.back(); };
+            inline const api::SubpassDescription& getSubpassDescription() const { return s.subpassDescriptions.back(); };
+            inline const api::SubpassDependency& getSubpassDependency() const { return s.subpassDependencies.back(); };
 
             /// Begin an attachment description.
             /// After this you can call attachment* many times
@@ -77,14 +77,14 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&&  create() const {
+            inline RenderPassMaker&&  create() {
                 renderPassInfo.attachmentCount = (uint32_t)s.attachmentDescriptions.size();
                 renderPassInfo.pAttachments = s.attachmentDescriptions.data();
                 renderPassInfo.subpassCount = (uint32_t)s.subpassDescriptions.size();
                 renderPassInfo.pSubpasses = s.subpassDescriptions.data();
                 renderPassInfo.dependencyCount = (uint32_t)s.subpassDependencies.size();
                 renderPassInfo.pDependencies = s.subpassDependencies.data();
-                *renderPass = device.createRenderPass(renderPassInfo);
+                *renderPass = device->least().createRenderPass(renderPassInfo);
             };
 
             inline RenderPassMaker&& dependencyBegin(const uint32_t& srcSubpass, const uint32_t& dstSubpass) {

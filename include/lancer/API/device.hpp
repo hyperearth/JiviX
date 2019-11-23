@@ -185,6 +185,9 @@ namespace lancer {
             operator const api::PhysicalDevice&() const { return physicalDevice; };
             api::PhysicalDevice& least() { return physicalDevice; };
             const api::PhysicalDevice& least() const { return physicalDevice; };
+
+            // 
+            inline DeviceMaker&& createDeviceMaker(const api::DeviceCreateInfo& info = {}, api::Device* device = nullptr);
     };
 
     class Device_T : public std::enable_shared_from_this<Device_T> {
@@ -215,17 +218,19 @@ namespace lancer {
             inline DeviceMaker&& linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
             inline DeviceMaker&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
             inline DeviceMaker&& link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
-            inline const PhysicalDeviceHelper& getHelper() const { return physicalHelper; };
-            inline const MemoryAllocator& getAllocator() const { return allocator; };
             inline PhysicalDeviceHelper& getHelper() { return physicalHelper; };
-            inline MemoryAllocator& getAllocator() { return allocator; };
+            inline const PhysicalDeviceHelper& getHelper() const { return physicalHelper; };
+            template<class T = MemoryAllocator_T> inline const std::shared_ptr<T>& getAllocator() const { return std::dynamic_pointer_cast<T>(allocator); };
+            template<class T = MemoryAllocator_T> inline std::shared_ptr<T>& getAllocator() { return std::dynamic_pointer_cast<T>(allocator); };
 
-            template<class T = MemoryAllocator_T> inline T createAllocator(const uintptr_t& info);
-            inline BufferMaker createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);
-            inline ImageMaker createImageMaker(const api::ImageCreateInfo& bfc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastbuf = nullptr);
-            inline RenderPassMaker createRenderPassMaker(const api::RenderPassCreateInfo& bfc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);
-            inline GraphicsPipelineMaker createGraphicsPipeline(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
-            inline DescriptorSetLayoutMaker createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* pipeline = nullptr);
-            inline DescriptorSetMaker createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* pipeline = nullptr);
+            // 
+            inline BufferMaker&& createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);
+            inline ImageMaker&& createImageMaker(const api::ImageCreateInfo& bfc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastbuf = nullptr);
+            inline RenderPassMaker&& createRenderPassMaker(const api::RenderPassCreateInfo& bfc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);
+            inline GraphicsPipelineMaker&& createGraphicsPipeline(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
+            inline DescriptorSetLayoutMaker&& createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* pipeline = nullptr);
+            inline DescriptorSetMaker&& createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* pipeline = nullptr);
+            inline SBTHelper&& createSBTHelper(api::Pipeline* pipeline = nullptr);
+            template<class T = MemoryAllocator_T> inline std::shared_ptr<T>&& createAllocator(const uintptr_t& info = uintptr_t(nullptr));
     };
 };

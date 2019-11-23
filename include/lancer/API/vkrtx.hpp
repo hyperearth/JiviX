@@ -24,22 +24,22 @@ namespace lancer {
 
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
     public:
-         SBTHelper_T(const DeviceMaker& device = {}) : mDevice(device), mNumHitGroups(0u), mNumMissGroups(0u) {};
+         SBTHelper_T(const DeviceMaker& device = {}, api::Pipeline* mPipeline = nullptr) : mDevice(device), mNumHitGroups(0u), mNumMissGroups(0u) {};
         ~SBTHelper_T() = default;
 
         void        destroy();
         SBTHelper   initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
         SBTHelper   setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
-        SBTHelper   addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex);
-        SBTHelper   addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex);
+        SBTHelper   addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
+        SBTHelper   addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
+        SBTHelper   linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); }; 
+        SBTHelper   linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
 
         uint32_t    getGroupsStride() const;
         uint32_t    getNumGroups() const;
         uint32_t    getRaygenOffset() const;
         uint32_t    getHitGroupsOffset() const;
         uint32_t    getMissGroupsOffset() const;
-        SBTHelper   linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
-        SBTHelper   linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); }; 
 
         uint32_t                                   getNumStages() const;
         const api::PipelineShaderStageCreateInfo*     getStages() const;
@@ -59,9 +59,9 @@ namespace lancer {
         std::vector<api::RayTracingShaderGroupCreateInfoNV>   mGroups;
         BufferMaker                                           mSBT;
         DeviceMaker                                           mDevice;
-        api::Buffer                                            mSBT_;
-        api::Device                                            mDevice_;
-        api::Pipeline*                                         mPipeline;
+        api::Buffer                                           mSBT_;
+        api::Device                                           mDevice_;
+        api::Pipeline*                                        mPipeline;
     };
 #endif
 
@@ -219,6 +219,8 @@ namespace lancer {
 
     bool SBTHelper_T::createSBT() {
         const size_t sbtSize = this->getSBTSize();
+
+        
 
         //VkResult error = mSBT.Create(sbtSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_RAY_TRACING_BIT_NV, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
         //CHECK_VK_ERROR(error, "mSBT.Create");
