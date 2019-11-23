@@ -183,31 +183,18 @@ namespace lancer {
             inline ImageMaker&& allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocator(),ptx); };
 
             // Create 1D "Canvas" 
-            inline ImageMaker&& create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) {
-                imc.imageType = api::ImageType::e1D;
-                imc.extent = {w,1u,1u};
-                imc.arrayLayers = 1u;
-                imc.format = format;
-                *lastimg = device->least().createImage(imc);
-                return shared_from_this(); };
-
-            // Create 2D "Canvas" 
-            inline ImageMaker&& create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) {
-                imc.imageType = api::ImageType::e2D;
-                imc.extent = {w,h,1u};
-                imc.arrayLayers = 1u;
-                imc.format = format;
-                *lastimg = device->least().createImage(imc);
-                return shared_from_this(); };
-
-            // Create 3D "Canvas" 
-            inline ImageMaker&& create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
-                imc.imageType = api::ImageType::e3D;
+            inline ImageMaker&& create(const api::ImageType type& = api::ImageType::e1D, const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
+                imc.imageType = type;
                 imc.extent = {w,h,d};
                 imc.arrayLayers = d;
                 imc.format = format;
                 *lastimg = device->least().createImage(imc);
                 return shared_from_this(); };
+            };
+            
+            inline ImageMaker&& create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) { return this->create(api::ImageType::e1D,format,w); };
+            inline ImageMaker&& create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) { return this->create(api::ImageType::e2D,format,w,h); };
+            inline ImageMaker&& create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) { return this->create(api::ImageType::e3D,format,w,h,d); };
 
             // Create ImageView 
             inline ImageMaker&& createImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
