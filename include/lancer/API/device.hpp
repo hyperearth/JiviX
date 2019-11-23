@@ -109,15 +109,22 @@ namespace lancer {
         };
     };
 
-    class Instance : public std::enable_shared_from_this<Instance> {
+    class Instance_T : public std::enable_shared_from_this<Instance_T> {
         protected: 
             std::vector<api::PhysicalDevice> devices = {};
             api::Instance* lastinst = {};
-
+            api::InstanceCreateInfo cif = {};
+            
         public: 
-            Instance(api::Instance* instance = nullptr, api::InstanceCreateInfo info = {}) : lastinst(instance) {
-                *instance = api::createInstance(info);
+            Instance_T(api::Instance* instance = nullptr, const api::InstanceCreateInfo& info = {}) : lastinst(instance), cif(info) {
+                //*instance = api::createInstance(info);
+                lastinst = instance;
             };
+
+            inline api::Instance& least() { return *lastinst; };
+            inline const api::Instance& least() const { return *lastinst; };
+            operator api::Instance&() { return *lastinst; };
+            operator const api::Instance&() const { return *lastinst; };
     };
 
     class PhysicalDeviceHelper_T : public std::enable_shared_from_this<PhysicalDeviceHelper_T> {
