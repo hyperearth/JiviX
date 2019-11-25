@@ -183,27 +183,27 @@ namespace lancer {
             inline ImageMaker&& allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocator(),ptx); };
 
             // Create 1D "Canvas" 
-            inline ImageMaker&& create(const api::ImageType type& = api::ImageType::e1D, const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
+            inline ImageMaker&& create(const api::ImageType& type = api::ImageType::e1D, const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
+                //api::ImageCreateInfo imv = {};
                 imc.imageType = type;
                 imc.extent = {w,h,d};
                 imc.arrayLayers = d;
                 imc.format = format;
                 *lastimg = device->least().createImage(imc);
                 return shared_from_this(); };
-            };
-            
+
             inline ImageMaker&& create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) { return this->create(api::ImageType::e1D,format,w); };
             inline ImageMaker&& create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) { return this->create(api::ImageType::e2D,format,w,h); };
             inline ImageMaker&& create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) { return this->create(api::ImageType::e3D,format,w,h,d); };
 
             // Create ImageView 
             inline ImageMaker&& createImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
-                imv.image = *lastimg;
+                imv.image = *this->lastimg;
                 imv.viewType = viewType;
                 imv.format = format!=api::Format::eUndefined?format:imc.format;
                 imv.components = compmap;
-                imv.subresourceRange = sbr;
-                *imgv = (device->least().createImageView(imv)); lastimv = imgv;
+                imv.subresourceRange = this->sbr;
+                *imgv = (this->device->least().createImageView(imv)); this->lastimv = imgv;
                 return shared_from_this(); };
 
             // Stub for write both in descriptor
@@ -212,7 +212,6 @@ namespace lancer {
                 imd->imageLayout = targetLayout;
                 return shared_from_this(); };
 
-            
             // TODO: re-make or improve  api::DescriptorImageInfo  interaction
     };
 

@@ -35,7 +35,7 @@ namespace lancer {
     };
 
     inline SBTHelper&& Device_T::createSBTHelper(api::Pipeline* rtPipeline) {
-        return std::make_shared<SBTHelper_T>(shared_from_this(),pipeline);
+        return std::make_shared<SBTHelper_T>(shared_from_this(),rtPipeline);
     };
 
     inline DeviceMaker&& PhysicalDeviceHelper_T::createDeviceMaker(const api::DeviceCreateInfo& info, api::Device* device) {
