@@ -54,6 +54,7 @@ namespace lancer {
             
             DeviceMaker device = {};
             api::Pipeline* pipeline = nullptr;
+            api::PipelineLayout* playout = nullptr;
             api::GraphicsPipelineCreateInfo info = {};
             api::Viewport viewport_;
             api::Rect2D scissor_;
@@ -93,6 +94,13 @@ namespace lancer {
                 this->info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
                 this->info.subpass = subpass_;
             };
+            
+            // return pipeline reference 
+            api::Pipeline& least() { return *pipeline; };
+            const api::Pipeline& least() const { return *pipeline; };
+            operator api::Pipeline&() { return *pipeline; };
+            operator const api::Pipeline&() const { return *pipeline; };
+
 
             // Editable 
             inline auto& getCreateInfo() { return info; };
@@ -154,33 +162,46 @@ namespace lancer {
                 dynamicState_.push_back(state);
                 return shared_from_this(); };
 
+            GraphicsPipelineMaker&& pushShaderModule(const api::PipelineShaderStageCreateInfo& module = {}){ // TODO: existence check 
+                modules_.push_back(module);
+                return shared_from_this(); };
+
             GraphicsPipelineMaker&& pushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = initialBlendState()) {
                 colorBlendAttachments_.push_back(state);
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& link(api::Pipeline* pipeline = nullptr) {
-                this->pipeline = pipeline;
-                return shared_from_this(); };
+            GraphicsPipelineMaker&& link(api::Pipeline* pipeline = nullptr) { this->pipeline = pipeline; return shared_from_this(); };
+            GraphicsPipelineMaker&& linkPipelineLayout(api::PipelineLayout* ppal = nullptr) { this->playout = ppal; return shared_from_this(); };
+
 
             // Edit States 
-            inline api::PipelineColorBlendAttachmentState& getColorBlendAttachment() {
-                return colorBlendAttachments_.back(); };
-
-            inline api::VertexInputBindingDescription& getVertexBindingDescription() {
-                return vertexBindingDescriptions_.back(); };
-
-            inline api::VertexInputAttributeDescription& getVertexAttributeDescription() {
-                return vertexAttributeDescriptions_.back(); };
+            inline api::DynamicState& getDynamicState() { return dynamicState_.back(); };
+            inline api::PipelineColorBlendAttachmentState& getColorBlendAttachment() { return colorBlendAttachments_.back(); };
+            inline api::VertexInputBindingDescription& getVertexBindingDescription() { return vertexBindingDescriptions_.back(); };
+            inline api::VertexInputAttributeDescription& getVertexAttributeDescription() { return vertexAttributeDescriptions_.back(); };
+            inline api::PipelineShaderStageCreateInfo& getShaderModule() { return modules_.back(); };
 
             // View States 
-            inline const api::PipelineColorBlendAttachmentState& getColorBlendAttachment() const {
-                return colorBlendAttachments_.back(); };
+            inline const api::DynamicState& getDynamicState() const { return dynamicState_.back(); };
+            inline const api::PipelineColorBlendAttachmentState& getColorBlendAttachment() const { return colorBlendAttachments_.back(); };
+            inline const api::VertexInputBindingDescription& getVertexBindingDescription() const { return vertexBindingDescriptions_.back(); };
+            inline const api::VertexInputAttributeDescription& getVertexAttributeDescription() const { return vertexAttributeDescriptions_.back(); };
+            inline const api::PipelineShaderStageCreateInfo& getShaderModule() const { return modules_.back(); };
 
-            inline const api::VertexInputBindingDescription& getVertexBindingDescription() const {
-                return vertexBindingDescriptions_.back(); };
+            // List Related Re-Assigment Manipulations 
+            inline std::vector<api::DynamicState>& getDynamicStateList() { return dynamicState_; };
+            inline std::vector<api::PipelineColorBlendAttachmentState>& getColorBlendAttachmentList() { return colorBlendAttachments_; };
+            inline std::vector<api::VertexInputBindingDescription>& getVertexBindingDescriptionList() { return vertexBindingDescriptions_; };
+            inline std::vector<api::VertexInputAttributeDescription>& getVertexAttributeDescriptionList() { return vertexAttributeDescriptions_; };
+            inline std::vector<api::PipelineShaderStageCreateInfo>& getShaderModuleList() { return modules_; };
 
-            inline const api::VertexInputAttributeDescription& getVertexAttributeDescription() const {
-                return vertexAttributeDescriptions_.back(); };
+            // 
+            inline const std::vector<api::DynamicState>& getDynamicStateList() const { return dynamicState_; };
+            inline const std::vector<api::PipelineColorBlendAttachmentState>& getColorBlendAttachmentList() const { return colorBlendAttachments_; };
+            inline const std::vector<api::VertexInputBindingDescription>& getVertexBindingDescriptionList() const { return vertexBindingDescriptions_; };
+            inline const std::vector<api::VertexInputAttributeDescription>& getVertexAttributeDescriptionList() const { return vertexAttributeDescriptions_; };
+            inline const std::vector<api::PipelineShaderStageCreateInfo>& getShaderModuleList() const { return modules_; };
+
 
             // 
             GraphicsPipelineMaker&& create(const api::PipelineLayout &pipelineLayout, const api::RenderPass &renderPass, bool defaultBlend=true) {

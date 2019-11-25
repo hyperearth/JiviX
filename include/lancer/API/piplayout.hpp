@@ -33,7 +33,18 @@ namespace lancer {
             inline const api::PushConstantRange& getConstantRange() const { return pconsts.back(); };
             inline const api::DescriptorSetLayout& getDescriptorSetLayout() const { return pdescls.back(); };
             inline const api::PipelineLayoutCreateInfo& getCreateInfo() const { return info; };
-            
+
+            // Useful for re-assigment manipulations
+            inline std::vector<api::PushConstantRange>& getConstantRangeList() { return pdescls; };      
+            inline std::vector<api::DescriptorSetLayout>& getDescriptorSetLayoutList() { return pdescls; };
+            inline const std::vector<api::PushConstantRange>& getConstantRangeList() const { return pdescls; };
+            inline const std::vector<api::DescriptorSetLayout>& getDescriptorSetLayoutList() const { return pdescls; };
+
+            // return pipeline layout reference 
+            api::PipelineLayout& least() { return *playout; };
+            const api::PipelineLayout& least() const { return *playout; };
+            operator api::PipelineLayout&() { return *playout; };
+            operator const api::PipelineLayout&() const { return *playout; };
 
             // 
             inline PipelineLayoutMaker&& create() {
