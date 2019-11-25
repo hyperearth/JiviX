@@ -54,6 +54,7 @@ namespace lancer {
             
             DeviceMaker device = {};
             api::Pipeline* pipeline = nullptr;
+            api::RenderPass* renderPass = nullptr;
             api::PipelineLayout* playout = nullptr;
             api::GraphicsPipelineCreateInfo info = {};
             api::Viewport viewport_;
@@ -170,9 +171,10 @@ namespace lancer {
                 colorBlendAttachments_.push_back(state);
                 return shared_from_this(); };
 
+            // Linking Horse 
             GraphicsPipelineMaker&& link(api::Pipeline* pipeline = nullptr) { this->pipeline = pipeline; return shared_from_this(); };
-            GraphicsPipelineMaker&& linkPipelineLayout(api::PipelineLayout* ppal = nullptr) { this->playout = ppal; return shared_from_this(); };
-
+            GraphicsPipelineMaker&& linkPipelineLayout(api::PipelineLayout& ppal) { this->playout = &ppal; return shared_from_this(); };
+            GraphicsPipelineMaker&& linkRenderPass(api::RenderPass& rpass) { this->renderPass = &rpass; };
 
             // Edit States 
             inline api::DynamicState& getDynamicState() { return dynamicState_.back(); };
@@ -202,9 +204,8 @@ namespace lancer {
             inline const std::vector<api::VertexInputAttributeDescription>& getVertexAttributeDescriptionList() const { return vertexAttributeDescriptions_; };
             inline const std::vector<api::PipelineShaderStageCreateInfo>& getShaderModuleList() const { return modules_; };
 
-
             // 
-            GraphicsPipelineMaker&& create(const api::PipelineLayout &pipelineLayout, const api::RenderPass &renderPass, bool defaultBlend=true) {
+            GraphicsPipelineMaker&& create(bool defaultBlend=true) {
 
                 // Add default colour blend attachment if necessary.
                 if (colorBlendAttachments_.empty() && defaultBlend) {
@@ -227,7 +228,7 @@ namespace lancer {
                 info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
                 info.pViewportState = &(viewportState_ = {{}, 1, &viewport_, 1, &scissor_});
                 info.layout = pipelineLayout;
-                info.renderPass = renderPass;
+                info.renderPass = *renderPass;
                 info.stageCount = (uint32_t)modules_.size();
                 info.pStages = modules_.data();
                 info.subpass = subpass_;
