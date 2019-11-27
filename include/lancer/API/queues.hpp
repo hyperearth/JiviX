@@ -37,14 +37,14 @@ namespace lancer {
         protected: 
             QueueMaker _queue = {};
             api::CommandBuffer* _cmdbuf = nullptr;
-            std::function<std::future<vk::Result>(api::CommandBuffer&, const uintptr_t&)> _caller = {};
+            std::function<std::future<api::Result>(api::CommandBuffer&, const uintptr_t&)> _caller = {};
 
         public: 
-            Task_T(QueueMaker queue, const std::function<std::future<vk::Result>(api::CommandBuffer&, const uintptr_t&)>& caller = {}, api::CommandBuffer* cmdbuf = nullptr): _caller(caller), _queue(queue), _cmdbuf(cmdbuf) {
+            Task_T(QueueMaker queue, const std::function<std::future<api::Result>(api::CommandBuffer&, const uintptr_t&)>& caller = {}, api::CommandBuffer* cmdbuf = nullptr): _caller(caller), _queue(queue), _cmdbuf(cmdbuf) {
                 
             };
             Task linkCommandBuffer(api::CommandBuffer& cmdbuf) { this->_cmdbuf = &cmdbuf; return shared_from_this(); };
-            std::future<vk::Result> operator()(const uintptr_t& param_ptr = nullptr) { return this->_caller(*this->_cmdbuf, param_ptr); };
+            std::future<api::Result> operator()(const uintptr_t& param_ptr = nullptr) { return this->_caller(*this->_cmdbuf, param_ptr); };
     };
 
     // Command Pool alternative (command manager, command create helper)
@@ -61,20 +61,26 @@ namespace lancer {
                 this->reset();
             };
 
+            api::CommandBufferAllocateInfo& getAllocInfo() { return cmdinfo; };
+            const api::CommandBufferAllocateInfo& getAllocInfo() const { return cmdinfo; };
+            
             CommandRecord reset() {
                 cmdinfo = {}, commands = {}, generated = false;
                 return shared_from_this(); };
             CommandRecord pushCommand(const Command_T& command = {}) {
                 commands.push_back(command);
                 return shared_from_this(); };
-            CommandRecord finish(api::CommandBuffer& cbuf = {}) { // TODO: Generate Commands and Buffer
+            CommandRecord finish(api::CommandBuffer& cbuf = {}, const bool& secondary = false) { // TODO: Generate Commands and Buffer
                 //cbuf = QueueMaker->createCommandBuffer(cmdinfo); // use queue for create command 
                 for (auto& cmd : commands) { switch(CommandType(cmd.wType)) {
                     case CommandType::eCustom: ((CustomCommand*)(cmd._command)).caller(cbuf); break; // Currently only that type supported 
                     default: 
                 };};
                 generated = true; return shared_from_this(); };
-            CommandRecord finish() {
+            CommandRecord finish(const bool& primary = false) {
+                cmdinfo.level = secondary ? api::CommandBufferLevel::eSecondary : api::CommandBufferLevel::ePrimary;
+                cmdinfo.commandPool = *cmdpool;
+                cmdinfo.commandBufferCount = 1u;
                 return this->finish(QueueMaker->createCommandBuffer(cmdinfo)); // currently useless until return api::CommandBuffer 
             };
     };
@@ -96,6 +102,8 @@ namespace lancer {
             Queue_T(const DeviceMaker& device = {}, const uint32_t queueFamilyIndex& = 0u, api::Queue* queue = nullptr) device(device), queueFamilyIndex(queueFamilyIndex), queue(queue) {
                 
             };
+
+            // Bit Stupid Function for create command buffer 
             api::CommandBuffer& createCommandBuffer(const api::CommandBufferAllocateInfo& info = {}) { this->store.push_back(device->least().allocateCommandBuffers(info)[0]); return store.back(); }; // Through Store Buffer 
             QueueHelper createCommandBuffer(api::CommandBuffer& cbuf = {}, const api::CommandBufferAllocateInfo& info = {}) { cbuf = device->least().allocateCommandBuffers(info)[0]; return shared_from_this(); }; // Through Directly 
             QueueHelper linkQueueFamilyIndex(const uint32_t& queueFamilyIndex = 0u) { this->queueFamilyIndex = queueFamilyIndex; return shared_from_this(); };
@@ -108,7 +116,7 @@ namespace lancer {
 
             // TODO: Generate Execution Function 
             Task createTask(api::CommandBuffer& cbuf = {}) { return std::make_shared<Task_T>(shared_from_this(), {}, &cbuf); };
-            Task createTask() { return std::make_shared<Task_T>(shared_from_this(), {}, &store.back()); }; // Use Last Used api::CommandBuffer in store arrays 
+            Task createTask() { return this->createTask(store.back()); }; // Use Last Used api::CommandBuffer in store arrays 
     };
 
 

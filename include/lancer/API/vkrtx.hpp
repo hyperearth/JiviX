@@ -225,15 +225,15 @@ namespace lancer {
         allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
         (mSBT = mDevice->createBufferMaker(api::BufferCreateInfo().setSize(sbtSize).setUsage(
-            vk::BufferUsageFlagBits::eRayTracingNV|
-            vk::BufferUsageFlagBits::eTransferDst|
-            vk::BufferUsageFlagBits::eTransferSrc|
-            vk::BufferUsageFlagBits::eHostVisible
+            api::BufferUsageFlagBits::eRayTracingNV|
+            api::BufferUsageFlagBits::eTransferDst|
+            api::BufferUsageFlagBits::eTransferSrc|
+            api::BufferUsageFlagBits::eHostVisible
         ), pSBT))->allocate(mDevice->getAllocator(),(uintptr_t)(&allocInfo));
         vSBT = std::make_shared<Vector_T<>>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
 
-        vk::Result result = mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0,this->getNumGroups(),sbtSize,mSBT->getMapped());
-        return (result == vk::Result::eSuccess);
+        api::Result result = mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0,this->getNumGroups(),sbtSize,mSBT->getMapped());
+        return (result == api::Result::eSuccess);
     };
 
     api::Buffer& SBTHelper_T::getSBTBuffer() { return *pSBT; };

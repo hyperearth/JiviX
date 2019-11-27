@@ -12,8 +12,8 @@ namespace lancer {
             DeviceMaker device = {};
             api::PipelineLayoutCreateInfo info = {};
             api::PipelineLayout *playout = nullptr;
-            std::vector<vk::PushConstantRange> pconsts = {};
-            std::vector<vk::DescriptorSetLayout> pdescls = {};
+            std::vector<api::PushConstantRange> pconsts = {};
+            std::vector<api::DescriptorSetLayout> pdescls = {};
 
         public: 
             PipelineLayout_T(const DeviceMaker& device, const api::PipelineLayoutCreateInfo& info = {}, api::PipelineLayout* playout = nullptr) : device(device), playout(playout), info(info) {
@@ -21,8 +21,8 @@ namespace lancer {
 
             // 
             inline PipelineLayoutMaker&& link(api::PipelineLayout& lays) { playout = &lays; return shared_from_this(); };
-            inline PipelineLayoutMaker&& pushConstantRange(const vk::PushConstantRange& constr = {}) { pconsts.push_back(constr); return shared_from_this(); };
-            inline PipelineLayoutMaker&& pushDescriptorSetLayout(const vk::DescriptorSetLayout& descl = {}) { pdescls.push_back(descl); return shared_from_this(); };
+            inline PipelineLayoutMaker&& pushConstantRange(const api::PushConstantRange& constr = {}) { pconsts.push_back(constr); return shared_from_this(); };
+            inline PipelineLayoutMaker&& pushDescriptorSetLayout(const api::DescriptorSetLayout& descl = {}) { pdescls.push_back(descl); return shared_from_this(); };
 
             // 
             inline api::PushConstantRange& getConstantRange() { return pconsts.back(); };
