@@ -112,10 +112,18 @@ namespace lancer {
             inline auto& getMultisampleState() { return multisampleState_; };
             inline auto& getRasterizationState() { return rasterizationState_; };
             inline auto& getInputAssemblyState() { return inputAssemblyState_; };
-            inline auto& getDynamicState() { return dynamicState_; };
+            inline auto& getDynamicStateList() { return dynamicState_; };
             inline auto& getVertexInputState() { return vertexInputState_; };
-            inline auto& getVertexBindingDescriptions() { return vertexBindingDescriptions_; };
-            inline auto& getVertexAttributeDescriptions() { return vertexAttributeDescriptions_; };
+            inline auto& getVertexBindingDescriptionList() { return vertexBindingDescriptions_; };
+            inline auto& getVertexAttributeDescriptionList() { return vertexAttributeDescriptions_; };
+            inline auto& getColorBlendAttachmentList() { return colorBlendAttachments_; };
+            inline auto& getShaderModuleList() { return modules_; };
+            inline auto& getColorBlendAttachment() { return colorBlendAttachments_.back(); };
+            inline auto& getVertexBindingDescription() { return vertexBindingDescriptions_.back(); };
+            inline auto& getVertexAttributeDescription() { return vertexAttributeDescriptions_.back(); };
+            inline auto& getShaderModule() { return modules_.back(); };
+            inline auto& getDynamicState() { return dynamicState_.back(); };
+
 
             // Viewable 
             inline const auto& getCreateInfo() const { return info; };
@@ -126,10 +134,17 @@ namespace lancer {
             inline const auto& getMultisampleState() const { return multisampleState_; };
             inline const auto& getRasterizationState() const { return rasterizationState_; };
             inline const auto& getInputAssemblyState() const { return inputAssemblyState_; };
-            inline const auto& getDynamicState() const { return dynamicState_; };
+            inline const auto& getDynamicStateList() const { return dynamicState_; };
             inline const auto& getVertexInputState() const { return vertexInputState_; };
-            inline const auto& getVertexBindingDescriptions() const { return vertexBindingDescriptions_; };
-            inline const auto& getVertexAttributeDescriptions() const { return vertexAttributeDescriptions_; };
+            inline const auto& getVertexBindingDescriptionList() const { return vertexBindingDescriptions_; };
+            inline const auto& getVertexAttributeDescriptionList() const { return vertexAttributeDescriptions_; };
+            inline const auto& getColorBlendAttachmentList() const { return colorBlendAttachments_; };
+            inline const auto& getShaderModuleList() const { return modules_; };
+            inline const auto& getColorBlendAttachment() const { return colorBlendAttachments_.back(); };
+            inline const auto& getVertexBindingDescription() const { return vertexBindingDescriptions_.back(); };
+            inline const auto& getVertexAttributeDescription() const { return vertexAttributeDescriptions_.back(); };
+            inline const auto& getShaderModule() const { return modules_.back(); };
+            inline const auto& getDynamicState() const { return dynamicState_.back(); };
 
             // 
             GraphicsPipelineMaker&& setCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
@@ -176,34 +191,6 @@ namespace lancer {
             GraphicsPipelineMaker&& linkPipelineLayout(api::PipelineLayout& ppal) { this->playout = &ppal; return shared_from_this(); };
             GraphicsPipelineMaker&& linkRenderPass(api::RenderPass& rpass) { this->renderPass = &rpass; };
 
-            // Edit States 
-            inline api::DynamicState& getDynamicState() { return dynamicState_.back(); };
-            inline api::PipelineColorBlendAttachmentState& getColorBlendAttachment() { return colorBlendAttachments_.back(); };
-            inline api::VertexInputBindingDescription& getVertexBindingDescription() { return vertexBindingDescriptions_.back(); };
-            inline api::VertexInputAttributeDescription& getVertexAttributeDescription() { return vertexAttributeDescriptions_.back(); };
-            inline api::PipelineShaderStageCreateInfo& getShaderModule() { return modules_.back(); };
-
-            // View States 
-            inline const api::DynamicState& getDynamicState() const { return dynamicState_.back(); };
-            inline const api::PipelineColorBlendAttachmentState& getColorBlendAttachment() const { return colorBlendAttachments_.back(); };
-            inline const api::VertexInputBindingDescription& getVertexBindingDescription() const { return vertexBindingDescriptions_.back(); };
-            inline const api::VertexInputAttributeDescription& getVertexAttributeDescription() const { return vertexAttributeDescriptions_.back(); };
-            inline const api::PipelineShaderStageCreateInfo& getShaderModule() const { return modules_.back(); };
-
-            // List Related Re-Assigment Manipulations 
-            inline std::vector<api::DynamicState>& getDynamicStateList() { return dynamicState_; };
-            inline std::vector<api::PipelineColorBlendAttachmentState>& getColorBlendAttachmentList() { return colorBlendAttachments_; };
-            inline std::vector<api::VertexInputBindingDescription>& getVertexBindingDescriptionList() { return vertexBindingDescriptions_; };
-            inline std::vector<api::VertexInputAttributeDescription>& getVertexAttributeDescriptionList() { return vertexAttributeDescriptions_; };
-            inline std::vector<api::PipelineShaderStageCreateInfo>& getShaderModuleList() { return modules_; };
-
-            // 
-            inline const std::vector<api::DynamicState>& getDynamicStateList() const { return dynamicState_; };
-            inline const std::vector<api::PipelineColorBlendAttachmentState>& getColorBlendAttachmentList() const { return colorBlendAttachments_; };
-            inline const std::vector<api::VertexInputBindingDescription>& getVertexBindingDescriptionList() const { return vertexBindingDescriptions_; };
-            inline const std::vector<api::VertexInputAttributeDescription>& getVertexAttributeDescriptionList() const { return vertexAttributeDescriptions_; };
-            inline const std::vector<api::PipelineShaderStageCreateInfo>& getShaderModuleList() const { return modules_; };
-
             // 
             GraphicsPipelineMaker&& create(bool defaultBlend=true) {
 
@@ -227,7 +214,7 @@ namespace lancer {
                 //info.dynamicCount = dynamicState_.size();
                 info.pDynamicState = dynamicState_.empty() ? nullptr : &(dynState_ = {{}, (uint32_t)dynamicState_.size(), dynamicState_.data()});
                 info.pViewportState = &(viewportState_ = {{}, 1, &viewport_, 1, &scissor_});
-                info.layout = pipelineLayout;
+                info.layout = *playout;
                 info.renderPass = *renderPass;
                 info.stageCount = (uint32_t)modules_.size();
                 info.pStages = modules_.data();

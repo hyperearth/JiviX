@@ -211,10 +211,10 @@ namespace lancer {
 
 
 	// submit command (with async wait)
-	static inline void submitCmd(const api::Device& device, const api::Queue& queue, const std::vector<api::CommandBuffer>& cmds, const api::SubmitInfo& smbi = {}) {
+    // TODO: return api::Result 
+	static inline void submitCmd(const api::Device& device, const api::Queue& queue, const std::vector<api::CommandBuffer>& cmds, api::SubmitInfo smbi = {}) {
 		// no commands 
 		if (cmds.size() <= 0) return;
-
 		smbi.commandBufferCount = cmds.size();
 		smbi.pCommandBuffers = (api::CommandBuffer*)cmds.data();
 
@@ -232,10 +232,9 @@ namespace lancer {
 	};
 
 	// submit command (with async wait)
-	static inline void submitCmdAsync(const api::Device& device, const api::Queue& queue, const std::vector<api::CommandBuffer>& cmds, const std::function<void()>& asyncCallback = {}, const api::SubmitInfo& smbi = {}) {
+	static inline void submitCmdAsync(const api::Device& device, const api::Queue& queue, const std::vector<api::CommandBuffer>& cmds, const std::function<void()>& asyncCallback = {}, api::SubmitInfo smbi = {}) {
 		// no commands 
 		if (cmds.size() <= 0) return;
-
 		smbi.commandBufferCount = cmds.size();
 		smbi.pCommandBuffers = (api::CommandBuffer*)cmds.data();
 
@@ -259,7 +258,7 @@ namespace lancer {
 	template <class T> static inline auto makeVector(const T * ptr, const size_t& size = 1) { std::vector<T>v(size); memcpy(v.data(), ptr, strided<T>(size)); return v; };
 
 	// create fence function
-	static inline api::Fence createFence(const api::Device& device, const bool signaled& = true) {
+	static inline api::Fence createFence(const api::Device& device, const bool& signaled = true) {
 		api::FenceCreateInfo info = {};
 		if (signaled) info.setFlags(api::FenceCreateFlagBits::eSignaled);
 		return api::Device(device).createFence(info);

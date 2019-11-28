@@ -223,10 +223,10 @@ namespace lancer {
             inline const auto least() const { return *device; };
             inline auto& getHelper() { return this->physicalHelper; };
             inline const auto& getHelper() const { return this->physicalHelper; };
-            inline auto& getDescriptorPool() { return *this->descriptorPool; };
-            inline const auto& getDescriptorPool() const { return *this->descriptorPool; };
-            inline auto& getPipelineCache() { return *this->pipelineCache; };
-            inline const auto& getPipelineCache() const { return *this->pipelineCache; };
+            inline auto& getDescriptorPool() { return (vk::DescriptorPool&)(*this->descriptorPool); };
+            inline const auto& getDescriptorPool() const { return (vk::DescriptorPool&)(*this->descriptorPool); };
+            inline auto& getPipelineCache() { return (vk::PipelineCache&)(*this->pipelineCache); };
+            inline const auto& getPipelineCache() const { return (vk::PipelineCache&)(*this->pipelineCache); };
 
             // 
             inline BufferMaker&& createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);

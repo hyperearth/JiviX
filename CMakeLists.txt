@@ -4,7 +4,7 @@ project (${PROJECT_NAME} C CXX)
 
 # Architecture specific
 if (COMPILER_ID MATCHES "MSVC")
-  set(MSVC_${lang}_ARCHITECTURE_ID "${ARCHITECTURE_ID}")
+    set(MSVC_${lang}_ARCHITECTURE_ID "${ARCHITECTURE_ID}")
 endif()
 
 # Import modules 
@@ -20,6 +20,8 @@ set (CMAKE_C_STANDARD 11)
 set(SOURCES_LIST 
     "./include/*.h"
     "./include/*.hpp"
+    "./include/lancer/*"
+    "./include/lancer/*/*"
     "./include/radx/*"
     "./include/vulkan/*"
     "./include/vma/*"
@@ -71,34 +73,34 @@ endif()
 
 # Set Linux specific
 if (UNIX OR LINUX)
-  set(DEFINES ${DEFINES} -DOS_LNX) 
+    set(DEFINES ${DEFINES} -DOS_LNX) 
 endif()
 
 # Vulkan Directories 
 if (Vulkan_INCLUDE_DIR)
-  set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
+    set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
 endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)
-  set (LIBS ${LIBS} ${Vulkan_LIBRARY})
+    set (LIBS ${LIBS} ${Vulkan_LIBRARY})
 endif()
 
 # GLFW 
 if (GLFW_LIBRARIES)
-  set (LIBS ${LIBS} ${GLFW_LIBRARIES})
-  set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
+    set (LIBS ${LIBS} ${GLFW_LIBRARIES})
+    set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
 endif()
 
 # set GCC8 (Linux) libs
 # MingW-W64 TODO
 if (UNIX OR LINUX)
-  find_package(X11 QUIET)
-  if (X11_FOUND)
-    set (LIBS ${LIBS} ${X11_LIBRARIES})
-    set (INC_DIR ${INC_DIR} ${X11_INCLUDE_DIR})
-  endif()
-  set (LIBS ${LIBS} -static-libgcc -static-libstdc++ -lX11 -lXrandr -lpthread -ldl)
+    find_package(X11 QUIET)
+    if (X11_FOUND)
+        set (LIBS ${LIBS} ${X11_LIBRARIES})
+        set (INC_DIR ${INC_DIR} ${X11_INCLUDE_DIR})
+    endif()
+    set (LIBS ${LIBS} -static-libgcc -static-libstdc++ -lX11 -lXrandr -lpthread -ldl)
 endif()
 
 # Compiler specific options

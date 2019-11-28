@@ -24,7 +24,8 @@ namespace lancer {
 
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
     public:
-         SBTHelper_T(const DeviceMaker& device = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mNumHitGroups(0u), mNumMissGroups(0u) {};
+         SBTHelper_T(const DeviceMaker& device = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mNumHitGroups(0u), mNumMissGroups(0u) {
+         };
         ~SBTHelper_T() = default;
 
         void        destroy();
@@ -62,7 +63,7 @@ namespace lancer {
         
         DeviceMaker                                           mDevice;
         BufferMaker                                           mSBT;
-        Vector<>                                              vSBT;
+        Vector<>                                              vSBT; // Required Re-Assigment...
         api::Buffer*                                          pSBT;
         api::Pipeline*                                        mPipeline;
         api::DescriptorBufferInfo                             mBufInfo;
@@ -227,10 +228,9 @@ namespace lancer {
         (mSBT = mDevice->createBufferMaker(api::BufferCreateInfo().setSize(sbtSize).setUsage(
             api::BufferUsageFlagBits::eRayTracingNV|
             api::BufferUsageFlagBits::eTransferDst|
-            api::BufferUsageFlagBits::eTransferSrc|
-            api::BufferUsageFlagBits::eHostVisible
+            api::BufferUsageFlagBits::eTransferSrc
         ), pSBT))->allocate(mDevice->getAllocator(),(uintptr_t)(&allocInfo));
-        vSBT = std::make_shared<Vector_T<>>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
+        vSBT = Vector<>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
 
         api::Result result = mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0,this->getNumGroups(),sbtSize,mSBT->getMapped());
         return (result == api::Result::eSuccess);

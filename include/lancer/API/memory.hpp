@@ -34,8 +34,8 @@ namespace lancer {
              MemoryAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {});
 
             virtual void free() {};
-            virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
-            virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u);
+            virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) {};
+            virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) {};
             virtual MemoryAllocator&& initialize() {};
             virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) {};
             virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) {};

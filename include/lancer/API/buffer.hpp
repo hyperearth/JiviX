@@ -132,7 +132,7 @@ namespace lancer {
     class Vector {
         public:
             Vector~() {};
-            //Vector () {};
+            Vector () {};
             Vector (const BufferMake& buffer, api::DescriptorBufferInfo& bufInfo, const api::DeviceSize& offset = 0u, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
             Vector (const Vector<T>& vector) : region(vector.region) {};
             Vector (const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};

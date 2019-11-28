@@ -44,7 +44,7 @@ namespace lancer {
 
 
     // SHOULD BE IN HEADER
-    template<class T = MemoryAllocator_T> inline std::shared_ptr<T>&& Device_T::createAllocator(const uintptr_t& info) {
+    template<class T> inline std::shared_ptr<T>&& Device_T::createAllocator(const uintptr_t& info) {
         auto allocator = std::make_shared<T>(shared_from_this(),info); 
         this->allocator = std::dynamic_pointer_cast<MemoryAllocator_T>(allocator);
         return std::move(allocator);
