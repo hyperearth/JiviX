@@ -3,6 +3,12 @@
 
 #include "../lib/core.hpp"
 #include "../API/device.hpp"
+#include "../API/buffer.hpp"
+#include "../API/image.hpp"
+#include "../API/descriptor.hpp"
+#include "../API/gpipeline.hpp"
+#include "../API/renderpass.hpp"
+#include "../API/vkrtx.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -18,7 +24,7 @@ namespace lancer {
         return std::make_shared<Image_T>(shared_from_this(),info,lastbuf);
     };
     
-    inline GraphicsPipelineMaker&& Device_T::createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info, api::Pipeline* pipeline, const uint32_t& width = 1u, const uint32_t& height = 1u){
+    inline GraphicsPipelineMaker&& Device_T::createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info, api::Pipeline* pipeline, const uint32_t& width, const uint32_t& height){
         return std::make_shared<GraphicsPipeline_T>(shared_from_this(),info,pipeline,width,height);
     };
 

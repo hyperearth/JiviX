@@ -1,0 +1,4 @@
+ToolSet: w64 7.0 (local)@C:\Ruby26-x64\msys64\mingw64
+Options: 
+
+Options:

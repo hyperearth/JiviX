@@ -39,7 +39,7 @@ namespace lancer {
             virtual MemoryAllocator&& initialize() {};
             virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) {};
             virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) {};
-            virtual MemoryAllocation&& createAllocation() { return std::make_shared<MemoryAllocation_T>(*this); };
+            virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) { return std::make_shared<MemoryAllocation_T>(shared_from_this()); };
             inline const DeviceMaker& getDevice() const { return device; };
     };
 

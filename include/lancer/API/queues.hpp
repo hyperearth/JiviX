@@ -70,7 +70,7 @@ namespace lancer {
             const api::CommandBufferAllocateInfo& getAllocInfo() const { return cmdinfo; };
             
             CommandRecord reset() {
-                cmdinfo = {}, commands = {}, generated = false;
+                cmdinfo = vk::CommandBufferAllocateInfo{}, commands = {}, generated = false;
                 return shared_from_this(); };
             CommandRecord pushCommand(const Command_T& command = {}) {
                 commands.push_back(command);
@@ -105,7 +105,7 @@ namespace lancer {
         CommandRecord createCommandRecord() {
             cpool.queueFamilyIndex = this->queueFamilyIndex;
             pools.push_back(device->least().createCommandPool(cpool));
-            return std::make_shared<CommandRecord_T>(shared_from_this(), pools.back());
+            return std::make_shared<CommandRecord_T>(shared_from_this(), &pools.back());
         };
 
         // TODO: Generate Execution Function 
@@ -144,7 +144,7 @@ namespace lancer {
         for (auto& cmd : commands) {
             switch (CommandType(cmd.wType)) {
                 case CommandType::eCustom: ((CustomCommand*)(cmd._command))->caller(cbuf); break; // Currently only that type supported 
-                default:
+                //default:
             };
         };
         generated = true; return shared_from_this();

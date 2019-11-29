@@ -16,26 +16,30 @@ namespace lancer {
     class VMAllocation_T;
     using VMAllocation = std::shared_ptr<VMAllocation_T>;
 
+    struct VMAllocation_B {
+        VmaAllocationInfo alcmc = {}; // least registered allocation, not necessary
+        VmaAllocation alloc = {};
+    };
 
     class VMAllocation_T : public MemoryAllocation_T {
         protected: 
             VMAllocator allocator = {};
-            VmaAllocationInfo alcmc = {}; // least registered allocation, not necessary
-            VmaAllocation alloc = {};
+            VMAllocation_B allocation;
             friend VMAllocator;
             friend MemoryAllocator;
             friend MemoryAllocation;
 
+
         public: 
             // unique constructor 
             ~VMAllocation_T() {};
-             VMAllocation_T(const VMAllocator& allocator = {}, const VmaAllocation& allocation = {}, const VmaAllocationInfo& alloc_info = {}) : allocator(allocator), alloc(std::move(allocation)), alcmc(std::move(alloc_info)) {
+             VMAllocation_T(const VMAllocator& allocator = {}, const VMAllocation_B& allocation = {}) : allocator(allocator), allocation(allocation) {
             };
 
             virtual void free() override {}; // after notify for de-allocation
-            virtual uintptr_t getCIP() override { return (uintptr_t)(&alcmc); };
-            virtual uintptr_t getPtr() override { return (uintptr_t)(&alloc); };
-            virtual uint8_t* getMapped() override { return (uint8_t*)alcmc.pMappedData; };
+            virtual uintptr_t getCIP() override { return (uintptr_t)(&allocation.alcmc); };
+            virtual uintptr_t getPtr() override { return (uintptr_t)(&allocation.alloc); };
+            virtual uint8_t* getMapped() override { return (uint8_t*)allocation.alcmc.pMappedData; };
 
             // TODO: smart de-allocate memory 
             //~VMAllocation(){
@@ -66,7 +70,12 @@ namespace lancer {
                 return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
 
             // Sometimes required special allocation
-            virtual MemoryAllocation&& createAllocation() override { return std::dynamic_pointer_cast<MemoryAllocation_T>(std::make_shared<VMAllocation_T>(dvc)); };
+            virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) override {
+                auto vma_info = (VmaAllocationCreateInfo*)info;
+                auto allocation = VMAllocation_B();
+                vmaAllocateMemory(vma,(VkMemoryRequirements*)&req.memoryRequirements,vma_info,&allocation.alloc,&allocation.alcmc);
+                return std::dynamic_pointer_cast<MemoryAllocation_T>(std::make_shared<VMAllocation_T>(std::dynamic_pointer_cast<VMAllocator_T>(shared_from_this()),allocation));
+            };
 
             // 
             virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) override { this->dvc = std::move(device); return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };

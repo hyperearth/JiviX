@@ -229,7 +229,7 @@ namespace lancer {
             api::BufferUsageFlagBits::eRayTracingNV|
             api::BufferUsageFlagBits::eTransferDst|
             api::BufferUsageFlagBits::eTransferSrc
-        ), pSBT))->allocate(mDevice->getAllocator(),(uintptr_t)(&allocInfo));
+        ), pSBT))->allocate(mDevice->getAllocatorPtr(),(uintptr_t)(&allocInfo));
         vSBT = Vector<>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
 
         api::Result result = mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0,this->getNumGroups(),sbtSize,mSBT->getMapped());

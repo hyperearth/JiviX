@@ -1,3 +1,4 @@
+#pragma once
 
 #include <memory>
 #include <vulkan/vulkan.hpp>
@@ -144,8 +145,8 @@ namespace lancer {
             operator vH&() {return _hni;};
             operator const H&() const {return _hnd;}; // return original API handler (if need)
             operator H&() {return _hnd;};
-            operator const void*&() const {return (void*&)_hnd;}; // return original API handler (if need)
-            operator void*&() {return (void*&)_hnd;};
+            operator const void*&() const {return (const void*&)(_hnd);}; // return original API handler (if need)
+            operator void*&() {return (void*&)(_hnd);};
             operator const uintptr_t&() const {return (uintptr_t&)_hnd;}; // return pointer value
             operator uintptr_t&() {return (uintptr_t&)_hnd;};
             operator const intptr_t&() const {return (intptr_t&)_hnd;}; // return pointer value
@@ -180,14 +181,14 @@ namespace lancer {
     };
 
 
-    template<class T, class R>
+    template<class T, class R> // T SHOULD BE SHARED_PTR<T_n>
     class ReturnHandleRef { protected: T that = nullptr; R result = 0u; friend T; friend R;//T& that; R result = RESULT::SUCCESS;
         public: ReturnHandleRef(const T& that, R result = 0u): that(std::atomic_load(that)), result(result) {};
         public: ReturnHandleRef(T&& that, R result = 0u): that(std::move(that)), result(result) {}; // Minimum 1 argument for AVOID 'AMBIGUOUS' STATE
 
-        // accept another typed pointer 
-        template<class H = T> ReturnHandleRef(H&& object, R result = 0u) : object(std::pointer_static_cast<T>(std::move(object))) {};
-        template<class H = T> ReturnHandleRef(const H& object, R result = 0u) : object(std::pointer_static_cast<T>(std::atomic_load(object))) {};
+        // accept another typed pointer
+        template<class H = T> ReturnHandleRef(H&& object, R result = 0u) : that((T)(std::move(object))) {};
+        template<class H = T> ReturnHandleRef(const H& object, R result = 0u) : that((T)(std::atomic_load(object))) {};
 
         // 
         operator std::pair<T&,R&>(){ return std::pair(that,result); };
@@ -199,6 +200,7 @@ namespace lancer {
         operator T&(){ return that; };
         operator R&(){ return result; };
 
+        // return ptr reference
         T& ref() { return that; };
         const T& ref() const { return that; };
         

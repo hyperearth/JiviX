@@ -133,7 +133,7 @@ namespace lancer {
             api::PhysicalDeviceFeatures2 features = {};
             api::PhysicalDeviceProperties2 properties = {};
             std::vector<uint32_t> queueFamilyIndices = {};
-            MemoryAllocator allocator = {};
+            //MemoryAllocator allocator = {};
 
             // required (if there is no, will generated)
             std::shared_ptr<paths::DriverWrapBase> driverWrap = {};
@@ -152,16 +152,11 @@ namespace lancer {
         public:
             friend lancer::DeviceMaker;
 
-            MemoryAllocator& getAllocator() { return allocator; };
-            const MemoryAllocator& getAllocator() const { return allocator; };
+            //MemoryAllocator& getAllocator() { return allocator; };
+            //const MemoryAllocator& getAllocator() const { return allocator; };
 
             // require to generate both VMA and vendor name 
             PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
-                this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
-            };
-
-            // require vendor name 
-            PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice, const MemoryAllocator& allocator) : physicalDevice(physicalDevice), allocator(allocator) {
                 this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
             };
 
@@ -215,8 +210,13 @@ namespace lancer {
             inline DeviceMaker&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
             inline DeviceMaker&& link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
 
-            template<class T = MemoryAllocator_T> inline const auto& getAllocator() const { return std::dynamic_pointer_cast<T>(allocator); };
-            template<class T = MemoryAllocator_T> inline auto& getAllocator() { return std::dynamic_pointer_cast<T>(allocator); };
+            // Original Type
+            inline const auto& getAllocatorPtr() const { return this->allocator; };
+            inline auto& getAllocatorClearPtr() { return this->allocator; };
+
+            // Converted Type
+            template<class T = MemoryAllocator_T> inline const auto& getAllocator() const { return std::dynamic_pointer_cast<T>(this->allocator); };
+            template<class T = MemoryAllocator_T> inline auto& getAllocator() { return std::dynamic_pointer_cast<T>(this->allocator); };
 
             // 
             inline auto& least() { return *device; };

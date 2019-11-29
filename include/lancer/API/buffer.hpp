@@ -53,7 +53,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // 
-            inline BufferMaker&& allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocator(),ptx); };
+            inline BufferMaker&& allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocatorPtr(),ptx); };
 
             // 
             inline BufferMaker&& create() { // 
@@ -74,12 +74,12 @@ namespace lancer {
 
     // TODO: unify functionality 
 
-    template<class T = uint8_t>
+    template<class T>
     class BufferRegion_T {
         public:
             ~BufferRegion_T<T>(){};
-             BufferRegion_T<T>(const BufferMake& buffer, api::DescriptorBufferInfo* bufInfo) : buffer(buffer), bufInfo(bufInfo) { bufInfo->buffer = *buffer; };
-             BufferRegion_T<T>(const BufferMake& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) : buffer(buffer), bufInfo(bufInfo) {
+             BufferRegion_T<T>(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo) : buffer(buffer), bufInfo(bufInfo) { bufInfo->buffer = *buffer; };
+             BufferRegion_T<T>(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) : buffer(buffer), bufInfo(bufInfo) {
                 bufInfo->buffer = *buffer;
                 bufInfo->offset = offset;
                 bufInfo->range = size * sizeof(T);
@@ -116,13 +116,13 @@ namespace lancer {
 
         protected:
             T* mapped = {};
-            BufferMake buffer = {};
+            BufferMaker buffer = {};
             api::DescriptorBufferInfo* bufInfo = {};
     };
 
     // defer implement 
     // TODO: another format of BufferRegion
-    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE) {
+    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
         (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
         return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size));
     };
@@ -131,11 +131,11 @@ namespace lancer {
     template<class T = uint8_t>
     class Vector {
         public:
-            Vector~() {};
-            Vector () {};
-            Vector (const BufferMake& buffer, api::DescriptorBufferInfo& bufInfo, const api::DeviceSize& offset = 0u, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
-            Vector (const Vector<T>& vector) : region(vector.region) {};
-            Vector (const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
+            ~Vector() {};
+             Vector() {};
+             Vector(const BufferMaker& buffer, api::DescriptorBufferInfo& bufInfo, const api::DeviceSize& offset = 0u, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
+             Vector(const Vector<T>& vector) : region(vector.region) {};
+             Vector(const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
 
             // map through
             T* const& map() { return region->map(); };
