@@ -110,7 +110,15 @@ ipch/*
 ipch/
 */ipch/
 
+# Ban CMAKE Generated
 build/
 build/*
 */build/
 */build/*
+
+# Ban CLION Generated
+cmake-build*/
+cmake-build*/*
+*/cmake-build*/
+*/cmake-build*/*
+
