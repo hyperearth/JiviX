@@ -127,7 +127,7 @@ namespace lancer {
             operator const api::Instance&() const { return *lastinst; };
     };
 
-    class PhysicalDeviceHelper_T : public std::enable_shared_from_this<PhysicalDeviceHelper_T> {
+    class PhysicalDevice_T : public std::enable_shared_from_this<PhysicalDevice_T> {
         protected:
             api::PhysicalDevice physicalDevice = {};
             api::PhysicalDeviceFeatures2 features = {};
@@ -156,7 +156,7 @@ namespace lancer {
             //const MemoryAllocator& getAllocator() const { return allocator; };
 
             // require to generate both VMA and vendor name 
-            PhysicalDeviceHelper_T(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
+            PhysicalDevice_T(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
                 this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
             };
 
@@ -228,7 +228,8 @@ namespace lancer {
             inline auto& getPipelineCache() { return (vk::PipelineCache&)(*this->pipelineCache); };
             inline const auto& getPipelineCache() const { return (vk::PipelineCache&)(*this->pipelineCache); };
 
-            // 
+            //
+            inline PipelineLayoutMaker&& createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info = {}, api::PipelineLayout* playout = nullptr);
             inline BufferMaker&& createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);
             inline ImageMaker&& createImageMaker(const api::ImageCreateInfo& bfc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastbuf = nullptr);
             inline RenderPassMaker&& createRenderPassMaker(const api::RenderPassCreateInfo& bfc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);

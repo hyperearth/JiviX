@@ -226,7 +226,7 @@ namespace lancer {
 	};
 
 	// once submit command buffer
-	static inline void submitOnce(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer)>& cmdFn = {}, const api::SubmitInfo& smbi = {}) {
+	static inline void submitOnce(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer&)>& cmdFn = {}, const api::SubmitInfo& smbi = {}) {
 		auto cmdBuf = createCommandBuffer(device, cmdPool, false); cmdFn(cmdBuf); cmdBuf.end();
 		submitCmd(device, queue, { cmdBuf }); device.freeCommandBuffers(cmdPool, 1, &cmdBuf); // free that command buffer
 	};
@@ -247,7 +247,7 @@ namespace lancer {
 	};
 
 	// once submit command buffer
-	static inline void submitOnceAsync(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer)>& cmdFn = {}, const std::function<void(api::CommandBuffer)>& asyncCallback = {}, const api::SubmitInfo& smbi = {}) {
+	static inline void submitOnceAsync(const api::Device& device, const api::Queue& queue, const api::CommandPool& cmdPool, const std::function<void(api::CommandBuffer&)>& cmdFn = {}, const std::function<void(api::CommandBuffer)>& asyncCallback = {}, const api::SubmitInfo& smbi = {}) {
 		auto cmdBuf = createCommandBuffer(device, cmdPool, false); cmdFn(cmdBuf); cmdBuf.end();
 		submitCmdAsync(device, queue, { cmdBuf }, [&]() {
 			asyncCallback(cmdBuf); // call async callback

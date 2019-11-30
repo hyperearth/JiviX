@@ -32,6 +32,8 @@
 #include <lancer/API/device.hpp>
 #include <lancer/API/VMA.hpp>
 #include <lancer/API/image.hpp>
+#include <lancer/API/constructors.hpp>
+#include <lancer/API/utils.hpp>
 
 #ifdef USE_CIMG
 #include "tinyexr.h"

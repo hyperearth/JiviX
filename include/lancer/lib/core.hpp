@@ -231,7 +231,7 @@ namespace lancer {
     class RenderPass_T;
     class MemoryAllocation_T;
     class MemoryAllocator_T;
-    class PhysicalDeviceHelper_T;
+    class PhysicalDevice_T;
     class Sampler_T;
     class GraphicsPipeline_T;
     class SBTHelper_T;
@@ -248,7 +248,7 @@ namespace lancer {
     using RenderPassMaker = std::shared_ptr<RenderPass_T>;
     using MemoryAllocation = std::shared_ptr<MemoryAllocation_T>;
     using MemoryAllocator = std::shared_ptr<MemoryAllocator_T>;
-    using PhysicalDeviceHelper = std::shared_ptr<PhysicalDeviceHelper_T>;
+    using PhysicalDeviceHelper = std::shared_ptr<PhysicalDevice_T>;
     using GraphicsPipelineMaker = std::shared_ptr<GraphicsPipeline_T>;
     using BufferRegionU8_T = BufferRegion_T<uint8_t>;
     using BufferRegionU8Maker = std::shared_ptr<BufferRegionU8_T>;

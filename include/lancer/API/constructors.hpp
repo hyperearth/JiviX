@@ -7,6 +7,7 @@
 #include "../API/image.hpp"
 #include "../API/descriptor.hpp"
 #include "../API/gpipeline.hpp"
+#include "../API/piplayout.hpp"
 #include "../API/renderpass.hpp"
 #include "../API/vkrtx.hpp"
 #include <algorithm>
@@ -44,7 +45,11 @@ namespace lancer {
         return std::make_shared<SBTHelper_T>(shared_from_this(),rtPipeline);
     };
 
-    inline DeviceMaker&& PhysicalDeviceHelper_T::createDeviceMaker(const api::DeviceCreateInfo& info, api::Device* device) {
+    inline PipelineLayoutMaker&& Device_T::createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info, api::PipelineLayout* playout) {
+        return std::make_shared<PipelineLayout_T>(shared_from_this(),info,playout);
+    };
+
+    inline DeviceMaker&& PhysicalDevice_T::createDeviceMaker(const api::DeviceCreateInfo& info, api::Device* device) {
         return std::make_shared<Device_T>(shared_from_this(),info,device);
     };
 

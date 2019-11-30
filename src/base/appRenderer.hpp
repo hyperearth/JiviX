@@ -16,6 +16,9 @@ namespace rnd {
             
 
         public:
+            std::shared_ptr<vkt::GPUFramework> appBase = {};
+            lancer::DeviceMaker device;
+            lancer::PhysicalDeviceHelper physicalHelper = {};
             GLFWwindow* window = nullptr; // bound GLFW window
             const uint32_t SGHZ = 16u;
 
@@ -23,17 +26,13 @@ namespace rnd {
             api::SwapchainKHR swapchain = {};
             std::vector<vkt::Framebuffer> framebuffers = {};
 
-            // RadX-based object system
-            std::shared_ptr<lancer::Device> device;
-
-            // just helpers 
-            std::shared_ptr<lancer::PhysicalDeviceHelper> physicalHelper;
-
             // Pipeline Layout
             api::Pipeline trianglePipeline;
             api::PipelineLayout trianglePipelineLayout;
             api::DescriptorSet inputDescriptorSet;
             api::DescriptorSetLayout inputDescriptorLayout;
+            api::Image outputImage_;
+            lancer::ImageMaker outputImage;
 
             double tPastFrameTime = 0.f;
             float guiScale = 1.0f;

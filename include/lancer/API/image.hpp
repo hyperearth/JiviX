@@ -60,7 +60,7 @@ namespace lancer {
             api::ImageSubresourceRange sbr = { api::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u };
 
         public: 
-             Image_T(const DeviceMaker& device, const api::ImageCreateInfo& imc = DEFAULT_IMC, api::Image* lastimg = nullptr) : lastimg(lastimg),imc(imc),device(device) { /*imc.extent = {1u,1u,1u};*/ };
+             Image_T(const DeviceMaker& device, const api::ImageCreateInfo& imc = DEFAULT_IMC, api::Image* lastimg = nullptr) : lastimg(lastimg),imc(imc),device(device) {};
             ~Image_T(){}; // Here will notification about free memory
 
             // 
@@ -144,7 +144,7 @@ namespace lancer {
 
 
             // 
-            inline ImageMaker&& imageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
+            inline ImageMaker&& setImageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
                 sbr = subres; // For ImageView create 
                 return shared_from_this(); };
 

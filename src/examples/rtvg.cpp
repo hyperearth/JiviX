@@ -1,4 +1,4 @@
-//#pragma once
+#pragma once
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -16,6 +16,7 @@
 #include "../base/appRenderer.hpp"
 #undef small
 
+#include "../../include/vkt/fw.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace rnd {
@@ -56,7 +57,7 @@ namespace rnd {
         glfwSetWindowSize(this->window, this->realWidth = windowWidth * guiScale, this->realHeight = windowHeight * guiScale); // set real size of window
 
         // create vulkan and ray tracing instance
-        appBase = std::make_shared<vkt::ComputeFramework>();
+        appBase = std::make_shared<vkt::GPUFramework>();
 
         //cameraController = std::make_shared<CameraController>();
         //cameraController->canvasSize = (glm::uvec2*) & this->windowWidth;
@@ -91,8 +92,8 @@ namespace rnd {
         shaderPack = shaderPrefix + "intrusive/universal";
 
         // create radix sort application (RadX C++)
-        physicalHelper = std::make_shared<radx::PhysicalDeviceHelper>(appBase->getPhysicalDevice(0));
-        device = std::make_shared<radx::Device>()->initialize(appBase->createDevice(false, shaderPack, true), physicalHelper);
+        physicalHelper = std::make_shared<lancer::PhysicalDevice_T>(appBase->getPhysicalDevice(0));
+        device = appBase->createDevice(false, shaderPack, true);
 
         // create image output
         const auto SuperSampling = enableSuperSampling ? 2.0 : 1.0; // super sampling image
@@ -100,140 +101,67 @@ namespace rnd {
         this->canvasHeight = this->windowHeight * SuperSampling;
 
         // create framebuffers 
-        framebuffers = appBase->createSwapchainFramebuffer(device, swapchain = appBase->createSwapchain(device), appBase->createRenderpass(device));
+        framebuffers = appBase->createSwapchainFramebuffer(swapchain = appBase->createSwapchain(), appBase->createRenderPass());
     };
 
     void Renderer::InitPipeline() {
         // create pipeline
         //vk::Pipeline trianglePipeline = {};
 
-        { // Descriptor Layout 
+        { // TODO: Update Descriptor Layout Maker (That Able Workaround Flags API Code Problem)
             const auto pbindings = vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind | vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending;
             const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(&pbindings);
             const auto vkpi = vk::DescriptorSetLayoutCreateInfo().setPNext(&vkfl);
-
             const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
                 //vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eAll),
                 //vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eAll),
                 vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
                 //vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eAll),
             };
-            inputDescriptorLayout = vk::Device(*device).createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
-        }
-
-        {
-            vk::PipelineLayoutCreateInfo lpc;
-            lpc.pSetLayouts = &inputDescriptorLayout;
-            lpc.setLayoutCount = 1;
-            trianglePipelineLayout = vk::Device(*device).createPipelineLayout(lpc);
-
-            // pipeline stages
-            std::vector<vk::PipelineShaderStageCreateInfo> pipelineShaderStages = {
-                vk::PipelineShaderStageCreateInfo().setModule(radx::createShaderModule(*device, radx::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex),
-                vk::PipelineShaderStageCreateInfo().setModule(radx::createShaderModule(*device, radx::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment)
-            };
-
-            // blend modes per framebuffer targets
-            std::vector<vk::PipelineColorBlendAttachmentState> colorBlendAttachments = {
-                vk::PipelineColorBlendAttachmentState()
-                .setBlendEnable(true)
-                .setSrcColorBlendFactor(vk::BlendFactor::eOne).setDstColorBlendFactor(vk::BlendFactor::eZero).setColorBlendOp(vk::BlendOp::eAdd)
-                .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setDstAlphaBlendFactor(vk::BlendFactor::eZero).setAlphaBlendOp(vk::BlendOp::eAdd)
-                .setColorWriteMask(vk::ColorComponentFlags(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA))
-            };
-
-            // dynamic states
-            std::vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport, vk::DynamicState::eScissor };
-
-            // create graphics pipeline
-            auto tesselationState = vk::PipelineTessellationStateCreateInfo();
-            auto vertexInputState = vk::PipelineVertexInputStateCreateInfo();
-            auto rasterizartionState = vk::PipelineRasterizationStateCreateInfo();
-
-            trianglePipeline = vk::Device(*device).createGraphicsPipeline(*device, vk::GraphicsPipelineCreateInfo()
-                .setPStages(pipelineShaderStages.data()).setStageCount(pipelineShaderStages.size())
-                .setFlags(vk::PipelineCreateFlagBits::eAllowDerivatives)
-                .setPVertexInputState(&vertexInputState)
-                .setPInputAssemblyState(&vk::PipelineInputAssemblyStateCreateInfo().setTopology(vk::PrimitiveTopology::eTriangleStrip))
-                .setPViewportState(&vk::PipelineViewportStateCreateInfo().setViewportCount(1).setScissorCount(1))
-                .setPRasterizationState(&vk::PipelineRasterizationStateCreateInfo()
-                    .setDepthClampEnable(false)
-                    .setRasterizerDiscardEnable(false)
-                    .setPolygonMode(vk::PolygonMode::eFill)
-                    .setCullMode(vk::CullModeFlagBits::eBack)
-                    .setFrontFace(vk::FrontFace::eCounterClockwise)
-                    .setDepthBiasEnable(false)
-                    .setDepthBiasConstantFactor(0)
-                    .setDepthBiasClamp(0)
-                    .setDepthBiasSlopeFactor(0)
-                    .setLineWidth(1.f))
-                .setPDepthStencilState(&vk::PipelineDepthStencilStateCreateInfo()
-                    .setDepthTestEnable(false)
-                    .setDepthWriteEnable(false)
-                    .setDepthCompareOp(vk::CompareOp::eLessOrEqual)
-                    .setDepthBoundsTestEnable(false)
-                    .setStencilTestEnable(false))
-                .setPColorBlendState(&vk::PipelineColorBlendStateCreateInfo()
-                    .setLogicOpEnable(false)
-                    .setLogicOp(vk::LogicOp::eClear)
-                    .setPAttachments(colorBlendAttachments.data())
-                    .setAttachmentCount(colorBlendAttachments.size()))
-                .setLayout(trianglePipelineLayout)
-                .setRenderPass(appBase->renderpass)
-                .setBasePipelineIndex(0)
-                .setPMultisampleState(&vk::PipelineMultisampleStateCreateInfo().setRasterizationSamples(vk::SampleCountFlagBits::e1))
-                .setPDynamicState(&vk::PipelineDynamicStateCreateInfo().setPDynamicStates(dynamicStates.data()).setDynamicStateCount(dynamicStates.size()))
-                .setPTessellationState(&tesselationState));
+            inputDescriptorLayout = device->least().createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
         };
 
-        { // write descriptors for showing texture
-            outputImage = std::make_shared<radx::VmaAllocatedImage>(device, vk::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage);
+        {
+            lancer::GraphicsPipelineMaker maker = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(),&trianglePipeline);
+            lancer::PipelineLayoutMaker dlayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(),&trianglePipelineLayout);
+            dlayout->pushDescriptorSetLayout(inputDescriptorLayout)->create();
 
+            maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            maker->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            maker->link(&trianglePipeline)->linkPipelineLayout(&trianglePipelineLayout)->create(true);
+        };
+
+        { // TODO: Update Descriptor Set Maker
+            //outputImage = std::make_shared<>(device, vk::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage);
+            outputImage = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
+            outputImage->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height);
+
+            // Legacy Sampler Creator
             vk::SamplerCreateInfo samplerInfo = {};
             samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
             samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
             samplerInfo.minFilter = vk::Filter::eLinear;
             samplerInfo.magFilter = vk::Filter::eLinear;
             samplerInfo.compareEnable = false;
-            auto sampler = vk::Device(*device).createSampler(samplerInfo); // create sampler
+            auto sampler = device->least().createSampler(samplerInfo); // create sampler
 
             // desc texture texture
-            auto imageDesc = vk::DescriptorImageInfo(*outputImage);//.setSampler(sampler);
+            auto imageDesc = vk::DescriptorImageInfo();//.setSampler(sampler);
+            outputImage->createImageView(&imageDesc.imageView,api::ImageViewType::e2D,vk::Format::eR32G32B32A32Sfloat);
 
             // submit as secondary
-            radx::submitOnce(*device, appBase->queue, appBase->commandPool, [&](VkCommandBuffer cmd) {
-                VkImageMemoryBarrier img_barrier = {};
-                img_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                img_barrier.image = outputImage->image;
-                img_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                img_barrier.newLayout = VkImageLayout(outputImage->layout);
-                img_barrier.srcAccessMask = 0;
-                img_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                img_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                img_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                img_barrier.subresourceRange = outputImage->srange;
+            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { outputImage->imageBarrier(cmd); });
 
-                vk::CommandBuffer(cmd).pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, {}, {}, {}, { vk::ImageMemoryBarrier(img_barrier) });
-                });
-
-
-            // 
+            // TODO: Update Descriptor Set Maker
             std::vector<vk::DescriptorSetLayout> dsLayouts = { vk::DescriptorSetLayout(inputDescriptorLayout) };
-            auto dsc = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(*device).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1));
-            inputDescriptorSet = dsc[0];
+            auto dsc = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(device->getDescriptorPool()).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1));
+            auto writeTmpl = vk::WriteDescriptorSet(inputDescriptorSet = dsc[0], 0, 0, 1, vk::DescriptorType::eStorageBuffer);
 
-            // 
-            auto writeTmpl = vk::WriteDescriptorSet(inputDescriptorSet, 0, 0, 1, vk::DescriptorType::eStorageBuffer);
-            std::vector<vk::WriteDescriptorSet> writes = {
-                vk::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageImage).setDstBinding(2).setPImageInfo(&imageDesc),
-            };
-            vk::Device(*device).updateDescriptorSets(writes, {});
+            api::Device(*device).updateDescriptorSets(std::vector<vk::WriteDescriptorSet>{
+                api::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageImage).setDstBinding(2).setPImageInfo(&imageDesc),
+            }, {});
 
-
-            // update descriptors
-            //vk::Device(*device).updateDescriptorSets(std::vector<vk::WriteDescriptorSet>{
-            //    vk::WriteDescriptorSet().setDstSet(descriptorSets[0]).setDstBinding(0).setDstArrayElement(0).setDescriptorCount(1).setDescriptorType(vk::DescriptorType::eStorageImage).setPImageInfo(&imageDesc),
-            //}, nullptr);
         };
     };
 
@@ -246,7 +174,7 @@ namespace rnd {
 
         // acquire next image where will rendered (and get semaphore when will presented finally)
         n_semaphore = (n_semaphore >= 0 ? n_semaphore : (framebuffers.size() - 1));
-        vk::Device(*device).acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
+        device->least().acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
 
         { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.2f, 0.2f, 0.2f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
@@ -262,8 +190,8 @@ namespace rnd {
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
-                commandBuffer = radx::createCommandBuffer(*device, appBase->commandPool, false, false); // do reference of cmd buffer
-                commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(appBase->renderpass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+                commandBuffer = lancer::createCommandBuffer(*device, appBase->commandPool, false, false); // do reference of cmd buffer
+                commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(appBase->renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
                 commandBuffer.setViewport(0, std::vector<vk::Viewport> { viewport });
                 commandBuffer.setScissor(0, std::vector<vk::Rect2D> { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, trianglePipeline);
@@ -293,7 +221,7 @@ namespace rnd {
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size());
 
             // submit command once
-            radx::submitCmd(*device, appBase->queue, { commandBuffer }, smbi);
+            lancer::submitCmd(*device, appBase->queue, { commandBuffer }, smbi);
 
             // delete command buffer 
             //{ currentContext->queue->device->logical.freeCommandBuffers(currentContext->queue->commandPool, { commandBuffer }); commandBuffer = nullptr; };
