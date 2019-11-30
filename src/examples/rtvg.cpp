@@ -129,7 +129,7 @@ namespace rnd {
             maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
             maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
             maker->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
-            maker->link(&trianglePipeline)->linkPipelineLayout(&trianglePipelineLayout)->create(true);
+            maker->link(&trianglePipeline)->linkPipelineLayout(&trianglePipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
         };
 
         { // TODO: Update Descriptor Set Maker
@@ -155,10 +155,10 @@ namespace rnd {
 
             // TODO: Update Descriptor Set Maker
             std::vector<vk::DescriptorSetLayout> dsLayouts = { vk::DescriptorSetLayout(inputDescriptorLayout) };
-            auto dsc = vk::Device(*device).allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(device->getDescriptorPool()).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1));
+            auto dsc = device->least().allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(device->getDescriptorPool()).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1));
             auto writeTmpl = vk::WriteDescriptorSet(inputDescriptorSet = dsc[0], 0, 0, 1, vk::DescriptorType::eStorageBuffer);
 
-            api::Device(*device).updateDescriptorSets(std::vector<vk::WriteDescriptorSet>{
+            device->least().updateDescriptorSets(std::vector<vk::WriteDescriptorSet>{
                 api::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageImage).setDstBinding(2).setPImageInfo(&imageDesc),
             }, {});
 
