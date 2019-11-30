@@ -20,7 +20,7 @@ namespace lancer {
             ~MemoryAllocation_T(){ this->free(); };
              MemoryAllocation_T(const MemoryAllocator& allocator = {}) : allocator(allocator) {};
 
-            inline const DeviceMaker& getDevice() const { return allocator->getDevice(); };
+            inline const DeviceMaker& getDevice() const;
     };
 
     class MemoryAllocator_T : public std::enable_shared_from_this<MemoryAllocator_T> {
@@ -31,7 +31,7 @@ namespace lancer {
 
         public: 
             ~MemoryAllocator_T(){};
-             MemoryAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {});
+             MemoryAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {}) : device(device) {};
 
             virtual void free() {};
             virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) {};
@@ -43,6 +43,9 @@ namespace lancer {
             inline const DeviceMaker& getDevice() const { return device; };
     };
 
+    // Define later
+    inline const DeviceMaker& MemoryAllocation_T::getDevice() const { return allocator->getDevice(); };
+
     // 
     inline DeviceMaker&& Device_T::initialize() {
         if (physicalHelper && device && !(*device)) {
@@ -50,7 +53,7 @@ namespace lancer {
         };
 
         // get VMA allocator for device
-        if (!this->allocator && this->physicalHelper->getAllocator()) { this->allocator = this->physicalHelper->getAllocator(); };
+        //if (!this->allocator && this->physicalHelper->getAllocator()) { this->allocator = this->physicalHelper->getAllocator(); };
         if ( this->allocator) {
              this->allocator->linkDevice(shared_from_this());
              this->allocator->initialize();

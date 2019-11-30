@@ -22,6 +22,7 @@ set(SOURCES_LIST
     "./include/*.hpp"
     "./include/lancer/*"
     "./include/lancer/*/*"
+    "./include/lancer/*/*/*"
     "./include/radx/*"
     "./include/vulkan/*"
     "./include/vma/*"

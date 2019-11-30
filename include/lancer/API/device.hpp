@@ -236,6 +236,6 @@ namespace lancer {
             inline DescriptorSetLayoutMaker&& createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* pipeline = nullptr);
             inline DescriptorSetMaker&& createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* pipeline = nullptr);
             inline SBTHelper&& createSBTHelper(api::Pipeline* pipeline = nullptr);
-            template<class T = MemoryAllocator_T> inline std::shared_ptr<T>&& createAllocator(const uintptr_t& info = uintptr_t(nullptr));
+            template<class T = MemoryAllocator_T> inline MemoryAllocator& createAllocator(const uintptr_t& info = uintptr_t(nullptr));
     };
 };

@@ -50,10 +50,11 @@ namespace lancer {
 
 
     // SHOULD BE IN HEADER
-    template<class T> inline std::shared_ptr<T>&& Device_T::createAllocator(const uintptr_t& info) {
-        auto allocator = std::make_shared<T>(shared_from_this(),info); 
-        this->allocator = std::dynamic_pointer_cast<MemoryAllocator_T>(allocator);
-        return std::move(allocator);
+    template<class T> inline MemoryAllocator& Device_T::createAllocator(const uintptr_t& info) {
+        this->allocator = std::dynamic_pointer_cast<MemoryAllocator_T>(std::make_shared<T>(shared_from_this(), info));
+        this->allocator->linkDevice(shared_from_this());
+        this->allocator->initialize();
+        return this->allocator;
     };
 
 #ifdef VMA_ALLOCATOR
