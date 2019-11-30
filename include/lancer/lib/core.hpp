@@ -1,6 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <thread>
+#include <atomic>
 #include <vulkan/vulkan.hpp>
 
 namespace lancer {
