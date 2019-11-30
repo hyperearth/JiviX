@@ -46,3 +46,4 @@ Also, add in future features, like...
 4. Propose to Direct2D competition (in far future)
 5. Write simple GUI with simple application, based in that library!
 
+
