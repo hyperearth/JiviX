@@ -41,15 +41,20 @@ namespace lancer {
             virtual uintptr_t getPtr() override { return (uintptr_t)(&allocation.alloc); };
             virtual uint8_t* getMapped() override { return (uint8_t*)allocation.alcmc.pMappedData; };
 
+            virtual const DeviceMaker& getDevice() const;
+            virtual DeviceMaker& getDevice();
+            virtual const MemoryAllocator& getAllocator() const;
+            virtual MemoryAllocator& getAllocator();
+
             // TODO: smart de-allocate memory 
             //~VMAllocation(){
             //    this->Free(); // when object forcely removed (may be crashed)
             //}
     };
 
-    class VMAllocator_T : public MemoryAllocator_T/*, public std::enable_shared_from_this<VMAllocator_T>*/ {
-        protected: 
-            DeviceMaker dvc = {};
+    class VMAllocator_T : public MemoryAllocator_T {
+        protected:
+            DeviceMaker device = {};
             VmaAllocatorCreateInfo  amc = {}; // Template
             VmaAllocator vma = {};
             
@@ -57,7 +62,7 @@ namespace lancer {
             friend DeviceMaker;
 
         public: 
-            VMAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {}) : dvc(dvc) { amc = *((const VmaAllocatorCreateInfo*)info); this->initialize(); };
+            VMAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {}) : device(dvc) { amc = *((const VmaAllocatorCreateInfo*)info); this->initialize(); };
 
             // 
             virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
@@ -77,9 +82,13 @@ namespace lancer {
                 return std::dynamic_pointer_cast<MemoryAllocation_T>(std::make_shared<VMAllocation_T>(std::dynamic_pointer_cast<VMAllocator_T>(shared_from_this()),allocation));
             };
 
-            // 
-            virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) override { this->dvc = std::move(device); return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
-            virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) override { this->dvc = device; return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+            //
+            virtual const DeviceMaker& getDevice() const override { return device; };
+            virtual DeviceMaker& getDevice() override { return device; };
+
+            //
+            virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) override { this->device = std::move(device); return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+            virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) override { this->device = device; return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
             virtual MemoryAllocator&& initialize() override {
 #ifdef VOLK_H_
                 // load API calls for context
@@ -126,4 +135,9 @@ namespace lancer {
                 return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this());
             };
     };
+
+    const DeviceMaker& VMAllocation_T::getDevice() const { return allocator->getDevice(); };
+    DeviceMaker& VMAllocation_T::getDevice() { return allocator->getDevice(); };
+    const MemoryAllocator& VMAllocation_T::getAllocator() const { return (MemoryAllocator&)allocator; };
+    MemoryAllocator& VMAllocation_T::getAllocator() { return (MemoryAllocator&)allocator; };
 };

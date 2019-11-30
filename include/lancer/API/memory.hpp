@@ -20,7 +20,10 @@ namespace lancer {
             ~MemoryAllocation_T(){ this->free(); };
              MemoryAllocation_T(const MemoryAllocator& allocator = {}) : allocator(allocator) {};
 
-            inline const DeviceMaker& getDevice() const;
+            virtual const DeviceMaker& getDevice() const;
+            virtual DeviceMaker& getDevice();
+            virtual const MemoryAllocator& getAllocator() const;
+            virtual MemoryAllocator& getAllocator();
     };
 
     class MemoryAllocator_T : public std::enable_shared_from_this<MemoryAllocator_T> {
@@ -40,11 +43,15 @@ namespace lancer {
             virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) {};
             virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) {};
             virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) { return std::make_shared<MemoryAllocation_T>(shared_from_this()); };
-            inline const DeviceMaker& getDevice() const { return device; };
+            virtual const DeviceMaker& getDevice() const { return device; };
+            virtual DeviceMaker& getDevice() { return device; };
     };
 
     // Define later
-    inline const DeviceMaker& MemoryAllocation_T::getDevice() const { return allocator->getDevice(); };
+    const DeviceMaker& MemoryAllocation_T::getDevice() const { return allocator->getDevice(); };
+    DeviceMaker& MemoryAllocation_T::getDevice() { return allocator->getDevice(); };
+    const MemoryAllocator& MemoryAllocation_T::getAllocator() const { return allocator; };
+    MemoryAllocator& MemoryAllocation_T::getAllocator() { return allocator; };
 
     // 
     inline DeviceMaker&& Device_T::initialize() {
