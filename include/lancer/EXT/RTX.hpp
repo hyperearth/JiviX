@@ -3,39 +3,42 @@
 #include "../lib/core.hpp"
 #include "../API/memory.hpp"
 #include "../API/buffer.hpp"
-#include "../API/VMA.hpp"
+#include "../EXT/VMA.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <functional>
 
+
 namespace lancer {
 
-#ifndef VKR
-#define VKR
+#ifndef EXTENSION_RTX
+#define EXTENSION_RTX
 #endif
 
-#ifndef VKR_IMPLEMENTATION
-#define VKR_IMPLEMENTATION
+#ifndef EXTENSION_RTX_IMPLEMENT
+#define EXTENSION_RTX_IMPLEMENT
 #endif
 
+#ifdef EXTENSION_RTX // TODO: Create Ray Tracing Pipeline
+    class SBTHelper_T;
+    using SBTHelper = std::shared_ptr<SBTHelper_T>;
 
-#ifdef VKR
-
+    // Declare SBT Class 
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
     public:
-         SBTHelper_T(const DeviceMaker& device = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mNumHitGroups(0u), mNumMissGroups(0u) {
-         };
+         SBTHelper_T(const api::RayTracingPipelineCreateInfoNV& rpt = api::RayTracingPipelineCreateInfoNV().setMaxRecursionDepth(4u), const DeviceMaker& device = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mPipeline(rtPipeline), mNumHitGroups(0u), mNumMissGroups(0u), mRTC(rpt) {};
         ~SBTHelper_T() = default;
 
         void        destroy();
-        SBTHelper   initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
-        SBTHelper   setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
-        SBTHelper   addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
-        SBTHelper   addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
-        SBTHelper   linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); }; 
-        SBTHelper   linkBuffer(api::Buffer* buffer) { pSBT = buffer; };
-        SBTHelper   linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
+        SBTHelper&& initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
+        SBTHelper&& setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
+        SBTHelper&& addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
+        SBTHelper&& addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
+        SBTHelper&& linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); };
+        SBTHelper&& linkBuffer(api::Buffer* buffer) { pSBT = buffer; };
+        SBTHelper&& linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
+        SBTHelper&& linkPipelineLayout(api::PipelineLayout* rtPipelineLayout = nullptr) { this->mPipelineLayout = rtPipelineLayout; return shared_from_this(); };
 
         uint32_t    getGroupsStride() const;
         uint32_t    getNumGroups() const;
@@ -47,7 +50,7 @@ namespace lancer {
         const api::PipelineShaderStageCreateInfo*     getStages() const;
         const api::RayTracingShaderGroupCreateInfoNV* getGroups() const;
 
-        bool               createSBT();
+        bool               create();
         uint32_t           getSBTSize() const;
         const api::Buffer& getSBTBuffer() const;
               api::Buffer& getSBTBuffer();
@@ -66,15 +69,17 @@ namespace lancer {
         Vector<>                                              vSBT; // Required Re-Assigment...
         api::Buffer*                                          pSBT;
         api::Pipeline*                                        mPipeline;
+        api::PipelineLayout*                                  mPipelineLayout;
         api::DescriptorBufferInfo                             mBufInfo;
+        api::RayTracingPipelineCreateInfoNV                   mRTC;
     };
 #endif
 
 // TODO: Re-Implement SBT Helper 
-#ifdef VKR_IMPLEMENTATION
+#ifdef EXTENSION_RTX_IMPLEMENT
     // SBT Helper class
 
-    SBTHelper SBTHelper_T::initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize) {
+    SBTHelper&& SBTHelper_T::initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize) {
         mShaderHeaderSize = shaderHeaderSize;
         mNumHitGroups = numHitGroups;
         mNumMissGroups = numMissGroups;
@@ -95,7 +100,7 @@ namespace lancer {
         mGroups.clear();
     }
 
-    SBTHelper SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
+    SBTHelper&& SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
         // this shader stage should go first!
         assert(mStages.empty());
         mStages.push_back(stage);
@@ -111,17 +116,15 @@ namespace lancer {
         return shared_from_this();
     }
 
-    SBTHelper SBTHelper_T::addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex) {
+    SBTHelper&& SBTHelper_T::addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex) {
         // raygen stage should go first!
         assert(groupIndex < mNumHitShaders.size());
         assert(!mStages.empty());
         assert(!stages.empty() && stages.size() <= 3);// only 3 hit shaders per group (intersection, any-hit and closest-hit)
         assert(mNumHitShaders[groupIndex] == 0);
 
-        uint32_t offset = 1; // there's always raygen shader
-        for (uint32_t i = 0; i <= groupIndex; ++i) {
-            offset += mNumHitShaders[i];
-        }
+        uint32_t offset = 1u; // there's always raygen shader
+        for (uint32_t i = 0u; i <= groupIndex; ++i) { offset += mNumHitShaders[i]; };
 
         auto itStage = mStages.begin() + offset;
         mStages.insert(itStage, stages.begin(), stages.end());
@@ -148,7 +151,7 @@ namespace lancer {
         mNumHitShaders[groupIndex] += static_cast<uint32_t>(stages.size());
     }
 
-    SBTHelper SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
+    SBTHelper&& SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
         // raygen stage should go first!
         assert(!mStages.empty());
 
@@ -218,7 +221,7 @@ namespace lancer {
         return this->getNumGroups() * mShaderHeaderSize;
     }
 
-    bool SBTHelper_T::createSBT() {
+    bool SBTHelper_T::create() {
         const size_t sbtSize = this->getSBTSize();
 
         VmaAllocationCreateInfo allocInfo = {};
@@ -232,13 +235,23 @@ namespace lancer {
         ), pSBT))->allocate(mDevice->getAllocatorPtr(),(uintptr_t)(&allocInfo));
         vSBT = Vector<>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
 
-        api::Result result = mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0,this->getNumGroups(),sbtSize,mSBT->getMapped());
+        // Assign Truth
+        mRTC.groupCount = this->getNumGroups();
+        mRTC.pGroups = this->getGroups();
+        mRTC.stageCount = this->getNumStages();
+        mRTC.pStages = this->getStages();
+        mRTC.layout = *this->mPipelineLayout;
+
+        // Create Pipeline And SBT
+        const auto result = mDevice->least().getRayTracingShaderGroupHandlesNV(
+            (*mPipeline = mDevice->least().createRayTracingPipelineNV(mDevice->getPipelineCache(), mRTC)),0u,this->getNumGroups(),sbtSize,mSBT->getMapped());
+
+        // 
         return (result == api::Result::eSuccess);
     };
 
     api::Buffer& SBTHelper_T::getSBTBuffer() { return *pSBT; };
     const api::Buffer& SBTHelper_T::getSBTBuffer() const { return *pSBT; };
-
 #endif
 
 };

@@ -7,6 +7,9 @@
 #include "../API/image.hpp"
 #include <VMA/vk_mem_alloc.h>
 
+#ifndef EXTENSION_VMA
+#define EXTENSION_VMA
+#endif
 
 namespace lancer {
 
@@ -90,13 +93,15 @@ namespace lancer {
             virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) override { this->device = std::move(device); return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
             virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) override { this->device = device; return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
             virtual MemoryAllocator&& initialize() override {
+                amc.pVulkanFunctions = nullptr;
+
 #ifdef VOLK_H_
                 // load API calls for context
-                volkLoadDevice(api::Device(*device));
+                //volkLoadDevice(device->least());
 
                 // create VMA memory allocator (with Volk support)
                 VolkDeviceTable vktable = {};
-                volkLoadDeviceTable(&vktable, api::Device(*device));
+                volkLoadDeviceTable(&vktable, device->least());
 
                 // VMA functions with Volk compatibility
                 VmaVulkanFunctions vfuncs = {};
@@ -117,12 +122,9 @@ namespace lancer {
                 vfuncs.vkMapMemory = vktable.vkMapMemory;
                 vfuncs.vkUnmapMemory = vktable.vkUnmapMemory;
                 vfuncs.vkInvalidateMappedMemoryRanges = vktable.vkInvalidateMappedMemoryRanges;
-#endif
-
-                // create Vma allocator
-#ifdef VOLK_H_
                 amc.pVulkanFunctions = &vfuncs;
 #endif
+
                 amc.physicalDevice = (api::PhysicalDevice&)(*(device->getHelper()));
                 amc.device = api::Device(*device);
                 amc.preferredLargeHeapBlockSize = 16 * sizeof(uint32_t);

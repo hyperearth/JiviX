@@ -9,12 +9,21 @@
 #include "../API/gpipeline.hpp"
 #include "../API/piplayout.hpp"
 #include "../API/renderpass.hpp"
-#include "../API/vkrtx.hpp"
+
+#ifdef EXTENSION_VMA
+#include "../EXT/VMA.hpp"
+#endif
+
+#ifdef EXTENSION_RTX
+#include "../EXT/RTX.hpp"
+#endif
+
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <functional>
 
+// 
 namespace lancer {
     
     inline BufferMaker&& Device_T::createBufferMaker(const api::BufferCreateInfo& info, api::Buffer* lastbuf){
@@ -45,18 +54,13 @@ namespace lancer {
         return std::make_shared<RenderPass_T>(shared_from_this(),info,renderpass);
     };
 
-    inline SBTHelper&& Device_T::createSBTHelper(api::Pipeline* rtPipeline) {
-        return std::make_shared<SBTHelper_T>(shared_from_this(),rtPipeline);
-    };
-
     inline PipelineLayoutMaker&& Device_T::createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info, api::PipelineLayout* playout) {
-        return std::make_shared<PipelineLayout_T>(shared_from_this(),info,playout);
+        return std::make_shared<PipelineLayout_T>(shared_from_this(), info, playout);
     };
 
     inline DeviceMaker&& PhysicalDevice_T::createDeviceMaker(const api::DeviceCreateInfo& info, api::Device* device) {
-        return std::make_shared<Device_T>(shared_from_this(),info,device);
+        return std::make_shared<Device_T>(shared_from_this(), info, device);
     };
-
 
     // SHOULD BE IN HEADER
     template<class T> inline MemoryAllocator& Device_T::createAllocator(const uintptr_t& info) {
@@ -66,7 +70,13 @@ namespace lancer {
         return this->allocator;
     };
 
-#ifdef VMA_ALLOCATOR
+#ifdef EXTENSION_RTX_IMPLEMENT
+    inline SBTHelper&& Device_T::createSBTHelper(api::Pipeline* rtPipeline) {
+        return std::make_shared<SBTHelper_T>(shared_from_this(),rtPipeline);
+    };
+#endif
+
+#ifdef EXTENSION_VMA_IMPLEMENT
     
 #endif
     

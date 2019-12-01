@@ -83,7 +83,7 @@ namespace lancer {
 
 
             // transition texture layout
-            inline auto imageBarrier(const api::CommandBuffer& cmd) {
+            inline auto imageBarrier(api::CommandBuffer& cmd) {
                 api::Result result = api::Result::eSuccess; // planned to complete
                 if (originLayout == targetLayout) return shared_from_this(); // no need transfering more
 
@@ -186,7 +186,7 @@ namespace lancer {
             inline ImageMaker&& create(const api::ImageType& type = api::ImageType::e1D, const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
                 //api::ImageCreateInfo imv = {};
                 imc.imageType = type;
-                imc.extent = vk::Extent3D{w,h,d};
+                imc.extent = api::Extent3D{w,h,d};
                 imc.arrayLayers = d;
                 imc.format = format;
                 *lastimg = device->least().createImage(imc);

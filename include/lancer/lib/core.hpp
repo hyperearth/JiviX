@@ -234,7 +234,6 @@ namespace lancer {
     class PhysicalDevice_T;
     class Sampler_T;
     class GraphicsPipeline_T;
-    class SBTHelper_T;
 
     template<class T = uint8_t> class BufferRegion_T;
     using SamplerMaker = std::shared_ptr<Sampler_T>;
@@ -252,6 +251,5 @@ namespace lancer {
     using GraphicsPipelineMaker = std::shared_ptr<GraphicsPipeline_T>;
     using BufferRegionU8_T = BufferRegion_T<uint8_t>;
     using BufferRegionU8Maker = std::shared_ptr<BufferRegionU8_T>;
-    using SBTHelper = std::shared_ptr<SBTHelper_T>;
-
+    
 };

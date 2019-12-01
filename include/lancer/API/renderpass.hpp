@@ -20,7 +20,7 @@ namespace lancer {
 
             /// Begin an attachment description.
             /// After this you can call attachment* many times
-            inline RenderPassMaker&& attachmentBegin(const api::Format& format) {
+            inline RenderPassMaker&& attachmentBegin(const api::Format& format = api::Format::eR8G8B8A8Unorm) {
                 api::AttachmentDescription desc{{}, format};
                 s.attachmentDescriptions.push_back(desc);
                 return shared_from_this();
@@ -56,7 +56,7 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&& subpassColorAttachment(const api::ImageLayout& layout, const uint32_t& attachment) {
+            inline RenderPassMaker&& subpassColorAttachment(const api::ImageLayout& layout, const uint32_t& attachment = 0u) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
@@ -68,7 +68,7 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&& subpassDepthStencilAttachment(const api::ImageLayout& layout, uint32_t attachment) {
+            inline RenderPassMaker&& subpassDepthStencilAttachment(const api::ImageLayout& layout, const uint32_t& attachment = 0u) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
@@ -87,7 +87,7 @@ namespace lancer {
                 *renderPass = device->least().createRenderPass(renderPassInfo);
             };
 
-            inline RenderPassMaker&& dependencyBegin(const uint32_t& srcSubpass, const uint32_t& dstSubpass) {
+            inline RenderPassMaker&& dependencyBegin(const uint32_t& srcSubpass = 0u, const uint32_t& dstSubpass = 0u) {
                 api::SubpassDependency desc{};
                 desc.srcSubpass = srcSubpass;
                 desc.dstSubpass = dstSubpass;

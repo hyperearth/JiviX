@@ -196,8 +196,17 @@ namespace lancer {
             MemoryAllocator allocator = {};
 
         public: 
-            Device_T(const PhysicalDeviceHelper& physicalHelper = {}, api::DeviceCreateInfo dfc = {}, api::Device* device = nullptr) : device(device), dfc(dfc), physicalHelper(physicalHelper) {
-                if (physicalHelper && device && !(*device)) { *device = physicalHelper->least().createDevice(dfc); };};
+            Device_T(const PhysicalDeviceHelper& physicalHelper = {}, const api::DeviceCreateInfo& dfc = {}, api::Device* device = nullptr) : device(device), dfc(dfc), physicalHelper(physicalHelper) { this->create(); };
+
+            // Added Deferred Method for Create Device
+            inline DeviceMaker&& create() {
+                if (physicalHelper && device && !(*device)) {
+                    *device = physicalHelper->least().createDevice(dfc);
+#ifdef VOLK_H_
+                    volkLoadDevice(*device);
+#endif
+                };
+            };
 
             // Get original Vulkan link 
             operator api::Device&() { return *device; };
@@ -223,10 +232,10 @@ namespace lancer {
             inline const auto least() const { return *device; };
             inline auto& getHelper() { return this->physicalHelper; };
             inline const auto& getHelper() const { return this->physicalHelper; };
-            inline auto& getDescriptorPool() { return (vk::DescriptorPool&)(*this->descriptorPool); };
-            inline const auto& getDescriptorPool() const { return (vk::DescriptorPool&)(*this->descriptorPool); };
-            inline auto& getPipelineCache() { return (vk::PipelineCache&)(*this->pipelineCache); };
-            inline const auto& getPipelineCache() const { return (vk::PipelineCache&)(*this->pipelineCache); };
+            inline auto& getDescriptorPool() { return (api::DescriptorPool&)(*this->descriptorPool); };
+            inline const auto& getDescriptorPool() const { return (api::DescriptorPool&)(*this->descriptorPool); };
+            inline auto& getPipelineCache() { return (api::PipelineCache&)(*this->pipelineCache); };
+            inline const auto& getPipelineCache() const { return (api::PipelineCache&)(*this->pipelineCache); };
 
             //
             inline PipelineLayoutMaker&& createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info = {}, api::PipelineLayout* playout = nullptr);
@@ -237,7 +246,9 @@ namespace lancer {
             inline GraphicsPipelineMaker&& createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
             inline DescriptorSetLayoutMaker&& createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* dlayout = nullptr);
             inline DescriptorSetMaker&& createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* descset = nullptr);
+#ifdef EXTENSION_RTX
             inline SBTHelper&& createSBTHelper(api::Pipeline* pipeline = nullptr);
+#endif
             template<class T = MemoryAllocator_T> inline MemoryAllocator& createAllocator(const uintptr_t& info = uintptr_t(nullptr));
     };
 };

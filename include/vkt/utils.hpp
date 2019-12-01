@@ -27,14 +27,6 @@
 #include <sstream>
 #include <chrono>
 
-#include <lancer/lib/core.hpp>
-#include <lancer/API/memory.hpp>
-#include <lancer/API/device.hpp>
-#include <lancer/API/VMA.hpp>
-#include <lancer/API/image.hpp>
-#include <lancer/API/constructors.hpp>
-#include <lancer/API/utils.hpp>
-
 #ifdef USE_CIMG
 #include "tinyexr.h"
 #define cimg_plugin "CImg/tinyexr_plugin.hpp"
@@ -47,29 +39,8 @@
 #define NSM api
 #endif
 
+#include <lancer/lancer.hpp>
 
-
-// include ray tracing library
-//#include "vRt/vRt.hpp"
-
-// include extensions
-//#include "vRt/vRtX/RTXAcceleratorExtension.hpp"
-
-// include inner utils from library (for development purpose)
-//#include "vRt/Backland/Utilities/VkUtils.hpp"
-
-// also need include these headers
-//#include "vRt/Backland/Implementation/Utils.hpp"
-
-
-// include VMA for compatibility
-//#include <vulkan/vk_mem_alloc.h>
-
-
-//#include <radx/radx.hpp>
-//#include <radx/radx_utils.hpp>
-
-// inner utils of application
 namespace vkt {
-    //using namespace vrt;
+
 };
