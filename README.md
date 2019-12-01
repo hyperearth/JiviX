@@ -10,6 +10,7 @@ Writing for C++20 prior...
 - RHI             : Yes, Vulkan-HPP
 - Support OS      : Windows 10 (1903 or Newer)
 - Support HW      : RTX 2070 or familiar...
+- Leaking API     : YES, FORCED (i.e. SEMI-TRANSPARENT)
 - Project Type    : Experimental, Personal
 - Portfolio       : Planned
 - Ray-Tracing     : Planned
