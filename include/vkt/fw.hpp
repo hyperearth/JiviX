@@ -12,7 +12,7 @@
 #define GLFW_EXPOSE_NATIVE_GLX
 #endif
 
-//#define VRT_IMPLEMENTATION
+#define ENABLE_EXTENSION_VMA
 #include "utils.hpp"
 #include "structs.hpp"
 #include <GLFW/glfw3.h>
@@ -270,6 +270,7 @@ namespace vkt
             gStorage16.pNext = &gStorage8;
             gStorage8.pNext = &gDescIndexing;
 
+            // 
             auto gFeatures = api::PhysicalDeviceFeatures2{};
             gFeatures.pNext = &gStorage16;
             gFeatures.features.shaderInt16 = true;
@@ -303,7 +304,7 @@ namespace vkt
                     .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
                     .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
                     .setPpEnabledExtensionNames(deviceExtensions.data()).setEnabledExtensionCount(deviceExtensions.size())
-                    .setPpEnabledLayerNames(deviceValidationLayers.data()).setEnabledLayerCount(deviceValidationLayers.size()), &_device);
+                    .setPpEnabledLayerNames(deviceValidationLayers.data()).setEnabledLayerCount(deviceValidationLayers.size()), &_device); // already created device now!
             };
 
             // return device with queue pointer
@@ -313,9 +314,8 @@ namespace vkt
             this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
             this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
             return this->device
-                ->link(&_device)
                 ->linkDescriptorPool(&this->_descriptorPool)
-                ->linkPhysicalHelper(this-> physicalHelper)
+                ->linkPhysicalHelper( this-> physicalHelper)
                 ->linkAllocator(this->allocator=std::make_shared<VMAllocator_T>(device))->initialize(); // Finally Initiate Device 
         };
 
@@ -338,33 +338,16 @@ namespace vkt
         }
 
         // getters
-        api::SurfaceKHR surface() const {
-            return applicationWindow.surface;
-        }
-
-        GLFWwindow* window() const {
-            return applicationWindow.window;
-        }
-
-        const SurfaceFormat& format() const {
-            return applicationWindow.surfaceFormat;
-        }
-
-        const api::Extent2D& size() const {
-            return applicationWindow.surfaceSize;
-        }
-
+        api::SurfaceKHR surface() const { return applicationWindow.surface; }
+        GLFWwindow* window() const { return applicationWindow.window; }
+        const SurfaceFormat& format() const { return applicationWindow.surfaceFormat; }
+        const api::Extent2D& size() const { return applicationWindow.surfaceSize; }
 
         // setters
-        void format(SurfaceFormat format) {
-            applicationWindow.surfaceFormat = format;
-        }
+        void format(SurfaceFormat format) { applicationWindow.surfaceFormat = format; }
+        void size(const api::Extent2D & size) { applicationWindow.surfaceSize = size; }
 
-        void size(const api::Extent2D & size) {
-            applicationWindow.surfaceSize = size;
-        }
-
-
+        // 
         inline SurfaceFormat getSurfaceFormat(api::PhysicalDevice gpu)
         {
             auto surfaceFormats = gpu.getSurfaceFormatsKHR(applicationWindow.surface);
@@ -428,79 +411,52 @@ namespace vkt
         inline api::RenderPass createRenderPass()
         {
             auto formats = applicationWindow.surfaceFormat;
+            auto rps = device->createRenderPassMaker({}, &renderPass);
 
-            // attachments
-            std::vector<api::AttachmentDescription> attachmentDescriptions = {
+            // 
+            rps->addAttachment(formats.colorFormat)->getAttachmentDescription()
+                .setSamples(api::SampleCountFlagBits::e1)
+                .setLoadOp(api::AttachmentLoadOp::eLoad)
+                .setStoreOp(api::AttachmentStoreOp::eStore)
+                .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
+                .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
+                .setInitialLayout(api::ImageLayout::eUndefined)
+                .setFinalLayout(api::ImageLayout::ePresentSrcKHR);
 
-                api::AttachmentDescription()
-                    .setFormat(formats.colorFormat)
-                    .setSamples(api::SampleCountFlagBits::e1)
-                    .setLoadOp(api::AttachmentLoadOp::eLoad)
-                    .setStoreOp(api::AttachmentStoreOp::eStore)
-                    .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
-                    .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
-                    .setInitialLayout(api::ImageLayout::eUndefined)
-                    .setFinalLayout(api::ImageLayout::ePresentSrcKHR),
+            // 
+            rps->addAttachment(formats.depthFormat)->getAttachmentDescription()
+                .setSamples(api::SampleCountFlagBits::e1)
+                .setLoadOp(api::AttachmentLoadOp::eClear)
+                .setStoreOp(api::AttachmentStoreOp::eDontCare)
+                .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
+                .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
+                .setInitialLayout(api::ImageLayout::eUndefined)
+                .setFinalLayout(api::ImageLayout::eDepthStencilAttachmentOptimal);
 
-                api::AttachmentDescription()
-                    .setFormat(formats.depthFormat)
-                    .setSamples(api::SampleCountFlagBits::e1)
-                    .setLoadOp(api::AttachmentLoadOp::eClear)
-                    .setStoreOp(api::AttachmentStoreOp::eDontCare)
-                    .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
-                    .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
-                    .setInitialLayout(api::ImageLayout::eUndefined)
-                    .setFinalLayout(api::ImageLayout::eDepthStencilAttachmentOptimal)
-            };
+            // 
+            rps->addSubpass(api::PipelineBindPoint::eGraphics)->getSubpassDescription();
+            rps->subpassColorAttachment(0u, api::ImageLayout::eColorAttachmentOptimal);
+            rps->subpassDepthStencilAttachment(1u, api::ImageLayout::eDepthStencilAttachmentOptimal);
 
-            // attachments references
-            std::vector<api::AttachmentReference> colorReferences = { api::AttachmentReference(0, api::ImageLayout::eColorAttachmentOptimal) };
-            std::vector<api::AttachmentReference> depthReferences = { api::AttachmentReference(1, api::ImageLayout::eDepthStencilAttachmentOptimal) };
+            // 
+            rps->addDependency(VK_SUBPASS_EXTERNAL, 0u)->getSubpassDependency()
+                .setDependencyFlags(api::DependencyFlagBits::eByRegion)
+                .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput | api::PipelineStageFlagBits::eBottomOfPipe | api::PipelineStageFlagBits::eTransfer)
+                .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentWrite)
+                .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
 
-            // subpasses desc
-            std::vector<api::SubpassDescription> subpasses = {
-                api::SubpassDescription()
-                    .setPipelineBindPoint(api::PipelineBindPoint::eGraphics)
-                    .setPColorAttachments(colorReferences.data())
-                    .setColorAttachmentCount(colorReferences.size())
-                    .setPDepthStencilAttachment(depthReferences.data()) };
+            // 
+            rps->addDependency(0u, VK_SUBPASS_EXTERNAL)->getSubpassDependency()
+                .setDependencyFlags(api::DependencyFlagBits::eByRegion)
+                .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite)
+                .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput | api::PipelineStageFlagBits::eTopOfPipe | api::PipelineStageFlagBits::eTransfer)
+                .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
 
-            // dependency
-            std::vector<api::SubpassDependency> dependencies = {
-                api::SubpassDependency()
-                    .setDependencyFlags(api::DependencyFlagBits::eByRegion)
-                    .setSrcSubpass(VK_SUBPASS_EXTERNAL)
-                    .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput |
-                                     api::PipelineStageFlagBits::eBottomOfPipe |
-                                     api::PipelineStageFlagBits::eTransfer)
-                    .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentWrite)
-
-                    .setDstSubpass(0)
-                    .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
-                    .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead |
-                                      api::AccessFlagBits::eColorAttachmentWrite),
-
-                api::SubpassDependency()
-                    .setDependencyFlags(api::DependencyFlagBits::eByRegion)
-                    .setSrcSubpass(0)
-                    .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
-                    .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentRead |
-                                      api::AccessFlagBits::eColorAttachmentWrite)
-
-                    .setDstSubpass(VK_SUBPASS_EXTERNAL)
-                    .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput |
-                                     api::PipelineStageFlagBits::eTopOfPipe |
-                                     api::PipelineStageFlagBits::eTransfer)
-                    .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead |
-                                      api::AccessFlagBits::eColorAttachmentWrite)
-
-            };
-
-            // create renderpass
-            return (renderPass = _device.createRenderPass(api::RenderPassCreateInfo(
-                api::RenderPassCreateFlags(), attachmentDescriptions.size(),
-                attachmentDescriptions.data(), subpasses.size(), subpasses.data(),
-                dependencies.size(), dependencies.data())));
+            // create renderpass finally
+            rps->create();
+            return renderPass;
         }
 
         // update swapchain framebuffer
@@ -547,7 +503,7 @@ namespace vkt
                 views[0] = _device.createImageView(api::ImageViewCreateInfo{ {}, image, api::ImageViewType::e2D, formats.colorFormat, api::ComponentMapping(), api::ImageSubresourceRange{api::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
                 views[1] = depthImageView; // depth view
                 swapchainBuffers[i].frameBuffer = _device.createFramebuffer(api::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 });
-            }
+            };
         }
 
         inline std::vector<Framebuffer> createSwapchainFramebuffer(api::SwapchainKHR swapchain, api::RenderPass renderpass) {
