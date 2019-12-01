@@ -59,23 +59,9 @@ namespace rnd {
         // create vulkan and ray tracing instance
         appBase = std::make_shared<vkt::GPUFramework>();
 
-        //cameraController = std::make_shared<CameraController>();
-        //cameraController->canvasSize = (glm::uvec2*) & this->windowWidth;
-        //cameraController->eyePos = &this->eyePos;
-        //cameraController->upVector = &this->upVector;
-        //cameraController->viewVector = &this->viewVector;
-
         // create VK instance
         auto instance = appBase->createInstance();
         if (!instance) { glfwTerminate(); exit(EXIT_FAILURE); }
-
-        // get physical devices
-        //auto physicalDevices = instance.enumeratePhysicalDevices();
-        //if (physicalDevices.size() < 0) { glfwTerminate(); std::cerr << "Vulkan does not supported, or driver broken." << std::endl; exit(0); }
-
-        // choice device
-        //if (gpuID >= physicalDevices.size()) { gpuID = physicalDevices.size() - 1; }
-        //if (gpuID < 0 || gpuID == -1) gpuID = 0;
 
         // create surface and get format by physical device
         auto gpu = appBase->getPhysicalDevice(gpuID);
@@ -105,20 +91,15 @@ namespace rnd {
     };
 
     void Renderer::InitPipeline() {
-        // create pipeline
-        //vk::Pipeline trianglePipeline = {};
+        // Pinning Lake
 
-        { // TODO: Update Descriptor Layout Maker (That Able Workaround Flags API Code Problem)
-            const auto pbindings = vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind | vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending;
-            const auto vkfl = vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(&pbindings);
-            const auto vkpi = vk::DescriptorSetLayoutCreateInfo().setPNext(&vkfl);
-            const std::vector<vk::DescriptorSetLayoutBinding> _bindings = {
-                //vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eAll),
-                //vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eAll),
-                vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
-                //vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eAll),
-            };
-            inputDescriptorLayout = device->least().createDescriptorSetLayout(vk::DescriptorSetLayoutCreateInfo(vkpi).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
+        {
+            auto desclay = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(),&inputDescriptorLayout);
+            desclay->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
+                                 vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
+                                 vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind |
+                                 vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount |
+                                 vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)->create();
         };
 
         {
@@ -132,40 +113,28 @@ namespace rnd {
             maker->link(&trianglePipeline)->linkPipelineLayout(&trianglePipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
         };
 
-        { // TODO: Update Descriptor Set Maker
-            //outputImage = std::make_shared<>(device, vk::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage);
-            outputImage = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
-            outputImage->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height);
+        {
+            auto imagemk = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
+            imagemk->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height);
+            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { imageos->imageBarrier(cmd); });
 
-            // Legacy Sampler Creator
             vk::SamplerCreateInfo samplerInfo = {};
             samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
             samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
             samplerInfo.minFilter = vk::Filter::eLinear;
             samplerInfo.magFilter = vk::Filter::eLinear;
             samplerInfo.compareEnable = false;
-            auto sampler = device->least().createSampler(samplerInfo); // create sampler
+            auto sampler = device->createSamplerMaker(samplerInfo);
+            auto inputds = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(),&inputDescriptorSet_)->linkLayout(&inputDescriptorLayout);
+            auto imageds = inputds->addImageDesc(2,0,1,true,true);
 
-            // desc texture texture
-            auto imageDesc = vk::DescriptorImageInfo();//.setSampler(sampler);
-            outputImage->createImageView(&imageDesc.imageView,api::ImageViewType::e2D,vk::Format::eR32G32B32A32Sfloat);
-
-            // submit as secondary
-            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { outputImage->imageBarrier(cmd); });
-
-            // TODO: Update Descriptor Set Maker
-            std::vector<vk::DescriptorSetLayout> dsLayouts = { vk::DescriptorSetLayout(inputDescriptorLayout) };
-            auto dsc = device->least().allocateDescriptorSets(vk::DescriptorSetAllocateInfo().setDescriptorPool(device->getDescriptorPool()).setPSetLayouts(&dsLayouts[0]).setDescriptorSetCount(1));
-            auto writeTmpl = vk::WriteDescriptorSet(inputDescriptorSet = dsc[0], 0, 0, 1, vk::DescriptorType::eStorageBuffer);
-
-            device->least().updateDescriptorSets(std::vector<vk::WriteDescriptorSet>{
-                api::WriteDescriptorSet(writeTmpl).setDescriptorType(vk::DescriptorType::eStorageImage).setDstBinding(2).setPImageInfo(&imageDesc),
-            }, {});
-
+            sampler->link(&imageds->sampler)->create();
+            imagemk->createImageView(&imageds->imageView,api::ImageViewType::e2D,vk::Format::eR32G32B32A32Sfloat);
+            imageds->imageLayout = imagemk->getTargetLayout();
+            inputDescriptorSet = inputds->create()->apply();
+            outputImage = imagemk;
         };
     };
-
-
 
     void Renderer::Draw() {
         auto n_semaphore = currSemaphore;
@@ -182,11 +151,6 @@ namespace rnd {
             auto viewport = vk::Viewport(0.0f, 0.0f, appBase->size().width, appBase->size().height, 0, 1.0f);
 
 
-            // create ray-tracing command (i.e. render vector graphics as is)
-
-
-
-
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
@@ -195,17 +159,11 @@ namespace rnd {
                 commandBuffer.setViewport(0, std::vector<vk::Viewport> { viewport });
                 commandBuffer.setScissor(0, std::vector<vk::Rect2D> { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, trianglePipeline);
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, trianglePipelineLayout, 0, inputDescriptorSet, nullptr);
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, trianglePipelineLayout, 0, inputDescriptorSet_, nullptr);
                 commandBuffer.draw(4, 1, 0, 0);
                 commandBuffer.endRenderPass();
                 commandBuffer.end();
             };
-
-            // submit as secondary
-            //radx::submitOnce(*device, appBase->queue, appBase->commandPool, [&](VkCommandBuffer cmd) {
-            //    vk::CommandBuffer(cmd).executeCommands({ rtCmdBuf });
-            //});
-
 
             // create render submission 
             std::vector<vk::Semaphore>
@@ -214,17 +172,14 @@ namespace rnd {
             std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
 
             // 
-            std::array<vk::CommandBuffer, 1> XPEH = { commandBuffer };
-            auto smbi = vk::SubmitInfo()
-                .setPCommandBuffers(XPEH.data()).setCommandBufferCount(XPEH.size())
-                .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
-                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size());
+            std::array<vk::CommandBuffer, 1> XPEHb = { commandBuffer };
 
             // submit command once
-            lancer::submitCmd(*device, appBase->queue, { commandBuffer }, smbi);
+            lancer::submitCmd(*device, appBase->queue, { commandBuffer }, vk::SubmitInfo()
+                    .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
+                    .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
+                    .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));
 
-            // delete command buffer 
-            //{ currentContext->queue->device->logical.freeCommandBuffers(currentContext->queue->commandPool, { commandBuffer }); commandBuffer = nullptr; };
         };
 
         // present for displaying of this image

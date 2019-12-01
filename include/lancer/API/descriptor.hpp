@@ -64,10 +64,10 @@ namespace lancer {
             operator const api::DescriptorSet&() const { return *lastdst; };
 
             // 
-            inline api::DescriptorImageInfo* addImageDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = true, const std::vector<api::Sampler>& samplers = {}) {
+            inline api::DescriptorImageInfo* addImageDesc(const uint32_t& dstBinding=0u, const uint32_t& dstArrayElement=0u, const uint32_t& descriptorCount=1u, const bool& uniform = true, const bool& combined = false, const std::vector<api::Sampler>& samplers = {}) {
                 const uintptr_t pt0 = descriptorHeap.size();
                 descriptorHeap.resize(pt0,pt0+sizeof(api::DescriptorImageInfo)*descriptorCount);
-                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(api::DescriptorType::eSampledImage):(api::DescriptorType::eStorageImage),pt0,sizeof(api::DescriptorImageInfo)});
+                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{dstBinding,dstArrayElement,descriptorCount,uniform?(combined?api::DescriptorType::eCombinedImageSampler:api::DescriptorType::eSampledImage):(api::DescriptorType::eStorageImage),pt0,sizeof(api::DescriptorImageInfo)});
                 return (api::DescriptorImageInfo*)(&descriptorHeap[pt0]);
             };
 
@@ -87,8 +87,10 @@ namespace lancer {
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            inline DescriptorSetMaker&& create() { // TODO: create descriptor set and layout
-                return shared_from_this(); };
+            inline DescriptorSetMaker&& create() {
+                *lastdst = device->least().allocateDescriptorSets(info.setDescriptorPool(device->getDescriptorPool()).setPSetLayouts(dlayout).setDescriptorSetCount(1))[0];
+                return shared_from_this();
+            };
 
             inline DescriptorSetMaker&& link(api::DescriptorSet* desc) { lastdst = desc; return shared_from_this(); };
             inline DescriptorSetMaker&& linkLayout(api::DescriptorSetLayout* lays) { dlayout = lays; return shared_from_this(); };

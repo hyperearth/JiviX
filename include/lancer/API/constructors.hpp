@@ -21,10 +21,14 @@ namespace lancer {
         return std::make_shared<Buffer_T>(shared_from_this(),info,lastbuf);
     };
 
-    inline ImageMaker&& Device_T::createImageMaker(const api::ImageCreateInfo& info, api::Image* lastbuf){
-        return std::make_shared<Image_T>(shared_from_this(),info,lastbuf);
+    inline ImageMaker&& Device_T::createImageMaker(const api::ImageCreateInfo& info, api::Image* lastimg){
+        return std::make_shared<Image_T>(shared_from_this(),info,lastimg);
     };
-    
+
+    inline SamplerMaker&& Device_T::createSamplerMaker(const api::SamplerCreateInfo& sfc, api::Sampler* lastsamp){
+        return std::make_shared<Sampler_T>(shared_from_this(),sfc,lastsamp);
+    };
+
     inline GraphicsPipelineMaker&& Device_T::createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info, api::Pipeline* pipeline, const uint32_t& width, const uint32_t& height){
         return std::make_shared<GraphicsPipeline_T>(shared_from_this(),info,pipeline,width,height);
     };

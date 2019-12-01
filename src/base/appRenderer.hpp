@@ -29,10 +29,11 @@ namespace rnd {
             // Pipeline Layout
             api::Pipeline trianglePipeline;
             api::PipelineLayout trianglePipelineLayout;
-            api::DescriptorSet inputDescriptorSet;
+            api::DescriptorSet inputDescriptorSet_;
             api::DescriptorSetLayout inputDescriptorLayout;
             api::Image outputImage_;
             lancer::ImageMaker outputImage;
+            lancer::DescriptorSetMaker inputDescriptorSet;
 
             double tPastFrameTime = 0.f;
             float guiScale = 1.0f;

@@ -231,11 +231,12 @@ namespace lancer {
             //
             inline PipelineLayoutMaker&& createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info = {}, api::PipelineLayout* playout = nullptr);
             inline BufferMaker&& createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);
-            inline ImageMaker&& createImageMaker(const api::ImageCreateInfo& bfc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastbuf = nullptr);
-            inline RenderPassMaker&& createRenderPassMaker(const api::RenderPassCreateInfo& bfc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);
+            inline SamplerMaker&& createSamplerMaker(const api::SamplerCreateInfo& sfc = {}, api::Sampler* lastsamp = nullptr);
+            inline ImageMaker&& createImageMaker(const api::ImageCreateInfo& ifc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastimg = nullptr);
+            inline RenderPassMaker&& createRenderPassMaker(const api::RenderPassCreateInfo& rpc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);
             inline GraphicsPipelineMaker&& createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
-            inline DescriptorSetLayoutMaker&& createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* pipeline = nullptr);
-            inline DescriptorSetMaker&& createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* pipeline = nullptr);
+            inline DescriptorSetLayoutMaker&& createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* dlayout = nullptr);
+            inline DescriptorSetMaker&& createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* descset = nullptr);
             inline SBTHelper&& createSBTHelper(api::Pipeline* pipeline = nullptr);
             template<class T = MemoryAllocator_T> inline MemoryAllocator& createAllocator(const uintptr_t& info = uintptr_t(nullptr));
     };
