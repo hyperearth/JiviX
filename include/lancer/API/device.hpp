@@ -206,6 +206,7 @@ namespace lancer {
                     volkLoadDevice(*device);
 #endif
                 };
+                return shared_from_this();
             };
 
             // Get original Vulkan link 

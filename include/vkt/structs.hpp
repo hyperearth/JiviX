@@ -23,11 +23,12 @@ namespace vkt {
         api::Semaphore semaphore = {};
     };
 
-    // vertex layout
-    struct VertexLayout : public std::enable_shared_from_this<VertexLayout> {
-        std::vector<api::VertexInputBindingDescription> inputBindings = {};
-        std::vector<api::VertexInputAttributeDescription> inputAttributes = {};
-    };
+    // vertex layout (OUTDATED?!)
+    // GraphicsPipelineMaker include that...
+    //struct VertexLayout : public std::enable_shared_from_this<VertexLayout> {
+    //    std::vector<api::VertexInputBindingDescription> inputBindings = {};
+    //    std::vector<api::VertexInputAttributeDescription> inputAttributes = {};
+    //};
 
     struct GeometryInstance {
         //float transform[12];

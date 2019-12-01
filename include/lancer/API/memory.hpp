@@ -12,18 +12,18 @@ namespace lancer {
             MemoryAllocator allocator = nullptr;
 
         public: 
-            virtual void free() {};
-            virtual uintptr_t getPtr() { return 0u; }; // xPEH TB
-            virtual uintptr_t getCIP() { return 0u; }; // xPEH TB
-            virtual uint8_t* getMapped() {  return nullptr; };
+            inline virtual void free() {};
+            inline virtual uintptr_t getPtr() { return 0u; }; // xPEH TB
+            inline virtual uintptr_t getCIP() { return 0u; }; // xPEH TB
+            inline virtual uint8_t* getMapped() {  return nullptr; };
 
             ~MemoryAllocation_T(){ this->free(); };
              MemoryAllocation_T(const MemoryAllocator& allocator = {}) : allocator(allocator) {};
 
-            virtual const DeviceMaker& getDevice() const;
-            virtual DeviceMaker& getDevice();
-            virtual const MemoryAllocator& getAllocator() const;
-            virtual MemoryAllocator& getAllocator();
+            inline virtual const DeviceMaker& getDevice() const;
+            inline virtual DeviceMaker& getDevice();
+            inline virtual const MemoryAllocator& getAllocator() const;
+            inline virtual MemoryAllocator& getAllocator();
     };
 
     class MemoryAllocator_T : public std::enable_shared_from_this<MemoryAllocator_T> {
@@ -36,22 +36,22 @@ namespace lancer {
             ~MemoryAllocator_T(){};
              MemoryAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {}) : device(device) {};
 
-            virtual void free() {};
-            virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) {};
-            virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) {};
-            virtual MemoryAllocator&& initialize() {};
-            virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) {};
-            virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) {};
-            virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) { return std::make_shared<MemoryAllocation_T>(shared_from_this()); };
-            virtual const DeviceMaker& getDevice() const { return device; };
-            virtual DeviceMaker& getDevice() { return device; };
+            inline virtual void free() {};
+            inline virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) { return shared_from_this(); };
+            inline virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) { return shared_from_this(); };
+            inline virtual MemoryAllocator&& initialize() { return shared_from_this(); };
+            inline virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) { return shared_from_this(); };
+            inline virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) { return shared_from_this(); };
+            inline virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) { return std::make_shared<MemoryAllocation_T>(shared_from_this()); };
+            inline virtual const DeviceMaker& getDevice() const { return device; };
+            inline virtual DeviceMaker& getDevice() { return device; };
     };
 
     // Define later
-    const DeviceMaker& MemoryAllocation_T::getDevice() const { return allocator->getDevice(); };
-    DeviceMaker& MemoryAllocation_T::getDevice() { return allocator->getDevice(); };
-    const MemoryAllocator& MemoryAllocation_T::getAllocator() const { return allocator; };
-    MemoryAllocator& MemoryAllocation_T::getAllocator() { return allocator; };
+    inline const DeviceMaker& MemoryAllocation_T::getDevice() const { return allocator->getDevice(); };
+    inline DeviceMaker& MemoryAllocation_T::getDevice() { return allocator->getDevice(); };
+    inline const MemoryAllocator& MemoryAllocation_T::getAllocator() const { return allocator; };
+    inline MemoryAllocator& MemoryAllocation_T::getAllocator() { return allocator; };
 
     // 
     inline DeviceMaker&& Device_T::initialize() {

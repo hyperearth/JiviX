@@ -4,6 +4,13 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+
+// Currently Windows Only Supported
+#if (defined(_WIN32) || defined(__MINGW32__) || defined(_MSC_VER_) || defined(__MINGW64__)) 
+#include <windows.h> // Fix HMODULE Type Error
+#endif
+
+// TODO: Linux Support 
 #include <vulkan/vulkan.hpp>
 
 namespace lancer {

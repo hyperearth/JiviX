@@ -67,6 +67,7 @@ namespace lancer {
                 renderPassInfo.dependencyCount = (uint32_t)s.subpassDependencies.size();
                 renderPassInfo.pDependencies = s.subpassDependencies.data();
                 *renderPass = device->least().createRenderPass(renderPassInfo);
+                return shared_from_this();
             };
 
             inline RenderPassMaker&& addDependency(const uint32_t& srcSubpass = 0u, const uint32_t& dstSubpass = 0u) {

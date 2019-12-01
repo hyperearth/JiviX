@@ -189,7 +189,7 @@ namespace lancer {
             // Linking Horse 
             GraphicsPipelineMaker&& link(api::Pipeline* pipeline = nullptr) { this->pipeline = pipeline; return shared_from_this(); };
             GraphicsPipelineMaker&& linkPipelineLayout(api::PipelineLayout* ppal = nullptr) { this->playout = ppal; return shared_from_this(); };
-            GraphicsPipelineMaker&& linkRenderPass(api::RenderPass* rpass = nullptr) { this->renderPass = rpass; };
+            GraphicsPipelineMaker&& linkRenderPass(api::RenderPass* rpass = nullptr) { this->renderPass = rpass; return shared_from_this(); };
 
             // 
             GraphicsPipelineMaker&& create(bool defaultBlend=true) {

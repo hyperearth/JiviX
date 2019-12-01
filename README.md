@@ -22,7 +22,7 @@ Writing for C++20 prior...
 - Commercial      : Under Consideration
 - Execute Day     : [2020:Q2]
 - Based On        : RadX, Voron, vkt
-- To Do           : Add VkResult and vk::Result supports, use dual-arguments
+- To Do           : Add VkResult and vk::Result supports, use dual-arguments, Use Dedicated Implementations (`.hpp` and `.cpp`)
 
 Date: 19.11.2019 @helixd-2k18
 ```

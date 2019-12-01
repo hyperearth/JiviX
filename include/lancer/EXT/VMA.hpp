@@ -39,15 +39,15 @@ namespace lancer {
              VMAllocation_T(const VMAllocator& allocator = {}, const VMAllocation_B& allocation = {}) : allocator(allocator), allocation(allocation) {
             };
 
-            virtual void free() override {}; // after notify for de-allocation
-            virtual uintptr_t getCIP() override { return (uintptr_t)(&allocation.alcmc); };
-            virtual uintptr_t getPtr() override { return (uintptr_t)(&allocation.alloc); };
-            virtual uint8_t* getMapped() override { return (uint8_t*)allocation.alcmc.pMappedData; };
+            inline virtual void free() override {}; // after notify for de-allocation
+            inline virtual uintptr_t getCIP() override { return (uintptr_t)(&allocation.alcmc); };
+            inline virtual uintptr_t getPtr() override { return (uintptr_t)(&allocation.alloc); };
+            inline virtual uint8_t* getMapped() override { return (uint8_t*)allocation.alcmc.pMappedData; };
 
-            virtual const DeviceMaker& getDevice() const;
-            virtual DeviceMaker& getDevice();
-            virtual const MemoryAllocator& getAllocator() const;
-            virtual MemoryAllocator& getAllocator();
+            inline virtual const DeviceMaker& getDevice() const;
+            inline virtual DeviceMaker& getDevice();
+            inline virtual const MemoryAllocator& getAllocator() const;
+            inline virtual MemoryAllocator& getAllocator();
 
             // TODO: smart de-allocate memory 
             //~VMAllocation(){
@@ -68,17 +68,17 @@ namespace lancer {
             VMAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {}) : device(dvc) { amc = *((const VmaAllocatorCreateInfo*)info); this->initialize(); };
 
             // 
-            virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
+            inline virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
                 return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
 
             // 
-            virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
+            inline virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
                 vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
                 return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
 
             // Sometimes required special allocation
-            virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) override {
+            inline virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) override {
                 auto vma_info = (VmaAllocationCreateInfo*)info;
                 auto allocation = VMAllocation_B();
                 vmaAllocateMemory(vma,(VkMemoryRequirements*)&req.memoryRequirements,vma_info,&allocation.alloc,&allocation.alcmc);
@@ -86,13 +86,13 @@ namespace lancer {
             };
 
             //
-            virtual const DeviceMaker& getDevice() const override { return device; };
-            virtual DeviceMaker& getDevice() override { return device; };
+            inline virtual const DeviceMaker& getDevice() const override { return device; };
+            inline virtual DeviceMaker& getDevice() override { return device; };
 
             //
-            virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) override { this->device = std::move(device); return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
-            virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) override { this->device = device; return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
-            virtual MemoryAllocator&& initialize() override {
+            inline virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) override { this->device = std::move(device); return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+            inline virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) override { this->device = device; return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+            inline virtual MemoryAllocator&& initialize() override {
                 amc.pVulkanFunctions = nullptr;
 
 #ifdef VOLK_H_
@@ -138,8 +138,8 @@ namespace lancer {
             };
     };
 
-    const DeviceMaker& VMAllocation_T::getDevice() const { return allocator->getDevice(); };
-    DeviceMaker& VMAllocation_T::getDevice() { return allocator->getDevice(); };
-    const MemoryAllocator& VMAllocation_T::getAllocator() const { return (MemoryAllocator&)allocator; };
-    MemoryAllocator& VMAllocation_T::getAllocator() { return (MemoryAllocator&)allocator; };
+    inline const DeviceMaker& VMAllocation_T::getDevice() const { return allocator->getDevice(); };
+    inline DeviceMaker& VMAllocation_T::getDevice() { return allocator->getDevice(); };
+    inline const MemoryAllocator& VMAllocation_T::getAllocator() const { return (MemoryAllocator&)allocator; };
+    inline MemoryAllocator& VMAllocation_T::getAllocator() { return (MemoryAllocator&)allocator; };
 };
