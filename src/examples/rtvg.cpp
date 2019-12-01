@@ -116,7 +116,7 @@ namespace rnd {
         {
             auto imagemk = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
             imagemk->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height);
-            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { imageos->imageBarrier(cmd); });
+            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { imagemk->imageBarrier(cmd); });
 
             vk::SamplerCreateInfo samplerInfo = {};
             samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
