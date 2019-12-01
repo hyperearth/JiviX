@@ -69,14 +69,14 @@ namespace lancer {
             api::CommandBufferAllocateInfo& getAllocInfo() { return cmdinfo; };
             const api::CommandBufferAllocateInfo& getAllocInfo() const { return cmdinfo; };
             
-            CommandRecord&& reset() {
+            CommandRecord reset() {
                 cmdinfo = api::CommandBufferAllocateInfo{}, commands = {}, generated = false;
                 return shared_from_this(); };
-            CommandRecord&& pushCommand(const Command_T& command = {}) {
+            CommandRecord pushCommand(const Command_T& command = {}) {
                 commands.push_back(command);
                 return shared_from_this(); };
-            CommandRecord&& finish(api::CommandBuffer& cbuf, const bool& secondary = false);
-            CommandRecord&& finish(const bool& primary = false);
+            CommandRecord finish(api::CommandBuffer& cbuf, const bool& secondary = false);
+            CommandRecord finish(const bool& primary = false);
     };
 
     // PLANNED MULTI-THREADING SUPPORT
@@ -99,17 +99,17 @@ namespace lancer {
 
         // Bit Stupid Function for create command buffer 
         api::CommandBuffer& createCommandBuffer(const api::CommandBufferAllocateInfo& info = {}) { this->store.push_back(device->least().allocateCommandBuffers(info)[0]); return store.back(); }; // Through Store Buffer 
-        QueueHelper&& createCommandBuffer(api::CommandBuffer& cbuf, const api::CommandBufferAllocateInfo& info = {}) { cbuf = device->least().allocateCommandBuffers(info)[0]; return shared_from_this(); }; // Through Directly 
-        QueueHelper&& linkQueueFamilyIndex(const uint32_t& queueFamilyIndex = 0u) { this->queueFamilyIndex = queueFamilyIndex; return shared_from_this(); };
-        QueueHelper&& linkQueue(api::Queue& queue) { this->queue = &queue; return shared_from_this(); };
-        CommandRecord&& createCommandRecord() {
+        QueueHelper createCommandBuffer(api::CommandBuffer& cbuf, const api::CommandBufferAllocateInfo& info = {}) { cbuf = device->least().allocateCommandBuffers(info)[0]; return shared_from_this(); }; // Through Directly 
+        QueueHelper linkQueueFamilyIndex(const uint32_t& queueFamilyIndex = 0u) { this->queueFamilyIndex = queueFamilyIndex; return shared_from_this(); };
+        QueueHelper linkQueue(api::Queue& queue) { this->queue = &queue; return shared_from_this(); };
+        CommandRecord createCommandRecord() {
             cpool.queueFamilyIndex = this->queueFamilyIndex;
             pools.push_back(device->least().createCommandPool(cpool));
             return std::make_shared<CommandRecord_T>(shared_from_this(), &pools.back());
         };
 
         // TODO: Generate Execution Function 
-        Task&& createTask(api::CommandBuffer& cbuf, const api::PipelineStageFlags& waitDstStageMask = {}, const std::vector<api::Semaphore>& waitSemaphores = {}, const std::vector<api::Semaphore>& signalSemaphores = {}) {
+        Task createTask(api::CommandBuffer& cbuf, const api::PipelineStageFlags& waitDstStageMask = {}, const std::vector<api::Semaphore>& waitSemaphores = {}, const std::vector<api::Semaphore>& signalSemaphores = {}) {
             auto& queue = (api::Queue&)(*this->queue);
             auto& device = (api::Device&)(*this->device->least());
 
@@ -129,17 +129,17 @@ namespace lancer {
             };
             return std::make_shared<Task_T>(shared_from_this(), fn, &cbuf);
         };
-        Task&& createTask(const api::PipelineStageFlags& waitDstStageMask = {}, const std::vector<api::Semaphore>& waitSemaphores = {}, const std::vector<api::Semaphore>& signalSemaphores = {}) { return this->createTask(store.back(), waitDstStageMask, waitSemaphores, signalSemaphores); }; // Use Last Used api::CommandBuffer in store arrays 
+        Task createTask(const api::PipelineStageFlags& waitDstStageMask = {}, const std::vector<api::Semaphore>& waitSemaphores = {}, const std::vector<api::Semaphore>& signalSemaphores = {}) { return this->createTask(store.back(), waitDstStageMask, waitSemaphores, signalSemaphores); }; // Use Last Used api::CommandBuffer in store arrays 
     };
 
-    CommandRecord&& CommandRecord_T::finish(const bool& primary) {
+    CommandRecord CommandRecord_T::finish(const bool& primary) {
         cmdinfo.level = primary ? api::CommandBufferLevel::eSecondary : api::CommandBufferLevel::ePrimary;
         cmdinfo.commandPool = *cmdpool;
         cmdinfo.commandBufferCount = 1u;
         return this->finish(queue->createCommandBuffer(cmdinfo)); // currently useless until return api::CommandBuffer 
     };
 
-    CommandRecord&& CommandRecord_T::finish(api::CommandBuffer& cbuf, const bool& secondary) { // TODO: Generate Commands and Buffer
+    CommandRecord CommandRecord_T::finish(api::CommandBuffer& cbuf, const bool& secondary) { // TODO: Generate Commands and Buffer
         //cbuf = QueueMaker->createCommandBuffer(cmdinfo); // use queue for create command 
         for (auto& cmd : commands) {
             switch (CommandType(cmd.wType)) {

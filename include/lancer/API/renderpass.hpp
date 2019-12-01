@@ -20,25 +20,25 @@ namespace lancer {
 
             /// Begin an attachment description.
             /// After this you can call attachment* many times
-            inline RenderPassMaker&& addAttachment(const api::Format& format = api::Format::eR8G8B8A8Unorm) {
+            inline RenderPassMaker addAttachment(const api::Format& format = api::Format::eR8G8B8A8Unorm) {
                 api::AttachmentDescription desc{{}, format};
                 s.attachmentDescriptions.push_back(desc);
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&& link(api::RenderPass* rps) { renderPass = rps; return shared_from_this(); };
+            inline RenderPassMaker link(api::RenderPass* rps) { renderPass = rps; return shared_from_this(); };
 
             /// Start a subpass description.
             /// After this you can can call subpassColorAttachment many times
             /// and subpassDepthStencilAttachment once.
-            inline RenderPassMaker&& addSubpass(const api::PipelineBindPoint& bp) {
+            inline RenderPassMaker addSubpass(const api::PipelineBindPoint& bp) {
                 api::SubpassDescription desc{};
                 desc.pipelineBindPoint = bp;
                 s.subpassDescriptions.push_back(desc);
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&& subpassColorAttachment(const uint32_t& attachment = 0u, const api::ImageLayout& layout = api::ImageLayout::eColorAttachmentOptimal) {
+            inline RenderPassMaker subpassColorAttachment(const uint32_t& attachment = 0u, const api::ImageLayout& layout = api::ImageLayout::eColorAttachmentOptimal) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
@@ -50,7 +50,7 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&& subpassDepthStencilAttachment(const uint32_t& attachment = 0u, const api::ImageLayout& layout = api::ImageLayout::eDepthStencilAttachmentOptimal) {
+            inline RenderPassMaker subpassDepthStencilAttachment(const uint32_t& attachment = 0u, const api::ImageLayout& layout = api::ImageLayout::eDepthStencilAttachmentOptimal) {
                 api::SubpassDescription &subpass = s.subpassDescriptions.back();
                 auto *p = getAttachmentReference();
                 p->layout = layout;
@@ -59,7 +59,7 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&&  create() {
+            inline RenderPassMaker  create() {
                 renderPassInfo.attachmentCount = (uint32_t)s.attachmentDescriptions.size();
                 renderPassInfo.pAttachments = s.attachmentDescriptions.data();
                 renderPassInfo.subpassCount = (uint32_t)s.subpassDescriptions.size();
@@ -70,7 +70,7 @@ namespace lancer {
                 return shared_from_this();
             };
 
-            inline RenderPassMaker&& addDependency(const uint32_t& srcSubpass = 0u, const uint32_t& dstSubpass = 0u) {
+            inline RenderPassMaker addDependency(const uint32_t& srcSubpass = 0u, const uint32_t& dstSubpass = 0u) {
                 api::SubpassDependency desc{};
                 desc.srcSubpass = srcSubpass;
                 desc.dstSubpass = dstSubpass;

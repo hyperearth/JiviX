@@ -13,6 +13,7 @@
 #endif
 
 #define ENABLE_EXTENSION_VMA
+//#define GLFW_INCLUDE_VULKAN
 #include "utils.hpp"
 #include "structs.hpp"
 #include <GLFW/glfw3.h>
@@ -29,7 +30,7 @@ namespace vkt
         std::vector<const char*> wantedExtensions = {
             "VK_KHR_get_physical_device_properties2",
             "VK_KHR_get_surface_capabilities2",
-            "VK_KHR_display", "VK_KHR_surface",
+            "VK_KHR_display",
             "VK_EXT_direct_mode_display",
             "VK_EXT_swapchain_colorspace"
         };
@@ -82,6 +83,7 @@ namespace vkt
             "VK_KHR_shader_atomic_int64",
             "VK_KHR_shader_float16_int8",
             "VK_KHR_shader_float_controls",
+            //"VK_KHR_surface",
 
             "VK_NV_compute_shader_derivatives",
             "VK_NV_corner_sampled_image",
@@ -166,15 +168,13 @@ namespace vkt
         } applicationWindow = {};
 
     public:
-        InstanceMaker createInstance() {
+        InstanceMaker& createInstance() {
 
 #ifdef VOLK_H_
             volkInitialize();
 #endif
-
-            auto supportedVkApiVersion = 0u;
-            auto apiResult = vkEnumerateInstanceVersion(&supportedVkApiVersion);
-            if (supportedVkApiVersion < VK_MAKE_VERSION(1, 1, 0)) return instance;
+            const auto version = api::enumerateInstanceVersion();
+            if (version < VK_MAKE_VERSION(1, 1, 0)) return instance;
 
             // get required extensions
             unsigned int glfwExtensionCount = 0;
@@ -228,7 +228,7 @@ namespace vkt
             cinstanceinfo.ppEnabledLayerNames = layers.data();
 
             // 
-            instance = std::make_shared<Instance_T>(&_instance, cinstanceinfo);//->Create();
+            instance = std::make_shared<Instance_T>(cinstanceinfo, &_instance)->create();
 
             // get physical device for application
             physicalDevices = _instance.enumeratePhysicalDevices();
@@ -237,7 +237,7 @@ namespace vkt
             return instance;
         };
 
-        DeviceMaker&& createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
+        DeviceMaker createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
             // TODO: merge into Device class 
 
             // use extensions
@@ -307,23 +307,26 @@ namespace vkt
                     .setPpEnabledLayerNames(deviceValidationLayers.data()).setEnabledLayerCount(deviceValidationLayers.size()), &_device); // already created device now!
             };
 
+
+            
+
+
             // return device with queue pointer
             const uint32_t qptr = 0;
             this->fence = this->_device.createFence(api::FenceCreateInfo().setFlags({}));
             this->queueFamilyIndex = queueFamilyIndices[qptr];
             this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
             this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
-            return this->device
-                ->linkDescriptorPool(&this->_descriptorPool)
-                ->linkPhysicalHelper( this-> physicalHelper)
-                ->linkAllocator(this->allocator=std::make_shared<VMAllocator_T>(device))->initialize(); // Finally Initiate Device 
+            this->device->linkDescriptorPool(&this->_descriptorPool)->linkPhysicalHelper(this->physicalHelper)->create();
+            this->allocator = this->device->createAllocator<VMAllocator_T>()->initialize();
+            return this->device;
         };
 
         // create window and surface for this application (multi-window not supported)
         inline SurfaceWindow& createWindowSurface(GLFWwindow * window, uint32_t WIDTH, uint32_t HEIGHT, std::string title = "TestApp") {
             applicationWindow.window = window;
             applicationWindow.surfaceSize = api::Extent2D{ WIDTH, HEIGHT };
-            auto result = glfwCreateWindowSurface((VkInstance&)(*instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
+            auto result = glfwCreateWindowSurface((VkInstance&)(_instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
             if (result != VK_SUCCESS) { glfwTerminate(); exit(result); };
             return applicationWindow;
         }
@@ -332,7 +335,7 @@ namespace vkt
         inline SurfaceWindow& createWindowSurface(uint32_t WIDTH, uint32_t HEIGHT, std::string title = "TestApp") {
             applicationWindow.window = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), nullptr, nullptr);
             applicationWindow.surfaceSize = api::Extent2D{ WIDTH, HEIGHT };
-            auto result = glfwCreateWindowSurface((VkInstance&)(*instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
+            auto result = glfwCreateWindowSurface((VkInstance&)(_instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
             if (result != VK_SUCCESS) { glfwTerminate(); exit(result); };
             return applicationWindow;
         }

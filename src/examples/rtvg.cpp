@@ -38,12 +38,14 @@ namespace rnd {
         args::ValueFlag<int32_t> reflLV(parser, "reflection-level", "Level of reflections", { 'R' });
         args::ValueFlag<int32_t> trnsLV(parser, "transparency-level", "Level of transparency", { 'T' });
 
+        /* TESTING
         try { parser.ParseCLI(argc, argv); }
         catch (args::Help) { std::cout << parser; glfwTerminate(); exit(1); };
 
         // read arguments
         if (deviceflag) gpuID = args::get(deviceflag);
         if (shaderflag) shaderPrefix = args::get(shaderflag);
+        */
     };
 
     void Renderer::Init(uint32_t windowWidth, uint32_t windowHeight, bool enableSuperSampling) {

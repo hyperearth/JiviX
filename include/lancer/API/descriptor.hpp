@@ -19,8 +19,8 @@ namespace lancer {
             DescriptorSetLayout_T(const DeviceMaker& device, const api::DescriptorSetLayoutCreateInfo& info = {}, api::DescriptorSetLayout* dlayout = nullptr) : device(device), dlayout(dlayout), info(info) {
             };
 
-            inline DescriptorSetLayoutMaker&& link(api::DescriptorSetLayout& lays) { dlayout = &lays; return shared_from_this(); };
-            inline DescriptorSetLayoutMaker&& pushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
+            inline DescriptorSetLayoutMaker link(api::DescriptorSetLayout& lays) { dlayout = &lays; return shared_from_this(); };
+            inline DescriptorSetLayoutMaker pushBinding(const api::DescriptorSetLayoutBinding& binding = {}, const api::DescriptorBindingFlagsEXT& flags = {}){
                 _bindings.push_back(binding); _flags.push_back(flags);
                 return shared_from_this(); };
 
@@ -33,7 +33,7 @@ namespace lancer {
             inline const api::DescriptorBindingFlagsEXT& getBindingFlags() const { return _flags.back(); };
 //api::DescriptorSetLayout* dlayout = nullptr
             // 
-            inline DescriptorSetLayoutMaker&& create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
+            inline DescriptorSetLayoutMaker create(const api::DescriptorSetLayoutCreateFlagBits& flags = {}) {
                 const auto vkfl = api::DescriptorSetLayoutBindingFlagsCreateInfoEXT().setPBindingFlags(_flags.data()).setBindingCount(_flags.size());
                 *dlayout = device->least().createDescriptorSetLayout(api::DescriptorSetLayoutCreateInfo().setFlags(flags).setPNext(&vkfl).setPBindings(_bindings.data()).setBindingCount(_bindings.size()));
                 return shared_from_this(); };
@@ -87,16 +87,16 @@ namespace lancer {
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
-            inline DescriptorSetMaker&& create() {
+            inline DescriptorSetMaker create() {
                 *lastdst = device->least().allocateDescriptorSets(info.setDescriptorPool(device->getDescriptorPool()).setPSetLayouts(dlayout).setDescriptorSetCount(1))[0];
                 return shared_from_this();
             };
 
-            inline DescriptorSetMaker&& link(api::DescriptorSet* desc) { lastdst = desc; return shared_from_this(); };
-            inline DescriptorSetMaker&& linkLayout(api::DescriptorSetLayout* lays) { dlayout = lays; return shared_from_this(); };
+            inline DescriptorSetMaker link(api::DescriptorSet* desc) { lastdst = desc; return shared_from_this(); };
+            inline DescriptorSetMaker linkLayout(api::DescriptorSetLayout* lays) { dlayout = lays; return shared_from_this(); };
 
             // 
-            inline DescriptorSetMaker&& apply(){
+            inline DescriptorSetMaker apply(){
                 api::DescriptorUpdateTemplateCreateInfo createInfo{};
                 createInfo.templateType = api::DescriptorUpdateTemplateType::eDescriptorSet;
                 createInfo.flags = {};

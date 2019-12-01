@@ -6,7 +6,7 @@
 namespace lancer {
     // Vookoo-Like 
 
-    inline auto&& disabledBlendState(){
+    inline auto disabledBlendState(){
         api::PipelineColorBlendAttachmentState blend{};
         blend.blendEnable = 0;
         blend.srcColorBlendFactor = api::BlendFactor::eOne;
@@ -20,7 +20,7 @@ namespace lancer {
         return std::move(blend);
     };
 
-    inline auto&& initialBlendState(const bool& enable = true){
+    inline auto initialBlendState(const bool& enable = true){
         api::PipelineColorBlendAttachmentState blend = {};
         blend.blendEnable = enable;
         blend.srcColorBlendFactor = api::BlendFactor::eSrcAlpha;
@@ -34,7 +34,7 @@ namespace lancer {
         return std::move(blend);
     };
 
-    inline auto&& initialDepthStencil(){
+    inline auto initialDepthStencil(){
         api::PipelineDepthStencilStateCreateInfo depthStencilState_ = {};
         depthStencilState_.depthTestEnable = false;
         depthStencilState_.depthWriteEnable = true;
@@ -147,52 +147,52 @@ namespace lancer {
             inline const auto& getDynamicState() const { return dynamicState_.back(); };
 
             // 
-            GraphicsPipelineMaker&& setCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
-            GraphicsPipelineMaker&& setViewport(const api::Viewport &value) { viewport_ = value; return shared_from_this(); };
-            GraphicsPipelineMaker&& setScissor(const api::Rect2D &value) { scissor_ = value; return shared_from_this(); };
-            GraphicsPipelineMaker&& setColorBlendState(const api::PipelineColorBlendStateCreateInfo  &value) { colorBlendState_ = value; return shared_from_this(); }
-            GraphicsPipelineMaker&& setDepthStencilState(const api::PipelineDepthStencilStateCreateInfo &value) { depthStencilState_ = value; return shared_from_this(); }
-            GraphicsPipelineMaker&& setMultisampleState(const api::PipelineMultisampleStateCreateInfo &value) { multisampleState_ = value; return shared_from_this(); }
-            GraphicsPipelineMaker&& setRasterizationState(const api::PipelineRasterizationStateCreateInfo &value) { rasterizationState_ = value; return shared_from_this(); }
-            GraphicsPipelineMaker&& setInputAssemblyState(const api::PipelineInputAssemblyStateCreateInfo &value) { inputAssemblyState_ = value; return shared_from_this(); }
-            GraphicsPipelineMaker&& setDynamicState(const api::DynamicState& value) { dynamicState_.push_back(value); return shared_from_this(); }
+            GraphicsPipelineMaker setCreateInfo(const api::GraphicsPipelineCreateInfo &value) { info = value; return shared_from_this(); };
+            GraphicsPipelineMaker setViewport(const api::Viewport &value) { viewport_ = value; return shared_from_this(); };
+            GraphicsPipelineMaker setScissor(const api::Rect2D &value) { scissor_ = value; return shared_from_this(); };
+            GraphicsPipelineMaker setColorBlendState(const api::PipelineColorBlendStateCreateInfo  &value) { colorBlendState_ = value; return shared_from_this(); }
+            GraphicsPipelineMaker setDepthStencilState(const api::PipelineDepthStencilStateCreateInfo &value) { depthStencilState_ = value; return shared_from_this(); }
+            GraphicsPipelineMaker setMultisampleState(const api::PipelineMultisampleStateCreateInfo &value) { multisampleState_ = value; return shared_from_this(); }
+            GraphicsPipelineMaker setRasterizationState(const api::PipelineRasterizationStateCreateInfo &value) { rasterizationState_ = value; return shared_from_this(); }
+            GraphicsPipelineMaker setInputAssemblyState(const api::PipelineInputAssemblyStateCreateInfo &value) { inputAssemblyState_ = value; return shared_from_this(); }
+            GraphicsPipelineMaker setDynamicState(const api::DynamicState& value) { dynamicState_.push_back(value); return shared_from_this(); }
 
             // 
-            GraphicsPipelineMaker&& pushVertexBinding(const uint32_t& binding_, const uint32_t& stride_ = 4u, const api::VertexInputRate& inputRate_ = api::VertexInputRate::eVertex) {
+            GraphicsPipelineMaker pushVertexBinding(const uint32_t& binding_, const uint32_t& stride_ = 4u, const api::VertexInputRate& inputRate_ = api::VertexInputRate::eVertex) {
                 vertexBindingDescriptions_.push_back({binding_, stride_, inputRate_});
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& pushVertexBinding(const api::VertexInputBindingDescription &desc = {}) {
+            GraphicsPipelineMaker pushVertexBinding(const api::VertexInputBindingDescription &desc = {}) {
                 vertexBindingDescriptions_.push_back(desc);
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& pushVertexAttribute(const uint32_t& location_, const uint32_t& binding_ = 0u, api::Format format_ = api::Format::eR32G32B32A32Sfloat, const uint32_t& offset_ = 0u) {
+            GraphicsPipelineMaker pushVertexAttribute(const uint32_t& location_, const uint32_t& binding_ = 0u, api::Format format_ = api::Format::eR32G32B32A32Sfloat, const uint32_t& offset_ = 0u) {
                 vertexAttributeDescriptions_.push_back({location_, binding_, format_, offset_});
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& pushVertexAttribute(const api::VertexInputAttributeDescription &desc = {}) {
+            GraphicsPipelineMaker pushVertexAttribute(const api::VertexInputAttributeDescription &desc = {}) {
                 vertexAttributeDescriptions_.push_back(desc);
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& pushDynamicState(const api::DynamicState& state = {}){ // TODO: existence check 
+            GraphicsPipelineMaker pushDynamicState(const api::DynamicState& state = {}){ // TODO: existence check 
                 dynamicState_.push_back(state);
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& pushShaderModule(const api::PipelineShaderStageCreateInfo& module = {}){ // TODO: existence check 
+            GraphicsPipelineMaker pushShaderModule(const api::PipelineShaderStageCreateInfo& module = {}){ // TODO: existence check 
                 modules_.push_back(module);
                 return shared_from_this(); };
 
-            GraphicsPipelineMaker&& pushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = initialBlendState()) {
+            GraphicsPipelineMaker pushColorBlendAttachment(const api::PipelineColorBlendAttachmentState& state = initialBlendState()) {
                 colorBlendAttachments_.push_back(state);
                 return shared_from_this(); };
 
             // Linking Horse 
-            GraphicsPipelineMaker&& link(api::Pipeline* pipeline = nullptr) { this->pipeline = pipeline; return shared_from_this(); };
-            GraphicsPipelineMaker&& linkPipelineLayout(api::PipelineLayout* ppal = nullptr) { this->playout = ppal; return shared_from_this(); };
-            GraphicsPipelineMaker&& linkRenderPass(api::RenderPass* rpass = nullptr) { this->renderPass = rpass; return shared_from_this(); };
+            GraphicsPipelineMaker link(api::Pipeline* pipeline = nullptr) { this->pipeline = pipeline; return shared_from_this(); };
+            GraphicsPipelineMaker linkPipelineLayout(api::PipelineLayout* ppal = nullptr) { this->playout = ppal; return shared_from_this(); };
+            GraphicsPipelineMaker linkRenderPass(api::RenderPass* rpass = nullptr) { this->renderPass = rpass; return shared_from_this(); };
 
             // 
-            GraphicsPipelineMaker&& create(bool defaultBlend=true) {
+            GraphicsPipelineMaker create(bool defaultBlend=true) {
 
                 // Add default colour blend attachment if necessary.
                 if (colorBlendAttachments_.empty() && defaultBlend) {

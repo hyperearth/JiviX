@@ -35,39 +35,39 @@ namespace lancer {
             };
 
             // const MemoryAllocator& mem
-            //inline BufferMaker&& linkAllocator(const MemoryAllocator& mem) { allocator = mem; return shared_from_this(); };
+            //inline BufferMaker linkAllocator(const MemoryAllocator& mem) { allocator = mem; return shared_from_this(); };
 
             //  
-            inline BufferMaker&& queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
+            inline BufferMaker queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 bfc.queueFamilyIndexCount = indices.size();
                 bfc.pQueueFamilyIndices = indices.data();
                 return shared_from_this(); };
 
             // Link Editable Buffer 
-            inline BufferMaker&& link(api::Buffer* buf = nullptr) { lastbuf = buf; 
+            inline BufferMaker link(api::Buffer* buf = nullptr) { lastbuf = buf; 
                 return shared_from_this(); };
 
             // 
-            inline BufferMaker&& allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
+            inline BufferMaker allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
                 mem->allocateForBuffer(lastbuf,allocation=mem->createAllocation(),bfc,ptx); 
                 return shared_from_this(); };
 
             // 
-            inline BufferMaker&& allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocatorPtr(),ptx); };
+            inline BufferMaker allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocatorPtr(),ptx); };
 
             // 
-            inline BufferMaker&& create() { // 
+            inline BufferMaker create() { // 
                 *lastbuf = device->least().createBuffer(bfc);
                 return shared_from_this(); };
 
             // Create With Buffer View 
-            inline BufferMaker&& createView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
+            inline BufferMaker createView(api::BufferView* bfv, const api::Format& format, const uintptr_t& offset = 0u, const size_t& size = 16u) {
                 (*bfv = allocation->getDevice()->least().createBufferView(api::BufferViewCreateInfo{{}, *lastbuf, format, offset, size})); lbv = bfv;
                 return shared_from_this(); };
 
             // Create With Region
             // TODO: another format 
-            inline BufferRegionU8Maker&& createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
+            inline BufferRegionU8Maker createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
     };
 
 
@@ -122,7 +122,7 @@ namespace lancer {
 
     // defer implement 
     // TODO: another format of BufferRegion
-    inline BufferRegionU8Maker&& Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+    inline BufferRegionU8Maker Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
         (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
         return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size));
     };

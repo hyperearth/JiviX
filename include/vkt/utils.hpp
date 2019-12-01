@@ -39,6 +39,13 @@
 #define NSM api
 #endif
 
+// Currently Windows Only Supported
+#if (defined(_WIN32) || defined(__MINGW32__) || defined(_MSC_VER_) || defined(__MINGW64__)) 
+#include <windows.h> // Fix HMODULE Type Error
+#endif
+
+//#include <volk/volk.h>
+//#define GLFW_INCLUDE_VULKAN
 #include <lancer/lancer.hpp>
 
 namespace vkt {

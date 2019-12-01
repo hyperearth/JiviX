@@ -109,18 +109,19 @@ namespace lancer {
         };
     };
 
+    // TODO: Enumerable Devices 
     class Instance_T : public std::enable_shared_from_this<Instance_T> {
         protected: 
             std::vector<api::PhysicalDevice> devices = {};
             api::Instance* lastinst = {};
             api::InstanceCreateInfo cif = {};
             
-        public: 
-            Instance_T(api::Instance* instance = nullptr, const api::InstanceCreateInfo& info = {}) : lastinst(instance), cif(info) {
-                //*instance = api::createInstance(info);
-                lastinst = instance;
+        public:
+            Instance_T(const api::InstanceCreateInfo& info = {}, api::Instance* instance = nullptr) : lastinst(instance), cif(info) {
+                if (lastinst) { *lastinst = api::createInstance(cif); };
             };
-
+            inline InstanceMaker link(api::Instance* instance = nullptr) {  lastinst = instance; return std::move(shared_from_this()); };
+            inline InstanceMaker create() { if (lastinst) { *lastinst = api::createInstance(cif); return std::move(shared_from_this()); }; };
             inline api::Instance& least() { return *lastinst; };
             inline const api::Instance& least() const { return *lastinst; };
             operator api::Instance&() { return *lastinst; };
@@ -182,7 +183,7 @@ namespace lancer {
             const api::PhysicalDevice& least() const { return physicalDevice; };
 
             // 
-            inline DeviceMaker&& createDeviceMaker(const api::DeviceCreateInfo& info = {}, api::Device* device = nullptr);
+            inline DeviceMaker createDeviceMaker(const api::DeviceCreateInfo& info = {}, api::Device* device = nullptr);
     };
 
     class Device_T : public std::enable_shared_from_this<Device_T> {
@@ -196,10 +197,17 @@ namespace lancer {
             MemoryAllocator allocator = {};
 
         public: 
-            Device_T(const PhysicalDeviceHelper& physicalHelper = {}, const api::DeviceCreateInfo& dfc = {}, api::Device* device = nullptr) : device(device), dfc(dfc), physicalHelper(physicalHelper) { this->create(); };
+            Device_T(const PhysicalDeviceHelper& physicalHelper = {}, const api::DeviceCreateInfo& dfc = {}, api::Device* device = nullptr) : device(device), dfc(dfc), physicalHelper(physicalHelper) { 
+                if (physicalHelper && device && !(*device)) {
+                    *device = physicalHelper->least().createDevice(dfc);
+#ifdef VOLK_H_
+                    volkLoadDevice(*device);
+#endif
+                };
+            };
 
             // Added Deferred Method for Create Device
-            inline DeviceMaker&& create() {
+            inline DeviceMaker create() {
                 if (physicalHelper && device && !(*device)) {
                     *device = physicalHelper->least().createDevice(dfc);
 #ifdef VOLK_H_
@@ -214,11 +222,11 @@ namespace lancer {
             operator const api::Device&() const { return *device; };
 
             // 
-            inline DeviceMaker&& initialize();
-            inline DeviceMaker&& linkDescriptorPool(api::DescriptorPool* pool = nullptr) { this->descriptorPool = pool; return shared_from_this(); };
-            inline DeviceMaker&& linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
-            inline DeviceMaker&& linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
-            inline DeviceMaker&& link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
+            inline DeviceMaker initialize();
+            inline DeviceMaker linkDescriptorPool(api::DescriptorPool* pool = nullptr) { this->descriptorPool = pool; return shared_from_this(); };
+            inline DeviceMaker linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
+            inline DeviceMaker linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
+            inline DeviceMaker link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
 
             // Original Type
             inline const auto& getAllocatorPtr() const { return this->allocator; };
@@ -239,17 +247,17 @@ namespace lancer {
             inline const auto& getPipelineCache() const { return (api::PipelineCache&)(*this->pipelineCache); };
 
             //
-            inline PipelineLayoutMaker&& createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info = {}, api::PipelineLayout* playout = nullptr);
-            inline BufferMaker&& createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);
-            inline SamplerMaker&& createSamplerMaker(const api::SamplerCreateInfo& sfc = {}, api::Sampler* lastsamp = nullptr);
-            inline ImageMaker&& createImageMaker(const api::ImageCreateInfo& ifc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastimg = nullptr);
-            inline RenderPassMaker&& createRenderPassMaker(const api::RenderPassCreateInfo& rpc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);
-            inline GraphicsPipelineMaker&& createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
-            inline DescriptorSetLayoutMaker&& createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* dlayout = nullptr);
-            inline DescriptorSetMaker&& createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* descset = nullptr);
+            inline PipelineLayoutMaker createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info = {}, api::PipelineLayout* playout = nullptr);
+            inline BufferMaker createBufferMaker(const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr);
+            inline SamplerMaker createSamplerMaker(const api::SamplerCreateInfo& sfc = {}, api::Sampler* lastsamp = nullptr);
+            inline ImageMaker createImageMaker(const api::ImageCreateInfo& ifc = api::ImageCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Image* lastimg = nullptr);
+            inline RenderPassMaker createRenderPassMaker(const api::RenderPassCreateInfo& rpc = api::RenderPassCreateInfo(), api::RenderPass* lastbuf = nullptr);
+            inline GraphicsPipelineMaker createGraphicsPipelineMaker(const api::GraphicsPipelineCreateInfo& info = {}, api::Pipeline* pipeline = nullptr, const uint32_t& width = 1u, const uint32_t& height = 1u);
+            inline DescriptorSetLayoutMaker createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* dlayout = nullptr);
+            inline DescriptorSetMaker createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* descset = nullptr);
 #ifdef EXTENSION_RTX
-            inline SBTHelper&& createSBTHelper(api::Pipeline* pipeline = nullptr);
+            inline SBTHelper createSBTHelper(api::Pipeline* pipeline = nullptr);
 #endif
-            template<class T = MemoryAllocator_T> inline MemoryAllocator& createAllocator(const uintptr_t& info = uintptr_t(nullptr));
+            template<class T = MemoryAllocator_T> inline MemoryAllocator& createAllocator(const uintptr_t& info = 0u);
     };
 };

@@ -66,7 +66,7 @@ namespace lancer {
         return (hndl = device.createShaderModule(makeShaderModuleInfo(code)));
     };
 
-    static inline auto&& createShaderModule(const api::Device& device, const std::vector<uint32_t>& code) {
+    static inline auto createShaderModule(const api::Device& device, const std::vector<uint32_t>& code) {
         auto sm = api::ShaderModule{}; return std::move(createShaderModuleIntrusive(device, code, sm));
     };
 
@@ -81,7 +81,7 @@ namespace lancer {
     };
 
     // create shader module
-    static inline auto&& makePipelineStageInfo(const api::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", api::ShaderStageFlagBits stage = api::ShaderStageFlagBits::eCompute) {
+    static inline auto makePipelineStageInfo(const api::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", api::ShaderStageFlagBits stage = api::ShaderStageFlagBits::eCompute) {
         api::PipelineShaderStageCreateInfo spi = {};
         createShaderModuleIntrusive(device, code, spi.module);
         spi.pName = entry;
@@ -91,7 +91,7 @@ namespace lancer {
     };
 
     // create shader module
-    static inline auto&& makeComputePipelineStageInfo(const api::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", const uint32_t& subgroupSize = 0u) {
+    static inline auto makeComputePipelineStageInfo(const api::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", const uint32_t& subgroupSize = 0u) {
         auto f = FixConstruction{};
 
         f.spi = api::PipelineShaderStageCreateInfo{};;

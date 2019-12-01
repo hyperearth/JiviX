@@ -20,9 +20,9 @@ namespace lancer {
             };
 
             // 
-            inline PipelineLayoutMaker&& link(api::PipelineLayout& lays) { playout = &lays; return shared_from_this(); };
-            inline PipelineLayoutMaker&& pushConstantRange(const api::PushConstantRange& constr = {}) { pconsts.push_back(constr); return shared_from_this(); };
-            inline PipelineLayoutMaker&& pushDescriptorSetLayout(const api::DescriptorSetLayout& descl = {}) { pdescls.push_back(descl); return shared_from_this(); };
+            inline PipelineLayoutMaker link(api::PipelineLayout& lays) { playout = &lays; return shared_from_this(); };
+            inline PipelineLayoutMaker pushConstantRange(const api::PushConstantRange& constr = {}) { pconsts.push_back(constr); return shared_from_this(); };
+            inline PipelineLayoutMaker pushDescriptorSetLayout(const api::DescriptorSetLayout& descl = {}) { pdescls.push_back(descl); return shared_from_this(); };
 
             // 
             inline api::PushConstantRange& getConstantRange() { return pconsts.back(); };
@@ -47,7 +47,7 @@ namespace lancer {
             operator const api::PipelineLayout&() const { return *playout; };
 
             // 
-            inline PipelineLayoutMaker&& create() {
+            inline PipelineLayoutMaker create() {
                 info.setLayoutCount = pdescls.size();
                 info.pSetLayouts = pdescls.data();
                 info.pushConstantRangeCount = pconsts.size();

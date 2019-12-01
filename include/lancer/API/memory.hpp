@@ -37,12 +37,11 @@ namespace lancer {
              MemoryAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = {}) : device(device) {};
 
             inline virtual void free() {};
-            inline virtual MemoryAllocator&& allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) { return shared_from_this(); };
-            inline virtual MemoryAllocator&& allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) { return shared_from_this(); };
-            inline virtual MemoryAllocator&& initialize() { return shared_from_this(); };
-            inline virtual MemoryAllocator&& linkDevice(DeviceMaker&& device = {}) { return shared_from_this(); };
-            inline virtual MemoryAllocator&& linkDevice(const DeviceMaker& device = {}) { return shared_from_this(); };
-            inline virtual MemoryAllocation&& createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) { return std::make_shared<MemoryAllocation_T>(shared_from_this()); };
+            inline virtual MemoryAllocator allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) { return shared_from_this(); };
+            inline virtual MemoryAllocator allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) { return shared_from_this(); };
+            inline virtual MemoryAllocator initialize(const uintptr_t& info = 0u) { return shared_from_this(); };
+            inline virtual MemoryAllocator linkDevice(const DeviceMaker& device = {}) { return shared_from_this(); };
+            inline virtual MemoryAllocation createAllocation(const uintptr_t& info = (uintptr_t)nullptr, const api::MemoryRequirements2& req = {}) { return std::make_shared<MemoryAllocation_T>(shared_from_this()); };
             inline virtual const DeviceMaker& getDevice() const { return device; };
             inline virtual DeviceMaker& getDevice() { return device; };
     };
@@ -54,16 +53,15 @@ namespace lancer {
     inline MemoryAllocator& MemoryAllocation_T::getAllocator() { return allocator; };
 
     // 
-    inline DeviceMaker&& Device_T::initialize() {
+    inline DeviceMaker Device_T::initialize() {
         if (physicalHelper && device && !(*device)) {
             *device = physicalHelper->least().createDevice(dfc);
         };
 
         // get VMA allocator for device
         //if (!this->allocator && this->physicalHelper->getAllocator()) { this->allocator = this->physicalHelper->getAllocator(); };
-        if ( this->allocator) {
-             this->allocator->linkDevice(shared_from_this());
-             this->allocator->initialize();
+        if (this->allocator) {
+            this->allocator->linkDevice(shared_from_this())->initialize();
         };
 
         // descriptor pool
