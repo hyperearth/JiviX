@@ -110,7 +110,7 @@ namespace lancer {
             T* end() { return &at(size() - 1ul); };
 
             // 
-            operator const api::DescriptorBufferInfo&() const { return &bufInfo; };
+            operator const api::DescriptorBufferInfo&() const { return *bufInfo; };
             operator const api::Buffer&() const { return *buffer; };
             inline const api::DeviceSize& offset() const { return bufInfo->offset; };
 
