@@ -175,6 +175,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // 
+            inline ImageMaker&& linkImageView(api::ImageView* view = nullptr) { lastimv = view; return shared_from_this(); };
             inline ImageMaker&& link(api::Image* img = nullptr) { lastimg = img; return shared_from_this(); };
             inline ImageMaker&& allocate(const MemoryAllocator& mem = {}, const uintptr_t& ptx = 0u) {
                 mem->allocateForImage(lastimg,allocation=mem->createAllocation(),imc,ptx);
@@ -197,14 +198,18 @@ namespace lancer {
             inline ImageMaker&& create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) { return this->create(api::ImageType::e3D,format,w,h,d); };
 
             // Create ImageView 
-            inline ImageMaker&& createImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
+            inline ImageMaker&& createImageView(const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS) {
                 imv.image = *this->lastimg;
                 imv.viewType = viewType;
-                imv.format = format!=api::Format::eUndefined?format:imc.format;
+                imv.format = format != api::Format::eUndefined ? format : imc.format;
                 imv.components = compmap;
                 imv.subresourceRange = this->sbr;
-                *imgv = (this->device->least().createImageView(imv)); this->lastimv = imgv;
-                return shared_from_this(); };
+                *this->lastimv = this->device->least().createImageView(imv);
+                return shared_from_this();
+            };
+
+            inline ImageMaker&& createImageView(api::ImageView* imgv, const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS){
+                return this->linkImageView(imgv)->createImageView(viewType, format, compmap); };
 
             // Stub for write both in descriptor
             inline ImageMaker&& writeForDIF(api::DescriptorImageInfo* imd){
