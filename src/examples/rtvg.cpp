@@ -106,18 +106,21 @@ namespace rnd {
             lancer::GraphicsPipelineMaker maker = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(),&trianglePipeline);
             lancer::PipelineLayoutMaker dlayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(),&trianglePipelineLayout);
             dlayout->pushDescriptorSetLayout(inputDescriptorLayout)->create();
-
+            maker->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleList); // But already defined by default :p
             maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
             maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
             maker->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            maker->pushVertexBinding(0u)->pushVertexAttribute(0u,0u); // TODO: True Vertex Bindings and Attribute
             maker->link(&trianglePipeline)->linkPipelineLayout(&trianglePipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
         };
 
         {
+            // create output image
             auto imagemk = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
             imagemk->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height);
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { imagemk->imageBarrier(cmd); });
 
+            // create sampler and description
             vk::SamplerCreateInfo samplerInfo = {};
             samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
             samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
@@ -128,6 +131,7 @@ namespace rnd {
             auto inputds = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(),&inputDescriptorSet_)->linkLayout(&inputDescriptorLayout);
             auto imageds = inputds->addImageDesc(2,0,1,true,true);
 
+            // create and apply descriptor set 
             sampler->link(&imageds->sampler)->create();
             imagemk->createImageView(&imageds->imageView,api::ImageViewType::e2D,vk::Format::eR32G32B32A32Sfloat);
             imageds->imageLayout = imagemk->getTargetLayout();
