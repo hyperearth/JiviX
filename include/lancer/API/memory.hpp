@@ -5,6 +5,12 @@
 
 namespace lancer {
 
+    enum class MemoryType : uint32_t {
+        eCustom = 0u, 
+        eBuffer = 1u, 
+        eImage = 2u, 
+    };
+
     class MemoryAllocation_T : public std::enable_shared_from_this<MemoryAllocation_T> {
         protected: 
             friend MemoryAllocator;
@@ -12,12 +18,15 @@ namespace lancer {
             MemoryAllocator allocator = nullptr;
 
         public: 
-            inline virtual void free() {};
+            inline virtual MemoryAllocation free() { return shared_from_this(); };
+            inline virtual MemoryAllocation freeImage(const ImageMaker& maker) { return shared_from_this(); };
+            inline virtual MemoryAllocation freeBuffer(const BufferMaker& maker) { return shared_from_this(); };
+            inline virtual MemoryAllocation smartFree() { return shared_from_this(); };
             inline virtual uintptr_t getPtr() { return 0u; }; // xPEH TB
             inline virtual uintptr_t getCIP() { return 0u; }; // xPEH TB
             inline virtual uint8_t* getMapped() {  return nullptr; };
 
-            ~MemoryAllocation_T(){ this->free(); };
+            ~MemoryAllocation_T(){  };
              MemoryAllocation_T(const MemoryAllocator& allocator = {}) : allocator(allocator) {};
 
             inline virtual const DeviceMaker& getDevice() const;
@@ -44,6 +53,7 @@ namespace lancer {
             inline virtual MemoryAllocation createAllocation(const uintptr_t& info = (uintptr_t)nullptr, const api::MemoryRequirements2& req = {}) { return std::make_shared<MemoryAllocation_T>(shared_from_this()); };
             inline virtual const DeviceMaker& getDevice() const { return device; };
             inline virtual DeviceMaker& getDevice() { return device; };
+            inline virtual uintptr_t least() { return 0u; };
     };
 
     // Define later

@@ -31,15 +31,16 @@ namespace lancer {
             friend VMAllocator;
             friend MemoryAllocator;
             friend MemoryAllocation;
-
+            bool sDF = false;
 
         public: 
             // unique constructor 
-            ~VMAllocation_T() {};
-             VMAllocation_T(const VMAllocator& allocator = {}, const VMAllocation_B& allocation = {}) : allocator(allocator), allocation(allocation) {
-            };
-
-            inline virtual void free() override {}; // after notify for de-allocation
+             VMAllocation_T(const VMAllocator& allocator = {}, const VMAllocation_B& allocation = {}) : allocator(allocator), allocation(allocation) {};
+            inline ~VMAllocation_T();
+            inline virtual MemoryAllocation freeImage(const ImageMaker& maker) override;
+            inline virtual MemoryAllocation freeBuffer(const BufferMaker& maker) override;
+            inline virtual MemoryAllocation free() override;
+            inline virtual MemoryAllocation smartFree() override { sDF = true; return shared_from_this(); };
             inline virtual uintptr_t getCIP() override { return (uintptr_t)(&allocation.alcmc); };
             inline virtual uintptr_t getPtr() override { return (uintptr_t)(&allocation.alloc); };
             inline virtual uint8_t* getMapped() override { return (uint8_t*)allocation.alcmc.pMappedData; };
@@ -65,21 +66,22 @@ namespace lancer {
             friend DeviceMaker;
 
         public: 
-            VMAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = 0u) : device(dvc) {
-                //if (!!info) {
-                //    amc = *((const VmaAllocatorCreateInfo*)info); // Re-Assign From Pointer
-                //};
-            };
+            ~VMAllocator_T() { vmaDestroyAllocator(vma); };
+             VMAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = 0u) : device(dvc) {
+                if (!!info) { amc = *((const VmaAllocatorCreateInfo*)info); }; // Re-Assign From Pointer
+             };
 
             // 
-            inline virtual MemoryAllocator allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
-                vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
-                return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+             inline virtual MemoryAllocator allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
+                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
+                 //return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+                 return shared_from_this(); };
 
             // 
             inline virtual MemoryAllocator allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
                 vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
-                return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+                //return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+                return shared_from_this(); };
 
             // Sometimes required special allocation
             inline virtual MemoryAllocation createAllocation(const uintptr_t& info = (uintptr_t)nullptr, const api::MemoryRequirements2& req = {}) override {
@@ -88,6 +90,8 @@ namespace lancer {
                 auto VmaAllocator = std::dynamic_pointer_cast<VMAllocator_T>(shared_from_this());
                 return std::dynamic_pointer_cast<MemoryAllocation_T>(std::make_shared<VMAllocation_T>(VmaAllocator, VMAllocation_B()));
             };
+
+            inline virtual uintptr_t least() override { return (uintptr_t)(&vma); };
 
             //
             inline virtual const DeviceMaker& getDevice() const override { return device; };
@@ -140,9 +144,26 @@ namespace lancer {
                 vmaCreateAllocator(&amc,&vma);
 
                 // 
-                return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this());
+                //return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this());
+                return shared_from_this();
             };
     };
+
+
+    // Destruct Smart Memory 
+    inline VMAllocation_T::~VMAllocation_T() { if (sDF) { vmaFreeMemory(*(VmaAllocator*)allocator->least(), allocation.alloc); }; };
+
+    inline MemoryAllocation VMAllocation_T::freeImage(const ImageMaker& maker) {
+        vmaDestroyImage(*(VmaAllocator*)allocator->least(), maker->least(), allocation.alloc);
+        return shared_from_this();
+    };
+    inline MemoryAllocation VMAllocation_T::freeBuffer(const BufferMaker& maker) {
+        vmaDestroyBuffer(*(VmaAllocator*)allocator->least(), maker->least(), allocation.alloc);
+        return shared_from_this();
+    };
+    inline MemoryAllocation VMAllocation_T::free() {
+        vmaFreeMemory(*(VmaAllocator*)allocator->least(), allocation.alloc); return shared_from_this();
+    }; // after notify for de-allocation
 
     inline const DeviceMaker& VMAllocation_T::getDevice() const { return allocator->getDevice(); };
     inline DeviceMaker& VMAllocation_T::getDevice() { return allocator->getDevice(); };

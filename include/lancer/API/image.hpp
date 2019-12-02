@@ -59,6 +59,7 @@ namespace lancer {
             api::ImageLayout originLayout = api::ImageLayout::eUndefined;
             api::ImageLayout targetLayout = api::ImageLayout::eGeneral;
             api::ImageSubresourceRange sbr = { api::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u };
+            bool smartFree = false;
 
         public: 
              Image_T(const DeviceMaker& device, const api::ImageCreateInfo& imc = DEFAULT_IMC, api::Image* lastimg = nullptr) : lastimg(lastimg),imc(imc),device(device) {
@@ -69,7 +70,11 @@ namespace lancer {
                  if (this->imc.arrayLayers < 1u) { this->imc.arrayLayers = 1u; };
                  if (this->imc.format == api::Format::eUndefined) { this->imc.format = api::Format::eR8G8B8A8Unorm; };
              };
-            ~Image_T(){}; // Here will notification about free memory
+             ~Image_T() {
+                 if (smartFree) {
+                     allocation->freeImage(shared_from_this());
+                 };
+            }; // Here will notification about free memory
 
             // 
             inline api::Image& least() { return *lastimg; };
@@ -190,6 +195,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             inline ImageMaker allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocatorPtr(),ptx); };
+            inline ImageMaker free() { allocation->smartFree(); smartFree = true; return shared_from_this(); };
 
             // Create 1D "Canvas" 
             inline ImageMaker create(const api::ImageType& type = api::ImageType::e1D, const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
@@ -198,7 +204,7 @@ namespace lancer {
                 imc.extent = api::Extent3D{w,h,d};
                 imc.arrayLayers = d;
                 imc.format = format;
-                *lastimg = device->least().createImage(imc);
+                //*lastimg = device->least().createImage(imc); // Allocator Will Create Image Anyways 
                 return shared_from_this(); };
 
             inline ImageMaker create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) { return this->create(api::ImageType::e1D,format,w); };
