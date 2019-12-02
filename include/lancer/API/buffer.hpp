@@ -36,7 +36,7 @@ namespace lancer {
             inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindBufferMemoryInfo& bindinf = {}) {
                 if (!!(this->allocation = allocation)) {
                     const auto mem = allocation->getMemory();
-                    if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem)); };
+                    if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
                 };
                 return shared_from_this(); };
 
@@ -132,6 +132,10 @@ namespace lancer {
             T* end() { return &at(size() - 1ul); };
 
             // 
+            BufferMaker& least() { return buffer; };
+            const BufferMaker& least() const { return buffer; };
+
+            // 
             operator const api::DescriptorBufferInfo&() const { return *bufInfo; };
             operator const api::Buffer&() const { return *buffer; };
             inline const api::DeviceSize& offset() const { return bufInfo->offset; };
@@ -192,6 +196,10 @@ namespace lancer {
             // end ptr
             const T* end() const { return region->end(); };
             T* end() { return region->end(); };
+
+            // 
+            BufferMaker& least() { return region->least(); };
+            const BufferMaker& least() const { return region->least(); };
 
             // 
             operator const api::DescriptorBufferInfo&() const { return *region; };

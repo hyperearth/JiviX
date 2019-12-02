@@ -41,7 +41,7 @@ namespace lancer {
         };
         ~SBTHelper_T() { this->destroy(); };
 
-        inline void        destroy();
+        inline void      destroy();
         inline SBTHelper initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
         inline SBTHelper setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
         inline SBTHelper addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
@@ -117,32 +117,71 @@ namespace lancer {
 #pragma pack(pop)
 
 
-
+    // TODO: Smart Destructors Support 
     class InstancedAcceleration_T : public std::enable_shared_from_this<InstancedAcceleration_T> {
     public:
         InstancedAcceleration_T(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& accelinfo = {}, api::AccelerationStructureNV* accelerat = nullptr) : device(device), accelinfo(accelinfo), accelerat(accelerat) {
 
         };
 
-        InstancedAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
-        InstancedAcceleration linkCacheRegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->cacheBuffer = region; return shared_from_this(); };
-        InstancedAcceleration linkGPURegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->gpuBuffer = region; return shared_from_this(); };
-
         size_t getRange() { return std::min(instanced.size(), cacheBuffer->size()) * sizeof(GeometryInstance); };
-        InstancedAcceleration uploadCmd(api::CommandBuffer& cmdbuf) { cmdbuf.copyBuffer(*cacheBuffer, *gpuBuffer, { vk::BufferCopy(cacheBuffer->offset(), gpuBuffer->offset(), this->getRange()) }); };
         InstancedAcceleration uploadCache() { memcpy(cacheBuffer->data(), instanced.data(), this->getRange()); };
+
+        // Command Buffer Required Operations
+        InstancedAcceleration uploadCmd(api::CommandBuffer& cmdbuf) { cmdbuf.copyBuffer(*cacheBuffer, *gpuBuffer, { vk::BufferCopy(cacheBuffer->offset(), gpuBuffer->offset(), this->getRange()) }); return shared_from_this(); };
+        InstancedAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { cmdbuf.buildAccelerationStructureNV(accelinfo.info, *gpuBuffer, gpuBuffer->offset(), update, *accelerat, {}, *scratch, scratch->offset()); return shared_from_this(); };
 
         // Create Finally 
         InstancedAcceleration create() {
             accelinfo.info.type = vk::AccelerationStructureTypeNV::eTopLevel;
             accelinfo.info.instanceCount = instanced.size();
-
             *accelerat = device->least().createAccelerationStructureNV(accelinfo);
             return shared_from_this();
         };
 
+        // // Memory Manipulations
+        InstancedAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
+        InstancedAcceleration linkCacheRegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->cacheBuffer = region; return shared_from_this(); };
+        InstancedAcceleration linkGPURegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->gpuBuffer = region; return shared_from_this(); };
+        InstancedAcceleration linkScratch(const std::shared_ptr<BufferRegion_T<uint8_t>>& scratch = {}) { this->scratch = scratch; return shared_from_this(); };
+        InstancedAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
+            // Set Structures Memory 
+            auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject));
+            mem->allocateForRequirements(allocation = mem->createAllocation(ptx), requirements);
+            device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()));
+
+            // Set Scratch Memory (REALLOC)
+            requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
+            mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
+            scratch->least()->linkAllocation(scratchall);
+
+            // 
+            return shared_from_this();
+        };
+
+        // Device Native Allocator Support 
+        InstancedAcceleration allocate(const uintptr_t& ptx = 0u) {
+            return this->allocate(device->getAllocatorPtr(), ptx);
+        };
+
         // Instance Pusher 
         InstancedAcceleration pushInstance(const GeometryInstance& instance = {}) { instanced.push_back(instance); };
+        
+        // Instances List Getter
+        std::vector<GeometryInstance>& getInstances() { return instanced; };
+        const std::vector<GeometryInstance>& getInstances() const { return instanced; };
+
+        // Scratch Buffer Getter 
+        std::shared_ptr<BufferRegion_T<uint8_t>>& getScratch() { return scratch; };
+        const std::shared_ptr<BufferRegion_T<uint8_t>>& getScratch() const { return scratch; };
+
+        // Cache Buffer Getter
+        std::shared_ptr<BufferRegion_T<GeometryInstance>>& getCacheBuffer() { return cacheBuffer; };
+        const std::shared_ptr<BufferRegion_T<GeometryInstance>>& getCacheBuffer() const { return cacheBuffer; };
+
+        // GPU Buffer Getter
+        std::shared_ptr<BufferRegion_T<GeometryInstance>>& getGPUBuffer() { return gpuBuffer; };
+        const std::shared_ptr<BufferRegion_T<GeometryInstance>>& getGPUBuffer() const { return gpuBuffer; };
 
         // Instance Getter 
         GeometryInstance& getInstance() { return instanced.back(); };
@@ -153,27 +192,58 @@ namespace lancer {
         DeviceMaker device = {};
         std::shared_ptr<BufferRegion_T<GeometryInstance>> cacheBuffer = {}; // Cache Buffer Should Be Mapped!
         std::shared_ptr<BufferRegion_T<GeometryInstance>> gpuBuffer = {};
+        std::shared_ptr<BufferRegion_T<uint8_t>> scratch = {};
         api::AccelerationStructureCreateInfoNV accelinfo = {};
         api::AccelerationStructureNV* accelerat = nullptr;
         std::vector<GeometryInstance> instanced = {};
+        MemoryAllocation allocation = {};
+        MemoryAllocation scratchall = {};
     };
 
 
-
+    // TODO: Custom Vertex Buffers Support (And Custom Host Types)
+    // TODO: Smart Destructors Support 
     class GeometryAcceleration_T : public std::enable_shared_from_this<GeometryAcceleration_T> {
     public:
         GeometryAcceleration_T(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& accelinfo = {}, api::AccelerationStructureNV* accelerat = nullptr) : device(device), accelinfo(accelinfo), accelerat(accelerat) {
 
         };
 
-        GeometryAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
+        // Create Finally 
         GeometryAcceleration create() {
             accelinfo.info.type = vk::AccelerationStructureTypeNV::eBottomLevel;
             accelinfo.info.geometryCount = geometries.size();
             accelinfo.info.pGeometries = geometries.data();
 
+            // create itself 
             *accelerat = device->least().createAccelerationStructureNV(accelinfo);
             return shared_from_this();
+        };
+
+        // Command Buffer Required Operations
+        GeometryAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { cmdbuf.buildAccelerationStructureNV(accelinfo.info, {}, 0u, update, *accelerat, {}, *scratch, scratch->offset()); return shared_from_this(); };
+
+        // Memory Manipulations
+        GeometryAcceleration linkScratch(const std::shared_ptr<BufferRegion_T<uint8_t>>& scratch = {}) { this->scratch = scratch; return shared_from_this(); };
+        GeometryAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
+        GeometryAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
+            // Set Structures Memory 
+            auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject));
+            mem->allocateForRequirements(allocation = mem->createAllocation(ptx), requirements);
+            device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()));
+
+            // Set Scratch Memory (REALLOC)
+            requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
+            mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
+            scratch->least()->linkAllocation(scratchall);
+            
+            // 
+            return shared_from_this();
+        };
+
+        // Device Native Allocator Support 
+        GeometryAcceleration allocate(const uintptr_t& ptx = 0u) {
+            return this->allocate(device->getAllocatorPtr(), ptx);
         };
 
         // Use some Vookoo style 
@@ -260,13 +330,21 @@ namespace lancer {
         // SHOULD BE READY
         GeometryAcceleration writeForInstance(GeometryInstance& instance) {
             device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle);
+            return shared_from_this();
         };
+
+        // Scratch Buffer Getter 
+        std::shared_ptr<BufferRegion_T<uint8_t>>& getScratch() { return scratch; };
+        const std::shared_ptr<BufferRegion_T<uint8_t>>& getScratch() const { return scratch; };
 
     protected:
         DeviceMaker device = {};
+        std::shared_ptr<BufferRegion_T<uint8_t>> scratch = {};
         api::AccelerationStructureCreateInfoNV accelinfo = {};
         api::AccelerationStructureNV* accelerat = nullptr;
         std::vector<api::GeometryNV> geometries = {};
+        MemoryAllocation allocation = {};
+        MemoryAllocation scratchall = {};
     };
 
 
@@ -439,8 +517,8 @@ namespace lancer {
 
         // Assign Truth
         mRTC.groupCount = this->getNumGroups();
-        mRTC.pGroups = this->getGroups();
         mRTC.stageCount = this->getNumStages();
+        mRTC.pGroups = this->getGroups();
         mRTC.pStages = this->getStages();
         mRTC.layout = *this->mPipelineLayout;
 
