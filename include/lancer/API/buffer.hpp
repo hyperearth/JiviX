@@ -7,7 +7,6 @@
 
 namespace lancer {
     // Vookoo-Like 
-    // TODO: Smart Destroy Command (i.e. Optional) 
     class Buffer_T : public std::enable_shared_from_this<Buffer_T> {
         protected: 
             DeviceMaker device = {};
@@ -20,9 +19,7 @@ namespace lancer {
         public: 
              Buffer_T(const DeviceMaker& device = {}, const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr) : lastbuf(lastbuf), bfc(bfc), device(device) {};
             ~Buffer_T(){
-                if (smartFree) {
-                    allocation->freeBuffer(shared_from_this());
-                };
+                if (smartFree) { allocation->freeBuffer(shared_from_this()); };
             }; // Here will notification about free memory
 
             // Get original Vulkan link 
@@ -34,6 +31,11 @@ namespace lancer {
             // Editable BufferCreateInfo
             inline api::BufferCreateInfo& getCreateInfo() { return bfc; };
             inline const api::BufferCreateInfo& getCreateInfo() const { return bfc; };
+
+            // TODO: Memory Binding Support
+            inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}) {
+                this->allocation = allocation;
+                return shared_from_this(); };
 
             // Mapping from Allocator
             inline uint8_t* getMapped(){

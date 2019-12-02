@@ -47,7 +47,6 @@ namespace lancer {
 
 
     // Vookoo-Like 
-    // TODO: Smart Destroy Command (i.e. Optional) 
     class Image_T : public std::enable_shared_from_this<Image_T> {
         protected: 
             DeviceMaker device = {};
@@ -71,9 +70,7 @@ namespace lancer {
                  if (this->imc.format == api::Format::eUndefined) { this->imc.format = api::Format::eR8G8B8A8Unorm; };
              };
              ~Image_T() {
-                 if (smartFree) {
-                     allocation->freeImage(shared_from_this());
-                 };
+                 if (smartFree) { allocation->freeImage(shared_from_this()); };
             }; // Here will notification about free memory
 
             // 
@@ -154,7 +151,11 @@ namespace lancer {
                 //image->_initialLayout = (VkImageLayout)imageMemoryBarriers.newLayout;
                 return shared_from_this(); };
 
-
+            // TODO: Memory Binding Support
+            inline ImageMaker linkAllocation(const MemoryAllocation& allocation = {}) {
+                this->allocation = allocation;
+                return shared_from_this();
+            };
 
             // 
             inline ImageMaker setImageSubresourceRange(const api::ImageSubresourceRange& subres = {}) {
