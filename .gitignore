@@ -127,3 +127,9 @@ cmake-build*/*
 #.idea/*
 #*/.idea/
 #*/.idea/*
+
+# Ban CLION Legal
+build-clion/
+build-clion/*
+*/build-clion/
+*/build-clion/*
