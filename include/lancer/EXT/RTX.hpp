@@ -144,16 +144,18 @@ namespace lancer {
         inline InstancedAcceleration linkCacheRegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->cacheBuffer = region; return shared_from_this(); };
         inline InstancedAcceleration linkGPURegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->gpuBuffer = region; return shared_from_this(); };
         inline InstancedAcceleration linkScratch(const std::shared_ptr<BufferRegion_T<uint8_t>>& scratch = {}) { this->scratch = scratch; return shared_from_this(); };
-        inline InstancedAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
+        inline InstancedAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u, const bool& reallocScratch = false) {
             // Set Structures Memory 
             auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject));
             mem->allocateForRequirements(allocation = mem->createAllocation(ptx), requirements);
             device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()));
 
-            // Set Scratch Memory (REALLOC)
-            requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
-            mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
-            scratch->least()->linkAllocation(scratchall);
+            // Realloc when required
+            if (reallocScratch || !scratch->least()->getAllocation()) {
+                requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
+                mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
+                scratch->least()->linkAllocation(scratchall);
+            };
 
             // 
             return shared_from_this();
@@ -236,23 +238,25 @@ namespace lancer {
         // Memory Manipulations
         inline GeometryAcceleration linkScratch(const std::shared_ptr<BufferRegion_T<uint8_t>>& scratch = {}) { this->scratch = scratch; return shared_from_this(); };
         inline GeometryAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
-        inline GeometryAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
+        inline GeometryAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u, const bool& reallocScratch = false) {
             // Set Structures Memory 
             auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject));
             mem->allocateForRequirements(allocation = mem->createAllocation(ptx), requirements);
             device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()));
 
-            // Set Scratch Memory (REALLOC)
-            requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
-            mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
-            scratch->least()->linkAllocation(scratchall);
+            // Realloc when required
+            if (reallocScratch || !scratch->least()->getAllocation()) {
+                requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
+                mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
+                scratch->least()->linkAllocation(scratchall);
+            };
             
             // 
             return shared_from_this();
         };
 
         // Device Native Allocator Support 
-        inline GeometryAcceleration allocate(const uintptr_t& ptx = 0u) {
+        inline GeometryAcceleration allocate(const uintptr_t& ptx = 0u, const bool& realloc = false) {
             return this->allocate(device->getAllocatorPtr(), ptx);
         };
 
