@@ -27,54 +27,44 @@
 
 namespace lancer {
 
-#ifndef EXTENSION_RTX
-#define EXTENSION_RTX
-#endif
-
-#ifndef EXTENSION_RTX_IMPLEMENT
-#define EXTENSION_RTX_IMPLEMENT
-#endif
+//#ifndef EXTENSION_RTX
+//#define EXTENSION_RTX
+//#endif
 
 #ifdef EXTENSION_RTX // TODO: Create Ray Tracing Pipeline
-    class SBTHelper_T;
-    using SBTHelper = std::shared_ptr<SBTHelper_T>;
-
-    class InstancedAcceleration_T;
-    using InstancedAcceleration = std::shared_ptr<InstancedAcceleration_T>;
-
-    class GeometryAcceleration_T;
-    using GeometryAcceleration = std::shared_ptr<GeometryAcceleration_T>;
 
     // Declare SBT Class 
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
     public:
-         SBTHelper_T(const api::RayTracingPipelineCreateInfoNV& rpt = api::RayTracingPipelineCreateInfoNV().setMaxRecursionDepth(4u), const DeviceMaker& device = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mPipeline(rtPipeline), mNumHitGroups(0u), mNumMissGroups(0u), mRTC(rpt) {};
-        ~SBTHelper_T() = default;
+        SBTHelper_T(const DeviceMaker& device = {}, const api::RayTracingPipelineCreateInfoNV& rpt = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mPipeline(rtPipeline), mNumHitGroups(0u), mNumMissGroups(0u), mRTC(rpt) {
+            if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 4u; };
+        };
+        ~SBTHelper_T() { this->destroy(); };
 
-        void        destroy();
-        SBTHelper&& initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
-        SBTHelper&& setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
-        SBTHelper&& addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
-        SBTHelper&& addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
-        SBTHelper&& linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); };
-        SBTHelper&& linkBuffer(api::Buffer* buffer) { pSBT = buffer; };
-        SBTHelper&& linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
-        SBTHelper&& linkPipelineLayout(api::PipelineLayout* rtPipelineLayout = nullptr) { this->mPipelineLayout = rtPipelineLayout; return shared_from_this(); };
+        inline void        destroy();
+        inline SBTHelper&& initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
+        inline SBTHelper&& setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
+        inline SBTHelper&& addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
+        inline SBTHelper&& addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
+        inline SBTHelper&& linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); };
+        inline SBTHelper&& linkBuffer(api::Buffer* buffer) { pSBT = buffer; };
+        inline SBTHelper&& linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
+        inline SBTHelper&& linkPipelineLayout(api::PipelineLayout* rtPipelineLayout = nullptr) { this->mPipelineLayout = rtPipelineLayout; return shared_from_this(); };
 
-        uint32_t    getGroupsStride() const;
-        uint32_t    getNumGroups() const;
-        uint32_t    getRaygenOffset() const;
-        uint32_t    getHitGroupsOffset() const;
-        uint32_t    getMissGroupsOffset() const;
+        inline uint32_t    getGroupsStride() const;
+        inline uint32_t    getNumGroups() const;
+        inline uint32_t    getRaygenOffset() const;
+        inline uint32_t    getHitGroupsOffset() const;
+        inline uint32_t    getMissGroupsOffset() const;
 
-        uint32_t                                   getNumStages() const;
-        const api::PipelineShaderStageCreateInfo*     getStages() const;
-        const api::RayTracingShaderGroupCreateInfoNV* getGroups() const;
+        inline uint32_t                                   getNumStages() const;
+        inline const api::PipelineShaderStageCreateInfo*     getStages() const;
+        inline const api::RayTracingShaderGroupCreateInfoNV* getGroups() const;
 
-        bool               create();
-        uint32_t           getSBTSize() const;
-        const api::Buffer& getSBTBuffer() const;
-              api::Buffer& getSBTBuffer();
+        inline bool               create();
+        inline uint32_t           getSBTSize() const;
+        inline const api::Buffer& getSBTBuffer() const;
+        inline       api::Buffer& getSBTBuffer();
 
     protected:
         uint32_t                                              mShaderHeaderSize;
@@ -279,13 +269,19 @@ namespace lancer {
         std::vector<api::GeometryNV> geometries = {};
     };
 
+
+// For Debug, Enable Extension
+#ifndef EXTENSION_RTX_IMPLEMENT
+#define EXTENSION_RTX_IMPLEMENT
+#endif
+
 #endif
 
 // TODO: Re-Implement SBT Helper 
 #ifdef EXTENSION_RTX_IMPLEMENT
     // SBT Helper class
 
-    SBTHelper&& SBTHelper_T::initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize) {
+    inline SBTHelper&& SBTHelper_T::initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize) {
         mShaderHeaderSize = shaderHeaderSize;
         mNumHitGroups = numHitGroups;
         mNumMissGroups = numMissGroups;
@@ -299,14 +295,14 @@ namespace lancer {
         return shared_from_this();
     }
 
-    void SBTHelper_T::destroy() {
+    inline void SBTHelper_T::destroy() {
         mNumHitShaders.clear();
         mNumMissShaders.clear();
         mStages.clear();
         mGroups.clear();
     }
 
-    SBTHelper&& SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
+    inline SBTHelper&& SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
         // this shader stage should go first!
         assert(mStages.empty());
         mStages.push_back(stage);
@@ -322,7 +318,7 @@ namespace lancer {
         return shared_from_this();
     }
 
-    SBTHelper&& SBTHelper_T::addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex) {
+    inline SBTHelper&& SBTHelper_T::addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex) {
         // raygen stage should go first!
         assert(groupIndex < mNumHitShaders.size());
         assert(!mStages.empty());
@@ -357,7 +353,7 @@ namespace lancer {
         mNumHitShaders[groupIndex] += static_cast<uint32_t>(stages.size());
     }
 
-    SBTHelper&& SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
+    inline SBTHelper&& SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
         // raygen stage should go first!
         assert(!mStages.empty());
 
@@ -391,43 +387,43 @@ namespace lancer {
         mNumMissShaders[groupIndex]++;
     }
 
-    uint32_t SBTHelper_T::getGroupsStride() const {
+    inline uint32_t SBTHelper_T::getGroupsStride() const {
         return mShaderHeaderSize;
     }
 
-    uint32_t SBTHelper_T::getNumGroups() const {
+    inline uint32_t SBTHelper_T::getNumGroups() const {
         return 1 + mNumHitGroups + mNumMissGroups;
     }
 
-    uint32_t SBTHelper_T::getRaygenOffset() const {
+    inline uint32_t SBTHelper_T::getRaygenOffset() const {
         return 0;
     }
 
-    uint32_t SBTHelper_T::getHitGroupsOffset() const {
+    inline uint32_t SBTHelper_T::getHitGroupsOffset() const {
         return 1 * mShaderHeaderSize;
     }
 
-    uint32_t SBTHelper_T::getMissGroupsOffset() const {
+    inline uint32_t SBTHelper_T::getMissGroupsOffset() const {
         return (1 + mNumHitGroups) * mShaderHeaderSize;
     }
 
-    uint32_t SBTHelper_T::getNumStages() const {
+    inline uint32_t SBTHelper_T::getNumStages() const {
         return static_cast<uint32_t>(mStages.size());
     }
 
-    const api::PipelineShaderStageCreateInfo* SBTHelper_T::getStages() const {
+    inline const api::PipelineShaderStageCreateInfo* SBTHelper_T::getStages() const {
         return mStages.data();
     }
 
-    const api::RayTracingShaderGroupCreateInfoNV* SBTHelper_T::getGroups() const {
+    inline const api::RayTracingShaderGroupCreateInfoNV* SBTHelper_T::getGroups() const {
         return mGroups.data();
     }
 
-    uint32_t SBTHelper_T::getSBTSize() const {
+    inline uint32_t SBTHelper_T::getSBTSize() const {
         return this->getNumGroups() * mShaderHeaderSize;
     }
 
-    bool SBTHelper_T::create() {
+    inline bool SBTHelper_T::create() {
         const size_t sbtSize = this->getSBTSize();
 
         VmaAllocationCreateInfo allocInfo = {};
@@ -456,8 +452,8 @@ namespace lancer {
         return (result == api::Result::eSuccess);
     };
 
-    api::Buffer& SBTHelper_T::getSBTBuffer() { return *pSBT; };
-    const api::Buffer& SBTHelper_T::getSBTBuffer() const { return *pSBT; };
+    inline api::Buffer& SBTHelper_T::getSBTBuffer() { return *pSBT; };
+    inline const api::Buffer& SBTHelper_T::getSBTBuffer() const { return *pSBT; };
 #endif
 
 };

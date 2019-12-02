@@ -70,8 +70,8 @@ namespace lancer {
     };
 
 #ifdef EXTENSION_RTX_IMPLEMENT
-    inline SBTHelper Device_T::createSBTHelper(api::Pipeline* rtPipeline) {
-        return std::make_shared<SBTHelper_T>(shared_from_this(),rtPipeline);
+    inline SBTHelper Device_T::createSBTHelper(const api::RayTracingPipelineCreateInfoNV& rpt, api::Pipeline* rtPipeline) {
+        return std::make_shared<SBTHelper_T>(shared_from_this(), rpt, rtPipeline);
     };
 #endif
 

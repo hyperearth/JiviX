@@ -262,7 +262,7 @@ namespace lancer {
             inline DescriptorSetLayoutMaker createDescriptorSetLayoutMaker(const api::DescriptorSetLayoutCreateInfo& bfc = {}, api::DescriptorSetLayout* dlayout = nullptr);
             inline DescriptorSetMaker createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* descset = nullptr);
 #ifdef EXTENSION_RTX
-            inline SBTHelper createSBTHelper(api::Pipeline* pipeline = nullptr);
+            inline SBTHelper createSBTHelper(const api::RayTracingPipelineCreateInfoNV& rpt = {}, api::Pipeline* pipeline = nullptr);
 #endif
             template<class T = MemoryAllocator_T> inline MemoryAllocator& createAllocator(const uintptr_t& info = 0u);
     };

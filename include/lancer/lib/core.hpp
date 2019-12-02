@@ -258,5 +258,16 @@ namespace lancer {
     using GraphicsPipelineMaker = std::shared_ptr<GraphicsPipeline_T>;
     using BufferRegionU8_T = BufferRegion_T<uint8_t>;
     using BufferRegionU8Maker = std::shared_ptr<BufferRegionU8_T>;
-    
+
+#ifdef EXTENSION_RTX
+    class SBTHelper_T;
+    using SBTHelper = std::shared_ptr<SBTHelper_T>;
+
+    class InstancedAcceleration_T;
+    using InstancedAcceleration = std::shared_ptr<InstancedAcceleration_T>;
+
+    class GeometryAcceleration_T;
+    using GeometryAcceleration = std::shared_ptr<GeometryAcceleration_T>;
+#endif
+
 };

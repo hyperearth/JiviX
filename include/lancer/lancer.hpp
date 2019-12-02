@@ -8,6 +8,10 @@
 #define EXTENSION_VMA
 #endif
 
+#ifdef ENABLE_EXTENSION_GLM
+#define EXTENSION_GLM
+#endif
+
 #include <lancer/lib/core.hpp>
 #include <lancer/API/memory.hpp>
 #include <lancer/API/device.hpp>

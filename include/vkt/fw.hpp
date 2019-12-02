@@ -12,7 +12,9 @@
 #define GLFW_EXPOSE_NATIVE_GLX
 #endif
 
+#define ENABLE_EXTENSION_GLM
 #define ENABLE_EXTENSION_VMA
+#define ENABLE_EXTENSION_RTX
 //#define GLFW_INCLUDE_VULKAN
 #include "utils.hpp"
 #include "structs.hpp"
