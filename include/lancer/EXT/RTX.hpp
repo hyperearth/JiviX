@@ -162,8 +162,8 @@ namespace lancer {
         };
 
         // Device Native Allocator Support 
-        inline InstancedAcceleration allocate(const uintptr_t& ptx = 0u) {
-            return this->allocate(device->getAllocatorPtr(), ptx);
+        inline InstancedAcceleration allocate(const uintptr_t& ptx = 0u, const bool& reallocScratch = false) {
+            return this->allocate(device->getAllocatorPtr(), ptx, reallocScratch);
         };
 
         // Instance Pusher 
@@ -256,8 +256,8 @@ namespace lancer {
         };
 
         // Device Native Allocator Support 
-        inline GeometryAcceleration allocate(const uintptr_t& ptx = 0u, const bool& realloc = false) {
-            return this->allocate(device->getAllocatorPtr(), ptx);
+        inline GeometryAcceleration allocate(const uintptr_t& ptx = 0u, const bool& reallocScratch = false) {
+            return this->allocate(device->getAllocatorPtr(), ptx, reallocScratch);
         };
 
         // Use some Vookoo style 
