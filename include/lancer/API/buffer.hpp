@@ -33,7 +33,7 @@ namespace lancer {
             inline const api::BufferCreateInfo& getCreateInfo() const { return bfc; };
 
             // Memory now can binded 
-            inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindBufferMemoryInfo bindinf = {}) {
+            inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindBufferMemoryInfo& bindinf = {}) {
                 if (!!(this->allocation = allocation)) {
                     const auto mem = allocation->getMemory();
                     if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem)); };

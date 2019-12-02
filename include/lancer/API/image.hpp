@@ -152,7 +152,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Memory now can binded 
-            inline ImageMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindImageMemoryInfo bindinf = {}) {
+            inline ImageMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindImageMemoryInfo& bindinf = {}) {
                 this->allocation = allocation;
                 if (!!(this->allocation = allocation)) {
                     const auto mem = allocation->getMemory();
