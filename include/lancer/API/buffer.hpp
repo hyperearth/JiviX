@@ -75,6 +75,9 @@ namespace lancer {
             // Create With Region
             // TODO: another format 
             inline BufferRegionU8Maker createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
+
+            template<class T = uint8_t>
+            inline std::shared_ptr<BufferRegion_T<T>> createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
     };
 
 
@@ -127,11 +130,18 @@ namespace lancer {
             api::DescriptorBufferInfo* bufInfo = {};
     };
 
+    // Geometry RTX Required
+    template<class T>
+    inline std::shared_ptr<BufferRegion_T<T>> Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+        (*reg = api::DescriptorBufferInfo{ *lastbuf, offset, size * sizeof(T) }); //return shared_from_this(); 
+        return std::make_shared<BufferRegion_T<T>>(shared_from_this(), reg, offset, size);
+    };
+
     // defer implement 
     // TODO: another format of BufferRegion
     inline BufferRegionU8Maker Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
-        (*reg = api::DescriptorBufferInfo{*lastbuf, offset, size}); //return shared_from_this(); 
-        return std::move(std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size));
+        (*reg = api::DescriptorBufferInfo{ *lastbuf, offset, size }); //return shared_from_this(); 
+        return std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size);
     };
 
     // Wrap as Vector (like STD)

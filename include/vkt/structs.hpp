@@ -30,6 +30,7 @@ namespace vkt {
     //    std::vector<api::VertexInputAttributeDescription> inputAttributes = {};
     //};
 
+#pragma pack(push, 1)
     struct GeometryInstance {
         //float transform[12];
         glm::mat3x4 transform;
@@ -39,4 +40,6 @@ namespace vkt {
         uint32_t flags : 8;
         uint64_t accelerationStructureHandle;
     };
+#pragma pack(pop)
+
 };

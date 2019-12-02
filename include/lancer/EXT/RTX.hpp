@@ -10,6 +10,21 @@
 #include <functional>
 
 
+// TODO: Another File for GLM Extensions
+#ifdef EXTENSION_GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/vec_swizzle.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/random.hpp>
+#include <glm/gtx/component_wise.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/transform.hpp>
+#endif
+
+
+
 namespace lancer {
 
 #ifndef EXTENSION_RTX
@@ -23,6 +38,12 @@ namespace lancer {
 #ifdef EXTENSION_RTX // TODO: Create Ray Tracing Pipeline
     class SBTHelper_T;
     using SBTHelper = std::shared_ptr<SBTHelper_T>;
+
+    class InstancedAcceleration_T;
+    using InstancedAcceleration = std::shared_ptr<InstancedAcceleration_T>;
+
+    class GeometryAcceleration_T;
+    using GeometryAcceleration = std::shared_ptr<GeometryAcceleration_T>;
 
     // Declare SBT Class 
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
@@ -55,7 +76,7 @@ namespace lancer {
         const api::Buffer& getSBTBuffer() const;
               api::Buffer& getSBTBuffer();
 
-    private:
+    protected:
         uint32_t                                              mShaderHeaderSize;
         uint32_t                                              mNumHitGroups;
         uint32_t                                              mNumMissGroups;
@@ -74,8 +95,189 @@ namespace lancer {
         api::RayTracingPipelineCreateInfoNV                   mRTC;
     };
 
+#ifdef EXTENSION_GLM
+    using transform3x4_t = glm::mat3x4;
+    using vec4_t = glm::vec4;
+    using vec3_t = glm::vec3;
+#else
+    using transform3x4_t = float[12];
+    using vec4_t = float[4];
+    using vec3_t = float[3];
+#endif
 
 
+
+#pragma pack(push, 1)
+    struct GeometryInstance {
+#ifdef EXTENSION_GLM
+        glm::mat3x4 transform = {};
+#else
+        float transform[12] = {
+            1.f,0.f,0.f,0.f,
+            0.f,1.f,0.f,0.f,
+            0.f,0.f,1.f,0.f
+        };
+#endif
+        uint32_t instanceId : 24;
+        uint32_t mask : 8;
+        uint32_t instanceOffset : 24;
+        uint32_t flags : 8;
+        uint64_t accelerationStructureHandle;
+    };
+#pragma pack(pop)
+
+
+
+    class InstancedAcceleration_T : public std::enable_shared_from_this<InstancedAcceleration_T> {
+    public:
+        InstancedAcceleration_T(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& accelinfo = {}, api::AccelerationStructureNV* accelerat = nullptr) : device(device), accelinfo(accelinfo), accelerat(accelerat) {
+
+        };
+
+        InstancedAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
+        InstancedAcceleration linkCacheRegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->cacheBuffer = region; return shared_from_this(); };
+        InstancedAcceleration linkGPURegion(const std::shared_ptr<BufferRegion_T<GeometryInstance>>& region = {}) { this->gpuBuffer = region; return shared_from_this(); };
+
+        size_t getRange() { return std::min(instanced.size(), cacheBuffer->size()) * sizeof(GeometryInstance); };
+        InstancedAcceleration uploadCmd(api::CommandBuffer& cmdbuf) { cmdbuf.copyBuffer(*cacheBuffer, *gpuBuffer, { vk::BufferCopy(cacheBuffer->offset(), gpuBuffer->offset(), this->getRange()) }); };
+        InstancedAcceleration uploadCache() { memcpy(cacheBuffer->data(), instanced.data(), this->getRange()); };
+
+        // Create Finally 
+        InstancedAcceleration create() {
+            accelinfo.info.type = vk::AccelerationStructureTypeNV::eTopLevel;
+            accelinfo.info.instanceCount = instanced.size();
+
+            *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+            return shared_from_this();
+        };
+
+        // Instance Pusher 
+        InstancedAcceleration pushInstance(const GeometryInstance& instance = {}) { instanced.push_back(instance); };
+
+        // Instance Getter 
+        GeometryInstance& getInstance() { return instanced.back(); };
+        const GeometryInstance& getInstance() const { return instanced.back(); };
+
+
+    protected:
+        DeviceMaker device = {};
+        std::shared_ptr<BufferRegion_T<GeometryInstance>> cacheBuffer = {}; // Cache Buffer Should Be Mapped!
+        std::shared_ptr<BufferRegion_T<GeometryInstance>> gpuBuffer = {};
+        api::AccelerationStructureCreateInfoNV accelinfo = {};
+        api::AccelerationStructureNV* accelerat = nullptr;
+        std::vector<GeometryInstance> instanced = {};
+    };
+
+
+
+    class GeometryAcceleration_T : public std::enable_shared_from_this<GeometryAcceleration_T> {
+    public:
+        GeometryAcceleration_T(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& accelinfo = {}, api::AccelerationStructureNV* accelerat = nullptr) : device(device), accelinfo(accelinfo), accelerat(accelerat) {
+
+        };
+
+        GeometryAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
+        GeometryAcceleration create() {
+            accelinfo.info.type = vk::AccelerationStructureTypeNV::eBottomLevel;
+            accelinfo.info.geometryCount = geometries.size();
+            accelinfo.info.pGeometries = geometries.data();
+
+            *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+            return shared_from_this();
+        };
+
+        // Use some Vookoo style 
+        GeometryAcceleration beginGeometryTriangle(const api::GeometryNV& geometry = {}) {
+            geometries.push_back(geometry);
+            geometries.back().geometryType = api::GeometryTypeNV::eTriangles;
+            return shared_from_this();
+        };
+
+        // TODO: Assert by Triangles
+        const api::GeometryAABBNV& getAABB() const {
+            return geometries.back().geometry.aabbs;
+        };
+
+        // TODO: Assert by Triangles
+        api::GeometryAABBNV& getAABB() {
+            return geometries.back().geometry.aabbs;
+        };
+
+        // TODO: Assert by AABB
+        const api::GeometryTrianglesNV& getTriangles() const {
+            return geometries.back().geometry.triangles;
+        };
+
+        // TODO: Assert by AABB
+        api::GeometryTrianglesNV& getTriangles() {
+            return geometries.back().geometry.triangles;
+        };
+
+        // fVec4
+        GeometryAcceleration setVertex4x32f(const std::shared_ptr<BufferRegion_T<vec4_t>>& vertex = {}) {
+            this->getTriangles().vertexFormat = vk::Format::eR32G32B32A32Sfloat;
+            this->getTriangles().vertexCount = vertex->size();
+            this->getTriangles().vertexData = *vertex;
+            this->getTriangles().vertexOffset = vertex->offset();
+            this->getTriangles().vertexStride = sizeof(vec4_t);
+            return shared_from_this();
+        };
+
+        // fVec3
+        GeometryAcceleration setVertex3x32f(const std::shared_ptr<BufferRegion_T<vec3_t>>& vertex = {}) {
+            this->getTriangles().vertexFormat = vk::Format::eR32G32B32Sfloat;
+            this->getTriangles().vertexCount = vertex->size();
+            this->getTriangles().vertexData = *vertex;
+            this->getTriangles().vertexOffset = vertex->offset();
+            this->getTriangles().vertexStride = sizeof(vec3_t);
+            return shared_from_this();
+        };
+
+        // Transform Buffer 3x4
+        GeometryAcceleration setTransform3x4(const std::shared_ptr<BufferRegion_T<transform3x4_t>>& matrix = {}) {
+            this->getTriangles().transformData = *matrix;
+            this->getTriangles().transformOffset = matrix->offset();
+            return shared_from_this();
+        };
+
+        // Uint32_T
+        GeometryAcceleration setIndices32u(const std::shared_ptr<BufferRegion_T<uint32_t>>& indices = {}) {
+            this->getTriangles().indexType = api::IndexType::eUint32;
+            this->getTriangles().indexData = *indices;
+            this->getTriangles().indexOffset = indices->offset();
+            this->getTriangles().indexCount = indices->size();
+            return shared_from_this();
+        };
+
+        // Uint16_T
+        GeometryAcceleration setIndices16u(const std::shared_ptr<BufferRegion_T<uint16_t>>& indices = {}) {
+            this->getTriangles().indexType = api::IndexType::eUint16;
+            this->getTriangles().indexData = *indices;
+            this->getTriangles().indexOffset = indices->offset();
+            this->getTriangles().indexCount = indices->size();
+            return shared_from_this();
+        };
+
+        // Uint8_T
+        GeometryAcceleration setIndices8u(const std::shared_ptr<BufferRegion_T<uint8_t>>& indices = {}) {
+            this->getTriangles().indexType = api::IndexType::eUint8EXT;
+            this->getTriangles().indexData = *indices;
+            this->getTriangles().indexOffset = indices->offset();
+            this->getTriangles().indexCount = indices->size();
+            return shared_from_this();
+        };
+
+        // SHOULD BE READY
+        GeometryAcceleration writeForInstance(GeometryInstance& instance) {
+            device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle);
+        };
+
+    protected:
+        DeviceMaker device = {};
+        api::AccelerationStructureCreateInfoNV accelinfo = {};
+        api::AccelerationStructureNV* accelerat = nullptr;
+        std::vector<api::GeometryNV> geometries = {};
+    };
 
 #endif
 
