@@ -308,18 +308,33 @@ namespace vkt
             };
 
 
-            
-
+            //api::PipelineCacheCreateInfo cacheInfo = {};
+            //cacheInfo.initialDataSize = 32768u;
+            //auto cache = _device.createPipelineCache(cacheInfo);
 
             // return device with queue pointer
             const uint32_t qptr = 0;
-            this->fence = this->_device.createFence(api::FenceCreateInfo().setFlags({}));
             this->queueFamilyIndex = queueFamilyIndices[qptr];
-            this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
+            this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
             this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
-            this->device->linkDescriptorPool(&this->_descriptorPool)->linkPhysicalHelper(this->physicalHelper)->create();
+            this->fence = this->_device.createFence(api::FenceCreateInfo().setFlags({}));
+            this->commandPool = this->_device.createCommandPool(api::CommandPoolCreateInfo(api::CommandPoolCreateFlags(api::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
             this->allocator = this->device->createAllocator<VMAllocator_T>()->initialize();
-            return this->device;
+
+            // Manually Create Descriptor Pool
+            auto dps = std::vector<api::DescriptorPoolSize>{
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eCombinedImageSampler).setDescriptorCount(256u),
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eSampledImage).setDescriptorCount(1024u),
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eSampler).setDescriptorCount(1024u),
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eAccelerationStructureNV).setDescriptorCount(256u),
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eStorageBuffer).setDescriptorCount(1024u),
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eUniformBuffer).setDescriptorCount(256u),
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eStorageTexelBuffer).setDescriptorCount(256u),
+                api::DescriptorPoolSize().setType(vk::DescriptorType::eUniformTexelBuffer).setDescriptorCount(256u),
+            };
+
+            // Un-Deviced
+            return this->device->linkDescriptorPool(&(this->_descriptorPool = this->device->least().createDescriptorPool(api::DescriptorPoolCreateInfo().setMaxSets(256u).setPPoolSizes(dps.data()).setPoolSizeCount(dps.size()))));
         };
 
         // create window and surface for this application (multi-window not supported)

@@ -198,12 +198,12 @@ namespace lancer {
 
         public: 
             Device_T(const PhysicalDeviceHelper& physicalHelper = {}, const api::DeviceCreateInfo& dfc = {}, api::Device* device = nullptr) : device(device), dfc(dfc), physicalHelper(physicalHelper) { 
-                if (physicalHelper && device && !(*device)) {
-                    *device = physicalHelper->least().createDevice(dfc);
-#ifdef VOLK_H_
-                    volkLoadDevice(*device);
-#endif
-                };
+//                if (physicalHelper && device && !(*device)) {
+//                    *device = physicalHelper->least().createDevice(dfc);
+//#ifdef VOLK_H_
+//                    volkLoadDevice(*device);
+//#endif
+//                };
             };
 
             // Added Deferred Method for Create Device
@@ -217,6 +217,12 @@ namespace lancer {
                 return shared_from_this();
             };
 
+            template<class T = uint8_t>
+            inline DeviceMaker cache(const std::vector<T>& data = {}) {
+                pipelineCache = device->createPipelineCache(api::PipelineCacheCreateInfo().setInitialDataSize(data.size() * sizeof(T)).setPInitialData(data.data()));
+                return shared_from_this();
+            };
+
             // Get original Vulkan link 
             operator api::Device&() { return *device; };
             operator const api::Device&() const { return *device; };
@@ -224,8 +230,8 @@ namespace lancer {
             // 
             inline DeviceMaker initialize();
             inline DeviceMaker linkDescriptorPool(api::DescriptorPool* pool = nullptr) { this->descriptorPool = pool; return shared_from_this(); };
-            inline DeviceMaker linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
             inline DeviceMaker linkPhysicalHelper(const PhysicalDeviceHelper& physicalHelper = {}) { this->physicalHelper = physicalHelper; return shared_from_this(); };
+            inline DeviceMaker linkAllocator(const MemoryAllocator& allocator = {}) { this->allocator = allocator; return shared_from_this(); };
             inline DeviceMaker link(api::Device* dev = nullptr) { device = dev; return shared_from_this(); };
 
             // Original Type
@@ -243,8 +249,8 @@ namespace lancer {
             inline const auto& getHelper() const { return this->physicalHelper; };
             inline auto& getDescriptorPool() { return (api::DescriptorPool&)(*this->descriptorPool); };
             inline const auto& getDescriptorPool() const { return (api::DescriptorPool&)(*this->descriptorPool); };
-            inline auto& getPipelineCache() { return (api::PipelineCache&)(*this->pipelineCache); };
-            inline const auto& getPipelineCache() const { return (api::PipelineCache&)(*this->pipelineCache); };
+            inline auto& getPipelineCache() { return this->pipelineCache; };
+            inline const auto& getPipelineCache() const { return this->pipelineCache; };
 
             //
             inline PipelineLayoutMaker createPipelineLayoutMaker(const api::PipelineLayoutCreateInfo& info = {}, api::PipelineLayout* playout = nullptr);

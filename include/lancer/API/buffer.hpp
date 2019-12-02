@@ -7,6 +7,7 @@
 
 namespace lancer {
     // Vookoo-Like 
+    // TODO: Smart Destroy Command (i.e. Optional) 
     class Buffer_T : public std::enable_shared_from_this<Buffer_T> {
         protected: 
             DeviceMaker device = {};

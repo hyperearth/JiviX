@@ -99,7 +99,7 @@ namespace rnd {
             auto desclay = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(),&inputDescriptorLayout);
             desclay->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
                                  vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
-                                 vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind |
+                                 //vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind |
                                  vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount |
                                  vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)->create();
         };
@@ -108,18 +108,25 @@ namespace rnd {
             lancer::GraphicsPipelineMaker maker = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(),&trianglePipeline);
             lancer::PipelineLayoutMaker dlayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(),&trianglePipelineLayout);
             dlayout->pushDescriptorSetLayout(inputDescriptorLayout)->create();
-            maker->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleList); // But already defined by default :p
+            maker->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
             maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
             maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
             maker->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
-            maker->pushVertexBinding(0u)->pushVertexAttribute(0u,0u); // TODO: True Vertex Bindings and Attribute
+            maker->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            maker->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+            //maker->pushVertexBinding(0u)->pushVertexAttribute(0u,0u); // TODO: True Vertex Bindings and Attribute
             maker->link(&trianglePipeline)->linkPipelineLayout(&trianglePipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
         };
 
         {
+            // Should Live Before Allocation, BUT NOT ERASE BEFORE ALLOCATION
+            VmaAllocationCreateInfo vmac = {};
+            vmac.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            vmac.flags = {};
+
             // create output image
             auto imagemk = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
-            imagemk->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height);
+            imagemk->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height)->allocate((uintptr_t)(&vmac));
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { imagemk->imageBarrier(cmd); });
 
             // create sampler and description
@@ -131,10 +138,11 @@ namespace rnd {
             samplerInfo.compareEnable = false;
             auto sampler = device->createSamplerMaker(samplerInfo);
             auto inputds = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(),&inputDescriptorSet_)->linkLayout(&inputDescriptorLayout);
-            auto imageds = inputds->addImageDesc(2,0,1,true,true);
+            auto imageds = inputds->addImageDesc(2, 0, 1, false);
+            //auto imageds = inputds->addImageDesc(2,0,1,true,true);
 
             // create and apply descriptor set 
-            sampler->link(&imageds->sampler)->create();
+            //sampler->link(&imageds->sampler)->create();
             imagemk->createImageView(&imageds->imageView,api::ImageViewType::e2D,vk::Format::eR32G32B32A32Sfloat);
             imageds->imageLayout = imagemk->getTargetLayout();
             inputDescriptorSet = inputds->create()->apply();
@@ -152,7 +160,7 @@ namespace rnd {
         device->least().acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
 
         { // submit rendering (and wait presentation in device)
-            std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.2f, 0.2f, 0.2f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
+            std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{1.f, 1.f, 1.f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
             auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), appBase->size());
             auto viewport = vk::Viewport(0.0f, 0.0f, appBase->size().width, appBase->size().height, 0, 1.0f);
 

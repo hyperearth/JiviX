@@ -63,7 +63,8 @@ namespace lancer {
 
         public: 
             CommandRecord_T(const QueueHelper& queue, api::CommandPool* cmdpool = nullptr) : queue(queue), cmdpool(cmdpool) {
-                this->reset();
+                //this->reset();
+                cmdinfo = api::CommandBufferAllocateInfo{}, commands = {}, generated = false;
             };
 
             api::CommandBufferAllocateInfo& getAllocInfo() { return cmdinfo; };

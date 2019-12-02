@@ -47,6 +47,7 @@ namespace lancer {
 
 
     // Vookoo-Like 
+    // TODO: Smart Destroy Command (i.e. Optional) 
     class Image_T : public std::enable_shared_from_this<Image_T> {
         protected: 
             DeviceMaker device = {};
@@ -60,7 +61,14 @@ namespace lancer {
             api::ImageSubresourceRange sbr = { api::ImageAspectFlagBits::eColor, 0u, 1u, 0u, 1u };
 
         public: 
-             Image_T(const DeviceMaker& device, const api::ImageCreateInfo& imc = DEFAULT_IMC, api::Image* lastimg = nullptr) : lastimg(lastimg),imc(imc),device(device) {};
+             Image_T(const DeviceMaker& device, const api::ImageCreateInfo& imc = DEFAULT_IMC, api::Image* lastimg = nullptr) : lastimg(lastimg),imc(imc),device(device) {
+                 if (this->imc.mipLevels < 1u) { this->imc.mipLevels = 1u; }; // fix dirty bug
+                 if (this->imc.extent.width < 1u) { this->imc.extent.width = 1u; };
+                 if (this->imc.extent.height < 1u) { this->imc.extent.height = 1u; };
+                 if (this->imc.extent.depth < 1u) { this->imc.extent.depth = 1u; };
+                 if (this->imc.arrayLayers < 1u) { this->imc.arrayLayers = 1u; };
+                 if (this->imc.format == api::Format::eUndefined) { this->imc.format = api::Format::eR8G8B8A8Unorm; };
+             };
             ~Image_T(){}; // Here will notification about free memory
 
             // 

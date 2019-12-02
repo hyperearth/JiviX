@@ -66,9 +66,9 @@ namespace lancer {
 
         public: 
             VMAllocator_T(const DeviceMaker& dvc = {}, const uintptr_t& info = 0u) : device(dvc) {
-                if (!!info) {
-                    amc = *((const VmaAllocatorCreateInfo*)info); // Re-Assign From Pointer
-                };
+                //if (!!info) {
+                //    amc = *((const VmaAllocatorCreateInfo*)info); // Re-Assign From Pointer
+                //};
             };
 
             // 
