@@ -17,6 +17,8 @@ namespace lancer {
             inline const api::AttachmentDescription& getAttachmentDescription() const { return s.attachmentDescriptions.back(); };
             inline const api::SubpassDescription& getSubpassDescription() const { return s.subpassDescriptions.back(); };
             inline const api::SubpassDependency& getSubpassDependency() const { return s.subpassDependencies.back(); };
+            inline const api::RenderPass& getRenderPass() const { return *renderPass; };
+            inline api::RenderPass& getRenderPass() { return *renderPass; };
 
             /// Begin an attachment description.
             /// After this you can call attachment* many times

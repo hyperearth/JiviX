@@ -426,7 +426,7 @@ namespace vkt
             return sfd;
         }
 
-        inline api::RenderPass createRenderPass()
+        inline api::RenderPass& createRenderPass()
         {
             auto formats = applicationWindow.surfaceFormat;
             auto rps = device->createRenderPassMaker({}, &renderPass);
@@ -473,8 +473,7 @@ namespace vkt
                 .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
 
             // create renderpass finally
-            rps->create();
-            return renderPass;
+            return rps->create()->getRenderPass();
         }
 
         // update swapchain framebuffer

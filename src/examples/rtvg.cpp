@@ -77,6 +77,7 @@ namespace rnd {
         std::cout << devProperties.vendorID << std::endl;
 
         // create combined device object
+        // TODO: Vendor Dependent Shaders
         shaderPack = shaderPrefix + "intrusive/universal";
 
         // create radix sort application (RadX C++)
@@ -163,7 +164,6 @@ namespace rnd {
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{1.f, 1.f, 1.f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
             auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), appBase->size());
             auto viewport = vk::Viewport(0.0f, 0.0f, appBase->size().width, appBase->size().height, 0, 1.0f);
-
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;

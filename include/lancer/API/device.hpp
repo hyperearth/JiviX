@@ -158,7 +158,7 @@ namespace lancer {
 
             // require to generate both VMA and vendor name 
             PhysicalDevice_T(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
-                this->physicalDevice = physicalDevice, this->getFeaturesWithProperties(), this->getVendorName();
+                this->getFeaturesWithProperties(), this->getVendorName();
             };
 
             // getter of vendor name 
