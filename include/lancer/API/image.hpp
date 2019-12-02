@@ -151,6 +151,16 @@ namespace lancer {
                 //image->_initialLayout = (VkImageLayout)imageMemoryBarriers.newLayout;
                 return shared_from_this(); };
 
+            // 
+            inline MemoryAllocation& getAllocation() {
+                return this->allocation;
+            };
+
+            // 
+            const inline MemoryAllocation& getAllocation() const {
+                return this->allocation;
+            };
+
             // Memory now can binded 
             inline ImageMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindImageMemoryInfo& bindinf = {}) {
                 this->allocation = allocation;

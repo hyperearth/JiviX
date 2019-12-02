@@ -45,6 +45,16 @@ namespace lancer {
                 return allocation->getMapped();
             };
 
+            // 
+            inline MemoryAllocation& getAllocation() {
+                return this->allocation;
+            };
+
+            // 
+            const inline MemoryAllocation& getAllocation() const {
+                return this->allocation;
+            };
+
             //  
             inline BufferMaker queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {
                 bfc.queueFamilyIndexCount = indices.size();

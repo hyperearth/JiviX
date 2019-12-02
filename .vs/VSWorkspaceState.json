@@ -1,7 +1,13 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\build",
+    "\\include",
+    "\\include\\lancer",
+    "\\include\\lancer\\API",
+    "\\include\\lancer\\EXT",
+    "\\include\\vkt"
   ],
-  "SelectedNode": "\\CMakeLists.txt",
+  "SelectedNode": "\\build\\LancER.sln",
   "PreviewInSolutionExplorer": false
 }

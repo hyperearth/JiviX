@@ -187,7 +187,7 @@ namespace lancer {
         };
 
         // Use some Vookoo style 
-        GeometryAcceleration beginGeometryTriangle(const api::GeometryNV& geometry = {}) {
+        GeometryAcceleration beginTriangles(const api::GeometryNV& geometry = {}) {
             geometries.push_back(geometry);
             geometries.back().geometryType = api::GeometryTypeNV::eTriangles;
             return shared_from_this();
