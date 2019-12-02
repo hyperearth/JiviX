@@ -517,11 +517,10 @@ namespace vkt
             swapchainBuffers.resize(swapchainImages.size());
             for (int i = 0; i < swapchainImages.size(); i++)
             { // create framebuffers
-                api::Image image = swapchainImages[i]; // prelink images
                 std::array<api::ImageView, 2> views = {}; // predeclare views
-                views[0] = _device.createImageView(api::ImageViewCreateInfo{ {}, image, api::ImageViewType::e2D, formats.colorFormat, api::ComponentMapping(), api::ImageSubresourceRange{api::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
+                views[0] = _device.createImageView(api::ImageViewCreateInfo{ {}, swapchainImages[i], api::ImageViewType::e2D, formats.colorFormat, api::ComponentMapping(), api::ImageSubresourceRange{api::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
                 views[1] = depthImageView; // depth view
-                swapchainBuffers[i].frameBuffer = _device.createFramebuffer(api::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1 });
+                swapchainBuffers[i].frameBuffer = _device.createFramebuffer(api::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u });
             };
         }
 
