@@ -42,14 +42,14 @@ namespace lancer {
         ~SBTHelper_T() { this->destroy(); };
 
         inline void        destroy();
-        inline SBTHelper&& initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
-        inline SBTHelper&& setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
-        inline SBTHelper&& addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
-        inline SBTHelper&& addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
-        inline SBTHelper&& linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); };
-        inline SBTHelper&& linkBuffer(api::Buffer* buffer) { pSBT = buffer; };
-        inline SBTHelper&& linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
-        inline SBTHelper&& linkPipelineLayout(api::PipelineLayout* rtPipelineLayout = nullptr) { this->mPipelineLayout = rtPipelineLayout; return shared_from_this(); };
+        inline SBTHelper initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize);
+        inline SBTHelper setRaygenStage(const api::PipelineShaderStageCreateInfo& stage);
+        inline SBTHelper addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex = 0u);
+        inline SBTHelper addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex = 0u);
+        inline SBTHelper linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); };
+        inline SBTHelper linkBuffer(api::Buffer* buffer) { pSBT = buffer; };
+        inline SBTHelper linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
+        inline SBTHelper linkPipelineLayout(api::PipelineLayout* rtPipelineLayout = nullptr) { this->mPipelineLayout = rtPipelineLayout; return shared_from_this(); };
 
         inline uint32_t    getGroupsStride() const;
         inline uint32_t    getNumGroups() const;
@@ -281,7 +281,7 @@ namespace lancer {
 #ifdef EXTENSION_RTX_IMPLEMENT
     // SBT Helper class
 
-    inline SBTHelper&& SBTHelper_T::initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize) {
+    inline SBTHelper SBTHelper_T::initialize(const uint32_t& numHitGroups, const uint32_t& numMissGroups, const uint32_t& shaderHeaderSize) {
         mShaderHeaderSize = shaderHeaderSize;
         mNumHitGroups = numHitGroups;
         mNumMissGroups = numMissGroups;
@@ -302,7 +302,7 @@ namespace lancer {
         mGroups.clear();
     }
 
-    inline SBTHelper&& SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
+    inline SBTHelper SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
         // this shader stage should go first!
         assert(mStages.empty());
         mStages.push_back(stage);
@@ -318,7 +318,7 @@ namespace lancer {
         return shared_from_this();
     }
 
-    inline SBTHelper&& SBTHelper_T::addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex) {
+    inline SBTHelper SBTHelper_T::addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages, const uint32_t& groupIndex) {
         // raygen stage should go first!
         assert(groupIndex < mNumHitShaders.size());
         assert(!mStages.empty());
@@ -353,7 +353,7 @@ namespace lancer {
         mNumHitShaders[groupIndex] += static_cast<uint32_t>(stages.size());
     }
 
-    inline SBTHelper&& SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
+    inline SBTHelper SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
         // raygen stage should go first!
         assert(!mStages.empty());
 
