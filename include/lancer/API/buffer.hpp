@@ -32,18 +32,18 @@ namespace lancer {
             inline api::BufferCreateInfo& getCreateInfo() { return bfc; };
             inline const api::BufferCreateInfo& getCreateInfo() const { return bfc; };
 
-            // TODO: Memory Binding Support
-            inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}) {
-                this->allocation = allocation;
+            // Memory now can binded 
+            inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindBufferMemoryInfo bindinf = {}) {
+                if (!!(this->allocation = allocation)) {
+                    const auto mem = allocation->getMemory();
+                    if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem)); };
+                };
                 return shared_from_this(); };
 
             // Mapping from Allocator
             inline uint8_t* getMapped(){
                 return allocation->getMapped();
             };
-
-            // const MemoryAllocator& mem
-            //inline BufferMaker linkAllocator(const MemoryAllocator& mem) { allocator = mem; return shared_from_this(); };
 
             //  
             inline BufferMaker queueFamilyIndices(const std::vector<uint32_t>& indices = {}) {

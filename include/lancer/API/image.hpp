@@ -151,9 +151,13 @@ namespace lancer {
                 //image->_initialLayout = (VkImageLayout)imageMemoryBarriers.newLayout;
                 return shared_from_this(); };
 
-            // TODO: Memory Binding Support
-            inline ImageMaker linkAllocation(const MemoryAllocation& allocation = {}) {
+            // Memory now can binded 
+            inline ImageMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindImageMemoryInfo bindinf = {}) {
                 this->allocation = allocation;
+                if (!!(this->allocation = allocation)) {
+                    const auto mem = allocation->getMemory();
+                    if (!!mem) { device->least().bindImageMemory2(vk::BindImageMemoryInfo(bindinf).setImage(*lastimg).setMemory(mem)); };
+                };
                 return shared_from_this();
             };
 

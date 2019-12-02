@@ -24,7 +24,8 @@ namespace lancer {
             inline virtual MemoryAllocation smartFree() { return shared_from_this(); };
             inline virtual uintptr_t getPtr() { return 0u; }; // xPEH TB
             inline virtual uintptr_t getCIP() { return 0u; }; // xPEH TB
-            inline virtual uint8_t* getMapped() {  return nullptr; };
+            inline virtual uint8_t* getMapped() { return nullptr; };
+            inline virtual api::DeviceMemory getMemory() { return {}; };
 
             ~MemoryAllocation_T(){  };
              MemoryAllocation_T(const MemoryAllocator& allocator = {}) : allocator(allocator) {};

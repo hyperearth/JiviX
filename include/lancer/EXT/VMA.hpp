@@ -44,7 +44,7 @@ namespace lancer {
             inline virtual uintptr_t getCIP() override { return (uintptr_t)(&allocation.alcmc); };
             inline virtual uintptr_t getPtr() override { return (uintptr_t)(&allocation.alloc); };
             inline virtual uint8_t* getMapped() override { return (uint8_t*)allocation.alcmc.pMappedData; };
-
+            inline virtual api::DeviceMemory getMemory() override { return allocation.alcmc.deviceMemory; };
             inline virtual const DeviceMaker& getDevice() const;
             inline virtual DeviceMaker& getDevice();
             inline virtual const MemoryAllocator& getAllocator() const;
