@@ -123,7 +123,7 @@ cmake-build*/*
 */cmake-build*/*
 
 # Ban IDEA Generated
-.idea/
-.idea/*
-*/.idea/
-*/.idea/*
+#.idea/
+#.idea/*
+#*/.idea/
+#*/.idea/*

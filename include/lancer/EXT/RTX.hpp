@@ -73,6 +73,10 @@ namespace lancer {
         api::DescriptorBufferInfo                             mBufInfo;
         api::RayTracingPipelineCreateInfoNV                   mRTC;
     };
+
+
+
+
 #endif
 
 // TODO: Re-Implement SBT Helper 

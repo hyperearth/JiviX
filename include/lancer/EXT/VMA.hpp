@@ -71,16 +71,16 @@ namespace lancer {
                 if (!!info) { amc = *((const VmaAllocatorCreateInfo*)info); }; // Re-Assign From Pointer
              };
 
-            // 
-             inline virtual MemoryAllocator allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
-                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
-                 //return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
+            inline virtual MemoryAllocator allocateForRequirements(MemoryAllocation& allocation, const api::MemoryRequirements2& req = {}, const uintptr_t& ptx = 0u) override { 
+                 vmaAllocateMemory(vma,(VkMemoryRequirements*)&req.memoryRequirements, (VmaAllocationCreateInfo*)ptx, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
                  return shared_from_this(); };
 
-            // 
+            inline virtual MemoryAllocator allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
+                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
+                 return shared_from_this(); };
+
             inline virtual MemoryAllocator allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
                 vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
-                //return std::dynamic_pointer_cast<MemoryAllocator_T>(shared_from_this()); };
                 return shared_from_this(); };
 
             // Sometimes required special allocation
