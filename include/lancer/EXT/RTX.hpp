@@ -67,7 +67,7 @@ namespace lancer {
         inline       api::Buffer& getSBTBuffer();
 
     protected:
-        uint32_t                                              mShaderHeaderSize = 0u;
+        uint32_t                                              mShaderHeaderSize = 8u;
         uint32_t                                              mNumHitGroups = 0u;
         uint32_t                                              mNumMissGroups = 0u;
         std::vector<uint32_t>                                 mNumHitShaders = {};
