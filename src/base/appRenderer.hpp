@@ -29,27 +29,27 @@ namespace rnd {
             // Pipeline Layout
             api::Pipeline trianglePipeline = {};
             api::PipelineLayout trianglePipelineLayout = {};
+
+            // Descriptor Set
             api::DescriptorSet inputDescriptorSet_ = {};
             api::DescriptorSetLayout inputDescriptorLayout = {};
-            api::Image outputImage_ = {};
+            lancer::DescriptorSetMaker inputDescriptorSet = {};
 
-
-
-            // Instance Level 
-            api::AccelerationStructureNV acw = {};
-            std::vector<api::AccelerationStructureNV> acg = {};
-            api::Buffer tscratch = {};
-
-            // Geometry Level 
-            lancer::InstancedAcceleration topLevel = {};
-            std::vector<lancer::GeometryAcceleration> lowLevel = {};
-            std::vector<api::Buffer> scratchs = {};
-
-
+            // Ray Tracing Pipeline
+            api::Buffer rtSBT = {};
             api::Pipeline rtPipeline = {};
             api::PipelineLayout rtPipelineLayout = {};
+
+            // Output Image 
+            api::Image outputImage_ = {};
             lancer::ImageMaker outputImage = {};
-            lancer::DescriptorSetMaker inputDescriptorSet = {};
+
+            // Acceleration Geometry
+            vkt::AccelerationGeometry accelLow = {};
+
+            // Acceleration Instanced
+            vkt::AccelerationInstanced accelTop = {};
+
 
             double tPastFrameTime = 0.f;
             float guiScale = 1.0f;

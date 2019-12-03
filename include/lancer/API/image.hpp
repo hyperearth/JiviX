@@ -166,7 +166,7 @@ namespace lancer {
                 this->allocation = allocation;
                 if (!!(this->allocation = allocation)) {
                     const auto mem = allocation->getMemory();
-                    if (!!mem) { device->least().bindImageMemory2(vk::BindImageMemoryInfo(bindinf).setImage(*lastimg).setMemory(mem)); };
+                    if (!!mem) { device->least().bindImageMemory2(vk::BindImageMemoryInfo(bindinf).setImage(*lastimg).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
                 };
                 return shared_from_this();
             };
@@ -213,18 +213,27 @@ namespace lancer {
             inline ImageMaker free() { allocation->smartFree(); smartFree = true; return shared_from_this(); };
 
             // Create 1D "Canvas" 
-            inline ImageMaker create(const api::ImageType& type = api::ImageType::e1D, const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) {
+            inline ImageMaker create(const api::ImageType& type = api::ImageType::e1D, const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u, const vk::BindImageMemoryInfo& bindinf = {}) {
                 //api::ImageCreateInfo imv = {};
                 imc.imageType = type;
                 imc.extent = api::Extent3D{w,h,d};
                 imc.arrayLayers = d;
                 imc.format = format;
-                //*lastimg = device->least().createImage(imc); // Allocator Will Create Image Anyways 
+
+                if (lastimg && !(*lastimg)) { // Create Image Manually
+                    *lastimg = device->least().createImage(imc); // Allocator Will Create Image Anyways 
+                };
+
+                if (!!allocation) { // Bind Memory When Possible 
+                    const auto mem = allocation->getMemory();
+                    if (!!mem) { device->least().bindImageMemory2(vk::BindImageMemoryInfo(bindinf).setImage(*lastimg).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
+                };
+
                 return shared_from_this(); };
 
-            inline ImageMaker create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u) { return this->create(api::ImageType::e1D,format,w); };
-            inline ImageMaker create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u) { return this->create(api::ImageType::e2D,format,w,h); };
-            inline ImageMaker create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u) { return this->create(api::ImageType::e3D,format,w,h,d); };
+            inline ImageMaker create1D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const vk::BindImageMemoryInfo& bindinf = {}) { return this->create(api::ImageType::e1D,format,w,1u,1u,bindinf); };
+            inline ImageMaker create2D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const vk::BindImageMemoryInfo& bindinf = {}) { return this->create(api::ImageType::e2D,format,w,h,1u,bindinf); };
+            inline ImageMaker create3D(const api::Format& format = api::Format::eR8G8B8A8Unorm, const uint32_t&w = 1u, const uint32_t&h = 1u, const uint32_t&d = 1u, const vk::BindImageMemoryInfo& bindinf = {}) { return this->create(api::ImageType::e3D,format,w,h,d,bindinf); };
 
             // Create ImageView 
             inline ImageMaker createImageView(const api::ImageViewType& viewType = api::ImageViewType::e2D, const api::Format& format = api::Format::eUndefined, const api::ComponentMapping& compmap = DEFAULT_COMPONENTS) {

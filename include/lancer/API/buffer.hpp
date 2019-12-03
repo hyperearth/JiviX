@@ -36,6 +36,7 @@ namespace lancer {
             inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindBufferMemoryInfo& bindinf = {}) {
                 if (!!(this->allocation = allocation)) {
                     const auto mem = allocation->getMemory();
+                    bfc.size = std::min(this->allocation->getMemorySize(), bfc.size);
                     if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
                 };
                 return shared_from_this(); };
@@ -75,8 +76,14 @@ namespace lancer {
             inline BufferMaker free() { allocation->smartFree(); smartFree = true; return shared_from_this(); };
 
             // 
-            inline BufferMaker create() { // 
-                //*lastbuf = device->least().createBuffer(bfc); // Allocator Will Create Buffer Anyways
+            inline BufferMaker create(const vk::BindBufferMemoryInfo& bindinf = {}) { // 
+                if (lastbuf && !(*lastbuf)) {
+                    *lastbuf = device->least().createBuffer(bfc.setSize(!!allocation ? std::min(allocation->getMemorySize(), bfc.size) : bfc.size)); // Allocator Will Create Buffer Anyways
+                };
+                if (!!allocation) {
+                    const auto mem = allocation->getMemory();
+                    if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
+                };
                 return shared_from_this(); };
 
             // Create With Buffer View 
@@ -86,7 +93,7 @@ namespace lancer {
 
             // Create With Region
             // TODO: another format 
-            inline BufferRegionU8Maker createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
+            //inline BufferRegionU8Maker createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
 
             template<class T = uint8_t>
             inline std::shared_ptr<BufferRegion_T<T>> createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
@@ -155,10 +162,10 @@ namespace lancer {
 
     // defer implement 
     // TODO: another format of BufferRegion
-    inline BufferRegionU8Maker Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
-        (*reg = api::DescriptorBufferInfo{ *lastbuf, offset, size }); //return shared_from_this(); 
-        return std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size);
-    };
+    //inline BufferRegionU8Maker Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
+    //    (*reg = api::DescriptorBufferInfo{ *lastbuf, offset, size }); //return shared_from_this(); 
+    //    return std::make_shared<BufferRegionU8_T>(shared_from_this(), reg, offset, size);
+    //};
 
     // Wrap as Vector (like STD)
     template<class T = uint8_t>
@@ -166,7 +173,7 @@ namespace lancer {
         public:
             ~Vector() {};
              Vector() {};
-             Vector(const BufferMaker& buffer, api::DescriptorBufferInfo& bufInfo, const api::DeviceSize& offset = 0u, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
+             Vector(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset = 0u, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
              Vector(const Vector<T>& vector) : region(vector.region) {};
              Vector(const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
 
@@ -198,13 +205,30 @@ namespace lancer {
             T* end() { return region->end(); };
 
             // 
+            operator const api::DescriptorBufferInfo&() const { return *region; };
+            operator const api::Buffer&() const { return *region; };
+            inline const api::DeviceSize& offset() const { return region->offset(); };
+
+
+            // Update from 03.12.2019 (make able to use methods as pointer)
+            operator BufferMaker& () { return region->least(); };
+            operator const BufferMaker& () const { return region->least(); };
+
+            // 
             BufferMaker& least() { return region->least(); };
             const BufferMaker& least() const { return region->least(); };
 
             // 
-            operator const api::DescriptorBufferInfo&() const { return *region; };
-            operator const api::Buffer&() const { return *region; };
-            inline const api::DeviceSize& offset() const { return region->offset(); };
+            BufferRegion_T<T>* operator->() { return &(*region); };
+            const BufferRegion_T<T>* operator->() const { return &(*region); };
+
+            // 
+            operator BufferRegion_T<T>& () { return *region; };
+            operator const BufferRegion_T<T>& () const { return *region; };
+
+            // 
+            operator std::shared_ptr<BufferRegion_T<T>>& () { return region; };
+            operator const std::shared_ptr<BufferRegion_T<T>>& () const { return region; };
 
         protected:
             std::shared_ptr<BufferRegion_T<T>> region = {};

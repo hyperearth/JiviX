@@ -36,18 +36,21 @@ namespace lancer {
     // Declare SBT Class 
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
     public:
-        SBTHelper_T(const DeviceMaker& device = {}, const api::RayTracingPipelineCreateInfoNV& rpt = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mPipeline(rtPipeline), mNumHitGroups(0u), mNumMissGroups(0u), mRTC(rpt) {
+        SBTHelper_T(const DeviceMaker& device = {}, const api::RayTracingPipelineCreateInfoNV& rpt = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mPipeline(rtPipeline), mNumHitGroups(1u), mNumMissGroups(1u), mRTC(rpt) {
             if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 4u; };
+            if (!pSBT) { pSBT = &mBufInfo.buffer; }; // RazVodka API
+            //mNumHitShaders = { 0u };
+            //mNumMissShaders = { 0u };
         };
         ~SBTHelper_T() { this->destroy(); };
 
         inline void      destroy();
-        inline SBTHelper initialize(const uint32_t& numHitGroups = 0u, const uint32_t& numMissGroups = 0u, const uint32_t& shaderHeaderSize = 8u);
+        inline SBTHelper initialize(const uint32_t& numHitGroups = 1u, const uint32_t& numMissGroups = 1u, const uint32_t& shaderHeaderSize = 8u);
         inline SBTHelper setRaygenStage(const api::PipelineShaderStageCreateInfo& stage = {});
         inline SBTHelper addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages = {}, const uint32_t& groupIndex = 0u);
         inline SBTHelper addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage = {}, const uint32_t& groupIndex = 0u);
         inline SBTHelper linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); };
-        inline SBTHelper linkBuffer(api::Buffer* buffer = nullptr) { pSBT = buffer; };
+        inline SBTHelper linkBuffer(api::Buffer* buffer = nullptr) { pSBT = buffer; return shared_from_this(); };
         inline SBTHelper linkPipeline(api::Pipeline* rtPipeline = nullptr) { this->mPipeline = rtPipeline; return shared_from_this(); };
         inline SBTHelper linkPipelineLayout(api::PipelineLayout* rtPipelineLayout = nullptr) { this->mPipelineLayout = rtPipelineLayout; return shared_from_this(); };
 
@@ -68,10 +71,10 @@ namespace lancer {
 
     protected:
         uint32_t                                              mShaderHeaderSize = 8u;
-        uint32_t                                              mNumHitGroups = 0u;
-        uint32_t                                              mNumMissGroups = 0u;
-        std::vector<uint32_t>                                 mNumHitShaders = {};
-        std::vector<uint32_t>                                 mNumMissShaders = {};
+        uint32_t                                              mNumHitGroups = 1u;
+        uint32_t                                              mNumMissGroups = 1u;
+        std::vector<uint32_t>                                 mNumHitShaders = { 0u };
+        std::vector<uint32_t>                                 mNumMissShaders = { 0u };
         std::vector<api::PipelineShaderStageCreateInfo>       mStages = {};
         std::vector<api::RayTracingShaderGroupCreateInfoNV>   mGroups = {};
         
@@ -507,7 +510,7 @@ namespace lancer {
             api::BufferUsageFlagBits::eRayTracingNV|
             api::BufferUsageFlagBits::eTransferDst|
             api::BufferUsageFlagBits::eTransferSrc
-        ), pSBT))->allocate(mDevice->getAllocatorPtr(),(uintptr_t)(&allocInfo));
+        ), pSBT))->create()->allocate(mDevice->getAllocatorPtr(),(uintptr_t)(&allocInfo));
         vSBT = Vector<>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
 
         // Assign Truth
@@ -516,10 +519,11 @@ namespace lancer {
         mRTC.pGroups = this->getGroups();
         mRTC.pStages = this->getStages();
         mRTC.layout = *this->mPipelineLayout;
+        if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 4u; };
 
         // Create Pipeline And SBT
         const auto result = mDevice->least().getRayTracingShaderGroupHandlesNV(
-            (*mPipeline = mDevice->least().createRayTracingPipelineNV(mDevice->getPipelineCache(), mRTC)),0u,this->getNumGroups(),sbtSize,mSBT->getMapped());
+            (*mPipeline = mDevice->least().createRayTracingPipelineNV(mDevice->getPipelineCache(), mRTC)),0u,this->getNumGroups(),sbtSize, vSBT->map());
 
         // 
         return (result == api::Result::eSuccess);
