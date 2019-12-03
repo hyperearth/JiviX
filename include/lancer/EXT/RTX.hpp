@@ -39,8 +39,8 @@ namespace lancer {
         SBTHelper_T(const DeviceMaker& device = {}, const api::RayTracingPipelineCreateInfoNV& rpt = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mPipeline(rtPipeline), mNumHitGroups(1u), mNumMissGroups(1u), mRTC(rpt) {
             if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 1u; };
             if (!pSBT) { pSBT = &mBufInfo.buffer; }; // RazVodka API
-            //mNumHitShaders = { 0u };
-            //mNumMissShaders = { 0u };
+            if (!mNumHitGroups) { mNumHitGroups = 1u; };
+            if (!mNumMissGroups) { mNumMissGroups = 1u; };
         };
         ~SBTHelper_T() { this->destroy(); };
 
@@ -373,6 +373,9 @@ namespace lancer {
         this->mNumHitGroups = numHitGroups;
         this->mNumMissGroups = numMissGroups;
 
+        if (!this->mNumHitGroups) { this->mNumHitGroups = 1u; };
+        if (!this->mNumMissGroups) { this->mNumMissGroups = 1u; };
+
         this->mNumHitShaders.resize(numHitGroups, 0u);
         this->mNumMissShaders.resize(numMissGroups, 0u);
 
@@ -399,16 +402,21 @@ namespace lancer {
     inline SBTHelper SBTHelper_T::setRaygenStage(const api::PipelineShaderStageCreateInfo& stage) {
         // this shader stage should go first!
         assert(mStages.empty());
+        const auto offset = mStages.size();
         mStages.push_back(stage);
 
         api::RayTracingShaderGroupCreateInfoNV groupInfo = {};
         groupInfo.type = api::RayTracingShaderGroupTypeNV::eGeneral;
-        groupInfo.generalShader = 0;
+        groupInfo.generalShader = 0u;
         groupInfo.closestHitShader = VK_SHADER_UNUSED_NV;
         groupInfo.anyHitShader = VK_SHADER_UNUSED_NV;
         groupInfo.intersectionShader = VK_SHADER_UNUSED_NV;
-        mGroups.push_back(groupInfo); // group 0 is always for raygen
 
+        // Update 03.12.2019 (fix vector issues)
+        const auto rgoff = 0u;
+        if (rgoff >= mGroups.size()) { mGroups.resize(rgoff + 1u); }; mGroups[rgoff] = groupInfo;
+
+        // 
         return shared_from_this();
     };
 
@@ -419,19 +427,19 @@ namespace lancer {
         assert(!stages.empty() && stages.size() <= 3);// only 3 hit shaders per group (intersection, any-hit and closest-hit)
         assert(mNumHitShaders[groupIndex] == 0);
 
-        uint32_t offset = 1u; // there's always raygen shader
-        for (uint32_t i = 0u; i <= groupIndex; ++i) { offset += mNumHitShaders[i]; };
+        // 
+        const auto offset = mStages.size();
+        for (auto itStage : stages) { mStages.push_back(itStage); };
 
-        auto itStage = mStages.begin() + offset;
-        mStages.insert(itStage, stages.begin(), stages.end());
-
-        api::RayTracingShaderGroupCreateInfoNV groupInfo;
+        // 
+        api::RayTracingShaderGroupCreateInfoNV groupInfo = mGroups[groupIndex];
         groupInfo.type = api::RayTracingShaderGroupTypeNV::eTrianglesHitGroup;
         groupInfo.generalShader = VK_SHADER_UNUSED_NV;
         groupInfo.closestHitShader = VK_SHADER_UNUSED_NV;
         groupInfo.anyHitShader = VK_SHADER_UNUSED_NV;
         groupInfo.intersectionShader = VK_SHADER_UNUSED_NV;
 
+        // 
         for (size_t i = 0; i < stages.size(); i++) {
             const api::PipelineShaderStageCreateInfo& stageInfo = stages[i];
             const uint32_t shaderIdx = static_cast<uint32_t>(offset + i);
@@ -441,34 +449,28 @@ namespace lancer {
             }
             else if (stageInfo.stage == api::ShaderStageFlagBits::eAnyHitNV) {
                 groupInfo.anyHitShader = shaderIdx; // Pricol 
-            }
+            };
         };
 
-        mGroups.insert((mGroups.begin() + 1 + groupIndex), groupInfo);
-        mNumHitShaders[groupIndex] += static_cast<uint32_t>(stages.size());
+        // Update 03.12.2019 (fix vector issues)
+        const auto gpoff = 1u + groupIndex;
+        if (gpoff >= mGroups.size()) { mGroups.resize(gpoff + 1u); }; mGroups[gpoff] = groupInfo;
+        mNumHitShaders[groupIndex] += stages.size();
 
+        // 
         return shared_from_this();
     };
 
     inline SBTHelper SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
         // raygen stage should go first!
         assert(!mStages.empty());
-
+        assert(!!mNumHitGroups);
         assert(groupIndex < mNumMissShaders.size());
         assert(mNumMissShaders[groupIndex] == 0); // only 1 miss shader per group    
 
-        uint32_t offset = 1; // there's always raygen shader
-
-        // now skip all hit shaders
-        for (const uint32_t numHitShader : mNumHitShaders) {
-            offset += numHitShader;
-        }
-
-        for (uint32_t i = 0; i <= groupIndex; ++i) {
-            offset += mNumMissShaders[i];
-        }
-
-        mStages.insert(mStages.begin() + offset, stage);
+        // 
+        const auto offset = mStages.size();
+        mStages.push_back(stage);
 
         // group create info 
         api::RayTracingShaderGroupCreateInfoNV groupInfo = {};
@@ -478,19 +480,21 @@ namespace lancer {
         groupInfo.anyHitShader = VK_SHADER_UNUSED_NV;
         groupInfo.intersectionShader = VK_SHADER_UNUSED_NV;
 
-        // group 0 is always for raygen, then go hit shaders
-        mGroups.insert((mGroups.begin() + (groupIndex + 1 + mNumHitGroups)), groupInfo);
-
+        // Update 03.12.2019 (fix vector issues)
+        const auto msoff = 1u + mNumHitGroups + groupIndex;
+        if (msoff >= mGroups.size()) { mGroups.resize(msoff + 1u); }; 
+        mGroups[msoff] = groupInfo;
         mNumMissShaders[groupIndex]++;
 
+        // 
         return shared_from_this();
     };
 
     inline uint32_t SBTHelper_T::getGroupsStride() const { return mShaderHeaderSize; };
     inline uint32_t SBTHelper_T::getNumGroups() const { return 1 + mNumHitGroups + mNumMissGroups; };
-    inline uint32_t SBTHelper_T::getRaygenOffset() const { return 0; };
-    inline uint32_t SBTHelper_T::getHitGroupsOffset() const { return 1 * mShaderHeaderSize; };
-    inline uint32_t SBTHelper_T::getMissGroupsOffset() const { return (1 + mNumHitGroups) * mShaderHeaderSize; };
+    inline uint32_t SBTHelper_T::getRaygenOffset() const { return 0u; };
+    inline uint32_t SBTHelper_T::getHitGroupsOffset() const { return 1u * mShaderHeaderSize; };
+    inline uint32_t SBTHelper_T::getMissGroupsOffset() const { return (1u + mNumHitGroups) * mShaderHeaderSize; };
     inline uint32_t SBTHelper_T::getNumStages() const { return static_cast<uint32_t>(mStages.size()); };
     inline uint32_t SBTHelper_T::getSBTSize() const { return this->getNumGroups() * mShaderHeaderSize; };
 

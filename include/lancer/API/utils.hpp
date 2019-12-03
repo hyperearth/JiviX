@@ -21,7 +21,8 @@ namespace lancer {
     template <class T>
     static inline auto strided(const size_t& sizeo) { return sizeof(T) * sizeo; }
 
-    // read binary (for SPIR-V)
+    // Read binary (for SPIR-V)
+    // Updated 03.12.2019 (add No Data error)
     static inline auto readBinary(const std::string& filePath ) {
         std::ifstream file(filePath, std::ios::in | std::ios::binary | std::ios::ate);
         std::vector<uint32_t> data = {};
@@ -31,9 +32,11 @@ namespace lancer {
             file.seekg(0, std::ios::beg);
             file.read((char *)data.data(), size);
             file.close();
-        } else {
-            std::cerr << "Failure to open " + filePath << std::endl;
         }
+        else {
+            std::cerr << "Failure to open " + filePath << std::endl;
+        };
+        if (data.size() < 1u) { std::cerr << "NO DATA " + filePath << std::endl; };
         return data;
     };
 
