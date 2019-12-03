@@ -106,42 +106,23 @@ namespace rnd {
         };
 
         {
-            // Create Ray Tracing Pipeline Layout
+            /*// Create Ray Tracing Pipeline Layout
             lancer::PipelineLayoutMaker dlayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(), &rtPipelineLayout);
             dlayout->pushDescriptorSetLayout(inputDescriptorLayout)->create();
 
             // Create Ray Tracing Pipeline and SBT
-            auto acmaker = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &this->rtPipeline)->linkPipeline(&this->rtPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&rtPipelineLayout)->initialize();
-            acmaker->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
-            acmaker->addStageToHitGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV) }, 0u);
-            acmaker->addStageToMissGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV) }, 0u);
-            acmaker->create();
+            rtSBThelper = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &this->rtPipeline)->linkPipeline(&this->rtPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&rtPipelineLayout)->initialize();
+            rtSBThelper->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
+            rtSBThelper->addStageToHitGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV) });
+            rtSBThelper->addStageToMissGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV) });
+            rtSBThelper->create();
+            */
 
-
-            //accelTop.setDevice(device);
+            accelTop.setDevice(device);
             accelTop = vkt::AccelerationInstanced(device);
             for (uint32_t i = 0u; i < 1u; i++) {
                 accelLow = vkt::AccelerationGeometry(device);
             };
-
-            // Top Level Pre-Define
-            //auto mtcache = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst));
-            //auto mtupload = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferSrc));
-            //auto mtscratch = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV));
-            //acw = api::AccelerationStructureNV{};
-            //topLevel = device->createInstancedAcceleration(api::AccelerationStructureCreateInfoNV(), &acw);
-
-
-            // Add Geometry 
-            //for (uint32_t i = 0u; i < 1u; i++) {
-            //    auto mtscratch = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV));
-
-            //    acg.push_back(api::AccelerationStructureNV{});
-            //    lowLevel.push_back(device->createGeometryAcceleration(api::AccelerationStructureCreateInfoNV(), &acg.back()));
-            //    lowLevel.back()->linkScratch(mtscratch->createRegion(&this->rtscratch, 0u, 1024u));
-            //};
-
-            
         };
 
         {

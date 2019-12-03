@@ -39,6 +39,7 @@ namespace rnd {
             api::Buffer rtSBT = {};
             api::Pipeline rtPipeline = {};
             api::PipelineLayout rtPipelineLayout = {};
+            lancer::SBTHelper rtSBThelper = {};
 
             // Output Image 
             api::Image outputImage_ = {};

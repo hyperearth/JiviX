@@ -163,10 +163,12 @@ namespace lancer {
 
             // Memory now can binded 
             inline ImageMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindImageMemoryInfo& bindinf = {}) {
-                this->allocation = allocation;
-                if (!!(this->allocation = allocation)) {
-                    const auto mem = allocation->getMemory();
-                    if (!!mem) { device->least().bindImageMemory2(vk::BindImageMemoryInfo(bindinf).setImage(*lastimg).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
+                if (!this->allocation) {
+                    this->allocation = allocation;
+                    if (lastimg && (*lastimg)) {
+                        const auto mem = allocation->getMemory();
+                        if (!!mem) { device->least().bindImageMemory2(vk::BindImageMemoryInfo(bindinf).setImage(*lastimg).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
+                    };
                 };
                 return shared_from_this();
             };
@@ -206,12 +208,15 @@ namespace lancer {
             inline ImageMaker linkImageView(api::ImageView* view = nullptr) { lastimv = view; return shared_from_this(); };
             inline ImageMaker link(api::Image* img = nullptr) { lastimg = img; return shared_from_this(); };
             inline ImageMaker allocate(const MemoryAllocator& mem = {}, const uintptr_t& ptx = 0u) {
-                if (lastimg && !(*lastimg)) { // But... Image Already Created...
-                    mem->allocateForRequirements(allocation = mem->createAllocation(), device->least().getImageMemoryRequirements2(vk::ImageMemoryRequirementsInfo2().setImage(*lastimg)), ptx);
-                    device->least().bindImageMemory2(vk::BindImageMemoryInfo().setImage(*lastimg).setMemory(allocation->getMemory()).setMemoryOffset(allocation->getMemoryOffset()));
-                }
-                else {
-                    mem->allocateForImage(lastimg, allocation = mem->createAllocation(), imc, ptx);
+                if (!this->allocation) {
+                    if (lastimg && (*lastimg)) { // But... Image Already Created...
+                        auto req = device->least().getImageMemoryRequirements2(vk::ImageMemoryRequirementsInfo2().setImage(*lastimg));
+                        mem->allocateForRequirements(allocation = mem->createAllocation(), req, ptx);
+                        device->least().bindImageMemory2(vk::BindImageMemoryInfo().setImage(*lastimg).setMemory(allocation->getMemory()).setMemoryOffset(allocation->getMemoryOffset()));
+                    }
+                    else {
+                        mem->allocateForImage(lastimg, allocation = mem->createAllocation(), imc, ptx);
+                    };
                 };
                 return shared_from_this(); };
 

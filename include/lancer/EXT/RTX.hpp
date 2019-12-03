@@ -37,7 +37,7 @@ namespace lancer {
     class SBTHelper_T : public std::enable_shared_from_this<SBTHelper_T> {
     public:
         SBTHelper_T(const DeviceMaker& device = {}, const api::RayTracingPipelineCreateInfoNV& rpt = {}, api::Pipeline* rtPipeline = nullptr) : mDevice(device), mPipeline(rtPipeline), mNumHitGroups(1u), mNumMissGroups(1u), mRTC(rpt) {
-            if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 4u; };
+            if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 1u; };
             if (!pSBT) { pSBT = &mBufInfo.buffer; }; // RazVodka API
             //mNumHitShaders = { 0u };
             //mNumMissShaders = { 0u };
@@ -519,14 +519,11 @@ namespace lancer {
         mRTC.pGroups = this->getGroups();
         mRTC.pStages = this->getStages();
         mRTC.layout = *this->mPipelineLayout;
-        if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 4u; };
+        if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 1u; };
 
-        // Create Pipeline And SBT
-        const auto result = mDevice->least().getRayTracingShaderGroupHandlesNV(
-            (*mPipeline = mDevice->least().createRayTracingPipelineNV(mDevice->getPipelineCache(), mRTC)),0u,this->getNumGroups(),sbtSize, vSBT->map());
-
-        // 
-        return (result == api::Result::eSuccess);
+        // Create Pipeline And SBT 
+        *mPipeline = mDevice->least().createRayTracingPipelinesNV(mDevice->getPipelineCache(), { mRTC })[0];
+        return (mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0u,this->getNumGroups(), sbtSize, vSBT->map()) == api::Result::eSuccess);
     };
 #endif
 

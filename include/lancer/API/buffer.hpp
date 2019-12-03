@@ -34,10 +34,13 @@ namespace lancer {
 
             // Memory now can binded 
             inline BufferMaker linkAllocation(const MemoryAllocation& allocation = {}, const vk::BindBufferMemoryInfo& bindinf = {}) {
-                if (!!(this->allocation = allocation)) {
-                    const auto mem = allocation->getMemory();
-                    bfc.size = std::min(this->allocation->getMemorySize(), bfc.size);
-                    if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
+                if (!this->allocation) {
+                    this->allocation = allocation;
+                    if (lastbuf && (*lastbuf)) {
+                        const auto mem = allocation->getMemory();
+                        bfc.size = std::min(this->allocation->getMemorySize(), bfc.size);
+                        if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
+                    };
                 };
                 return shared_from_this(); };
 
@@ -68,12 +71,15 @@ namespace lancer {
 
             // 
             inline BufferMaker allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
-                if (lastbuf && !(*lastbuf)) { // But... Buffer Already Created...
-                    mem->allocateForRequirements(allocation = mem->createAllocation(), device->least().getBufferMemoryRequirements2(vk::BufferMemoryRequirementsInfo2().setBuffer(*lastbuf)), ptx);
-                    device->least().bindBufferMemory2(vk::BindBufferMemoryInfo().setBuffer(*lastbuf).setMemory(allocation->getMemory()).setMemoryOffset(allocation->getMemoryOffset()));
-                }
-                else {
-                    mem->allocateForBuffer(lastbuf, allocation = mem->createAllocation(), bfc, ptx);
+                if (!this->allocation) {
+                    if (lastbuf && (*lastbuf)) { // But... Buffer Already Created...
+                        auto req2 = device->least().getBufferMemoryRequirements2(vk::BufferMemoryRequirementsInfo2().setBuffer(*lastbuf));
+                        mem->allocateForRequirements(allocation = mem->createAllocation(), req2, ptx);
+                        device->least().bindBufferMemory2(vk::BindBufferMemoryInfo().setBuffer(*lastbuf).setMemory(allocation->getMemory()).setMemoryOffset(allocation->getMemoryOffset()));
+                    }
+                    else {
+                        mem->allocateForBuffer(lastbuf, allocation = mem->createAllocation(), bfc, ptx);
+                    };
                 };
                 return shared_from_this(); };
 
