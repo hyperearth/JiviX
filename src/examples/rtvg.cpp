@@ -97,12 +97,16 @@ namespace rnd {
         // Pinning Lake
 
         {
-            auto desclay = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &inputDescriptorLayout);
-            desclay->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
-                vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
-                //vk::DescriptorBindingFlagBitsEXT::eUpdateAfterBind |
-                vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount |
-                vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)->create();
+            auto desclay = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &inputDescriptorLayout)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
+                    vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
+                    //vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount |
+                    vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eAll),
+                    vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
+                    //vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount |
+                    vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)
+                ->create();
         };
 
         {
@@ -111,10 +115,12 @@ namespace rnd {
             dlayout->pushDescriptorSetLayout(inputDescriptorLayout)->create();
 
             // Create Ray Tracing Pipeline and SBT
-            rtSBThelper = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &this->rtPipeline)->linkPipeline(&this->rtPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&rtPipelineLayout)->initialize();
+            rtSBThelper = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &rtPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&rtPipelineLayout)->initialize();
             rtSBThelper->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
-            rtSBThelper->addStageToMissGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV) });
-            rtSBThelper->addStageToHitGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV) });
+            rtSBThelper->addStageToHitGroup(std::vector<api::PipelineShaderStageCreateInfo>{
+                vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV)
+            });
+            rtSBThelper->addStageToMissGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV));
             rtSBThelper->create();
 
             // 

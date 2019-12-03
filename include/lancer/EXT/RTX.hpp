@@ -526,7 +526,7 @@ namespace lancer {
         if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 1u; };
 
         // Create Pipeline And SBT 
-        *mPipeline = mDevice->least().createRayTracingPipelinesNV(mDevice->getPipelineCache(), { mRTC })[0];
+        *mPipeline = mDevice->least().createRayTracingPipelineNV(mDevice->getPipelineCache(), mRTC);
         return (mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0u,this->getNumGroups(), sbtSize, vSBT->map()) == api::Result::eSuccess);
     };
 #endif
