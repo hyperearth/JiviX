@@ -135,11 +135,14 @@ namespace lancer {
         inline InstancedAcceleration uploadCmd(api::CommandBuffer& cmdbuf) { cmdbuf.copyBuffer(*cacheBuffer, *gpuBuffer, { vk::BufferCopy(cacheBuffer->offset(), gpuBuffer->offset(), this->getRange()) }); return shared_from_this(); };
         inline InstancedAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { cmdbuf.buildAccelerationStructureNV(accelinfo.info, *gpuBuffer, gpuBuffer->offset(), update, *accelerat, {}, *scratch, scratch->offset()); return shared_from_this(); };
 
-        // Create Finally 
+        // Create Final
         inline InstancedAcceleration create() {
-            accelinfo.info.type = vk::AccelerationStructureTypeNV::eTopLevel;
-            accelinfo.info.instanceCount = instanced.size();
-            *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+            if (!created || !(*accelerat)) {
+                accelinfo.info.type = vk::AccelerationStructureTypeNV::eTopLevel;
+                accelinfo.info.instanceCount = instanced.size();
+                *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+                created = true;
+            };
             return shared_from_this();
         };
 
@@ -212,6 +215,7 @@ namespace lancer {
         std::vector<GeometryInstance> instanced = {};
         MemoryAllocation allocation = {};
         MemoryAllocation scratchall = {};
+        bool created = false;
     };
 
 
@@ -226,12 +230,15 @@ namespace lancer {
 
         // Create Finally 
         inline GeometryAcceleration create() {
-            accelinfo.info.type = vk::AccelerationStructureTypeNV::eBottomLevel;
-            accelinfo.info.geometryCount = geometries.size();
-            accelinfo.info.pGeometries = geometries.data();
+            if (!created || !(*accelerat)) {
+                accelinfo.info.type = vk::AccelerationStructureTypeNV::eBottomLevel;
+                accelinfo.info.geometryCount = geometries.size();
+                accelinfo.info.pGeometries = geometries.data();
 
-            // create itself 
-            *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+                // create itself 
+                *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+                created = true;
+            };
             return shared_from_this();
         };
 
@@ -286,8 +293,11 @@ namespace lancer {
         inline std::shared_ptr<BufferRegion_T<uint8_t>>& getScratch() { return scratch; };
         inline const std::shared_ptr<BufferRegion_T<uint8_t>>& getScratch() const { return scratch; };
 
+
+        // UPDATED 04.12.2019 (Use Same Naming for Methods)
+
         // fVec4
-        inline GeometryAcceleration setVertex4x32f(const std::shared_ptr<BufferRegion_T<vec4_t>>& vertex = {}) {
+        inline GeometryAcceleration setVertex(const std::shared_ptr<BufferRegion_T<vec4_t>>& vertex = {}) {
             this->getTriangles().vertexFormat = vk::Format::eR32G32B32A32Sfloat;
             this->getTriangles().vertexCount = vertex->size();
             this->getTriangles().vertexData = *vertex;
@@ -297,7 +307,7 @@ namespace lancer {
         };
 
         // fVec3
-        inline GeometryAcceleration setVertex3x32f(const std::shared_ptr<BufferRegion_T<vec3_t>>& vertex = {}) {
+        inline GeometryAcceleration setVertex(const std::shared_ptr<BufferRegion_T<vec3_t>>& vertex = {}) {
             this->getTriangles().vertexFormat = vk::Format::eR32G32B32Sfloat;
             this->getTriangles().vertexCount = vertex->size();
             this->getTriangles().vertexData = *vertex;
@@ -314,7 +324,7 @@ namespace lancer {
         };
 
         // Uint32_T
-        inline GeometryAcceleration setIndices32u(const std::shared_ptr<BufferRegion_T<uint32_t>>& indices = {}) {
+        inline GeometryAcceleration setIndices(const std::shared_ptr<BufferRegion_T<uint32_t>>& indices = {}) {
             this->getTriangles().indexType = api::IndexType::eUint32;
             this->getTriangles().indexData = *indices;
             this->getTriangles().indexOffset = indices->offset();
@@ -323,7 +333,7 @@ namespace lancer {
         };
 
         // Uint16_T
-        inline GeometryAcceleration setIndices16u(const std::shared_ptr<BufferRegion_T<uint16_t>>& indices = {}) {
+        inline GeometryAcceleration setIndices(const std::shared_ptr<BufferRegion_T<uint16_t>>& indices = {}) {
             this->getTriangles().indexType = api::IndexType::eUint16;
             this->getTriangles().indexData = *indices;
             this->getTriangles().indexOffset = indices->offset();
@@ -332,7 +342,7 @@ namespace lancer {
         };
 
         // Uint8_T
-        inline GeometryAcceleration setIndices8u(const std::shared_ptr<BufferRegion_T<uint8_t>>& indices = {}) {
+        inline GeometryAcceleration setIndices(const std::shared_ptr<BufferRegion_T<uint8_t>>& indices = {}) {
             this->getTriangles().indexType = api::IndexType::eUint8EXT;
             this->getTriangles().indexData = *indices;
             this->getTriangles().indexOffset = indices->offset();
@@ -354,6 +364,7 @@ namespace lancer {
         std::vector<api::GeometryNV> geometries = {};
         MemoryAllocation allocation = {};
         MemoryAllocation scratchall = {};
+        bool created = false;
     };
 
 

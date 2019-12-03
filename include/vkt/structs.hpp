@@ -42,20 +42,85 @@ namespace vkt {
     };
 #pragma pack(pop)
 
+    // UPDATE 04.12.2019 Dedicate Buffer Class
+    template<class It = uint8_t>
+    class Buffer {
+    protected:
+        DeviceMaker device = {};
+        friend Buffer;
+
+    public:
+        Buffer<It>(const DeviceMaker& device = {}, api::BufferUsageFlags usage = api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst, const size_t& maxSize = 1024u) : device(device), rBuffer(api::DescriptorBufferInfo{}) {
+            if (!!device) {
+                mBuffer = device->createBufferMaker(api::BufferCreateInfo().setUsage(usage), &rBuffer.buffer)->createRegion<It>(&rBuffer, 0u, maxSize);
+            };
+        };
+
+        Buffer<It>(const Buffer<It>& buffer) {
+            this->device = buffer.device;
+            this->mBuffer = buffer.mBuffer;
+            this->rBuffer = buffer.rBuffer;
+            this->vBuffer = buffer.vBuffer;
+        };
+
+        // 
+        std::shared_ptr<lancer::BufferRegion_T<It>> mBuffer = {};
+        api::DescriptorBufferInfo rBuffer = {};
+        VmaAllocationCreateInfo vBuffer = {};
+
+        // 
+        operator std::shared_ptr<lancer::BufferRegion_T<It>>& () { return mBuffer; };
+        operator const std::shared_ptr<lancer::BufferRegion_T<It>>& () const { return mBuffer; };
+
+        // 
+        operator BufferMaker&() { return mBuffer->least(); };
+        operator const BufferMaker& () const { return mBuffer->least(); };
+
+        // 
+        operator api::DescriptorBufferInfo& () { return rBuffer; };
+        operator const api::DescriptorBufferInfo& () const { return rBuffer; };
+
+        // 
+        operator api::BufferCreateInfo& () { return mBuffer->least()->getCreateInfo(); };
+        operator const api::BufferCreateInfo& () const { return mBuffer->least()->getCreateInfo(); };
+
+        // 
+        Buffer<It>& setSize(const size_t& size = 1u) { rBuffer.range = mBuffer->least()->getCreateInfo().size = size * sizeof(It); return *this; };
+        //const Buffer<It>& setSize(const size_t& size = 1u) const { rBuffer.range = mBuffer->least()->getCreateInfo().size = size * sizeof(It); return this; };
+
+        // 
+        BufferMaker& getBufferMaker() { return mBuffer->least(); };
+        const BufferMaker& getBufferMaker() const { return mBuffer->least(); };
+
+        // 
+        Buffer<It>& allocate() { mBuffer->least()->allocate(uintptr_t(&vBuffer)); return *this; };
+    };
+
 
     // TODO: Needs To Complete GeometryBuffer
+    template<class It = uint32_t, class Vt = glm::vec4>
     class GeometryBuffer {
     protected:
         DeviceMaker device = {};
-        friend GeometryBuffer;
+        friend GeometryBuffer<It, Vt>;
 
     public:
-        GeometryBuffer(const DeviceMaker& device = {}) {
-
+        GeometryBuffer(const DeviceMaker& device = {}, const size_t& maxSize = 1024u) : device(device) {
+            if (!!device) {
+                mVertices = Buffer<Vt>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eVertexBuffer);
+                mIndices = Buffer<It>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eIndexBuffer);
+            };
         };
 
+        GeometryBuffer(const GeometryBuffer<It, Vt>& buffer) {
+            this->device = buffer.device;
+            this->mIndices = buffer.mIndices;
+            this->mVertices = buffer.mVertices;
+        };
 
-
+        // Buffers Helpers
+        Buffer<Vt> mVertices = {};
+        Buffer<It> mIndices = {};
     };
 
 
@@ -69,39 +134,30 @@ namespace vkt {
             this->device = accel.device;
             this->topLevel = accel.topLevel;
             this->structure = accel.structure;
-            this->rtscratch = accel.rtscratch;
-            this->rtupload = accel.rtupload;
-            this->rtgcache = accel.rtgcache;
-            this->mtscratch = accel.mtscratch;
-            this->mtupload = accel.mtupload;
-            this->mtgcache = accel.mtgcache;
+            this->mScratch = accel.mScratch;
+            this->mUpload = accel.mUpload;
+            this->mCache = accel.mCache;
         };
 
-        AccelerationInstanced(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& info = {}, const size_t& maxSize = 1024u) {
+        AccelerationInstanced(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& info = {}, const size_t& maxSize = 1024u) : device(device) {
             if (!!device) {
                 topLevel = device->createInstancedAcceleration(info, &structure);
-                topLevel->linkGPURegion(mtgcache = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst), &rtgcache.buffer)->createRegion<lancer::GeometryInstance>(&rtgcache, 0u, maxSize));
-                topLevel->linkCacheRegion(mtupload = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferSrc), &rtupload.buffer)->createRegion<lancer::GeometryInstance>(&rtupload, 0u, maxSize));
-                topLevel->linkScratch(mtscratch = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV), &rtscratch.buffer)->createRegion<uint8_t>(&rtscratch, 0u, maxSize * 8u));
-
-                // Will Allocated Later 
-                //mtscratch->least()->getCreateInfo().size = maxSize * 8u;
-                //atscratch.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-                //mtscratch->least()->allocate(uintptr_t(&atscratch));
+                topLevel->linkGPURegion(mCache = Buffer<lancer::GeometryInstance>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst, maxSize));
+                topLevel->linkCacheRegion(mUpload = Buffer<lancer::GeometryInstance>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferSrc, maxSize));
+                topLevel->linkScratch(mScratch = Buffer<uint8_t>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst, maxSize));
 
                 // Create GPU Cache Buffer 
-                mtgcache->least()->getCreateInfo().size = maxSize * sizeof(lancer::GeometryInstance);
-                atgcache.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-                mtgcache->least()->allocate(uintptr_t(&atgcache));
+                mCache.vBuffer.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+                mCache.setSize(maxSize).allocate();
+
+                // Scratch Buffer 
+                mScratch.vBuffer.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+                mScratch.vBuffer.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+                mScratch.setSize(maxSize * 8u);//.allocate();
 
                 // Create From Host Buffer
-                mtupload->least()->getCreateInfo().size = maxSize * sizeof(lancer::GeometryInstance);
-                atupload.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-                atupload.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-                mtupload->least()->allocate(uintptr_t(&atupload));
-
-                // 
-                //topLevel->create();
+                mUpload.vBuffer.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+                mUpload.setSize(maxSize).allocate();
             };
         };
 
@@ -109,24 +165,21 @@ namespace vkt {
         lancer::InstancedAcceleration topLevel = {};
         api::AccelerationStructureNV structure = {};
 
-        // 
-        VmaAllocationCreateInfo atscratch = {};
-        VmaAllocationCreateInfo atupload = {};
-        VmaAllocationCreateInfo atgcache = {};
+        // Buffers
+        Buffer<uint8_t> mScratch = {};
+        Buffer<lancer::GeometryInstance> mUpload = {};
+        Buffer<lancer::GeometryInstance> mCache = {};
 
         // 
-        api::DescriptorBufferInfo rtscratch = {}; // BUFFER WILL SELF-ASSIGN!
-        api::DescriptorBufferInfo rtupload = {}; // BUFFER WILL SELF-ASSIGN!
-        api::DescriptorBufferInfo rtgcache = {}; // BUFFER WILL SELF-ASSIGN!
-
-        // 
-        std::shared_ptr<lancer::BufferRegion_T<uint8_t>> mtscratch = {};
-        std::shared_ptr<lancer::BufferRegion_T<lancer::GeometryInstance>> mtupload = {};
-        std::shared_ptr<lancer::BufferRegion_T<lancer::GeometryInstance>> mtgcache = {};
-
-        // 
-        AccelerationInstanced& updateCmd(api::CommandBuffer& cmdbuf) { return *this; };
         AccelerationInstanced& setDevice(const DeviceMaker& device) { this->device = device; return *this; };
+        AccelerationInstanced& updateCmd(api::CommandBuffer& cmdbuf, const bool& updateOnly = false) {
+            topLevel->create();
+            topLevel->uploadCmd(cmdbuf);
+            lancer::commandBarrier(cmdbuf); // barrier util require for transfer
+            topLevel->createCmd(cmdbuf, updateOnly);
+            lancer::commandBarrier(cmdbuf);
+            return *this;
+        };
 
         // Compatible With (lancer::InstancedAcceleration)
         lancer::InstancedAcceleration_T* operator->() { return &(*topLevel); };

@@ -121,7 +121,7 @@ namespace lancer {
                 if (lastinst) { *lastinst = api::createInstance(cif); };
             };
             inline InstanceMaker link(api::Instance* instance = nullptr) {  lastinst = instance; return shared_from_this(); };
-            inline InstanceMaker create() { if (lastinst) { *lastinst = api::createInstance(cif); return shared_from_this(); }; };
+            inline InstanceMaker create() { if (lastinst) { *lastinst = api::createInstance(cif); }; return shared_from_this(); };
             inline api::Instance& least() { return *lastinst; };
             inline const api::Instance& least() const { return *lastinst; };
             operator api::Instance&() { return *lastinst; };
