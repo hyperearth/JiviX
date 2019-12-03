@@ -301,7 +301,7 @@ namespace vkt
 
             // if have supported queue family, then use this device
             if (queueCreateInfos.size() > 0) {
-                this->physicalHelper = std::make_shared<PhysicalDevice_T>(this->_physicalDevice);
+                this->physicalHelper = std::make_shared<PhysicalDevice_T>(instance, this->_physicalDevice);
                 this->device = std::make_shared<Device_T>(this->physicalHelper, api::DeviceCreateInfo().setFlags(api::DeviceCreateFlags())
                     .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
                     .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())

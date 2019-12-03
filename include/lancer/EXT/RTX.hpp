@@ -525,9 +525,9 @@ namespace lancer {
         mRTC.layout = *this->mPipelineLayout;
         if (mRTC.maxRecursionDepth < 1u) { mRTC.maxRecursionDepth = 1u; };
 
-        // Create Pipeline And SBT 
-        *mPipeline = mDevice->least().createRayTracingPipelineNV(mDevice->getPipelineCache(), mRTC);
-        return (mDevice->least().getRayTracingShaderGroupHandlesNV(*mPipeline,0u,this->getNumGroups(), sbtSize, vSBT->map()) == api::Result::eSuccess);
+        // Create Pipeline And SBT  
+        return (mDevice->least().getRayTracingShaderGroupHandlesNV(
+            *mPipeline = mDevice->least().createRayTracingPipelineNV(mDevice->getPipelineCache(), mRTC, nullptr, mDevice->getDispatcher()), 0u, this->getNumGroups(), sbtSize, vSBT->map(), mDevice->getDispatcher()) == api::Result::eSuccess);
     };
 #endif
 

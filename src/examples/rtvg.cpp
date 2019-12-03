@@ -81,7 +81,7 @@ namespace rnd {
         shaderPack = shaderPrefix + "intrusive/turing";
 
         // create radix sort application (RadX C++)
-        physicalHelper = std::make_shared<lancer::PhysicalDevice_T>(appBase->getPhysicalDevice(0));
+        physicalHelper = std::make_shared<lancer::PhysicalDevice_T>(instance, appBase->getPhysicalDevice(0));
         device = appBase->createDevice(false, shaderPack, true);
 
         // create image output

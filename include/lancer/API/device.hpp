@@ -130,6 +130,7 @@ namespace lancer {
 
     class PhysicalDevice_T : public std::enable_shared_from_this<PhysicalDevice_T> {
         protected:
+            InstanceMaker instance = {};
             api::PhysicalDevice physicalDevice = {};
             api::PhysicalDeviceFeatures2 features = {};
             api::PhysicalDeviceProperties2 properties = {};
@@ -151,7 +152,7 @@ namespace lancer {
             //const MemoryAllocator& getAllocator() const { return allocator; };
 
             // require to generate both VMA and vendor name 
-            PhysicalDevice_T(const api::PhysicalDevice& physicalDevice) : physicalDevice(physicalDevice) {
+            PhysicalDevice_T(const InstanceMaker& instance = {}, const api::PhysicalDevice& physicalDevice = {}) : physicalDevice(physicalDevice), instance(instance) {
                 this->getFeaturesWithProperties(), this->getVendorName();
             };
 
@@ -185,12 +186,17 @@ namespace lancer {
             inline const api::PhysicalDevice& least() const { return physicalDevice; };
 
             // 
+            inline api::Instance& getInstance() { return instance->least(); };
+            inline const api::Instance& getInstance() const { return instance->least(); };
+
+            // 
             inline DeviceMaker createDeviceMaker(const api::DeviceCreateInfo& info = {}, api::Device* device = nullptr);
     };
 
     class Device_T : public std::enable_shared_from_this<Device_T> {
         protected: 
             friend MemoryAllocator;
+            api::DispatchLoaderDynamic dispatcher = {};
             api::DeviceCreateInfo dfc = {};
             api::PipelineCache pipelineCache = {};
             api::DescriptorPool* descriptorPool = nullptr;
@@ -212,6 +218,7 @@ namespace lancer {
             inline DeviceMaker create() {
                 if (physicalHelper && device && !(*device)) {
                     *device = physicalHelper->least().createDevice(dfc);
+                    dispatcher = vk::DispatchLoaderDynamic(physicalHelper->getInstance(), *device);
 #ifdef VOLK_H_
                     volkLoadDevice(*device);
 #endif
@@ -228,6 +235,12 @@ namespace lancer {
             // Get original Vulkan link 
             operator api::Device&() { return *device; };
             operator const api::Device&() const { return *device; };
+            operator api::DispatchLoaderDynamic& () { return dispatcher; };
+            operator const api::DispatchLoaderDynamic& () const { return dispatcher; };
+
+            // 
+            api::DispatchLoaderDynamic& getDispatcher() { return dispatcher; };
+            const api::DispatchLoaderDynamic& getDispatcher() const { return dispatcher; };
 
             // 
             inline DeviceMaker initialize();
