@@ -139,13 +139,7 @@ namespace lancer {
             // required (if there is no, will generated)
             std::shared_ptr<paths::DriverWrapBase> driverWrap = {};
 
-            virtual api::Result getFeaturesWithProperties(){
-                this->features = physicalDevice.getFeatures2();
-                this->properties = physicalDevice.getProperties2();
-                return api::Result::eSuccess;
-            };
-
-            virtual api::Result getVendorName(){
+            inline virtual api::Result getVendorName(){
                 driverWrap = paths::getNamedDriver(this->properties.properties.vendorID, this->features.features.shaderInt16);
                 return api::Result::eSuccess;
             };
@@ -161,8 +155,16 @@ namespace lancer {
                 this->getFeaturesWithProperties(), this->getVendorName();
             };
 
+            // Updated 03.12.2019
+            inline virtual std::pair<api::PhysicalDeviceProperties2, api::PhysicalDeviceFeatures2> getFeaturesWithProperties(void* pNextProperties = nullptr, void* pNextFeatures = nullptr) {
+                this->properties.pNext = pNextProperties;
+                physicalDevice.getFeatures2(&this->features.setPNext(pNextFeatures));
+                physicalDevice.getProperties2(&this->properties);
+                return std::pair<api::PhysicalDeviceProperties2, api::PhysicalDeviceFeatures2>(this->properties, this->features);
+            };
+
             // getter of vendor name 
-            operator const std::shared_ptr<paths::DriverWrapBase>&() const { return driverWrap; };
+            inline operator const std::shared_ptr<paths::DriverWrapBase>&() const { return driverWrap; };
             inline std::string getPath(const std::string fpath) const { return driverWrap->getPath(fpath); };
             inline std::string getDriverName() const { return driverWrap->getDriverName(); };
 
@@ -177,10 +179,10 @@ namespace lancer {
             };
 
             // api::PhysicalDevice caster
-            operator api::PhysicalDevice&() { return physicalDevice; };
-            operator const api::PhysicalDevice&() const { return physicalDevice; };
-            api::PhysicalDevice& least() { return physicalDevice; };
-            const api::PhysicalDevice& least() const { return physicalDevice; };
+            inline operator api::PhysicalDevice&() { return physicalDevice; };
+            inline operator const api::PhysicalDevice&() const { return physicalDevice; };
+            inline api::PhysicalDevice& least() { return physicalDevice; };
+            inline const api::PhysicalDevice& least() const { return physicalDevice; };
 
             // 
             inline DeviceMaker createDeviceMaker(const api::DeviceCreateInfo& info = {}, api::Device* device = nullptr);
