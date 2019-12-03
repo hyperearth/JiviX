@@ -88,6 +88,17 @@ namespace lancer {
                 return (api::BufferView*)(&descriptorHeap[pt0]);
             };
 
+            // 
+#ifdef EXTENSION_RTX
+            inline api::WriteDescriptorSetAccelerationStructureNV* addAccelerationStructureDesc(const uint32_t& dstBinding = 0u, const uint32_t& dstArrayElement = 0u, const uint32_t& descriptorCount = 1u) {
+                const uintptr_t pt0 = descriptorHeap.size();
+                descriptorHeap.resize(pt0 + sizeof(api::WriteDescriptorSetAccelerationStructureNV) * descriptorCount, 0u);
+                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{ dstBinding,dstArrayElement,descriptorCount,api::DescriptorType::eAccelerationStructureNV,pt0,sizeof(api::WriteDescriptorSetAccelerationStructureNV) });
+                return (api::WriteDescriptorSetAccelerationStructureNV*)(&descriptorHeap[pt0]);
+            };
+#endif
+
+            // 
             inline DescriptorSetMaker create() {
                 *lastdst = device->least().allocateDescriptorSets(info.setDescriptorPool(device->getDescriptorPool()).setPSetLayouts(dlayout).setDescriptorSetCount(1))[0];
                 return shared_from_this();

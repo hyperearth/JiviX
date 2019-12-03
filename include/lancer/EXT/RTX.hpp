@@ -117,7 +117,8 @@ namespace lancer {
 #pragma pack(pop)
 
 
-    // TODO: Smart Destructors Support 
+    // TODO: Update Scratch Memory Support
+    // TODO: Smart Destructors Support
     class InstancedAcceleration_T : public std::enable_shared_from_this<InstancedAcceleration_T> {
     public:
         InstancedAcceleration_T(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& accelinfo = {}, api::AccelerationStructureNV* accelerat = nullptr) : device(device), accelinfo(accelinfo), accelerat(accelerat) {
@@ -193,6 +194,10 @@ namespace lancer {
         inline GeometryInstance& getInstance() { return instanced.back(); };
         inline const GeometryInstance& getInstance() const { return instanced.back(); };
 
+        // Write For Descriptor
+        inline InstancedAcceleration writeForDescription(api::WriteDescriptorSetAccelerationStructureNV* AS = nullptr) {
+            AS->accelerationStructureCount = 1u, AS->pAccelerationStructures = accelerat;
+        };
 
     protected:
         DeviceMaker device = {};
@@ -208,6 +213,7 @@ namespace lancer {
 
 
     // TODO: Custom Vertex Buffers Support (And Custom Host Types)
+    // TODO: Update Scratch Memory Support
     // TODO: Smart Destructors Support 
     class GeometryAcceleration_T : public std::enable_shared_from_this<GeometryAcceleration_T> {
     public:
