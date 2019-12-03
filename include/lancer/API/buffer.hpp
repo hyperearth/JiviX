@@ -38,8 +38,10 @@ namespace lancer {
                     this->allocation = allocation;
                     if (lastbuf && (*lastbuf)) {
                         const auto mem = allocation->getMemory();
-                        bfc.size = std::min(this->allocation->getMemorySize(), bfc.size);
                         if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
+                    }
+                    else { // Correct Buffer Size by Memory
+                        bfc.size = std::min(this->allocation->getMemorySize(), bfc.size);
                     };
                 };
                 return shared_from_this(); };
