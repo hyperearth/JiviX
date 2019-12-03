@@ -120,8 +120,8 @@ namespace lancer {
             Instance_T(const api::InstanceCreateInfo& info = {}, api::Instance* instance = nullptr) : lastinst(instance), cif(info) {
                 if (lastinst) { *lastinst = api::createInstance(cif); };
             };
-            inline InstanceMaker link(api::Instance* instance = nullptr) {  lastinst = instance; return std::move(shared_from_this()); };
-            inline InstanceMaker create() { if (lastinst) { *lastinst = api::createInstance(cif); return std::move(shared_from_this()); }; };
+            inline InstanceMaker link(api::Instance* instance = nullptr) {  lastinst = instance; return shared_from_this(); };
+            inline InstanceMaker create() { if (lastinst) { *lastinst = api::createInstance(cif); return shared_from_this(); }; };
             inline api::Instance& least() { return *lastinst; };
             inline const api::Instance& least() const { return *lastinst; };
             operator api::Instance&() { return *lastinst; };
@@ -265,6 +265,8 @@ namespace lancer {
             inline DescriptorSetMaker createDescriptorSet(const api::DescriptorSetAllocateInfo& info = {}, api::DescriptorSet* descset = nullptr);
 #ifdef EXTENSION_RTX
             inline SBTHelper createSBTHelper(const api::RayTracingPipelineCreateInfoNV& rpt = {}, api::Pipeline* pipeline = nullptr);
+            inline InstancedAcceleration createInstancedAcceleration(const api::AccelerationStructureCreateInfoNV& accelinfo = {}, api::AccelerationStructureNV* accelerat = nullptr);
+            inline GeometryAcceleration createGeometryAcceleration(const api::AccelerationStructureCreateInfoNV& accelinfo = {}, api::AccelerationStructureNV* accelerat = nullptr);
 #endif
             template<class T = MemoryAllocator_T> inline MemoryAllocator& createAllocator(const uintptr_t& info = 0u);
     };

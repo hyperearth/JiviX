@@ -443,6 +443,8 @@ namespace lancer {
 
         mGroups.insert((mGroups.begin() + 1 + groupIndex), groupInfo);
         mNumHitShaders[groupIndex] += static_cast<uint32_t>(stages.size());
+
+        return shared_from_this();
     };
 
     inline SBTHelper SBTHelper_T::addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage, const uint32_t& groupIndex) {
@@ -477,6 +479,8 @@ namespace lancer {
         mGroups.insert((mGroups.begin() + (groupIndex + 1 + mNumHitGroups)), groupInfo);
 
         mNumMissShaders[groupIndex]++;
+
+        return shared_from_this();
     };
 
     inline uint32_t SBTHelper_T::getGroupsStride() const { return mShaderHeaderSize; };

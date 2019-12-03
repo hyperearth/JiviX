@@ -73,6 +73,14 @@ namespace lancer {
     inline SBTHelper Device_T::createSBTHelper(const api::RayTracingPipelineCreateInfoNV& rpt, api::Pipeline* rtPipeline) {
         return std::make_shared<SBTHelper_T>(shared_from_this(), rpt, rtPipeline);
     };
+
+    inline InstancedAcceleration Device_T::createInstancedAcceleration(const api::AccelerationStructureCreateInfoNV& accelinfo, api::AccelerationStructureNV* accelerat) {
+        return std::make_shared<InstancedAcceleration_T>(shared_from_this(), accelinfo, accelerat);
+    };
+
+    inline GeometryAcceleration Device_T::createGeometryAcceleration(const api::AccelerationStructureCreateInfoNV& accelinfo, api::AccelerationStructureNV* accelerat) {
+        return std::make_shared<GeometryAcceleration_T>(shared_from_this(), accelinfo, accelerat);
+    };
 #endif
 
 #ifdef EXTENSION_VMA_IMPLEMENT

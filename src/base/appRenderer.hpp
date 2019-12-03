@@ -17,7 +17,7 @@ namespace rnd {
 
         public:
             std::shared_ptr<vkt::GPUFramework> appBase = {};
-            lancer::DeviceMaker device;
+            lancer::DeviceMaker device = {};
             lancer::PhysicalDeviceHelper physicalHelper = {};
             GLFWwindow* window = nullptr; // bound GLFW window
             const uint32_t SGHZ = 16u;
@@ -27,13 +27,29 @@ namespace rnd {
             std::vector<vkt::Framebuffer> framebuffers = {};
 
             // Pipeline Layout
-            api::Pipeline trianglePipeline;
-            api::PipelineLayout trianglePipelineLayout;
-            api::DescriptorSet inputDescriptorSet_;
-            api::DescriptorSetLayout inputDescriptorLayout;
-            api::Image outputImage_;
-            lancer::ImageMaker outputImage;
-            lancer::DescriptorSetMaker inputDescriptorSet;
+            api::Pipeline trianglePipeline = {};
+            api::PipelineLayout trianglePipelineLayout = {};
+            api::DescriptorSet inputDescriptorSet_ = {};
+            api::DescriptorSetLayout inputDescriptorLayout = {};
+            api::Image outputImage_ = {};
+
+
+
+            // Instance Level 
+            api::AccelerationStructureNV acw = {};
+            std::vector<api::AccelerationStructureNV> acg = {};
+            api::Buffer tscratch = {};
+
+            // Geometry Level 
+            lancer::InstancedAcceleration topLevel = {};
+            std::vector<lancer::GeometryAcceleration> lowLevel = {};
+            std::vector<api::Buffer> scratchs = {};
+
+
+            api::Pipeline rtPipeline = {};
+            api::PipelineLayout rtPipelineLayout = {};
+            lancer::ImageMaker outputImage = {};
+            lancer::DescriptorSetMaker inputDescriptorSet = {};
 
             double tPastFrameTime = 0.f;
             float guiScale = 1.0f;

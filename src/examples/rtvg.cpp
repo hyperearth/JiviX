@@ -78,7 +78,7 @@ namespace rnd {
 
         // create combined device object
         // TODO: Vendor Dependent Shaders
-        shaderPack = shaderPrefix + "intrusive/universal";
+        shaderPack = shaderPrefix + "intrusive/turing";
 
         // create radix sort application (RadX C++)
         physicalHelper = std::make_shared<lancer::PhysicalDevice_T>(appBase->getPhysicalDevice(0));
@@ -95,6 +95,22 @@ namespace rnd {
 
     void Renderer::InitPipeline() {
         // Pinning Lake
+
+        {
+            auto acmaker = device->createSBTHelper({}, &this->rtPipeline)->linkPipelineLayout(&rtPipelineLayout)->initialize();
+            acmaker->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
+            acmaker->addStageToHitGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV) });
+            acmaker->addStageToMissGroup({ vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV) });
+            acmaker->create();
+
+            // Top Level Pre-Define
+            acw = api::AccelerationStructureNV{};
+            topLevel = device->createInstancedAcceleration(api::AccelerationStructureCreateInfoNV(), &acw);
+
+            // Add Geometry
+            acg.push_back(api::AccelerationStructureNV{});
+            lowLevel.push_back(device->createGeometryAcceleration(api::AccelerationStructureCreateInfoNV(), &acg.back()));
+        };
 
         {
             auto desclay = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(),&inputDescriptorLayout);
