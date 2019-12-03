@@ -68,7 +68,13 @@ namespace lancer {
 
             // 
             inline BufferMaker allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
-                mem->allocateForBuffer(lastbuf,allocation=mem->createAllocation(),bfc,ptx); 
+                if (lastbuf && !(*lastbuf)) { // But... Buffer Already Created...
+                    mem->allocateForRequirements(allocation = mem->createAllocation(), device->least().getBufferMemoryRequirements2(vk::BufferMemoryRequirementsInfo2().setBuffer(*lastbuf)), ptx);
+                    device->least().bindBufferMemory2(vk::BindBufferMemoryInfo().setBuffer(*lastbuf).setMemory(allocation->getMemory()).setMemoryOffset(allocation->getMemoryOffset()));
+                }
+                else {
+                    mem->allocateForBuffer(lastbuf, allocation = mem->createAllocation(), bfc, ptx);
+                };
                 return shared_from_this(); };
 
             // 

@@ -206,7 +206,13 @@ namespace lancer {
             inline ImageMaker linkImageView(api::ImageView* view = nullptr) { lastimv = view; return shared_from_this(); };
             inline ImageMaker link(api::Image* img = nullptr) { lastimg = img; return shared_from_this(); };
             inline ImageMaker allocate(const MemoryAllocator& mem = {}, const uintptr_t& ptx = 0u) {
-                mem->allocateForImage(lastimg,allocation=mem->createAllocation(),imc,ptx);
+                if (lastimg && !(*lastimg)) { // But... Image Already Created...
+                    mem->allocateForRequirements(allocation = mem->createAllocation(), device->least().getImageMemoryRequirements2(vk::ImageMemoryRequirementsInfo2().setImage(*lastimg)), ptx);
+                    device->least().bindImageMemory2(vk::BindImageMemoryInfo().setImage(*lastimg).setMemory(allocation->getMemory()).setMemoryOffset(allocation->getMemoryOffset()));
+                }
+                else {
+                    mem->allocateForImage(lastimg, allocation = mem->createAllocation(), imc, ptx);
+                };
                 return shared_from_this(); };
 
             inline ImageMaker allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocatorPtr(),ptx); };
