@@ -149,9 +149,62 @@ namespace vkt {
         // Buffers Helpers
         Buffer<Vt> mVertices = {}, mVerticesUpload = {};
         Buffer<It> mIndices = {}, mIndicesUpload = {};
+        Buffer<glm::mat3x4> mTransform = {}, mTransformUpload = {};
+
+        // Push Into Acceleration
+        GeometryBuffer& pushIntoAcceleration(lancer::GeometryAcceleration& acceleration) {
+            if (this->mVertices) {
+                acceleration->beginTriangles()->setVertex(this->mVertices);
+                if (this->mIndices) acceleration->setIndices(this->mIndices);
+                if (this->mTransform) acceleration->setTransform3x4(this->mTransform);
+            };
+        };
     };
 
 
+    // 
+    class AccelerationGeometry {
+    protected:
+        DeviceMaker device = {};
+        friend AccelerationGeometry;
+
+    public:
+        AccelerationGeometry(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& info = {}, const size_t& maxSize = 1024u) {
+            if (!!device) {
+                lowLevel = device->createGeometryAcceleration(info, &structure);
+                lowLevel->linkScratch(mtscratch = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV), &rtscratch.buffer)->createRegion<uint8_t>(&rtscratch, 0u, maxSize));
+            };
+        };
+
+        AccelerationGeometry(const AccelerationGeometry& accel) {
+            this->device = accel.device;
+            this->lowLevel = accel.lowLevel;
+            this->structure = accel.structure;
+            this->rtscratch = accel.rtscratch;
+            this->mtscratch = accel.mtscratch;
+        };
+
+        // Geometry Level 
+        lancer::GeometryAcceleration lowLevel = {};
+        api::AccelerationStructureNV structure = {};
+        api::DescriptorBufferInfo rtscratch = {}; // BUFFER WILL SELF-ASSIGN!
+        std::shared_ptr<lancer::BufferRegion_T<uint8_t>> mtscratch = {};
+
+        // 
+        template<class It = uint32_t, class Vt = glm::vec4>
+        AccelerationGeometry& pGeometry(const GeometryBuffer<It, Vt>& buffer = {}) { buffer.pushIntoAcceleration(lowLevel); return *this; };
+        AccelerationGeometry& updateCmd(api::CommandBuffer& cmdbuf) { return *this; };
+        AccelerationGeometry& setDevice(const DeviceMaker& device) { this->device = device; return *this; };
+
+        // Compatible With (lancer::InstancedAcceleration)
+        lancer::GeometryAcceleration_T* operator->() { return &(*lowLevel); };
+        operator lancer::GeometryAcceleration& () { return lowLevel; };
+        operator const lancer::GeometryAcceleration& () const { return lowLevel; };
+
+    };
+
+
+    // TODO: Add Geometry Acceleration Pushing Support
     class AccelerationInstanced {
     protected:
         DeviceMaker device = {};
@@ -211,47 +264,8 @@ namespace vkt {
 
         // Compatible With (lancer::InstancedAcceleration)
         lancer::InstancedAcceleration_T* operator->() { return &(*topLevel); };
-        operator lancer::InstancedAcceleration&() { return topLevel; };
-        operator const lancer::InstancedAcceleration&() const { return topLevel; };
-    };
-
-
-    class AccelerationGeometry {
-    protected:
-        DeviceMaker device = {};
-        friend AccelerationGeometry;
-
-    public:
-        AccelerationGeometry(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& info = {}, const size_t& maxSize = 1024u) {
-            if (!!device) {
-                lowLevel = device->createGeometryAcceleration(info, &structure);
-                lowLevel->linkScratch(mtscratch = device->createBufferMaker(api::BufferCreateInfo().setUsage(api::BufferUsageFlagBits::eRayTracingNV), &rtscratch.buffer)->createRegion<uint8_t>(&rtscratch, 0u, maxSize));
-            };
-        };
-
-        AccelerationGeometry(const AccelerationGeometry& accel) {
-            this->device = accel.device;
-            this->lowLevel = accel.lowLevel;
-            this->structure = accel.structure;
-            this->rtscratch = accel.rtscratch;
-            this->mtscratch = accel.mtscratch;
-        };
-
-        // Geometry Level 
-        lancer::GeometryAcceleration lowLevel = {};
-        api::AccelerationStructureNV structure = {};
-        api::DescriptorBufferInfo rtscratch = {}; // BUFFER WILL SELF-ASSIGN!
-        std::shared_ptr<lancer::BufferRegion_T<uint8_t>> mtscratch = {};
-
-        // 
-        AccelerationGeometry& updateCmd(api::CommandBuffer& cmdbuf) { return *this; };
-        AccelerationGeometry& setDevice(const DeviceMaker& device) { this->device = device; return *this; };
-
-        // Compatible With (lancer::InstancedAcceleration)
-        lancer::GeometryAcceleration_T* operator->() { return &(*lowLevel); };
-        operator lancer::GeometryAcceleration& () { return lowLevel; };
-        operator const lancer::GeometryAcceleration& () const { return lowLevel; };
-
+        operator lancer::InstancedAcceleration& () { return topLevel; };
+        operator const lancer::InstancedAcceleration& () const { return topLevel; };
     };
 
 
