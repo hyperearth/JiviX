@@ -100,11 +100,9 @@ namespace rnd {
             auto desclay = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &inputDescriptorLayout)
                 ->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
                     vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
-                    //vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount |
                     vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eAll),
+                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV),
                     vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
-                    //vk::DescriptorBindingFlagBitsEXT::eVariableDescriptorCount |
                     vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)
                 ->create();
         };

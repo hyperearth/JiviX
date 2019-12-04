@@ -47,26 +47,35 @@ namespace vkt {
     class Buffer {
     protected:
         DeviceMaker device = {};
-        friend Buffer;
+        friend Buffer<It>;
 
     public:
+        // 
         Buffer<It>(const DeviceMaker& device = {}, api::BufferUsageFlags usage = api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst, const size_t& maxSize = 1024u) : device(device), rBuffer(api::DescriptorBufferInfo{}) {
             if (!!device) {
                 mBuffer = device->createBufferMaker(api::BufferCreateInfo().setUsage(usage), &rBuffer.buffer)->createRegion<It>(&rBuffer, 0u, maxSize);
             };
         };
 
+        // Copy From Another Unit
         Buffer<It>(const Buffer<It>& buffer) {
             this->device = buffer.device;
-            this->mBuffer = buffer.mBuffer;
             this->rBuffer = buffer.rBuffer;
             this->vBuffer = buffer.vBuffer;
+            this->mBuffer = std::make_shared<lancer::BufferRegion_T<It>>(buffer.mBuffer, this->rBuffer); // make region independent
         };
 
         // 
         std::shared_ptr<lancer::BufferRegion_T<It>> mBuffer = {};
         api::DescriptorBufferInfo rBuffer = {};
         VmaAllocationCreateInfo vBuffer = {};
+
+        // Region Anyways Will Imported from pointer
+        Buffer<It>& setSize(const size_t& size = 1u) { rBuffer.range = mBuffer->least()->getCreateInfo().size = size * sizeof(It); return *this; };
+        Buffer<It>& setRegion(const uintptr_t offset = 0u, const size_t& size = VK_WHOLE_SIZE) { rBuffer.range = size; rBuffer.offset = offset; return *this; };
+
+        // 
+
 
         // 
         operator std::shared_ptr<lancer::BufferRegion_T<It>>& () { return mBuffer; };
@@ -85,10 +94,6 @@ namespace vkt {
         operator const api::BufferCreateInfo& () const { return mBuffer->least()->getCreateInfo(); };
 
         // 
-        Buffer<It>& setSize(const size_t& size = 1u) { rBuffer.range = mBuffer->least()->getCreateInfo().size = size * sizeof(It); return *this; };
-        //const Buffer<It>& setSize(const size_t& size = 1u) const { rBuffer.range = mBuffer->least()->getCreateInfo().size = size * sizeof(It); return this; };
-
-        // 
         BufferMaker& getBufferMaker() { return mBuffer->least(); };
         const BufferMaker& getBufferMaker() const { return mBuffer->least(); };
 
@@ -97,7 +102,7 @@ namespace vkt {
     };
 
 
-    // TODO: Needs To Complete GeometryBuffer
+    // TODO: Add Uploading Support 
     template<class It = uint32_t, class Vt = glm::vec4>
     class GeometryBuffer {
     protected:
@@ -118,9 +123,32 @@ namespace vkt {
             this->mVertices = buffer.mVertices;
         };
 
+        // Setters (for later using)
+        GeometryBuffer& setDevice(const DeviceMaker& device) { this->device = device; return *this; };
+        GeometryBuffer& setIndices(const Buffer<It>& indices) { this->mIndices = indices; return *this; };
+        GeometryBuffer& setVertices(const Buffer<Vt>& vertices) { this->mVertices = vertices; return *this; };
+
+        // Convert into buffer range object
+        operator std::shared_ptr<lancer::BufferRegion_T<It>>& () { return mIndices; };
+        operator std::shared_ptr<lancer::BufferRegion_T<Vt>>& () { return mVertices; };
+        operator const std::shared_ptr<lancer::BufferRegion_T<It>>& () const { return mIndices; };
+        operator const std::shared_ptr<lancer::BufferRegion_T<Vt>>& () const { return mVertices; };
+
+        // Convert into original buffer object 
+        operator Buffer<It>& () { return mIndices; };
+        operator Buffer<Vt>& () { return mVertices; };
+        operator const Buffer<It>& () const { return mIndices; };
+        operator const Buffer<Vt>& () const { return mVertices; };
+
+        // 
+        Buffer<Vt>& getVertices() { return mVertices; };
+        Buffer<It>& getIndices() { return mIndices; };
+        const Buffer<Vt>& getVertices() const { return mVertices; };
+        const Buffer<It>& getIndices() const { return mIndices; };
+
         // Buffers Helpers
-        Buffer<Vt> mVertices = {};
-        Buffer<It> mIndices = {};
+        Buffer<Vt> mVertices = {}, mVerticesUpload = {};
+        Buffer<It> mIndices = {}, mIndicesUpload = {};
     };
 
 

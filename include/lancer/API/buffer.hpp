@@ -110,7 +110,7 @@ namespace lancer {
             //inline BufferRegionU8Maker createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
 
             template<class T = uint8_t>
-            inline std::shared_ptr<BufferRegion_T<T>> createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
+            inline std::shared_ptr<BufferRegion_T<T>> createRegion(api::DescriptorBufferInfo* reg = nullptr, const uintptr_t& offset = 0u, const size_t& size = VK_WHOLE_SIZE);
     };
 
 
@@ -118,15 +118,20 @@ namespace lancer {
     // TODO: unify functionality 
 
     template<class T>
-    class BufferRegion_T {
+    class BufferRegion_T : public std::enable_shared_from_this<BufferRegion_T<T>> {
         public:
             ~BufferRegion_T<T>(){};
-             BufferRegion_T<T>(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo) : buffer(buffer), bufInfo(bufInfo) { bufInfo->buffer = *buffer; };
+             BufferRegion_T<T>(const BufferMaker& buffer = {}, api::DescriptorBufferInfo* bufInfo = nullptr) : buffer(buffer), bufInfo(bufInfo) { if (!!buffer) { bufInfo->buffer = *buffer; }; };
              BufferRegion_T<T>(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) : buffer(buffer), bufInfo(bufInfo) {
                 bufInfo->buffer = *buffer;
                 bufInfo->offset = offset;
                 bufInfo->range = size * sizeof(T);
-            };
+             };
+
+             // UPDATE 04.12.2019 - Remake Buffer Region 
+             BufferRegion_T<T>(const std::shared_ptr<BufferRegion_T<T>>& region, api::DescriptorBufferInfo* bufInfo) : buffer(region->least()), bufInfo(bufInfo) {
+
+             };
 
             T* const& map() { mapped = (T*)((uint8_t*)buffer->getMapped() + bufInfo->offset); return mapped; };
             T* const& data() { this->map(); return mapped; };
@@ -151,6 +156,23 @@ namespace lancer {
             // end ptr
             const T*& end() const { return &at(size() - 1ul); };
             T* end() { return &at(size() - 1ul); };
+
+            // return only pointer
+            api::DescriptorBufferInfo* getRegionInfo() const { return bufInfo; };
+
+            // SHARED_PTR DOESN'T WORKING ON TEMPLATES
+            //std::shared_ptr<BufferRegion_T<T>> setRegionInfo(api::DescriptorBufferInfo* bufInfo = nullptr) {
+            BufferRegion_T<T>* setRegionInfo(api::DescriptorBufferInfo* bufInfo = nullptr) {
+                this->bufInfo = bufInfo; return this;
+                //return shared_from_this();
+            };
+
+            // 
+            //std::shared_ptr<BufferRegion_T<T>> 
+            BufferRegion_T<T>* setBufferMaker(const BufferMaker& bufferMaker = {}) {
+                this->buffer = bufferMaker; return this;
+                //return shared_from_this();
+            };
 
             // 
             BufferMaker& least() { return buffer; };
