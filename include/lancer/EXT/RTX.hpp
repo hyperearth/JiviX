@@ -135,7 +135,7 @@ namespace lancer {
         inline InstancedAcceleration uploadCmd(api::CommandBuffer& cmdbuf) { cmdbuf.copyBuffer(*cacheBuffer, *gpuBuffer, { vk::BufferCopy(cacheBuffer->offset(), gpuBuffer->offset(), this->getRange()) }); return shared_from_this(); };
         inline InstancedAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { 
             this->create();
-            cmdbuf.buildAccelerationStructureNV(accelinfo.info, *gpuBuffer, gpuBuffer->offset(), update, *accelerat, {}, *scratch, scratch->offset()); 
+            cmdbuf.buildAccelerationStructureNV(accelinfo.info, *gpuBuffer, gpuBuffer->offset(), update, *accelerat, {}, scratch->handle(), scratch->offset(), device->getDispatcher());
             return shared_from_this(); 
         };
 
@@ -144,7 +144,7 @@ namespace lancer {
             if (!created || !(*accelerat)) {
                 accelinfo.info.type = vk::AccelerationStructureTypeNV::eTopLevel;
                 accelinfo.info.instanceCount = instanced.size();
-                *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+                *accelerat = device->least().createAccelerationStructureNV(accelinfo, nullptr, device->getDispatcher());
                 created = true;
             };
             return shared_from_this();
@@ -157,15 +157,15 @@ namespace lancer {
         inline InstancedAcceleration linkScratch(const std::shared_ptr<BufferRegion_T<uint8_t>>& scratch = {}) { this->scratch = scratch; return shared_from_this(); };
         inline InstancedAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u, const bool& reallocScratch = false) {
             // Set Structures Memory 
-            auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject));
-            mem->allocateForRequirements(allocation = mem->createAllocation(ptx), requirements);
-            device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()));
+            auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject), device->getDispatcher());
+            mem->allocateForRequirements(allocation = mem->createAllocation(), requirements, ptx);
+            device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()), device->getDispatcher());
 
             // Realloc when required
             if (reallocScratch || !scratch->least()->getAllocation()) {
-                requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
-                mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
-                scratch->least()->linkAllocation(scratchall);
+                requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch), device->getDispatcher());
+                mem->allocateForRequirements(scratchall = mem->createAllocation(), requirements, ptx);
+                scratch->least()->linkAllocation(scratchall)->create();
             };
 
             // 
@@ -247,16 +247,15 @@ namespace lancer {
                 accelinfo.info.pGeometries = geometries.data();
 
                 // create itself 
-                *accelerat = device->least().createAccelerationStructureNV(accelinfo);
+                *accelerat = device->least().createAccelerationStructureNV(accelinfo, nullptr, device->getDispatcher());
                 created = true;
             };
             return shared_from_this();
         };
 
         // Command Buffer Required Operations
-        inline GeometryAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { 
-            this->create(); 
-            cmdbuf.buildAccelerationStructureNV(accelinfo.info, {}, 0u, update, *accelerat, {}, *scratch, scratch->offset());
+        inline GeometryAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) {
+            cmdbuf.buildAccelerationStructureNV(accelinfo.info, {}, 0u, update, *accelerat, {}, scratch->handle(), scratch->offset(), device->getDispatcher());
             return shared_from_this();
         };
 
@@ -264,16 +263,18 @@ namespace lancer {
         inline GeometryAcceleration linkScratch(const std::shared_ptr<BufferRegion_T<uint8_t>>& scratch = {}) { this->scratch = scratch; return shared_from_this(); };
         inline GeometryAcceleration linkAcceleration(api::AccelerationStructureNV* accelerat = nullptr) { this->accelerat = accelerat; return shared_from_this(); };
         inline GeometryAcceleration allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u, const bool& reallocScratch = false) {
+            //this->create();
+
             // Set Structures Memory 
-            auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject));
-            mem->allocateForRequirements(allocation = mem->createAllocation(ptx), requirements);
-            device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()));
+            auto requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eObject), device->getDispatcher());
+            mem->allocateForRequirements(allocation = mem->createAllocation(), requirements, ptx);
+            device->least().bindAccelerationStructureMemoryNV(vk::BindAccelerationStructureMemoryInfoNV().setMemory(allocation->getMemory()).setAccelerationStructure(*accelerat).setMemoryOffset(allocation->getMemoryOffset()), device->getDispatcher());
 
             // Realloc when required
             if (reallocScratch || !scratch->least()->getAllocation()) {
-                requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch));
-                mem->allocateForRequirements(scratchall = mem->createAllocation(ptx), requirements);
-                scratch->least()->linkAllocation(scratchall);
+                requirements = device->least().getAccelerationStructureMemoryRequirementsNV(vk::AccelerationStructureMemoryRequirementsInfoNV().setAccelerationStructure(*accelerat).setType(vk::AccelerationStructureMemoryRequirementsTypeNV::eBuildScratch), device->getDispatcher());
+                mem->allocateForRequirements(scratchall = mem->createAllocation(), requirements, ptx);
+                scratch->least()->linkAllocation(scratchall)->create();
             };
             
             // 
@@ -313,7 +314,7 @@ namespace lancer {
 
         // fVec4
         inline GeometryAcceleration setVertex(const std::shared_ptr<BufferRegion_T<vec4_t>>& vertex = {}) {
-            this->getTriangles().vertexFormat = vk::Format::eR32G32B32A32Sfloat;
+            this->getTriangles().vertexFormat = vk::Format::eR32G32B32Sfloat;
             this->getTriangles().vertexCount = vertex->size();
             this->getTriangles().vertexData = *vertex;
             this->getTriangles().vertexOffset = vertex->offset();
@@ -368,14 +369,14 @@ namespace lancer {
         // SHOULD BE READY
         inline const GeometryAcceleration_T* writeForInstance(GeometryInstance& instance) const {
             if (accelerat && (*accelerat)) {
-                device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle);
+                device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle, device->getDispatcher());
             };
             return this;
         };
 
         inline GeometryAcceleration writeForInstance(GeometryInstance& instance) {
             if (accelerat && (*accelerat)) {
-                device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle);
+                device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle, device->getDispatcher());
             };
             return shared_from_this();
         };

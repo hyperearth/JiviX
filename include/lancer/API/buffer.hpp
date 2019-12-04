@@ -41,7 +41,7 @@ namespace lancer {
                         if (!!mem) { device->least().bindBufferMemory2(vk::BindBufferMemoryInfo(bindinf).setBuffer(*lastbuf).setMemory(mem).setMemoryOffset(allocation->getMemoryOffset())); };
                     }
                     else { // Correct Buffer Size by Memory
-                        bfc.size = std::min(this->allocation->getMemorySize(), bfc.size);
+                        bfc.size = std::max(this->allocation->getMemorySize(), bfc.size);
                     };
                 };
                 return shared_from_this(); };
@@ -91,7 +91,7 @@ namespace lancer {
             // 
             inline BufferMaker create(const vk::BindBufferMemoryInfo& bindinf = {}) { // 
                 if (lastbuf && !(*lastbuf)) {
-                    *lastbuf = device->least().createBuffer(bfc.setSize(!!allocation ? std::min(allocation->getMemorySize(), bfc.size) : bfc.size)); // Allocator Will Create Buffer Anyways
+                    *lastbuf = device->least().createBuffer(bfc.setSize(!!allocation ? std::max(this->allocation->getMemorySize(), bfc.size) : bfc.size)); // Allocator Will Create Buffer Anyways
                 };
                 if (!!allocation) {
                     const auto mem = allocation->getMemory();

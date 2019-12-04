@@ -167,7 +167,7 @@ namespace vkt {
 
 
     // TODO: Add Uploading Support 
-    template<class It = uint32_t, class Vt = glm::vec4>
+    template<class It = uint32_t, class Vt = glm::vec3>
     class GeometryBuffer {
     protected:
         DeviceMaker device = {};
@@ -291,7 +291,9 @@ namespace vkt {
 
         // Setters (for later using)
         inline AccelerationGeometry& allocate() {
-            this->lowLevel->allocate()->create();
+            VmaAllocationCreateInfo allocation = {};
+            allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            this->lowLevel->create()->allocate(uintptr_t(&allocation));
             return *this;
         };
 
@@ -372,7 +374,9 @@ namespace vkt {
 
         // Setters (for later using)
         inline AccelerationInstanced& allocate() {
-            this->topLevel->allocate()->create();
+            VmaAllocationCreateInfo allocation = {};
+            allocation.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            this->topLevel->create()->allocate(uintptr_t(&allocation));
             return *this;
         };
 

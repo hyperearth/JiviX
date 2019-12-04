@@ -90,7 +90,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Sometimes required special allocation
-            inline virtual MemoryAllocation createAllocation(const uintptr_t& info = (uintptr_t)nullptr, const api::MemoryRequirements2& req = {}) override {
+            inline virtual MemoryAllocation createAllocation(const api::MemoryRequirements2& req = {}, const uintptr_t& info = (uintptr_t)nullptr) override {
                 //auto vma_info = (VmaAllocationCreateInfo*)info;
                 //vmaAllocateMemory(vma,(VkMemoryRequirements*)&req.memoryRequirements,vma_info,&allocation.alloc,&allocation.alcmc);
                 auto VmaAllocator = std::dynamic_pointer_cast<VMAllocator_T>(shared_from_this());

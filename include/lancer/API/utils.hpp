@@ -136,14 +136,12 @@ namespace lancer {
     // general command buffer pipeline barrier
     static inline void commandBarrier(const api::CommandBuffer& cmdBuffer) {
         api::MemoryBarrier memoryBarrier = {};
-        memoryBarrier.srcAccessMask = (api::AccessFlagBits::eTransferWrite); 
-        memoryBarrier.dstAccessMask = (api::AccessFlagBits::eShaderRead | api::AccessFlagBits::eTransferRead | api::AccessFlagBits::eUniformRead);
-        cmdBuffer.pipelineBarrier(
-            //api::PipelineStageFlagBits::eTransfer | api::PipelineStageFlagBits::eComputeShader,
-            api::PipelineStageFlagBits::eComputeShader,
-            api::PipelineStageFlagBits::eTransfer | api::PipelineStageFlagBits::eComputeShader, {}, { memoryBarrier }, {}, {});
+        memoryBarrier.srcAccessMask = (api::AccessFlagBits::eShaderWrite | api::AccessFlagBits::eTransferWrite | api::AccessFlagBits::eMemoryWrite);
+        memoryBarrier.dstAccessMask = (api::AccessFlagBits::eShaderRead | api::AccessFlagBits::eTransferRead | api::AccessFlagBits::eMemoryRead | api::AccessFlagBits::eUniformRead);
+        const auto srcStageMask = api::PipelineStageFlagBits::eTransfer | api::PipelineStageFlagBits::eAllGraphics | api::PipelineStageFlagBits::eComputeShader | api::PipelineStageFlagBits::eRayTracingShaderNV | api::PipelineStageFlagBits::eAccelerationStructureBuildNV;
+        const auto dstStageMask = srcStageMask;
+        cmdBuffer.pipelineBarrier(srcStageMask, dstStageMask, {}, { memoryBarrier }, {}, {});
     };
-
 
 	// create secondary command buffers for batching compute invocations
 	static inline auto createCommandBuffer(const api::Device& device, const api::CommandPool& cmdPool, bool secondary = true, bool once = true) {
