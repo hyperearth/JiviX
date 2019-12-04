@@ -151,9 +151,11 @@ namespace vkt {
             return *this;
         };
 
+        // Fixed ONLY from 05.12.2019 (Reason - Last Issue of Unrendered Triangle)
+        // Needs attention for sizeof(It)
         inline BufferUploader<It>& uploadCmd(api::CommandBuffer& cmdbuf) {
             std::memcpy(mCPU.mBuffer->map(), pCPU->data(), pCPU->size() * sizeof(It));
-            cmdbuf.copyBuffer(mCPU.mBuffer->handle(), pGPU->mBuffer->handle(), { vk::BufferCopy(0u,pGPU->mBuffer->offset(),mCPU.getSize()) });
+            cmdbuf.copyBuffer(mCPU.mBuffer->handle(), pGPU->mBuffer->handle(), { vk::BufferCopy(0u,pGPU->mBuffer->offset(),mCPU.getSize()*sizeof(It)) });
             lancer::commandBarrier(cmdbuf);
             return *this;
         };
@@ -167,7 +169,7 @@ namespace vkt {
 
 
     // TODO: Add Uploading Support 
-    template<class It = uint32_t, class Vt = glm::vec3>
+    template<class It = uint32_t, class Vt = glm::vec4>
     class GeometryBuffer {
     protected:
         DeviceMaker device = {};
@@ -211,6 +213,7 @@ namespace vkt {
             mIndices.allocate();
             return *this;
         };
+
         inline GeometryBuffer& setDevice(const DeviceMaker& device) { this->device = device; return *this; };
         inline GeometryBuffer& setIndices(const Buffer<It>& indices) { this->mIndices = indices; return *this; };
         inline GeometryBuffer& setVertices(const Buffer<Vt>& vertices) { this->mVertices = vertices; return *this; };
@@ -242,10 +245,10 @@ namespace vkt {
 
         // Push Into Acceleration
         inline GeometryBuffer<It,Vt>& pushIntoAcceleration(lancer::GeometryAcceleration& acceleration) {
-            if (this->mVertices.rBuffer.buffer) {
+            if (this->mVertices.rBuffer.buffer && this->mIndices.getSize() > 0u) {
                 acceleration->beginTriangles()->setVertex(this->mVertices);
-                if (this->mIndices.rBuffer.buffer) acceleration->setIndices(this->mIndices);
-                if (this->mTransform.rBuffer.buffer) acceleration->setTransform3x4(this->mTransform);
+                if (this->mIndices.rBuffer.buffer && this->mIndices.getSize() > 0u) { acceleration->setIndices(this->mIndices); };
+                if (this->mTransform.rBuffer.buffer && this->mTransform.getSize() > 0u) { acceleration->setTransform3x4(this->mTransform); };
             };
             return *this;
         };
@@ -300,7 +303,9 @@ namespace vkt {
         // 
         template<class It = uint32_t, class Vt = glm::vec4>
         inline AccelerationGeometry& pGeometry(GeometryBuffer<It, Vt>& buffer = {}) { buffer.pushIntoAcceleration(lowLevel); return *this; };
-        inline AccelerationGeometry& updateCmd(api::CommandBuffer& cmdbuf) { lowLevel->createCmd(cmdbuf); lancer::commandBarrier(cmdbuf); return *this; };
+        inline AccelerationGeometry& updateCmd(api::CommandBuffer& cmdbuf) {
+            lowLevel->createCmd(cmdbuf); lancer::commandBarrier(cmdbuf); return *this; 
+        };
         inline AccelerationGeometry& setDevice(const DeviceMaker& device) { this->device = device; return *this; };
         inline AccelerationGeometry& writeForInstance(lancer::GeometryInstance& instance) { lowLevel->writeForInstance(instance); return *this; };
 
@@ -385,9 +390,13 @@ namespace vkt {
 
         // 
         inline AccelerationInstanced& writeForDescription(api::WriteDescriptorSetAccelerationStructureNV* AS = nullptr) { topLevel->writeForDescription(AS); return *this; };
-        inline AccelerationInstanced& pushGeometry(const AccelerationGeometry& geometry, const lancer::GeometryInstance& instance = {}) { geometry.writeForInstance(topLevel->pushInstance(instance)->getInstance()); return *this; };
+        inline AccelerationInstanced& pushGeometry(const AccelerationGeometry& geometry, const lancer::GeometryInstance& instance = {}) { 
+            geometry.writeForInstance(topLevel->pushInstance(instance)->getInstance()); 
+            return *this;
+        };
         inline AccelerationInstanced& setDevice(const DeviceMaker& device) { this->device = device; return *this; };
         inline AccelerationInstanced& updateCmd(api::CommandBuffer& cmdbuf, const bool& updateOnly = false) {
+            topLevel->uploadCache();
             topLevel->createCmd(cmdbuf);
             topLevel->uploadCmd(cmdbuf);
             lancer::commandBarrier(cmdbuf); // barrier util require for transfer

@@ -122,8 +122,7 @@ namespace rnd {
             rtSBThelper->create();
 
             // 
-            accelTop.setDevice(device);
-            accelTop = vkt::AccelerationInstanced(device);
+            accelTop = vkt::AccelerationInstanced(device, vk::AccelerationStructureCreateInfoNV());
 
             // 
             for (uint32_t i = 0u; i < 1u; i++) {
@@ -132,16 +131,26 @@ namespace rnd {
                 transform = { glm::mat3x4(1.f) };
                 geometry = vkt::GeometryBuffer<uint32_t, glm::vec4>(device,1024u);
 
+                // Set custom sizes
+                geometry.mIndices.setSize(3u);
+                geometry.mVertices.setSize(3u);
+                geometry.mTransform.setSize(0u);
+
                 // 
                 uTransform = vkt::BufferUploader<glm::mat3x4>(device, &geometry.mTransform, &transform);
                 uVertices = vkt::BufferUploader<glm::vec4>(device, &geometry.mVertices, &vertices);
                 uIndices = vkt::BufferUploader<uint32_t>(device, &geometry.mIndices, &indices);
 
+                // 
+                uTransform.mCPU.setSize(0u);
+                uVertices.mCPU.setSize(3u);
+                uIndices.mCPU.setSize(3u);
+
                 // Allocate Geometry
                 geometry.allocate();
 
                 // 
-                lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [=](vk::CommandBuffer& cmd) {
+                lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
                     uTransform.uploadCmd(cmd);
                     uVertices.uploadCmd(cmd);
                     uIndices.uploadCmd(cmd);
@@ -154,10 +163,19 @@ namespace rnd {
                 // Upload And Create Cmd
                 lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
                     accelLow.updateCmd(cmd);
+                    uintptr_t usb = 2.f;
                 });
+
+
 
                 // 
                 lancer::GeometryInstance instance = {};
+                instance.transform = glm::mat3x4(1.f);
+                instance.instanceId = static_cast<uint32_t>(i);
+                instance.mask = 0xff;
+                instance.instanceOffset = 0;
+                instance.flags = uint32_t(vk::GeometryInstanceFlagBitsNV::eTriangleCullDisable); // TODO: Better Type
+
                 accelTop.pushGeometry(accelLow, instance).allocate();
             };
 
@@ -203,7 +221,9 @@ namespace rnd {
             auto sampler = device->createSamplerMaker(samplerInfo);
             auto inputds = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(),&inputDescriptorSet_)->linkLayout(&inputDescriptorLayout);
             auto imageds = inputds->addImageDesc(2, 0, 1, false);
-            //auto imageds = inputds->addImageDesc(2,0,1,true,true);
+
+            // Write into pinned lake
+            accelTop->writeForDescription(inputds->addAccelerationStructureDesc(3, 0, 1));
 
             // create and apply descriptor set 
             //sampler->link(&imageds->sampler)->create();
@@ -227,6 +247,21 @@ namespace rnd {
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{1.f, 1.f, 1.f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
             auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), appBase->size());
             auto viewport = vk::Viewport(0.0f, 0.0f, appBase->size().width, appBase->size().height, 0, 1.0f);
+
+            // Ray-Trace Command 
+            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
+                cmd.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, rtPipelineLayout, 0u, inputDescriptorSet_, nullptr);
+                cmd.bindPipeline(api::PipelineBindPoint::eRayTracingNV, rtPipeline);
+                cmd.traceRaysNV(
+                    rtSBThelper->getSBTBuffer(), 0u,                                                                  // Ray-Gen Groups
+                    rtSBThelper->getSBTBuffer(), rtSBThelper->getMissGroupsOffset(), rtSBThelper->getGroupsStride(),  // Miss Groups
+                    rtSBThelper->getSBTBuffer(), rtSBThelper->getHitGroupsOffset(), rtSBThelper->getGroupsStride(),   // Hit Groups
+                    {}, 0u, 0u,                                                                                       // Callable Groups
+                    this->canvasWidth, this->canvasHeight, 1u,                                                        // Dispatch
+                    this->device->getDispatcher()                                                                     // RTX Extension Issue FIX
+                );
+                lancer::commandBarrier(cmd);
+            });
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;

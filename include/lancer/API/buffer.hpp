@@ -211,12 +211,17 @@ namespace lancer {
     template<class T = uint8_t>
     class Vector {
         public:
-            inline ~Vector() {};
+            friend Vector<T>;
+            inline ~Vector<T>() {};
             //inline  Vector() {}; 
-            inline  Vector(const BufferMaker& buffer = {}, api::DescriptorBufferInfo* bufInfo = nullptr) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo); };
-            inline  Vector(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
-            inline  Vector(const Vector<T>& vector) : region(vector.region) {};
-            inline  Vector(const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
+            inline Vector<T>(const BufferMaker& buffer = {}, api::DescriptorBufferInfo* bufInfo = nullptr) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo); };
+            inline Vector<T>(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
+            inline Vector<T>(const Vector<T>& vector) : region(vector.region) {};
+            inline Vector<T>(const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
+
+            // can be assigned
+            inline Vector<T>& operator=(const Vector<T>& another) { this->region = another.region; return *this; };
+            inline Vector<T>& operator=(const std::shared_ptr<BufferRegion_T<T>>& region) { this->region = region; return *this; };
 
             // map through
             inline T* const& map() { return region->map(); };

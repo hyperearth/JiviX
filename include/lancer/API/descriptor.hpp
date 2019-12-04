@@ -53,9 +53,18 @@ namespace lancer {
             std::vector<uint8_t> descriptorHeap = {}; // sparse descriptor array 
             std::vector<api::DescriptorUpdateTemplateEntry> descriptorEntries = {};
 
+            // Extension Based
+#ifdef EXTENSION_RTX
+            std::vector<api::WriteDescriptorSet> restDescriptions = {};
+            std::vector<api::WriteDescriptorSetAccelerationStructureNV> accelerationStructures = {};
+#endif
+
         public:
             DescriptorSet_T(const DeviceMaker& device = {}, api::DescriptorSetAllocateInfo info = {}, api::DescriptorSet* lastdst = nullptr) : lastdst(lastdst),info(info),device(device) {
                 descriptorHeap = {}, descriptorEntries = {};
+#ifdef EXTENSION_RTX
+                restDescriptions = {}, accelerationStructures = {};
+#endif
             };
 
             // 
@@ -91,10 +100,14 @@ namespace lancer {
             // 
 #ifdef EXTENSION_RTX
             inline api::WriteDescriptorSetAccelerationStructureNV* addAccelerationStructureDesc(const uint32_t& dstBinding = 0u, const uint32_t& dstArrayElement = 0u, const uint32_t& descriptorCount = 1u) {
-                const uintptr_t pt0 = descriptorHeap.size();
-                descriptorHeap.resize(pt0 + sizeof(api::WriteDescriptorSetAccelerationStructureNV) * descriptorCount, 0u);
-                descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{ dstBinding,dstArrayElement,descriptorCount,api::DescriptorType::eAccelerationStructureNV,pt0,sizeof(api::WriteDescriptorSetAccelerationStructureNV) });
-                return (api::WriteDescriptorSetAccelerationStructureNV*)(&descriptorHeap[pt0]);
+                //const uintptr_t pt0 = descriptorHeap.size();
+                //descriptorHeap.resize(pt0 + sizeof(api::WriteDescriptorSetAccelerationStructureNV) * descriptorCount, 0u);
+                //descriptorEntries.push_back(api::DescriptorUpdateTemplateEntry{ dstBinding,dstArrayElement,descriptorCount,api::DescriptorType::eAccelerationStructureNV,pt0,sizeof(api::WriteDescriptorSetAccelerationStructureNV) });
+                //return (api::WriteDescriptorSetAccelerationStructureNV*)(&descriptorHeap[pt0]);
+
+                accelerationStructures.push_back(api::WriteDescriptorSetAccelerationStructureNV().setAccelerationStructureCount(1u).setPAccelerationStructures(nullptr));
+                restDescriptions.push_back(api::WriteDescriptorSet().setDstSet(*lastdst).setDstBinding(dstBinding).setDstArrayElement(dstArrayElement).setDescriptorCount(descriptorCount).setDescriptorType(api::DescriptorType::eAccelerationStructureNV).setPNext(&accelerationStructures.back()));
+                return &accelerationStructures.back();
             };
 #endif
 
@@ -124,6 +137,13 @@ namespace lancer {
                 // 
                 device->least().createDescriptorUpdateTemplate(&createInfo,nullptr,&descriptorTemplate); // TODO: destroy previous template 
                 device->least().updateDescriptorSetWithTemplate(*lastdst,descriptorTemplate,descriptorHeap.data()); // 
+
+#ifdef EXTENSION_RTX
+                if (restDescriptions.size() > 0u) {
+                    for (auto& desc : restDescriptions) { desc.setDstSet(*lastdst); };
+                    device->least().updateDescriptorSets(restDescriptions, {});
+                };
+#endif
 
                 // 
                 return shared_from_this(); };
