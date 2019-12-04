@@ -133,7 +133,11 @@ namespace lancer {
 
         // Command Buffer Required Operations
         inline InstancedAcceleration uploadCmd(api::CommandBuffer& cmdbuf) { cmdbuf.copyBuffer(*cacheBuffer, *gpuBuffer, { vk::BufferCopy(cacheBuffer->offset(), gpuBuffer->offset(), this->getRange()) }); return shared_from_this(); };
-        inline InstancedAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { cmdbuf.buildAccelerationStructureNV(accelinfo.info, *gpuBuffer, gpuBuffer->offset(), update, *accelerat, {}, *scratch, scratch->offset()); return shared_from_this(); };
+        inline InstancedAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { 
+            this->create();
+            cmdbuf.buildAccelerationStructureNV(accelinfo.info, *gpuBuffer, gpuBuffer->offset(), update, *accelerat, {}, *scratch, scratch->offset()); 
+            return shared_from_this(); 
+        };
 
         // Create Final
         inline InstancedAcceleration create() {
@@ -174,7 +178,7 @@ namespace lancer {
         };
 
         // Instance Pusher 
-        inline InstancedAcceleration pushInstance(const GeometryInstance& instance = {}) { instanced.push_back(instance); };
+        inline InstancedAcceleration pushInstance(const GeometryInstance& instance = {}) { instanced.push_back(instance); return shared_from_this(); };
 
         // Get Reference Of AS Info 
         inline const api::AccelerationStructureCreateInfoNV& getCreateInfo() const { return accelinfo; };
@@ -201,8 +205,15 @@ namespace lancer {
         inline const GeometryInstance& getInstance() const { return instanced.back(); };
 
         // Write For Descriptor
+        inline const InstancedAcceleration_T* writeForDescription(api::WriteDescriptorSetAccelerationStructureNV* AS = nullptr) const {
+            AS->accelerationStructureCount = 1u, AS->pAccelerationStructures = accelerat; return this;
+            //return shared_from_this();
+        };
+
+        // Write For Descriptor
         inline InstancedAcceleration writeForDescription(api::WriteDescriptorSetAccelerationStructureNV* AS = nullptr) {
             AS->accelerationStructureCount = 1u, AS->pAccelerationStructures = accelerat;
+            return shared_from_this();
         };
 
     protected:
@@ -243,7 +254,11 @@ namespace lancer {
         };
 
         // Command Buffer Required Operations
-        inline GeometryAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { cmdbuf.buildAccelerationStructureNV(accelinfo.info, {}, 0u, update, *accelerat, {}, *scratch, scratch->offset()); return shared_from_this(); };
+        inline GeometryAcceleration createCmd(api::CommandBuffer& cmdbuf, const bool& update = false) { 
+            this->create(); 
+            cmdbuf.buildAccelerationStructureNV(accelinfo.info, {}, 0u, update, *accelerat, {}, *scratch, scratch->offset());
+            return shared_from_this();
+        };
 
         // Memory Manipulations
         inline GeometryAcceleration linkScratch(const std::shared_ptr<BufferRegion_T<uint8_t>>& scratch = {}) { this->scratch = scratch; return shared_from_this(); };
@@ -351,8 +366,17 @@ namespace lancer {
         };
 
         // SHOULD BE READY
+        inline const GeometryAcceleration_T* writeForInstance(GeometryInstance& instance) const {
+            if (accelerat && (*accelerat)) {
+                device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle);
+            };
+            return this;
+        };
+
         inline GeometryAcceleration writeForInstance(GeometryInstance& instance) {
-            device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle);
+            if (accelerat && (*accelerat)) {
+                device->least().getAccelerationStructureHandleNV(*accelerat, sizeof(uint64_t), &instance.accelerationStructureHandle);
+            };
             return shared_from_this();
         };
 
@@ -525,7 +549,7 @@ namespace lancer {
             api::BufferUsageFlagBits::eRayTracingNV|
             api::BufferUsageFlagBits::eTransferDst|
             api::BufferUsageFlagBits::eTransferSrc
-        ), pSBT))->create()->allocate(mDevice->getAllocatorPtr(),(uintptr_t)(&allocInfo));
+        ), pSBT))->allocate(mDevice->getAllocatorPtr(),(uintptr_t)(&allocInfo));
         vSBT = Vector<>(mSBT->createRegion(&mBufInfo,0u,sbtSize));
 
         // Assign Truth

@@ -46,6 +46,13 @@ namespace rnd {
             lancer::ImageMaker outputImage = {};
 
             // Acceleration Geometry
+            std::vector<glm::mat3x4> transform = {};
+            std::vector<glm::vec4> vertices = {};
+            std::vector<uint32_t> indices = {};
+            vkt::BufferUploader<glm::mat3x4> uTransform = {};
+            vkt::BufferUploader<glm::vec4> uVertices = {};
+            vkt::BufferUploader<uint32_t> uIndices = {};
+            vkt::GeometryBuffer<uint32_t, glm::vec4> geometry = {};
             vkt::AccelerationGeometry accelLow = {};
 
             // Acceleration Instanced

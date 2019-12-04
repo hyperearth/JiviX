@@ -78,11 +78,15 @@ namespace lancer {
                  return shared_from_this(); };
 
             inline virtual MemoryAllocator allocateForBuffer(api::Buffer* buffer, MemoryAllocation& allocation, const api::BufferCreateInfo& bfc = {}, const uintptr_t& ptx = 0u) override {
-                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, (VkBuffer*)buffer, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
+                 VkBuffer buf = VK_NULL_HANDLE;
+                 vmaCreateBuffer(vma, (VkBufferCreateInfo*)&bfc, (VmaAllocationCreateInfo*)ptx, &buf, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
+                 *buffer = buf;
                  return shared_from_this(); };
 
             inline virtual MemoryAllocator allocateForImage(api::Image* image, MemoryAllocation& allocation, const api::ImageCreateInfo& imc = {}, const uintptr_t& ptx = 0u) override {
-                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, (VkImage*)image, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
+                VkImage img = VK_NULL_HANDLE;
+                vmaCreateImage(vma, (VkImageCreateInfo*)&imc, (VmaAllocationCreateInfo*)ptx, &img, (VmaAllocation*)allocation->getPtr(), (VmaAllocationInfo*)allocation->getCIP());
+                *image = img;
                 return shared_from_this(); };
 
             // Sometimes required special allocation

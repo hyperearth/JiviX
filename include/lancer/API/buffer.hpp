@@ -17,16 +17,16 @@ namespace lancer {
             bool smartFree = false;
 
         public: 
-             Buffer_T(const DeviceMaker& device = {}, const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr) : lastbuf(lastbuf), bfc(bfc), device(device) {};
-            ~Buffer_T(){
+            inline  Buffer_T(const DeviceMaker& device = {}, const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr) : lastbuf(lastbuf), bfc(bfc), device(device) {};
+            inline ~Buffer_T(){
                 if (smartFree) { allocation->freeBuffer(shared_from_this()); };
             }; // Here will notification about free memory
 
             // Get original Vulkan link 
             inline api::Buffer& least() { return *lastbuf; };
             inline const api::Buffer& least() const { return *lastbuf; };
-            operator api::Buffer&() { return *lastbuf; };
-            operator const api::Buffer&() const { return *lastbuf; };
+            inline operator api::Buffer&() { return *lastbuf; };
+            inline operator const api::Buffer&() const { return *lastbuf; };
 
             // Editable BufferCreateInfo
             inline api::BufferCreateInfo& getCreateInfo() { return bfc; };
@@ -57,7 +57,7 @@ namespace lancer {
             };
 
             // 
-            const inline MemoryAllocation& getAllocation() const {
+            inline const MemoryAllocation& getAllocation() const {
                 return this->allocation;
             };
 
@@ -68,8 +68,7 @@ namespace lancer {
                 return shared_from_this(); };
 
             // Link Editable Buffer 
-            inline BufferMaker link(api::Buffer* buf = nullptr) { lastbuf = buf; 
-                return shared_from_this(); };
+            inline BufferMaker link(api::Buffer* buf = nullptr) { lastbuf = buf; return shared_from_this(); };
 
             // 
             inline BufferMaker allocate(const MemoryAllocator& mem, const uintptr_t& ptx = 0u) {
@@ -120,67 +119,72 @@ namespace lancer {
     template<class T>
     class BufferRegion_T : public std::enable_shared_from_this<BufferRegion_T<T>> {
         public:
-            ~BufferRegion_T<T>(){};
-             BufferRegion_T<T>(const BufferMaker& buffer = {}, api::DescriptorBufferInfo* bufInfo = nullptr) : buffer(buffer), bufInfo(bufInfo) { if (!!buffer) { bufInfo->buffer = *buffer; }; };
-             BufferRegion_T<T>(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) : buffer(buffer), bufInfo(bufInfo) {
-                bufInfo->buffer = *buffer;
-                bufInfo->offset = offset;
-                bufInfo->range = size * sizeof(T);
-             };
+            inline ~BufferRegion_T<T>(){};
+            inline  BufferRegion_T<T>(const BufferMaker& buffer = {}, api::DescriptorBufferInfo* bufInfo = nullptr) : buffer(buffer), bufInfo(bufInfo) { if (!!buffer) { this->bufInfo->buffer = this->buffer->least(); }; };
+            inline  BufferRegion_T<T>(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) : buffer(buffer), bufInfo(bufInfo) {
+                this->bufInfo->buffer = buffer->least();
+                this->bufInfo->offset = offset;
+                this->bufInfo->range = size * sizeof(T);
+            };
 
-             // UPDATE 04.12.2019 - Remake Buffer Region 
-             BufferRegion_T<T>(const std::shared_ptr<BufferRegion_T<T>>& region, api::DescriptorBufferInfo* bufInfo) : buffer(region->least()), bufInfo(bufInfo) {
+            // UPDATE 04.12.2019 - Remake Buffer Region 
+            // WARNING - MAY REQUIRED RE-LINK `vk::Buffer*`
+            inline BufferRegion_T<T>(const std::shared_ptr<BufferRegion_T<T>>& region, api::DescriptorBufferInfo* bufInfo = nullptr) : buffer(region->least()), bufInfo(bufInfo), mapped(mapped) {
 
-             };
+            };
 
-            T* const& map() { mapped = (T*)((uint8_t*)buffer->getMapped() + bufInfo->offset); return mapped; };
-            T* const& data() { this->map(); return mapped; };
+            inline T* const& map() { mapped = (T*)((uint8_t*)buffer->getMapped() + bufInfo->offset); return mapped; };
+            inline T* const& data() { this->map(); return mapped; };
             inline const T*& data() const { return mapped; };
 
             // 
-            size_t size() const { return size_t(bufInfo->range / sizeof(T)); };
-            const api::DeviceSize& range() const { return bufInfo->range; };
+            inline size_t size() const { return size_t(bufInfo->range / sizeof(T)); };
+            inline const api::DeviceSize& range() const { return bufInfo->range; };
 
             // at function 
-            const T& at(const uintptr_t& i) const { return mapped[i]; };
-            T& at(const uintptr_t& i) { return mapped[i]; };
+            inline const T& at(const uintptr_t& i) const { return mapped[i]; };
+            inline T& at(const uintptr_t& i) { return mapped[i]; };
 
             // array operator 
-            const T& operator [] (const uintptr_t& i) const { return at(i); };
-            T& operator [] (const uintptr_t& i) { return at(i); };
+            inline const T& operator [] (const uintptr_t& i) const { return at(i); };
+            inline T& operator [] (const uintptr_t& i) { return at(i); };
 
             // begin ptr
-            const T*& begin() const { return data(); };
-            T* const& begin() { return map(); };
+            inline const T*& begin() const { return data(); };
+            inline T* const& begin() { return map(); };
 
             // end ptr
-            const T*& end() const { return &at(size() - 1ul); };
-            T* end() { return &at(size() - 1ul); };
+            inline const T*& end() const { return &at(size() - 1ul); };
+            inline T* end() { return &at(size() - 1ul); };
 
             // return only pointer
-            api::DescriptorBufferInfo* getRegionInfo() const { return bufInfo; };
+            inline api::DescriptorBufferInfo* getRegionInfo() const { return bufInfo; };
 
             // SHARED_PTR DOESN'T WORKING ON TEMPLATES
             //std::shared_ptr<BufferRegion_T<T>> setRegionInfo(api::DescriptorBufferInfo* bufInfo = nullptr) {
-            BufferRegion_T<T>* setRegionInfo(api::DescriptorBufferInfo* bufInfo = nullptr) {
+            inline BufferRegion_T<T>* setRegionInfo(api::DescriptorBufferInfo* bufInfo = nullptr) {
                 this->bufInfo = bufInfo; return this;
                 //return shared_from_this();
             };
 
             // 
             //std::shared_ptr<BufferRegion_T<T>> 
-            BufferRegion_T<T>* setBufferMaker(const BufferMaker& bufferMaker = {}) {
+            inline BufferRegion_T<T>* setBufferMaker(const BufferMaker& bufferMaker = {}) {
                 this->buffer = bufferMaker; return this;
                 //return shared_from_this();
             };
 
             // 
-            BufferMaker& least() { return buffer; };
-            const BufferMaker& least() const { return buffer; };
+            inline BufferMaker& least() { return buffer; };
+            inline const BufferMaker& least() const { return buffer; };
 
             // 
-            operator const api::DescriptorBufferInfo&() const { return *bufInfo; };
-            operator const api::Buffer&() const { return *buffer; };
+            const api::Buffer& handle() const { return (this->bufInfo->buffer = (this->bufInfo->buffer ? this->bufInfo->buffer : this->buffer->least())); };
+            api::Buffer& handle() { return (this->bufInfo->buffer = (this->bufInfo->buffer ? this->bufInfo->buffer : this->buffer->least())); };
+
+            // 
+            inline operator const api::DescriptorBufferInfo&() const { return *bufInfo; };
+            inline operator const api::Buffer&() const { return this->handle(); };
             inline const api::DeviceSize& offset() const { return bufInfo->offset; };
 
         protected:
@@ -192,7 +196,7 @@ namespace lancer {
     // Geometry RTX Required
     template<class T>
     inline std::shared_ptr<BufferRegion_T<T>> Buffer_T::createRegion(api::DescriptorBufferInfo* reg, const uintptr_t& offset, const size_t& size) {
-        (*reg = api::DescriptorBufferInfo{ *lastbuf, offset, size * sizeof(T) }); //return shared_from_this(); 
+        (*reg = api::DescriptorBufferInfo{ this->least(), offset, size * sizeof(T) }); //return shared_from_this(); 
         return std::make_shared<BufferRegion_T<T>>(shared_from_this(), reg, offset, size);
     };
 
@@ -207,64 +211,65 @@ namespace lancer {
     template<class T = uint8_t>
     class Vector {
         public:
-            ~Vector() {};
-             Vector() {};
-             Vector(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset = 0u, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
-             Vector(const Vector<T>& vector) : region(vector.region) {};
-             Vector(const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
+            inline ~Vector() {};
+            //inline  Vector() {}; 
+            inline  Vector(const BufferMaker& buffer = {}, api::DescriptorBufferInfo* bufInfo = nullptr) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo); };
+            inline  Vector(const BufferMaker& buffer, api::DescriptorBufferInfo* bufInfo, const api::DeviceSize& offset, const api::DeviceSize& size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion_T<T>>(buffer, bufInfo, size, offset); };
+            inline  Vector(const Vector<T>& vector) : region(vector.region) {};
+            inline  Vector(const std::shared_ptr<BufferRegion_T<T>>& region) : region(region) {};
 
             // map through
-            T* const& map() { return region->map(); };
-            inline void unmap() { return region->unmap(); };
+            inline T* const& map() { return region->map(); };
+            inline inline void unmap() { return region->unmap(); };
 
-            T* const& data() { return region->data(); };
-            const T*& data() const { return region->data(); };
+            inline T* const& data() { return region->data(); };
+            inline const T*& data() const { return region->data(); };
 
             // sizing 
-            size_t size() const { return region->size(); };
-            const api::DeviceSize& range() const { return region->range(); };
+            inline size_t size() const { return region->size(); };
+            inline const api::DeviceSize& range() const { return region->range(); };
 
             // at function 
-            const T& at(const uintptr_t& i) const { return region->at(i); };
-            T& at(const uintptr_t& i) { return region->at(i); };
+            inline const T& at(const uintptr_t& i) const { return region->at(i); };
+            inline T& at(const uintptr_t& i) { return region->at(i); };
 
             // array operator 
-            const T& operator [] (const uintptr_t& i) const { at(i); };
-            T& operator [] (const uintptr_t& i) { return at(i); };
+            inline const T& operator [] (const uintptr_t& i) const { at(i); };
+            inline T& operator [] (const uintptr_t& i) { return at(i); };
 
             // begin ptr
-            const T*& begin() const { region->begin(); };
-            T* const& begin() { return region->begin(); };
+            inline const T*& begin() const { region->begin(); };
+            inline T* const& begin() { return region->begin(); };
 
             // end ptr
-            const T* end() const { return region->end(); };
-            T* end() { return region->end(); };
+            inline const T* end() const { return region->end(); };
+            inline T* end() { return region->end(); };
 
             // 
-            operator const api::DescriptorBufferInfo&() const { return *region; };
-            operator const api::Buffer&() const { return *region; };
+            inline operator const api::DescriptorBufferInfo&() const { return *region; };
+            inline operator const api::Buffer&() const { return *region; };
             inline const api::DeviceSize& offset() const { return region->offset(); };
 
 
             // Update from 03.12.2019 (make able to use methods as pointer)
-            operator BufferMaker& () { return region->least(); };
-            operator const BufferMaker& () const { return region->least(); };
+            inline operator BufferMaker& () { return region->least(); };
+            inline operator const BufferMaker& () const { return region->least(); };
 
             // 
-            BufferMaker& least() { return region->least(); };
-            const BufferMaker& least() const { return region->least(); };
+            inline BufferMaker& least() { return region->least(); };
+            inline const BufferMaker& least() const { return region->least(); };
 
             // 
-            BufferRegion_T<T>* operator->() { return &(*region); };
-            const BufferRegion_T<T>* operator->() const { return &(*region); };
+            inline BufferRegion_T<T>* operator->() { return &(*region); };
+            inline const BufferRegion_T<T>* operator->() const { return &(*region); };
 
             // 
-            operator BufferRegion_T<T>& () { return *region; };
-            operator const BufferRegion_T<T>& () const { return *region; };
+            inline operator BufferRegion_T<T>& () { return *region; };
+            inline operator const BufferRegion_T<T>& () const { return *region; };
 
             // 
-            operator std::shared_ptr<BufferRegion_T<T>>& () { return region; };
-            operator const std::shared_ptr<BufferRegion_T<T>>& () const { return region; };
+            inline operator std::shared_ptr<BufferRegion_T<T>>& () { return region; };
+            inline operator const std::shared_ptr<BufferRegion_T<T>>& () const { return region; };
 
         protected:
             std::shared_ptr<BufferRegion_T<T>> region = {};

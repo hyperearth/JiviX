@@ -124,9 +124,48 @@ namespace rnd {
             // 
             accelTop.setDevice(device);
             accelTop = vkt::AccelerationInstanced(device);
+
+            // 
             for (uint32_t i = 0u; i < 1u; i++) {
+                indices = {0u,1u,2u};
+                vertices = { glm::vec4(1.f,-1.f,1.f,1.f),glm::vec4(-1.f,-1.f,1.f,1.f),glm::vec4(0.f,1.f,1.f,1.f) };
+                transform = { glm::mat3x4(1.f) };
+                geometry = vkt::GeometryBuffer<uint32_t, glm::vec4>(device,1024u);
+
+                // 
+                uTransform = vkt::BufferUploader<glm::mat3x4>(device, &geometry.mTransform, &transform);
+                uVertices = vkt::BufferUploader<glm::vec4>(device, &geometry.mVertices, &vertices);
+                uIndices = vkt::BufferUploader<uint32_t>(device, &geometry.mIndices, &indices);
+
+                // Allocate Geometry
+                geometry.allocate();
+
+                // 
+                lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [=](vk::CommandBuffer& cmd) {
+                    uTransform.uploadCmd(cmd);
+                    uVertices.uploadCmd(cmd);
+                    uIndices.uploadCmd(cmd);
+                });
+
+                // Construct Low Acceleration Structure
                 accelLow = vkt::AccelerationGeometry(device);
+                accelLow.pGeometry(geometry).allocate();
+
+                // Upload And Create Cmd
+                lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
+                    accelLow.updateCmd(cmd);
+                });
+
+                // 
+                lancer::GeometryInstance instance = {};
+                accelTop.pushGeometry(accelLow, instance).allocate();
             };
+
+            // Upload And Create Cmd
+            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
+                accelTop.updateCmd(cmd);
+            });
+
         };
 
         {
