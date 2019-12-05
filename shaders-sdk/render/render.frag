@@ -2,7 +2,7 @@
 
 layout ( location = 0 ) in vec2 vcoord;
 layout ( location = 0 ) out vec4 uFragColor;
-layout ( binding = 2, rgba32f ) uniform image2D outputImage;
+layout ( binding = 4, rgba32f ) uniform image2D outputImage;
 
 void main() {
     //imageStore(outputImage, ivec2(vcoord*imageSize(outputImage)), vec4(1.f.xxx,1.f));

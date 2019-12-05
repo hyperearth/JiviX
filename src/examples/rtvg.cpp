@@ -21,8 +21,10 @@
 
 namespace rnd {
 
+    // 
     const uint32_t blockWidth = 8, blockheight = 8;
 
+    // 
     void Renderer::Arguments(int argc, char** argv) {
         args::ArgumentParser parser("This is a test rendering program.", "");
         args::HelpFlag help(parser, "help", "Available flags", { 'h', "help" });
@@ -48,6 +50,7 @@ namespace rnd {
         */
     };
 
+    // 
     void Renderer::Init(uint32_t windowWidth, uint32_t windowHeight, bool enableSuperSampling) {
         // create GLFW window
         this->windowWidth = windowWidth, this->windowHeight = windowHeight;
@@ -93,43 +96,42 @@ namespace rnd {
         framebuffers = appBase->createSwapchainFramebuffer(swapchain = appBase->createSwapchain(), appBase->createRenderPass());
     };
 
+    // 
     void Renderer::UpdateFramebuffers(uint32_t width, uint32_t height) {
         device->least().waitIdle();
         appBase->updateSwapchainFramebuffer(framebuffers, swapchain, appBase->renderPass);
     };
 
+    // 
     void Renderer::InitPipeline() {
-        // Pinning Lake
 
-        {
-            auto desclay = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &inputDescriptorLayout)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll),
-                    vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
-                    vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV),
-                    vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |
-                    vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)
+        {   // == Pinning Lake == 
+            mUnifiedDescriptorLayout = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &unifiedDescriptorLayout)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Acceleration Structure
+                ->pushBinding(vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eSampledImage, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |  vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Sampling Images from Render Passes (Samples, Hi-Z, Colors, Normals, Diffuses)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Constant-Based Dynamic Buffer
+                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Attribute Data (for Ray-Tracers or Unified Rasterizers)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Writable Output Images
                 ->create();
+
+            // 
+            mUnifiedPipelineLayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(), &unifiedPipelineLayout);
+            mUnifiedPipelineLayout->pushDescriptorSetLayout(unifiedDescriptorLayout)->create();
         };
 
-        {
-            // Create Ray Tracing Pipeline Layout
-            lancer::PipelineLayoutMaker dlayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(), &rtPipelineLayout);
-            dlayout->pushDescriptorSetLayout(inputDescriptorLayout)->create();
-
+        {   // == Ray Tracing Pipeline == 
             // Create Ray Tracing Pipeline and SBT
-            rtSBThelper = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &rtPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&rtPipelineLayout)->initialize();
-            rtSBThelper->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
-            rtSBThelper->addStageToHitGroup(std::vector<api::PipelineShaderStageCreateInfo>{
-                vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV)
-            });
-            rtSBThelper->addStageToMissGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV));
-            rtSBThelper->create();
+            mRaytracedPipeline = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &raytracedPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&unifiedPipelineLayout)->initialize();
+            mRaytracedPipeline->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
+            mRaytracedPipeline->addStageToHitGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV));
+            mRaytracedPipeline->addStageToMissGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV));
+            mRaytracedPipeline->create();
+        };
 
-            // 
+        {   // == Acceleration Structures (RTX Only) == 
             rtAccelTop = vkt::AccelerationInstanced(device, vk::AccelerationStructureCreateInfoNV());
 
-            // 
+            // TODO : Real Geometry Loader
             for (uint32_t i = 0u; i < 1u; i++) {
                 indices = {0u,1u,2u};
                 vertices = { glm::vec4(1.f,-1.f,1.f,1.f),glm::vec4(-1.f,-1.f,1.f,1.f),glm::vec4(0.f,1.f,1.f,1.f) };
@@ -161,15 +163,13 @@ namespace rnd {
                 });
 
 
-
-                // 
+                // == TOP LEVEL UPLOAD == 
                 lancer::GeometryInstance instance = {};
                 instance.transform = glm::mat3x4(1.f);
                 instance.instanceId = static_cast<uint32_t>(i);
                 instance.mask = 0xff;
                 instance.instanceOffset = 0;
                 instance.flags = uint32_t(vk::GeometryInstanceFlagBitsNV::eTriangleCullDisable); // TODO: Better Type
-
                 rtAccelTop.pushGeometry(rtAccelLow, instance).allocate();
             };
 
@@ -180,54 +180,65 @@ namespace rnd {
 
         };
 
-        {
-            lancer::GraphicsPipelineMaker maker = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(),&trianglePipeline);
-            lancer::PipelineLayoutMaker dlayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(),&trianglePipelineLayout);
-            dlayout->pushDescriptorSetLayout(inputDescriptorLayout)->create();
-            maker->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            maker->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
-            maker->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
-            maker->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
-            maker->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
-            //maker->pushVertexBinding(0u)->pushVertexAttribute(0u,0u); // TODO: True Vertex Bindings and Attribute
-            maker->link(&trianglePipeline)->linkPipelineLayout(&trianglePipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
+        {   // == Final Rasterization Shader (Planned To Replace) == 
+            mFinalDrawPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(),&finalDrawPipeline);
+            mFinalDrawPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mFinalDrawPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            mFinalDrawPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            mFinalDrawPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+            mFinalDrawPipeline->link(&finalDrawPipeline)->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
         };
 
-        {
+        {   // == Output Image Initialization And Binding == 
             // Should Live Before Allocation, BUT NOT ERASE BEFORE ALLOCATION
             VmaAllocationCreateInfo vmac = {};
             vmac.usage = VMA_MEMORY_USAGE_GPU_ONLY;
             vmac.flags = {};
 
-            // create output image
-            auto imagemk = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
-            imagemk->link(&outputImage_)->create2D(vk::Format::eR32G32B32A32Sfloat,appBase->applicationWindow.surfaceSize.width,appBase->applicationWindow.surfaceSize.height)->allocate((uintptr_t)(&vmac));
-            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { imagemk->imageBarrier(cmd); });
+            // Create output image
+            mOutputImage = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
+            mOutputImage->link(&outputImage)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate((uintptr_t)(&vmac));
+            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { mOutputImage->imageBarrier(cmd); });
 
-            // create sampler and description
-            vk::SamplerCreateInfo samplerInfo = {};
-            samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
-            samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
-            samplerInfo.minFilter = vk::Filter::eLinear;
-            samplerInfo.magFilter = vk::Filter::eLinear;
-            samplerInfo.compareEnable = false;
-            auto sampler = device->createSamplerMaker(samplerInfo);
-            auto inputds = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(),&inputDescriptorSet_)->linkLayout(&inputDescriptorLayout);
-            auto imageds = inputds->addImageDesc(2, 0, 1, false);
+            // Create sampler and description
+            //vk::SamplerCreateInfo samplerInfo = {};
+            //samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+            //samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+            //samplerInfo.minFilter = vk::Filter::eLinear;
+            //samplerInfo.magFilter = vk::Filter::eLinear;
+            //samplerInfo.compareEnable = false;
+            //auto sampler = device->createSamplerMaker(samplerInfo);
+            mFinalizedDescriptorSet = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &finalizedDescriptorSet)->linkLayout(&unifiedDescriptorLayout);
+            mRayTracedDescriptorSet = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &rayTracedDescriptorSet)->linkLayout(&unifiedDescriptorLayout);
+        };
 
-            // Write into pinned lake
-            rtAccelTop->writeForDescription(inputds->addAccelerationStructureDesc(3, 0, 1));
+        {   // == Finalize Descriptor Set == 
+            // Create and apply descriptor set 
+            auto dOutputImage = mFinalizedDescriptorSet->addImageDesc(4, 0, 1, false);
+            mOutputImage->createImageView(&dOutputImage->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            dOutputImage->imageLayout = mOutputImage->getTargetLayout();
 
-            // create and apply descriptor set 
-            //sampler->link(&imageds->sampler)->create();
-            imagemk->createImageView(&imageds->imageView,api::ImageViewType::e2D,vk::Format::eR32G32B32A32Sfloat);
-            imageds->imageLayout = imagemk->getTargetLayout();
-            inputDescriptorSet = inputds->create()->apply();
-            outputImage = imagemk;
+            // Apply Descriptor Set
+            mFinalizedDescriptorSet->create()->apply();
+        };
+
+        {   // == Ray Tracing Descriptor Set ==
+            // Create and apply descriptor set 
+            auto dOutputImage = mRayTracedDescriptorSet->addImageDesc(4, 0, 1, false);
+            mOutputImage->createImageView(&dOutputImage->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            dOutputImage->imageLayout = mOutputImage->getTargetLayout();
+
+            // Add Ray Tracing Object
+            rtAccelTop->writeForDescription(mRayTracedDescriptorSet->addAccelerationStructureDesc(1, 0, 1));
+
+            // Apply Descriptor Set
+            mRayTracedDescriptorSet->create()->apply();
         };
     };
 
+    // 
     void Renderer::Draw() {
         auto n_semaphore = currSemaphore;
         auto c_semaphore = int32_t((size_t(currSemaphore) + 1ull) % framebuffers.size());
@@ -237,19 +248,19 @@ namespace rnd {
         n_semaphore = (n_semaphore >= 0 ? n_semaphore : (framebuffers.size() - 1));
         device->least().acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
 
-        { // submit rendering (and wait presentation in device)
+        { // Submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{1.f, 1.f, 1.f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
             auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), appBase->size());
             auto viewport = vk::Viewport(0.0f, 0.0f, appBase->size().width, appBase->size().height, 0, 1.0f);
 
             // Ray-Trace Command 
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
-                cmd.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, rtPipelineLayout, 0u, inputDescriptorSet_, nullptr);
-                cmd.bindPipeline(api::PipelineBindPoint::eRayTracingNV, rtPipeline);
+                cmd.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, unifiedPipelineLayout, 0u, rayTracedDescriptorSet, nullptr);
+                cmd.bindPipeline(api::PipelineBindPoint::eRayTracingNV, raytracedPipeline);
                 cmd.traceRaysNV(
-                    rtSBThelper->getSBTBuffer(), 0u,                                                                  // Ray-Gen Groups
-                    rtSBThelper->getSBTBuffer(), rtSBThelper->getMissGroupsOffset(), rtSBThelper->getGroupsStride(),  // Miss Groups
-                    rtSBThelper->getSBTBuffer(), rtSBThelper->getHitGroupsOffset(), rtSBThelper->getGroupsStride(),   // Hit Groups
+                    mRaytracedPipeline->getSBTBuffer(), 0u,                                                                  // Ray-Gen Groups
+                    mRaytracedPipeline->getSBTBuffer(), mRaytracedPipeline->getMissGroupsOffset(), mRaytracedPipeline->getGroupsStride(),  // Miss Groups
+                    mRaytracedPipeline->getSBTBuffer(), mRaytracedPipeline->getHitGroupsOffset(), mRaytracedPipeline->getGroupsStride(),   // Hit Groups
                     {}, 0u, 0u,                                                                                       // Callable Groups
                     this->canvasWidth, this->canvasHeight, 1u,                                                        // Dispatch
                     this->device->getDispatcher()                                                                     // RTX Extension Issue FIX
@@ -257,21 +268,21 @@ namespace rnd {
                 lancer::commandBarrier(cmd);
             });
 
-            // create command buffer (with rewrite)
+            // CSreate command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
                 commandBuffer = lancer::createCommandBuffer(*device, appBase->commandPool, false, false); // do reference of cmd buffer
                 commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(appBase->renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
                 commandBuffer.setViewport(0, std::vector<vk::Viewport> { viewport });
                 commandBuffer.setScissor(0, std::vector<vk::Rect2D> { renderArea });
-                commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, trianglePipeline);
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, trianglePipelineLayout, 0, inputDescriptorSet_, nullptr);
+                commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalDrawPipeline);
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, unifiedPipelineLayout, 0, finalizedDescriptorSet, nullptr);
                 commandBuffer.draw(4, 1, 0, 0);
                 commandBuffer.endRenderPass();
                 commandBuffer.end();
             };
 
-            // create render submission 
+            // Create render submission 
             std::vector<vk::Semaphore>
                 waitSemaphores = { framebuffers[n_semaphore].semaphore },
                 signalSemaphores = { framebuffers[c_semaphore].semaphore };
@@ -280,7 +291,7 @@ namespace rnd {
             // 
             std::array<vk::CommandBuffer, 1> XPEHb = { commandBuffer };
 
-            // submit command once
+            // Submit command once
             lancer::submitCmd(*device, appBase->queue, { commandBuffer }, vk::SubmitInfo()
                     .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
                     .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
@@ -296,7 +307,7 @@ namespace rnd {
         ));
     };
 
-
+    // 
     void Renderer::HandleData() {
         const auto tFrameTime = glfwGetTime();
         const auto tDiff = tFrameTime - tPastFrameTime, tFPS = 1.0 / tDiff; // get computed time difference ( TODO: rounding tFPS )

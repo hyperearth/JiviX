@@ -2,8 +2,9 @@
 #extension GL_NV_ray_tracing : require
 #extension GL_GOOGLE_include_directive : require
 
-layout ( set = 0, binding = 3 ) uniform accelerationStructureNV Scene;
-layout ( rgba32f, binding = 2 ) uniform image2D outputImage;
+
+layout ( set = 0, binding = 1 ) uniform accelerationStructureNV Scene;
+layout ( rgba32f, binding = 4 ) uniform image2D outputImage;
 
 struct RayPayload {
     vec2 UV;

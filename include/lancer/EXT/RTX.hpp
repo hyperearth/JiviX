@@ -48,6 +48,7 @@ namespace lancer {
         inline SBTHelper initialize(const uint32_t& numHitGroups = 1u, const uint32_t& numMissGroups = 1u, const uint32_t& shaderHeaderSize = 8u);
         inline SBTHelper setRaygenStage(const api::PipelineShaderStageCreateInfo& stage = {});
         inline SBTHelper addStageToHitGroup(const std::vector<api::PipelineShaderStageCreateInfo>& stages = {}, const uint32_t& groupIndex = 0u);
+        inline SBTHelper addStageToHitGroup(const api::PipelineShaderStageCreateInfo& stage = {}, const uint32_t& groupIndex = 0u) { return this->addStageToHitGroup(std::vector<api::PipelineShaderStageCreateInfo>{ stage }, groupIndex); };
         inline SBTHelper addStageToMissGroup(const api::PipelineShaderStageCreateInfo& stage = {}, const uint32_t& groupIndex = 0u);
         inline SBTHelper linkDevice(const DeviceMaker& device = {}) { this->mDevice = device; return shared_from_this(); };
         inline SBTHelper linkBuffer(api::Buffer* buffer = nullptr) { pSBT = buffer; return shared_from_this(); };
