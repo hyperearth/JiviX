@@ -125,6 +125,7 @@ namespace vkt
         PhysicalDeviceHelper physicalHelper = {};
         ImageMaker depthImageMaker = {};
 
+
         api::Fence fence = {};
         api::Queue queue = {};
         api::Device _device = {};
@@ -136,6 +137,7 @@ namespace vkt
         api::Image depthImage = {};
         api::ImageView depthImageView = {};
         uint32_t queueFamilyIndex = 0;
+        uint32_t instanceVersion = 0;
 
         std::vector<api::PhysicalDevice> physicalDevices = {};
         std::vector<uint32_t> queueFamilyIndices = {};
@@ -173,22 +175,22 @@ namespace vkt
     public:
         InstanceMaker& createInstance() {
 
+
 #ifdef VOLK_H_
             volkInitialize();
 #endif
-            //const auto version = api::enumerateInstanceVersion();
-            uint32_t version = 0u;
-            vkEnumerateInstanceVersion(&version);
-            if (version < VK_MAKE_VERSION(1, 1, 0)) return instance;
+
+            // 
+            assert((instanceVersion = vk::enumerateInstanceVersion()) < VK_MAKE_VERSION(1, 1, 0));
 
             // get required extensions
-            unsigned int glfwExtensionCount = 0;
+            uint32_t glfwExtensionCount = 0;
             const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
             // add glfw extensions to list
             for (uint32_t i = 0; i < glfwExtensionCount; i++) {
                 wantedExtensions.push_back(glfwExtensions[i]);
-            }
+            };
 
             // get our needed extensions
             auto installedExtensions = api::enumerateInstanceExtensionProperties();
@@ -219,13 +221,13 @@ namespace vkt
             }
 
             // app info
-            auto appinfo = VkApplicationInfo(api::ApplicationInfo{});
+            auto appinfo = api::ApplicationInfo{};
             appinfo.pNext = nullptr;
             appinfo.pApplicationName = "VKTest";
             appinfo.apiVersion = VK_MAKE_VERSION(1, 1, 126);
 
             // create instance info
-            auto cinstanceinfo = VkInstanceCreateInfo(api::InstanceCreateInfo{});
+            auto cinstanceinfo = api::InstanceCreateInfo{};
             cinstanceinfo.pApplicationInfo = &appinfo;
             cinstanceinfo.enabledExtensionCount = extensions.size();
             cinstanceinfo.ppEnabledExtensionNames = extensions.data();
