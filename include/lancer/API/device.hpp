@@ -118,10 +118,19 @@ namespace lancer {
             
         public:
             Instance_T(const api::InstanceCreateInfo& info = {}, api::Instance* instance = nullptr) : lastinst(instance), cif(info) {
-                if (lastinst) { *lastinst = api::createInstance(cif); };
+//                if (this->lastinst && !(*this->lastinst)) { *this->lastinst = api::createInstance(cif); };
+//#ifdef VOLK_H_
+//                if (this->lastinst && (*this->lastinst)) { volkLoadInstance(*this->lastinst); };
+//#endif
             };
             inline InstanceMaker link(api::Instance* instance = nullptr) {  lastinst = instance; return shared_from_this(); };
-            inline InstanceMaker create() { if (lastinst) { *lastinst = api::createInstance(cif); }; return shared_from_this(); };
+            inline InstanceMaker create() { 
+                if (lastinst && !(*lastinst)) { *lastinst = api::createInstance(cif); };
+#ifdef VOLK_H_
+                if (lastinst && (*lastinst)) { volkLoadInstance(*lastinst); };
+#endif
+                return shared_from_this();
+            };
             inline api::Instance& least() { return *lastinst; };
             inline const api::Instance& least() const { return *lastinst; };
             operator api::Instance&() { return *lastinst; };
@@ -218,9 +227,10 @@ namespace lancer {
             inline DeviceMaker create() {
                 if (physicalHelper && device && !(*device)) {
                     *device = physicalHelper->least().createDevice(dfc);
-                    dispatcher = vk::DispatchLoaderDynamic(physicalHelper->getInstance(), *device);
 #ifdef VOLK_H_
                     volkLoadDevice(*device);
+#else
+                    dispatcher = vk::DispatchLoaderDynamic(physicalHelper->getInstance(), *device);
 #endif
                 };
                 return shared_from_this();

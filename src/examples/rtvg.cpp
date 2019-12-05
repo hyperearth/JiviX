@@ -93,6 +93,11 @@ namespace rnd {
         framebuffers = appBase->createSwapchainFramebuffer(swapchain = appBase->createSwapchain(), appBase->createRenderPass());
     };
 
+    void Renderer::UpdateFramebuffers(uint32_t width, uint32_t height) {
+        device->least().waitIdle();
+        appBase->updateSwapchainFramebuffer(framebuffers, swapchain, appBase->renderPass);
+    };
+
     void Renderer::InitPipeline() {
         // Pinning Lake
 
@@ -122,32 +127,22 @@ namespace rnd {
             rtSBThelper->create();
 
             // 
-            accelTop = vkt::AccelerationInstanced(device, vk::AccelerationStructureCreateInfoNV());
+            rtAccelTop = vkt::AccelerationInstanced(device, vk::AccelerationStructureCreateInfoNV());
 
             // 
             for (uint32_t i = 0u; i < 1u; i++) {
                 indices = {0u,1u,2u};
                 vertices = { glm::vec4(1.f,-1.f,1.f,1.f),glm::vec4(-1.f,-1.f,1.f,1.f),glm::vec4(0.f,1.f,1.f,1.f) };
                 transform = { glm::mat3x4(1.f) };
-                geometry = vkt::GeometryBuffer<uint32_t, glm::vec4>(device,1024u);
-
-                // Set custom sizes
-                geometry.mIndices.setSize(3u);
-                geometry.mVertices.setSize(3u);
-                geometry.mTransform.setSize(0u);
 
                 // 
-                uTransform = vkt::BufferUploader<glm::mat3x4>(device, &geometry.mTransform, &transform);
-                uVertices = vkt::BufferUploader<glm::vec4>(device, &geometry.mVertices, &vertices);
-                uIndices = vkt::BufferUploader<uint32_t>(device, &geometry.mIndices, &indices);
-
-                // 
-                uTransform.mCPU.setSize(0u);
-                uVertices.mCPU.setSize(3u);
-                uIndices.mCPU.setSize(3u);
+                mGeometry = vkt::GeometryBuffer<uint32_t, glm::vec4>(device, 1024u);
+                uTransform = vkt::BufferUploader<glm::mat3x4>(device, &mGeometry.mTransform, &transform);
+                uVertices = vkt::BufferUploader<glm::vec4>(device, &mGeometry.mVertices, &vertices);
+                uIndices = vkt::BufferUploader<uint32_t>(device, &mGeometry.mIndices, &indices);
 
                 // Allocate Geometry
-                geometry.allocate();
+                mGeometry.allocate();
 
                 // 
                 lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
@@ -157,13 +152,12 @@ namespace rnd {
                 });
 
                 // Construct Low Acceleration Structure
-                accelLow = vkt::AccelerationGeometry(device);
-                accelLow.pGeometry(geometry).allocate();
+                rtAccelLow = vkt::AccelerationGeometry(device);
+                rtAccelLow.pGeometry(mGeometry).allocate();
 
                 // Upload And Create Cmd
                 lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
-                    accelLow.updateCmd(cmd);
-                    uintptr_t usb = 2.f;
+                    rtAccelLow.updateCmd(cmd);
                 });
 
 
@@ -176,12 +170,12 @@ namespace rnd {
                 instance.instanceOffset = 0;
                 instance.flags = uint32_t(vk::GeometryInstanceFlagBitsNV::eTriangleCullDisable); // TODO: Better Type
 
-                accelTop.pushGeometry(accelLow, instance).allocate();
+                rtAccelTop.pushGeometry(rtAccelLow, instance).allocate();
             };
 
             // Upload And Create Cmd
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
-                accelTop.updateCmd(cmd);
+                rtAccelTop.updateCmd(cmd);
             });
 
         };
@@ -223,7 +217,7 @@ namespace rnd {
             auto imageds = inputds->addImageDesc(2, 0, 1, false);
 
             // Write into pinned lake
-            accelTop->writeForDescription(inputds->addAccelerationStructureDesc(3, 0, 1));
+            rtAccelTop->writeForDescription(inputds->addAccelerationStructureDesc(3, 0, 1));
 
             // create and apply descriptor set 
             //sampler->link(&imageds->sampler)->create();

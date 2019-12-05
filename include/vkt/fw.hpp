@@ -123,6 +123,7 @@ namespace vkt
         DeviceMaker device = {};
         MemoryAllocator allocator = {};
         PhysicalDeviceHelper physicalHelper = {};
+        ImageMaker depthImageMaker = {};
 
         api::Fence fence = {};
         api::Queue queue = {};
@@ -175,7 +176,9 @@ namespace vkt
 #ifdef VOLK_H_
             volkInitialize();
 #endif
-            const auto version = api::enumerateInstanceVersion();
+            //const auto version = api::enumerateInstanceVersion();
+            uint32_t version = 0u;
+            vkEnumerateInstanceVersion(&version);
             if (version < VK_MAKE_VERSION(1, 1, 0)) return instance;
 
             // get required extensions
@@ -505,8 +508,8 @@ namespace vkt
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
             // next-gen create image
-            auto imageMaker = std::make_shared<lancer::Image_T>(device, imageInfoVK, &depthImage);
-            imageMaker
+            if (depthImageMaker) { depthImageMaker->free(); }; // use smart free 
+            depthImageMaker = device->createImageMaker(imageInfoVK, &depthImage)
                 ->setImageSubresourceRange(api::ImageSubresourceRange{ api::ImageAspectFlagBits::eDepth | api::ImageAspectFlagBits::eStencil, 0, 1, 0, 1 })
                 ->create2D(formats.depthFormat, applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height)->allocate(allocator, (uintptr_t)&allocCreateInfo)
                 ->createImageView(&depthImageView,api::ImageViewType::e2D,formats.depthFormat )

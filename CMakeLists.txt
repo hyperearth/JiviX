@@ -130,7 +130,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
 add_executable(${APPLICATION_NAME} src/examples/rtvg.cpp src/examples/main.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS})
+target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
 
 # Add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)

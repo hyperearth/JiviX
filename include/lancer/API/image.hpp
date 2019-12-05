@@ -68,8 +68,8 @@ namespace lancer {
                  if (this->imc.extent.depth < 1u) { this->imc.extent.depth = 1u; };
                  if (this->imc.arrayLayers < 1u) { this->imc.arrayLayers = 1u; };
                  if (this->imc.format == api::Format::eUndefined) { this->imc.format = api::Format::eR8G8B8A8Unorm; };
-             };
-             ~Image_T() {
+            };
+            ~Image_T() {
                  if (smartFree) { allocation->freeImage(shared_from_this()); };
             }; // Here will notification about free memory
 

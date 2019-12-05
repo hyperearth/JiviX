@@ -295,7 +295,7 @@ namespace lancer {
         inline GeometryAcceleration beginTriangles(const api::GeometryNV& geometry = {}) {
             geometries.push_back(geometry);
             geometries.back().geometryType = api::GeometryTypeNV::eTriangles;
-            geometries.back().flags = vk::GeometryFlagBitsNV::eOpaque;
+            //geometries.back().flags = vk::GeometryFlagBitsNV::eOpaque;
             return shared_from_this();
         };
 

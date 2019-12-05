@@ -179,13 +179,9 @@ namespace vkt {
         // 
         inline GeometryBuffer(const DeviceMaker& device = {}, const size_t& maxSize = 1024u) : device(device) {
             if (!!device) {
-                mVertices = Buffer<Vt>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eVertexBuffer | api::BufferUsageFlagBits::eStorageBuffer | api::BufferUsageFlagBits::eUniformBuffer);
-                mIndices = Buffer<It>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eIndexBuffer | api::BufferUsageFlagBits::eStorageBuffer | api::BufferUsageFlagBits::eUniformBuffer);
-                mTransform = Buffer<glm::mat3x4>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eStorageBuffer | api::BufferUsageFlagBits::eUniformBuffer);
-
-                mTransform.allocate();
-                mVertices.allocate();
-                mIndices.allocate();
+                mVertices = Buffer<Vt>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eVertexBuffer | api::BufferUsageFlagBits::eStorageBuffer | api::BufferUsageFlagBits::eUniformBuffer, maxSize);
+                mIndices = Buffer<It>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eIndexBuffer | api::BufferUsageFlagBits::eStorageBuffer | api::BufferUsageFlagBits::eUniformBuffer, maxSize);
+                mTransform = Buffer<glm::mat3x4>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst | api::BufferUsageFlagBits::eStorageBuffer | api::BufferUsageFlagBits::eUniformBuffer, maxSize);
             };
         };
 

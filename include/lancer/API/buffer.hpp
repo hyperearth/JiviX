@@ -225,7 +225,7 @@ namespace lancer {
 
             // map through
             inline T* const& map() { return region->map(); };
-            inline inline void unmap() { return region->unmap(); };
+            inline void unmap() { return region->unmap(); };
 
             inline T* const& data() { return region->data(); };
             inline const T*& data() const { return region->data(); };

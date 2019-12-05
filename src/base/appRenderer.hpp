@@ -52,11 +52,11 @@ namespace rnd {
             vkt::BufferUploader<glm::mat3x4> uTransform = {};
             vkt::BufferUploader<glm::vec4> uVertices = {};
             vkt::BufferUploader<uint32_t> uIndices = {};
-            vkt::GeometryBuffer<uint32_t, glm::vec4> geometry = {};
-            vkt::AccelerationGeometry accelLow = {};
+            vkt::GeometryBuffer<uint32_t, glm::vec4> mGeometry = {};
+            vkt::AccelerationGeometry rtAccelLow = {};
 
             // Acceleration Instanced
-            vkt::AccelerationInstanced accelTop = {};
+            vkt::AccelerationInstanced rtAccelTop = {};
 
 
             double tPastFrameTime = 0.f;
@@ -79,6 +79,7 @@ namespace rnd {
             void InitPipeline();
             void Draw();
             void HandleData();
+            void UpdateFramebuffers(uint32_t width, uint32_t height);
 
     };
 

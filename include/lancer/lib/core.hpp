@@ -11,6 +11,7 @@
 #endif
 
 // TODO: Linux Support 
+//#include <volk/volk.h> // Incompatible with Vulkan HPP
 #include <vulkan/vulkan.hpp>
 
 namespace lancer {

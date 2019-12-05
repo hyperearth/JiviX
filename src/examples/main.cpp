@@ -18,6 +18,12 @@ const uint32_t canvasWidth = 640, canvasHeight = 360; //
 const bool enableSuperSampling = true;
 std::shared_ptr<rnd::Renderer> renderer = nullptr;
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    renderer->UpdateFramebuffers(width, height);
+    //glViewport(0, 0, width, height);
+}
+
 // main program with handling
 int main(int argc, char** argv) {
 
@@ -31,6 +37,8 @@ int main(int argc, char** argv) {
     renderer->Arguments(argc, argv);
     renderer->Init(canvasWidth, canvasHeight, enableSuperSampling); // init GLFW window there
     renderer->InitPipeline();
+
+    glfwSetWindowSizeCallback(renderer->window, &framebuffer_size_callback);
 
     // looping rendering
     while (!glfwWindowShouldClose(renderer->window)) {
