@@ -3,9 +3,9 @@
 #extension GL_EXT_scalar_block_layout : require
 
 // Swap Buffers
-#define DIFFUSE 0
-#define REFLECT 1
-#define SAMPLES 2 // Used for Position
+#define SAMPLES 0 // Used for Position
+#define DIFFUSE 1
+#define REFLECT 2
 
 #define COLORED 3
 #define NORMALS 4

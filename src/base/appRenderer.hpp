@@ -56,14 +56,19 @@ namespace rnd {
         // 2. Add Some Effects... 
 
 
-        // FrameBuffers 
-        api::RenderPass firstPassRenderPass = {}, reprojectRenderPass = {};
-        api::Framebuffer firstPassFramebuffer = {}, reprojectFramebuffer = {};
+        // FrameBuffers and RenderPass
+        api::RenderPass firstPassRenderPass = {}, 
+                        reprojectRenderPass = {};
+        api::Framebuffer firstPassFramebuffer = {}, 
+                         reprojectFramebuffer = {};
+        lancer::RenderPassMaker mFirstPassRenderPass = {},
+                                mReprojectRenderPass = {};
+
 
         // Ping-Pong Buffers 
+        std::array<api::Image, 2u> samplesBuffer = {};
         std::array<api::Image, 2u> diffuseBuffer = {};
         std::array<api::Image, 2u> reflectBuffer = {};
-        std::array<api::Image, 2u> samplesBuffer = {};
 
         // Mesh Rasterization 
         api::Image coloredBuffer = {};
@@ -82,9 +87,10 @@ namespace rnd {
         api::Sampler nearestSampler = {};
 
         // 
-        lancer::ImageMaker mDiffuseBuffer = {}, mDiffuseBufferPong;
-        lancer::ImageMaker mSamplesBuffer = {}, mSamplesBufferPong = {};
-        lancer::ImageMaker mReflectBuffer = {}, mReflectBufferPong = {};
+        std::array<lancer::ImageMaker, 2u> mSamplesBuffer = {};
+        std::array<lancer::ImageMaker, 2u> mDiffuseBuffer = {};
+        std::array<lancer::ImageMaker, 2u> mReflectBuffer = {};
+        
         lancer::ImageMaker mDenoiseBuffer = {};
         lancer::ImageMaker mColoredBuffer = {};
         lancer::ImageMaker mNormalsBuffer = {};
@@ -102,7 +108,7 @@ namespace rnd {
         api::Pipeline reprojectPipeline = {};
         api::Pipeline raytracedPipeline = {};
         api::Pipeline rasterizePipeline = {};
-        
+
 
         // Pipeline Makers
         api::Buffer rtSBT = {};

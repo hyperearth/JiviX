@@ -211,21 +211,21 @@ namespace rnd {
         };
 
         {   // == Reprojection Rasterization Shader == 
-            mRasterizePipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &rasterizePipeline)->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass);
-            mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
-            mRasterizePipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
-            mRasterizePipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
-            mRasterizePipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
-            mRasterizePipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual);
-            mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::ePointList);
-            mRasterizePipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
+            mReprojectPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &reprojectPipeline)->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass);
+            mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
+            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mReprojectPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            mReprojectPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            mReprojectPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+            mReprojectPipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual);
+            mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::ePointList);
+            mReprojectPipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
                 .setBlendEnable(true)
                 .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setAlphaBlendOp(vk::BlendOp::eAdd).setDstAlphaBlendFactor(vk::BlendFactor::eOne)
                 .setSrcColorBlendFactor(vk::BlendFactor::eOne).setColorBlendOp(vk::BlendOp::eAdd).setDstColorBlendFactor(vk::BlendFactor::eOne)
             );
-            mRasterizePipeline->create(true);
+            mReprojectPipeline->create(true);
         };
 
         {   // == Final Rasterization Shader (Planned To Replace) == 
@@ -246,15 +246,67 @@ namespace rnd {
             vmac.usage = VMA_MEMORY_USAGE_GPU_ONLY;
             vmac.flags = {};
 
-            // Create Single Images
-            mOutputsBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
-            mOutputsBuffer->link(&outputsBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
-            
-            // TODO: Create Swap Images
+            // Create Depth Images
+            mDepthStBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eD32SfloatS8Uint).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eDepthStencilAttachment));
+            mDepthStBuffer->link(&depthStBuffer)->create2D(vk::Format::eD32SfloatS8Uint, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
 
-            
+            // Create Single Images
+            mOutputsBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mOutputsBuffer->link(&outputsBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // 
+            mColoredBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mColoredBuffer->link(&coloredBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // 
+            mDenoiseBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mDenoiseBuffer->link(&denoiseBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // 
+            mNormalsBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mNormalsBuffer->link(&normalsBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // 
+            mNormmodBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mNormmodBuffer->link(&normmodBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // 
+            mParametBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mParametBuffer->link(&parametBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // Create Swap Images
+            mDiffuseBuffer[0] = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mDiffuseBuffer[1] = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mDiffuseBuffer[0]->link(&diffuseBuffer[0])->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+            mDiffuseBuffer[1]->link(&diffuseBuffer[1])->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // 
+            mReflectBuffer[0] = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mReflectBuffer[1] = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mReflectBuffer[0]->link(&reflectBuffer[0])->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+            mReflectBuffer[1]->link(&reflectBuffer[1])->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // 
+            mSamplesBuffer[0] = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mSamplesBuffer[1] = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
+            mSamplesBuffer[0]->link(&samplesBuffer[0])->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+            mSamplesBuffer[1]->link(&samplesBuffer[1])->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+
+            // Run Layout Transition Command 
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
+                mDiffuseBuffer[0]->imageBarrier(cmd);
+                mReflectBuffer[0]->imageBarrier(cmd);
+                mSamplesBuffer[0]->imageBarrier(cmd);
+                mDiffuseBuffer[1]->imageBarrier(cmd);
+                mReflectBuffer[1]->imageBarrier(cmd);
+                mSamplesBuffer[1]->imageBarrier(cmd);
                 mOutputsBuffer->imageBarrier(cmd);
+                mDenoiseBuffer->imageBarrier(cmd);
+                mDepthStBuffer->imageBarrier(cmd);
+                mColoredBuffer->imageBarrier(cmd);
+                mNormalsBuffer->imageBarrier(cmd);
+                mNormmodBuffer->imageBarrier(cmd);
+                mParametBuffer->imageBarrier(cmd);
             });
 
             // Create sampler and description
@@ -269,9 +321,128 @@ namespace rnd {
             mDescriptorSetSwap[1] = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &descriptorSetSwap[1])->linkLayout(&unifiedDescriptorLayout);
         };
 
+
+        { // Rasterization RenderPass
+            mFirstPassRenderPass = device->createRenderPassMaker({}, &firstPassRenderPass);
+            mFirstPassRenderPass->addSubpass(api::PipelineBindPoint::eGraphics)->getSubpassDescription();
+
+            for (uint32_t i = 0u; i < 8u; i++) {
+                mFirstPassRenderPass->addAttachment(vk::Format::eR32G32B32A32Sfloat)->getAttachmentDescription()
+                    .setSamples(api::SampleCountFlagBits::e1)
+                    .setLoadOp(api::AttachmentLoadOp::eLoad)
+                    .setStoreOp(api::AttachmentStoreOp::eStore)
+                    .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
+                    .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
+                    .setInitialLayout(api::ImageLayout::eGeneral)
+                    .setFinalLayout(api::ImageLayout::eGeneral);
+                mFirstPassRenderPass->subpassColorAttachment(i, api::ImageLayout::eColorAttachmentOptimal);
+            };
+
+            // 
+            mFirstPassRenderPass->addAttachment(vk::Format::eD32SfloatS8Uint)->getAttachmentDescription()
+                .setSamples(api::SampleCountFlagBits::e1)
+                .setLoadOp(api::AttachmentLoadOp::eDontCare)
+                .setStoreOp(api::AttachmentStoreOp::eDontCare)
+                .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
+                .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
+                .setInitialLayout(api::ImageLayout::eUndefined)
+                .setFinalLayout(api::ImageLayout::eDepthStencilAttachmentOptimal);
+            mFirstPassRenderPass->subpassDepthStencilAttachment(8u, api::ImageLayout::eDepthStencilAttachmentOptimal);
+
+            // 
+            mFirstPassRenderPass->addDependency(VK_SUBPASS_EXTERNAL, 0u)->getSubpassDependency()
+                .setDependencyFlags(api::DependencyFlagBits::eByRegion)
+                .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput | api::PipelineStageFlagBits::eBottomOfPipe | api::PipelineStageFlagBits::eTransfer)
+                .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentWrite)
+                .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
+
+            // 
+            mFirstPassRenderPass->addDependency(0u, VK_SUBPASS_EXTERNAL)->getSubpassDependency()
+                .setDependencyFlags(api::DependencyFlagBits::eByRegion)
+                .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite)
+                .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput | api::PipelineStageFlagBits::eTopOfPipe | api::PipelineStageFlagBits::eTransfer)
+                .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
+
+            // 
+            mFirstPassRenderPass->create()->getRenderPass();
+
+            // Create Framebuffer For Rasterization 
+            std::array<api::ImageView, 9u> views = {}; // predeclare views
+            mColoredBuffer->createImageView(&views[0]);
+            mNormalsBuffer->createImageView(&views[1]);
+            mNormmodBuffer->createImageView(&views[2]);
+            mParametBuffer->createImageView(&views[3]);
+            mSamplesBuffer[0]->createImageView(&views[4]);
+            mDiffuseBuffer[0]->createImageView(&views[5]);
+            mReflectBuffer[0]->createImageView(&views[6]);
+            mOutputsBuffer->createImageView(&views[7]);
+            mDepthStBuffer->createImageView(&views[8]);
+            firstPassFramebuffer = device->least().createFramebuffer(api::FramebufferCreateInfo{ {}, firstPassRenderPass, uint32_t(views.size()), views.data(), this->canvasWidth, this->canvasHeight, 1u });
+        };
+
+        { // Reprojection RenderPass
+            mReprojectRenderPass = device->createRenderPassMaker({}, &reprojectRenderPass);
+            mReprojectRenderPass->addSubpass(api::PipelineBindPoint::eGraphics)->getSubpassDescription();
+
+            // Ispanec Hohotun (Risitas)
+            for (uint32_t i = 0u; i < 1u; i++) {
+                mReprojectRenderPass->addAttachment(vk::Format::eR32G32B32A32Sfloat)->getAttachmentDescription()
+                    .setSamples(api::SampleCountFlagBits::e1)
+                    .setLoadOp(api::AttachmentLoadOp::eLoad)
+                    .setStoreOp(api::AttachmentStoreOp::eStore)
+                    .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
+                    .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
+                    .setInitialLayout(api::ImageLayout::eGeneral)
+                    .setFinalLayout(api::ImageLayout::eColorAttachmentOptimal);
+                mReprojectRenderPass->subpassColorAttachment(i, api::ImageLayout::eColorAttachmentOptimal);
+            };
+
+            // 
+            mReprojectRenderPass->addAttachment(vk::Format::eD32SfloatS8Uint)->getAttachmentDescription()
+                .setSamples(api::SampleCountFlagBits::e1)
+                .setLoadOp(api::AttachmentLoadOp::eDontCare)
+                .setStoreOp(api::AttachmentStoreOp::eDontCare)
+                .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
+                .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
+                .setInitialLayout(api::ImageLayout::eGeneral)
+                .setFinalLayout(api::ImageLayout::eDepthStencilAttachmentOptimal);
+            mReprojectRenderPass->subpassDepthStencilAttachment(8u, api::ImageLayout::eDepthStencilAttachmentOptimal);
+
+            // 
+            mReprojectRenderPass->addDependency(VK_SUBPASS_EXTERNAL, 0u)->getSubpassDependency()
+                .setDependencyFlags(api::DependencyFlagBits::eByRegion)
+                .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput | api::PipelineStageFlagBits::eBottomOfPipe | api::PipelineStageFlagBits::eTransfer)
+                .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentWrite)
+                .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
+
+            // 
+            mReprojectRenderPass->addDependency(0u, VK_SUBPASS_EXTERNAL)->getSubpassDependency()
+                .setDependencyFlags(api::DependencyFlagBits::eByRegion)
+                .setSrcStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput)
+                .setSrcAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite)
+                .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput | api::PipelineStageFlagBits::eTopOfPipe | api::PipelineStageFlagBits::eTransfer)
+                .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
+
+            // 
+            mReprojectRenderPass->create()->getRenderPass();
+
+            // Create Framebuffer For Rasterization 
+            std::array<api::ImageView, 2> views = {}; // predeclare views
+            mDiffuseBuffer[1]->createImageView(&views[0]);
+            mDepthStBuffer->createImageView(&views[1]);
+            reprojectFramebuffer = device->least().createFramebuffer(api::FramebufferCreateInfo{ {}, reprojectRenderPass, uint32_t(views.size()), views.data(), this->canvasWidth, this->canvasHeight, 1u });
+        };
+
+
+
+        // TODO: Fill Descriptor Sets With Images
+
         { // Swap 0 Image Stores
-            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(4, 0, 1, false);
-            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(4, 1, 1, false);
+            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(4, 0, 1, false);
+            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(4, 1, 1, false);
             auto mReflect = mDescriptorSetSwap[0]->addImageDesc(4, 2, 1, false);
             auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(4, 3, 1, false);
             auto mColored = mDescriptorSetSwap[0]->addImageDesc(4, 4, 1, false);
@@ -287,8 +458,8 @@ namespace rnd {
         };
 
         { // Swap 0 FrameBuffers Read-Only
-            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(2, 0, 1, false);
-            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(2, 1, 1, false);
+            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(2, 0, 1, false);
+            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(2, 1, 1, false);
             auto mReflect = mDescriptorSetSwap[0]->addImageDesc(2, 2, 1, false);
             auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(2, 3, 1, false);
             auto mColored = mDescriptorSetSwap[0]->addImageDesc(2, 4, 1, false);
@@ -304,8 +475,8 @@ namespace rnd {
         };
 
         { // Swap 1 Image Stores
-            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(4, 0, 1, false);
-            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(4, 1, 1, false);
+            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(4, 0, 1, false);
+            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(4, 1, 1, false);
             auto mReflect = mDescriptorSetSwap[1]->addImageDesc(4, 2, 1, false);
             auto mDenoise = mDescriptorSetSwap[1]->addImageDesc(4, 3, 1, false);
             auto mColored = mDescriptorSetSwap[1]->addImageDesc(4, 4, 1, false);
@@ -321,8 +492,8 @@ namespace rnd {
         };
 
         { // Swap 1 FrameBuffers Read-Only
-            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(2, 0, 1, false);
-            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(2, 1, 1, false);
+            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(2, 0, 1, false);
+            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(2, 1, 1, false);
             auto mReflect = mDescriptorSetSwap[1]->addImageDesc(2, 2, 1, false);
             auto mDenoise = mDescriptorSetSwap[1]->addImageDesc(2, 3, 1, false);
             auto mColored = mDescriptorSetSwap[1]->addImageDesc(2, 4, 1, false);
@@ -336,8 +507,6 @@ namespace rnd {
             mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
             mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
         };
-
-
 
         {   // == Ray Tracing Descriptor Set ==
             // Create and apply descriptor set 
