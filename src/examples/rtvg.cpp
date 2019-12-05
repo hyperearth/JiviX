@@ -107,11 +107,13 @@ namespace rnd {
 
         {   // == Pinning Lake == 
             mUnifiedDescriptorLayout = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &unifiedDescriptorLayout)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eAccelerationStructureNV, 1, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Acceleration Structure
-                ->pushBinding(vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eSampledImage, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |  vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Sampling Images from Render Passes (Samples, Hi-Z, Colors, Normals, Diffuses)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Constant-Based Dynamic Buffer
-                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Attribute Data (for Ray-Tracers or Unified Rasterizers)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageImage, 1, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Writable Output Images
+                ->pushBinding(vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Constant-Based Dynamic Buffer
+                ->pushBinding(vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eAccelerationStructureNV, 1u, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Acceleration Structure
+                ->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eCombinedImageSampler, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |  vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Sampling Images from Render Passes (Samples, Hi-Z, Colors, Normals, Diffuses)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 8u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Attribute Data (for Ray-Tracers or Unified Rasterizers)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageImage, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Writable Output Images
+                ->pushBinding(vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eSampledImage, 256u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Textures 
+                ->pushBinding(vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eSampler, 64u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Samplers 
                 ->create();
 
             // 
@@ -122,9 +124,9 @@ namespace rnd {
         {   // == Ray Tracing Pipeline == 
             // Create Ray Tracing Pipeline and SBT
             mRaytracedPipeline = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &raytracedPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&unifiedPipelineLayout)->initialize();
-            mRaytracedPipeline->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
-            mRaytracedPipeline->addStageToHitGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/handle.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV));
-            mRaytracedPipeline->addStageToMissGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/bgfill.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV));
+            mRaytracedPipeline->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
+            mRaytracedPipeline->addStageToHitGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV));
+            mRaytracedPipeline->addStageToMissGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV));
             mRaytracedPipeline->create();
         };
 
@@ -143,7 +145,7 @@ namespace rnd {
                 uVertices = vkt::BufferUploader<glm::vec4>(device, &mGeometry.mVertices, &vertices);
                 uIndices = vkt::BufferUploader<uint32_t>(device, &mGeometry.mIndices, &indices);
 
-                // Allocate Geometry
+                // Allocate Geometry Buffers
                 mGeometry.allocate();
 
                 // 
@@ -180,16 +182,63 @@ namespace rnd {
 
         };
 
+
+        {   // == Mesh Rasterization Shader == 
+            mRasterizePipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &rasterizePipeline);
+            mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/rasterize.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/rasterize.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mRasterizePipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            mRasterizePipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            mRasterizePipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+
+            // 
+            mRasterizePipeline->pushVertexBinding(0u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(1u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(2u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(3u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(4u, sizeof(glm::ivec4), vk::VertexInputRate::eVertex); // Index Data
+
+            // 
+            mRasterizePipeline->pushVertexAttribute(0u, 0u, vk::Format::eR32G32B32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(1u, 1u, vk::Format::eR32G32B32A32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(2u, 2u, vk::Format::eR32G32B32A32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(3u, 3u, vk::Format::eR32G32B32A32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(4u, 4u, vk::Format::eR32G32B32A32Sint, 0u); // Index Data
+
+            // 
+            mRasterizePipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
+        };
+
+        {   // == Reprojection Rasterization Shader == 
+            mRasterizePipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &rasterizePipeline)->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass);
+            mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mRasterizePipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            mRasterizePipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            mRasterizePipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+            mRasterizePipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual);
+            mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::ePointList);
+            mRasterizePipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
+                .setBlendEnable(true)
+                .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setAlphaBlendOp(vk::BlendOp::eAdd).setDstAlphaBlendFactor(vk::BlendFactor::eOne)
+                .setSrcColorBlendFactor(vk::BlendFactor::eOne).setColorBlendOp(vk::BlendOp::eAdd).setDstColorBlendFactor(vk::BlendFactor::eOne)
+            );
+            mRasterizePipeline->create(true);
+        };
+
         {   // == Final Rasterization Shader (Planned To Replace) == 
-            mFinalDrawPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(),&finalDrawPipeline);
+            mFinalDrawPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &finalDrawPipeline);
             mFinalDrawPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device,lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
             mFinalDrawPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
             mFinalDrawPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
             mFinalDrawPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
-            mFinalDrawPipeline->link(&finalDrawPipeline)->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
+            mFinalDrawPipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
         };
+
 
         {   // == Output Image Initialization And Binding == 
             // Should Live Before Allocation, BUT NOT ERASE BEFORE ALLOCATION
@@ -197,10 +246,16 @@ namespace rnd {
             vmac.usage = VMA_MEMORY_USAGE_GPU_ONLY;
             vmac.flags = {};
 
-            // Create output image
-            mOutputImage = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
-            mOutputImage->link(&outputImage)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate((uintptr_t)(&vmac));
-            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) { mOutputImage->imageBarrier(cmd); });
+            // Create Single Images
+            mOutputsBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage));
+            mOutputsBuffer->link(&outputsBuffer)->create2D(vk::Format::eR32G32B32A32Sfloat, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+            
+            // TODO: Create Swap Images
+
+            
+            lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
+                mOutputsBuffer->imageBarrier(cmd);
+            });
 
             // Create sampler and description
             //vk::SamplerCreateInfo samplerInfo = {};
@@ -210,31 +265,90 @@ namespace rnd {
             //samplerInfo.magFilter = vk::Filter::eLinear;
             //samplerInfo.compareEnable = false;
             //auto sampler = device->createSamplerMaker(samplerInfo);
-            mFinalizedDescriptorSet = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &finalizedDescriptorSet)->linkLayout(&unifiedDescriptorLayout);
-            mRayTracedDescriptorSet = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &rayTracedDescriptorSet)->linkLayout(&unifiedDescriptorLayout);
+            mDescriptorSetSwap[0] = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &descriptorSetSwap[0])->linkLayout(&unifiedDescriptorLayout);
+            mDescriptorSetSwap[1] = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &descriptorSetSwap[1])->linkLayout(&unifiedDescriptorLayout);
         };
 
-        {   // == Finalize Descriptor Set == 
-            // Create and apply descriptor set 
-            auto dOutputImage = mFinalizedDescriptorSet->addImageDesc(4, 0, 1, false);
-            mOutputImage->createImageView(&dOutputImage->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            dOutputImage->imageLayout = mOutputImage->getTargetLayout();
+        { // Swap 0 Image Stores
+            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(4, 0, 1, false);
+            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(4, 1, 1, false);
+            auto mReflect = mDescriptorSetSwap[0]->addImageDesc(4, 2, 1, false);
+            auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(4, 3, 1, false);
+            auto mColored = mDescriptorSetSwap[0]->addImageDesc(4, 4, 1, false);
+            auto mNormals = mDescriptorSetSwap[0]->addImageDesc(4, 5, 1, false);
+            auto mNormmod = mDescriptorSetSwap[0]->addImageDesc(4, 6, 1, false);
+            auto mParamet = mDescriptorSetSwap[0]->addImageDesc(4, 7, 1, false);
+            auto mDepthSt = mDescriptorSetSwap[0]->addImageDesc(4, 8, 1, false);
+            auto mOutputs = mDescriptorSetSwap[0]->addImageDesc(4, 9, 1, false);
 
-            // Apply Descriptor Set
-            mFinalizedDescriptorSet->create()->apply();
+            // Create Output Image View
+            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
         };
+
+        { // Swap 0 FrameBuffers Read-Only
+            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(2, 0, 1, false);
+            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(2, 1, 1, false);
+            auto mReflect = mDescriptorSetSwap[0]->addImageDesc(2, 2, 1, false);
+            auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(2, 3, 1, false);
+            auto mColored = mDescriptorSetSwap[0]->addImageDesc(2, 4, 1, false);
+            auto mNormals = mDescriptorSetSwap[0]->addImageDesc(2, 5, 1, false);
+            auto mNormmod = mDescriptorSetSwap[0]->addImageDesc(2, 6, 1, false);
+            auto mParamet = mDescriptorSetSwap[0]->addImageDesc(2, 7, 1, false);
+            auto mDepthSt = mDescriptorSetSwap[0]->addImageDesc(2, 8, 1, false);
+            auto mOutputs = mDescriptorSetSwap[0]->addImageDesc(2, 9, 1, false);
+
+            // Create Output Image View
+            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
+        };
+
+        { // Swap 1 Image Stores
+            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(4, 0, 1, false);
+            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(4, 1, 1, false);
+            auto mReflect = mDescriptorSetSwap[1]->addImageDesc(4, 2, 1, false);
+            auto mDenoise = mDescriptorSetSwap[1]->addImageDesc(4, 3, 1, false);
+            auto mColored = mDescriptorSetSwap[1]->addImageDesc(4, 4, 1, false);
+            auto mNormals = mDescriptorSetSwap[1]->addImageDesc(4, 5, 1, false);
+            auto mNormmod = mDescriptorSetSwap[1]->addImageDesc(4, 6, 1, false);
+            auto mParamet = mDescriptorSetSwap[1]->addImageDesc(4, 7, 1, false);
+            auto mDepthSt = mDescriptorSetSwap[1]->addImageDesc(4, 8, 1, false);
+            auto mOutputs = mDescriptorSetSwap[1]->addImageDesc(4, 9, 1, false);
+
+            // Create Output Image View
+            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
+        };
+
+        { // Swap 1 FrameBuffers Read-Only
+            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(2, 0, 1, false);
+            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(2, 1, 1, false);
+            auto mReflect = mDescriptorSetSwap[1]->addImageDesc(2, 2, 1, false);
+            auto mDenoise = mDescriptorSetSwap[1]->addImageDesc(2, 3, 1, false);
+            auto mColored = mDescriptorSetSwap[1]->addImageDesc(2, 4, 1, false);
+            auto mNormals = mDescriptorSetSwap[1]->addImageDesc(2, 5, 1, false);
+            auto mNormmod = mDescriptorSetSwap[1]->addImageDesc(2, 6, 1, false);
+            auto mParamet = mDescriptorSetSwap[1]->addImageDesc(2, 7, 1, false);
+            auto mDepthSt = mDescriptorSetSwap[1]->addImageDesc(2, 8, 1, false);
+            auto mOutputs = mDescriptorSetSwap[1]->addImageDesc(2, 9, 1, false);
+
+            // Create Output Image View
+            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
+        };
+
+
 
         {   // == Ray Tracing Descriptor Set ==
             // Create and apply descriptor set 
-            auto dOutputImage = mRayTracedDescriptorSet->addImageDesc(4, 0, 1, false);
-            mOutputImage->createImageView(&dOutputImage->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            dOutputImage->imageLayout = mOutputImage->getTargetLayout();
 
             // Add Ray Tracing Object
-            rtAccelTop->writeForDescription(mRayTracedDescriptorSet->addAccelerationStructureDesc(1, 0, 1));
+            rtAccelTop->writeForDescription(mDescriptorSetSwap[0]->addAccelerationStructureDesc(1, 0, 1));
+            rtAccelTop->writeForDescription(mDescriptorSetSwap[1]->addAccelerationStructureDesc(1, 0, 1));
 
             // Apply Descriptor Set
-            mRayTracedDescriptorSet->create()->apply();
+            mDescriptorSetSwap[0]->create()->apply();
+            mDescriptorSetSwap[1]->create()->apply();
         };
     };
 
@@ -255,7 +369,7 @@ namespace rnd {
 
             // Ray-Trace Command 
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
-                cmd.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, unifiedPipelineLayout, 0u, rayTracedDescriptorSet, nullptr);
+                cmd.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, unifiedPipelineLayout, 0u, descriptorSetSwap[0], nullptr);
                 cmd.bindPipeline(api::PipelineBindPoint::eRayTracingNV, raytracedPipeline);
                 cmd.traceRaysNV(
                     mRaytracedPipeline->getSBTBuffer(), 0u,                                                                  // Ray-Gen Groups
@@ -276,7 +390,7 @@ namespace rnd {
                 commandBuffer.setViewport(0, std::vector<vk::Viewport> { viewport });
                 commandBuffer.setScissor(0, std::vector<vk::Rect2D> { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalDrawPipeline);
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, unifiedPipelineLayout, 0, finalizedDescriptorSet, nullptr);
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, unifiedPipelineLayout, 0, descriptorSetSwap[0], nullptr);
                 commandBuffer.draw(4, 1, 0, 0);
                 commandBuffer.endRenderPass();
                 commandBuffer.end();

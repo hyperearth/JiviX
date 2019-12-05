@@ -53,9 +53,13 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     # ray-tracing of vector graphics
     BuildCompute "render.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "render.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "rtrace.rgen"   "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "handle.rchit"  "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "bgfill.rmiss"  "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "rasterize.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "rasterize.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "reproject.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "reproject.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "pathtrace.rgen"   "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "pathtrace.rchit"  "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "pathtrace.rmiss"  "$INDIR$RTPU" "$HRDDIR$RTPU"
 
     # optimize built shaders
     OptimizeMainline $RTPU

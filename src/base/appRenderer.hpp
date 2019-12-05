@@ -56,19 +56,42 @@ namespace rnd {
         // 2. Add Some Effects... 
 
 
-        // Final Data
-        lancer::ImageMaker mOutputImage = {};
-        api::Image outputImage = {};
-
-        // 
+        // FrameBuffers 
         api::RenderPass firstPassRenderPass = {}, reprojectRenderPass = {};
         api::Framebuffer firstPassFramebuffer = {}, reprojectFramebuffer = {};
-        api::Image diffuseBuffer = {}, diffuseBufferPong = {};
-        api::Image samplesBuffer = {}, samplesBufferPong = {};
-        api::Image reflectBuffer = {}, reflectBufferPong = {};
-        api::Image denoiseBuffer = {}; 
-        api::Image coloredBuffer = {}; 
+
+        // Ping-Pong Buffers 
+        std::array<api::Image, 2u> diffuseBuffer = {};
+        std::array<api::Image, 2u> reflectBuffer = {};
+        std::array<api::Image, 2u> samplesBuffer = {};
+
+        // Mesh Rasterization 
+        api::Image coloredBuffer = {};
+        api::Image normalsBuffer = {};
+        api::Image normmodBuffer = {};
         api::Image depthStBuffer = {}; // Depth Buffer
+        api::Image parametBuffer = {};
+
+        // Output and Denoised Buffers
+        api::Image denoiseBuffer = {};
+        api::Image outputsBuffer = {};
+
+        // Native Samplers 
+        api::Sampler sslrSampler = {};
+        api::Sampler linearSampler = {};
+        api::Sampler nearestSampler = {};
+
+        // 
+        lancer::ImageMaker mDiffuseBuffer = {}, mDiffuseBufferPong;
+        lancer::ImageMaker mSamplesBuffer = {}, mSamplesBufferPong = {};
+        lancer::ImageMaker mReflectBuffer = {}, mReflectBufferPong = {};
+        lancer::ImageMaker mDenoiseBuffer = {};
+        lancer::ImageMaker mColoredBuffer = {};
+        lancer::ImageMaker mNormalsBuffer = {};
+        lancer::ImageMaker mNormmodBuffer = {};
+        lancer::ImageMaker mParametBuffer = {};
+        lancer::ImageMaker mDepthStBuffer = {};
+        lancer::ImageMaker mOutputsBuffer = {};
 
         // 
         api::SwapchainKHR swapchain = {};
@@ -79,26 +102,27 @@ namespace rnd {
         api::Pipeline reprojectPipeline = {};
         api::Pipeline raytracedPipeline = {};
         api::Pipeline rasterizePipeline = {};
-        api::PipelineLayout unifiedPipelineLayout = {};
+        
 
         // Pipeline Makers
         api::Buffer rtSBT = {};
-        lancer::PipelineLayoutMaker mUnifiedPipelineLayout = {};
         lancer::GraphicsPipelineMaker mFinalDrawPipeline = {};
         lancer::GraphicsPipelineMaker mReprojectPipeline = {};
         lancer::GraphicsPipelineMaker mRasterizePipeline = {};
         lancer::SBTHelper mRaytracedPipeline = {};
 
         // Descriptor Set
-        api::DescriptorSet reprojectDescriptorSet = {};
-        api::DescriptorSet rayTracedDescriptorSet = {};
-        api::DescriptorSet rasterizeDescriptorSet = {};
-        api::DescriptorSet finalizedDescriptorSet = {};
+        //api::DescriptorSet reprojectDescriptorSet = {};
+        //api::DescriptorSet rayTracedDescriptorSet = {};
+        //api::DescriptorSet rasterizeDescriptorSet = {};
+        //api::DescriptorSet finalizedDescriptorSet = {};
+        std::array<api::DescriptorSet, 2u> descriptorSetSwap = {};
+        std::array<lancer::DescriptorSetMaker, 2u> mDescriptorSetSwap = {};
+
+        // 
+        api::PipelineLayout unifiedPipelineLayout = {};
         api::DescriptorSetLayout unifiedDescriptorLayout = {};
-        lancer::DescriptorSetMaker mReprojectDescriptorSet = {};
-        lancer::DescriptorSetMaker mRayTracedDescriptorSet = {};
-        lancer::DescriptorSetMaker mRasterizeDescriptorSet = {};
-        lancer::DescriptorSetMaker mFinalizedDescriptorSet = {};
+        lancer::PipelineLayoutMaker mUnifiedPipelineLayout = {};
         lancer::DescriptorSetLayoutMaker mUnifiedDescriptorLayout = {};
 
         // Acceleration Geometry
