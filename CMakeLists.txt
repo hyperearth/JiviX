@@ -59,6 +59,7 @@ set (INC_DIR
 
 # Set definition
 set (DEFINES
+    -DNOMINMAX
     -D_CRT_SECURE_NO_WARNINGS
     -D_USE_MATH_DEFINES
     -DGLM_FORCE_SWIZZLE
