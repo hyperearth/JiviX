@@ -186,8 +186,8 @@ namespace rnd {
         {   // == Mesh Rasterization Shader == 
             mRasterizePipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &rasterizePipeline);
             mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/rasterize.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/rasterize.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rasterize.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rasterize.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
             mRasterizePipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
             mRasterizePipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
             mRasterizePipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
@@ -213,8 +213,8 @@ namespace rnd {
         {   // == Reprojection Rasterization Shader == 
             mReprojectPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &reprojectPipeline)->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass);
             mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/reproject.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/reproject.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/reproject.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
             mReprojectPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
             mReprojectPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
             mReprojectPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
@@ -231,8 +231,8 @@ namespace rnd {
         {   // == Final Rasterization Shader (Planned To Replace) == 
             mFinalDrawPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &finalDrawPipeline);
             mFinalDrawPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/render/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
             mFinalDrawPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
             mFinalDrawPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
             mFinalDrawPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
@@ -439,74 +439,72 @@ namespace rnd {
 
 
         // TODO: Fill Descriptor Sets With Images
+        std::array<uint32_t, 4> indices = { 4, 2, 4, 2 };
+        std::array<uint32_t, 4> swaps = { 1, 0, 0, 1 };
+        std::array<bool, 4> sampler = { false, true, false, true };
 
-        { // Swap 0 Image Stores
-            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(4, 0, 1, false);
-            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(4, 1, 1, false);
-            auto mReflect = mDescriptorSetSwap[0]->addImageDesc(4, 2, 1, false);
-            auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(4, 3, 1, false);
-            auto mColored = mDescriptorSetSwap[0]->addImageDesc(4, 4, 1, false);
-            auto mNormals = mDescriptorSetSwap[0]->addImageDesc(4, 5, 1, false);
-            auto mNormmod = mDescriptorSetSwap[0]->addImageDesc(4, 6, 1, false);
-            auto mParamet = mDescriptorSetSwap[0]->addImageDesc(4, 7, 1, false);
-            auto mDepthSt = mDescriptorSetSwap[0]->addImageDesc(4, 8, 1, false);
-            auto mOutputs = mDescriptorSetSwap[0]->addImageDesc(4, 9, 1, false);
+        // 
+        for (uint32_t i = 0u; i < 4u; i++) { // Swap 0 Image Stores
+            const auto I = indices[i];
+            const auto S = swaps[i];
+
+            // 
+            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(I, 0, 1, false);
+            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(I, 1, 1, false);
+            auto mReflect = mDescriptorSetSwap[0]->addImageDesc(I, 2, 1, false);
+            auto mColored = mDescriptorSetSwap[0]->addImageDesc(I, 3, 1, false);
+            auto mNormals = mDescriptorSetSwap[0]->addImageDesc(I, 4, 1, false);
+            auto mNormmod = mDescriptorSetSwap[0]->addImageDesc(I, 5, 1, false);
+            auto mParamet = mDescriptorSetSwap[0]->addImageDesc(I, 6, 1, false);
+            auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(I, 7, 1, false);
+            auto mOutputs = mDescriptorSetSwap[0]->addImageDesc(I, 8, 1, false);
+            auto mDepthSt = mDescriptorSetSwap[0]->addImageDesc(I, 9, 1, false);
+
+            // 
+            mSamplesBuffer[S]->createImageView(&mSamples->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mDiffuseBuffer[S]->createImageView(&mDiffuse->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mReflectBuffer[S]->createImageView(&mReflect->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mColoredBuffer->createImageView(&mColored->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mNormalsBuffer->createImageView(&mNormals->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mNormmodBuffer->createImageView(&mNormmod->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mParametBuffer->createImageView(&mParamet->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mDenoiseBuffer->createImageView(&mDenoise->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
 
             // Create Output Image View
-            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mSamples->imageLayout = mSamplesBuffer[S]->getTargetLayout();
+            mDiffuse->imageLayout = mDiffuseBuffer[S]->getTargetLayout();
+            mReflect->imageLayout = mReflectBuffer[S]->getTargetLayout();
+            mColored->imageLayout = mColoredBuffer->getTargetLayout();
+            mNormals->imageLayout = mNormalsBuffer->getTargetLayout();
+            mNormmod->imageLayout = mNormmodBuffer->getTargetLayout();
+            mParamet->imageLayout = mParametBuffer->getTargetLayout();
+            mDenoise->imageLayout = mDenoiseBuffer->getTargetLayout();
             mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
+
+            // 
+            if (sampler[i]) {
+                vk::SamplerCreateInfo samplerInfo = {};
+                samplerInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+                samplerInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+                samplerInfo.minFilter = vk::Filter::eLinear;
+                samplerInfo.magFilter = vk::Filter::eLinear;
+                samplerInfo.compareEnable = false;
+
+                // Combine With Samplers
+                mSamples->sampler = device->least().createSampler(samplerInfo);
+                mDiffuse->sampler = device->least().createSampler(samplerInfo);
+                mReflect->sampler = device->least().createSampler(samplerInfo);
+                mColored->sampler = device->least().createSampler(samplerInfo);
+                mNormals->sampler = device->least().createSampler(samplerInfo);
+                mNormmod->sampler = device->least().createSampler(samplerInfo);
+                mParamet->sampler = device->least().createSampler(samplerInfo);
+                mDenoise->sampler = device->least().createSampler(samplerInfo);
+                mOutputs->sampler = device->least().createSampler(samplerInfo);
+            };
         };
 
-        { // Swap 0 FrameBuffers Read-Only
-            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(2, 0, 1, false);
-            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(2, 1, 1, false);
-            auto mReflect = mDescriptorSetSwap[0]->addImageDesc(2, 2, 1, false);
-            auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(2, 3, 1, false);
-            auto mColored = mDescriptorSetSwap[0]->addImageDesc(2, 4, 1, false);
-            auto mNormals = mDescriptorSetSwap[0]->addImageDesc(2, 5, 1, false);
-            auto mNormmod = mDescriptorSetSwap[0]->addImageDesc(2, 6, 1, false);
-            auto mParamet = mDescriptorSetSwap[0]->addImageDesc(2, 7, 1, false);
-            auto mDepthSt = mDescriptorSetSwap[0]->addImageDesc(2, 8, 1, false);
-            auto mOutputs = mDescriptorSetSwap[0]->addImageDesc(2, 9, 1, false);
 
-            // Create Output Image View
-            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
-        };
-
-        { // Swap 1 Image Stores
-            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(4, 0, 1, false);
-            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(4, 1, 1, false);
-            auto mReflect = mDescriptorSetSwap[1]->addImageDesc(4, 2, 1, false);
-            auto mDenoise = mDescriptorSetSwap[1]->addImageDesc(4, 3, 1, false);
-            auto mColored = mDescriptorSetSwap[1]->addImageDesc(4, 4, 1, false);
-            auto mNormals = mDescriptorSetSwap[1]->addImageDesc(4, 5, 1, false);
-            auto mNormmod = mDescriptorSetSwap[1]->addImageDesc(4, 6, 1, false);
-            auto mParamet = mDescriptorSetSwap[1]->addImageDesc(4, 7, 1, false);
-            auto mDepthSt = mDescriptorSetSwap[1]->addImageDesc(4, 8, 1, false);
-            auto mOutputs = mDescriptorSetSwap[1]->addImageDesc(4, 9, 1, false);
-
-            // Create Output Image View
-            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
-        };
-
-        { // Swap 1 FrameBuffers Read-Only
-            auto mSamples = mDescriptorSetSwap[1]->addImageDesc(2, 0, 1, false);
-            auto mDiffuse = mDescriptorSetSwap[1]->addImageDesc(2, 1, 1, false);
-            auto mReflect = mDescriptorSetSwap[1]->addImageDesc(2, 2, 1, false);
-            auto mDenoise = mDescriptorSetSwap[1]->addImageDesc(2, 3, 1, false);
-            auto mColored = mDescriptorSetSwap[1]->addImageDesc(2, 4, 1, false);
-            auto mNormals = mDescriptorSetSwap[1]->addImageDesc(2, 5, 1, false);
-            auto mNormmod = mDescriptorSetSwap[1]->addImageDesc(2, 6, 1, false);
-            auto mParamet = mDescriptorSetSwap[1]->addImageDesc(2, 7, 1, false);
-            auto mDepthSt = mDescriptorSetSwap[1]->addImageDesc(2, 8, 1, false);
-            auto mOutputs = mDescriptorSetSwap[1]->addImageDesc(2, 9, 1, false);
-
-            // Create Output Image View
-            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
-        };
 
         {   // == Ray Tracing Descriptor Set ==
             // Create and apply descriptor set 

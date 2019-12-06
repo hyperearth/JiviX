@@ -2,35 +2,17 @@
 #extension GL_NV_ray_tracing : require
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_scalar_block_layout : require
-
-// Swap Buffers
-#define DIFFUSE 0
-#define REFLECT 1
-#define SAMPLES 2 // Used for Position
-
-#define COLORED 3
-#define NORMALS 4
-#define NORMMOD 5
-#define PARAMET 6
-#define DEPTHST 7
-
-#define DENOISE 8
-#define OUTPUTS 9
+#include "./index.glsl"
 
 
 struct RayPayload {
-    vec2 UV;
-    float depth;
-    uint index;
-    uvec4 mdata;
+     vec4 fdata;
+    uvec4 udata;
 };
 
 layout ( location = 0 ) rayPayloadInNV RayPayload PrimaryRay;
                         hitAttributeNV vec2 HitAttribs;
 
 void main() {
-    PrimaryRay.UV = HitAttribs;
-    PrimaryRay.depth = gl_HitTNV;
-    PrimaryRay.index = gl_PrimitiveID;
-    PrimaryRay.mdata[0] = gl_InstanceID;
-}
+    // PrimaryRay.fdata = vec4();
+};

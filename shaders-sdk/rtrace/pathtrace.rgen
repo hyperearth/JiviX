@@ -2,46 +2,29 @@
 #extension GL_NV_ray_tracing : require
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_scalar_block_layout : require
+#include "./index.glsl"
 
-// Swap Buffers
-#define DIFFUSE 0
-#define REFLECT 1
-#define SAMPLES 2 // Used for Position
-
-#define COLORED 3
-#define NORMALS 4
-#define NORMMOD 5
-#define PARAMET 6
-#define DEPTHST 7
-
-#define DENOISE 8
-#define OUTPUTS 9
-
-
-layout ( set = 0, binding = 1 ) uniform accelerationStructureNV Scene;
-layout ( rgba32f, binding = 4 ) uniform image2D outputImage;
+layout (binding = 1, set = 0) uniform accelerationStructureNV Scene;
 
 struct RayPayload {
-    vec2 UV;
-    float depth;
-    uint index;
-    uvec4 mdata;
+     vec4 fdata;
+    uvec4 udata;
 };
 
 layout ( location = 0 ) rayPayloadNV RayPayload PrimaryRay;
 
-const float PHI = 1.61803398874989484820459 * 00000.1; // Golden Ratio   
-const float PI  = 3.14159265358979323846264 * 00000.1; // PI
-const float SQ2 = 1.41421356237309504880169 * 10000.0; // Square Root of Two
+//const float PHI = 1.61803398874989484820459 * 00000.1; // Golden Ratio   
+//const float PI  = 3.14159265358979323846264 * 00000.1; // PI
+//const float SQ2 = 1.41421356237309504880169 * 10000.0; // Square Root of Two
 
-float gold_noise(in vec2 coordinate, in float seed){
-    return fract(tan(distance(coordinate*(seed+PHI), vec2(PHI, PI)))*SQ2);
-}
+//float gold_noise(in vec2 coordinate, in float seed){
+//    return fract(tan(distance(coordinate*(seed+PHI), vec2(PHI, PI)))*SQ2);
+//}
 
-const float PIh = 3.14159265358979323846264*2.0;
-const float BLUR_RADIUS = 20.f;
+//const float PIh = 3.14159265358979323846264*2.0;
+//const float BLUR_RADIUS = 20.f;
 
-const vec4 shapeColors[2] = {vec4(0.1f,0.6f,0.1f,0.6f), vec4(0.6f,0.1f,0.1f,0.6f)};
+//const vec4 shapeColors[2] = {vec4(0.1f,0.6f,0.1f,0.6f), vec4(0.6f,0.1f,0.1f,0.6f)};
 
 void main() {
     // Hi-DPI adaptation
@@ -50,16 +33,18 @@ void main() {
 
     // TRUE SPACE
     //const vec2 canvasSize = vec2(360.f*(sizPixel.x/sizPixel.y), 360.f);
-    const vec2 canvasSize = vec2(2.f*(sizPixel.x/sizPixel.y), 2.f);
+    //const vec2 canvasSize = vec2(2.f*(sizPixel.x/sizPixel.y), 2.f);
 
 
-    vec3 direction = vec3(0.f,0.f,1.f); // like a normal mapping
-    vec3 origin = vec3(canvasSize * fma(curPixel/sizPixel, 2.f.xx, -1.f.xx), -8.f); // no corrected currently
+    //vec3 direction = vec3(0.f,0.f,1.f); // like a normal mapping
+    //vec3 origin = vec3(canvasSize * fma(curPixel/sizPixel, 2.f.xx, -1.f.xx), -8.f); // no corrected currently
     //vec3 origin = vec3(curPixel, 0.f);
-    vec3 color = vec3(1.f,1.f,1.f);
-    vec3 accumulation = vec3(0.f,0.f,0.f);
+    //vec3 color = vec3(1.f,1.f,1.f);
+    //vec3 accumulation = vec3(0.f,0.f,0.f);
 
-    for (int i=0;i<4;i++) {
+    //for (int i=0;i<4;i++) {
+
+        /* // TODO: Path Tracing Shaders
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
                  0,
                  1,
@@ -69,33 +54,34 @@ void main() {
                  direction,
                  100.f,
                  0);
+        */
 
         // move by depth, and bit-shift for correction
-        origin.xyz = fma(PrimaryRay.depth.xxx, direction.xyz, origin.xyz), origin.z += 0.0002f;
+        //origin.xyz = fma(PrimaryRay.depth.xxx, direction.xyz, origin.xyz), origin.z += 0.0002f;
 
         // currently debug only
-        if (PrimaryRay.index != 0xFFFFFFFF) {
+        //if (PrimaryRay.index != 0xFFFFFFFF) {
 
             // colors by instance
-            const vec4 shapeColor = shapeColors[PrimaryRay.mdata[0]];
+            //const vec4 shapeColor = shapeColors[PrimaryRay.mdata[0]];
 
             // normal blending
-            accumulation += color.xyz*shapeColor.w*shapeColor.xyz;
-            color *= 1.f-shapeColor.w;
+            //accumulation += color.xyz*shapeColor.w*shapeColor.xyz;
+            //color *= 1.f-shapeColor.w;
             
             // BLUENT DESIGN
-            vec2 randev = vec2(gold_noise(curPixel.xy, 1.f), gold_noise(curPixel.xy, 2.f));
-            vec2 offset = vec2(cos(randev.y*PIh),sin(randev.y*PIh))*(BLUR_RADIUS*randev.x);
-            origin.xy += offset;
+            //vec2 randev = vec2(gold_noise(curPixel.xy, 1.f), gold_noise(curPixel.xy, 2.f));
+            //vec2 offset = vec2(cos(randev.y*PIh),sin(randev.y*PIh))*(BLUR_RADIUS*randev.x);
+            //origin.xy += offset;
 
             // multiply blending
             //color *= shapeColor.w*shapeColor.xyz + (1.f-shapeColor.w);
-        } else {
-            const vec4 bgColor = vec4(0.5f,0.5f,0.5f,1.f);
-            accumulation += bgColor.xyz*color.xyz;
-            break;
-        }
-    }
+        //} else {
+            //const vec4 bgColor = vec4(0.5f,0.5f,0.5f,1.f);
+            //accumulation += bgColor.xyz*color.xyz;
+            //break;
+        //}
+    //}
 
-    imageStore(outputImage, ivec2(gl_LaunchIDNV.xy), vec4(accumulation,1.f));
+    //imageStore(outputImage, ivec2(gl_LaunchIDNV.xy), vec4(accumulation,1.f));
 }

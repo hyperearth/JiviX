@@ -5,7 +5,7 @@
 $INDIR="./"
 $OUTDIR="../prebuilt/shaders/$VNDR/"
 $HRDDIR="../prebuilt/intrusive/$VNDR/"
-$RNDX="render/"
+$RNDX="rtrace/"
 $RTPU="rtrace/"
 
 $CMPPROF=""
