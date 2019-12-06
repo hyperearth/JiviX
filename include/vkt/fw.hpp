@@ -85,6 +85,7 @@ namespace vkt
             "VK_KHR_shader_atomic_int64",
             "VK_KHR_shader_float16_int8",
             "VK_KHR_shader_float_controls",
+            "VK_KHR_shader_clock",
             //"VK_KHR_surface",
 
             "VK_NV_compute_shader_derivatives",

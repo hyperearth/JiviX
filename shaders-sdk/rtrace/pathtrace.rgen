@@ -2,16 +2,15 @@
 #extension GL_NV_ray_tracing : require
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_shader_realtime_clock : require
 #include "./index.glsl"
+
 
 layout (binding = 1, set = 0) uniform accelerationStructureNV Scene;
 
-struct RayPayload {
-     vec4 fdata;
-    uvec4 udata;
-};
+//layout ( location = 0 ) rayPayloadNV RayPayload PrimaryRay;
 
-layout ( location = 0 ) rayPayloadNV RayPayload PrimaryRay;
+RayPayloadData PrimaryRay;
 
 //const float PHI = 1.61803398874989484820459 * 00000.1; // Golden Ratio   
 //const float PI  = 3.14159265358979323846264 * 00000.1; // PI
@@ -26,8 +25,9 @@ layout ( location = 0 ) rayPayloadNV RayPayload PrimaryRay;
 
 //const vec4 shapeColors[2] = {vec4(0.1f,0.6f,0.1f,0.6f), vec4(0.6f,0.1f,0.1f,0.6f)};
 
-vec3 divW(in vec4 vect){
-    return vect.xyz/vect.w;
+
+vec3 exchange(inout vec3 orig, in vec3 data) {
+    vec3 old = orig; orig = data; return old;
 };
 
 void main() {
@@ -35,14 +35,18 @@ void main() {
     const vec2 curPixel = vec2(gl_LaunchIDNV.xy) + 0.5f;
     const vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
 
-    const vec4 origin = divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv)*modelviewInv;
-    const vec4 target = divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv)*modelviewInv;
-    const vec4 raydir = target - origin;
+    vec4 origin = divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv)*modelviewInv;
+    vec4 target = divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv)*modelviewInv;
+    vec4 raydir = normalize(target - origin);
 
     vec3 energy = vec3(1.f,1.f,1.f);
     bool emission = false;
 
-    for (int i=0;i<4;i++) {
+    vec3 lastps = origin.xyz;
+
+    uint i = 0u;
+    for (i;i<4u;i++) {
+        /* TODO: Add Triangle Tracing
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
                  0,
                  1,
@@ -52,72 +56,68 @@ void main() {
                  raydir.xyz,
                  100.f,
                  0);
+        */ 
 
+        Box box = { -1.f.xxx, 1.f.xxx };
+        vec4 sphere = vec4(vec3(10.f,10.f,10.f), 2.f);
+        vec2 boxdepth = boxIntersect(origin.xyz, raydir.xyz, box.min, box.max); 
+        float bdepth = (boxdepth.x <= boxdepth.y && boxdepth.y >= 0.f) ? (boxdepth.x >= 0.f ? min(boxdepth.x, boxdepth.y) : max(boxdepth.x, boxdepth.y)) : 10000.f;
+        float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth >= 0.f ? 10000.f : 0.f;
+        float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f));
+        float depth = min(min(min(10000.f, sdepth), bdepth), pdepth <= 0.f ? 10000.f : pdepth );
+        vec3 normal = vec3(0.f), lastps = origin.xyz + raydir.xyz*depth;
+
+
+
+        if (depth >= 10000.f) { // Midnight Skylight Depth
+            PrimaryRay.udata.x = 1u;
+            PrimaryRay.fdata.xyz = vec3(0.9f, 0.96f, 0.99f) * 0.5f;
+            PrimaryRay.normal.xyz = raydir.xyz;
+        } else 
+
+        if (depth == sdepth) { // Sphere Light Depth
+            PrimaryRay.udata.x = 1u;
+            PrimaryRay.fdata.xyz = vec3(10.f, 10.f, 10.f);
+            PrimaryRay.normal.xyz = normalize(lastps.xyz - sphere.xyz);
+        } else 
+
+        if (depth == bdepth) { // Box Depth
+            PrimaryRay.udata.x = 0u;
+            PrimaryRay.fdata.xyz = vec3(0.9f, 0.6f, 0.6f);
+            PrimaryRay.normal.xyz = boxNormal(lastps.xyz,box.min,box.max);
+        } else 
+
+        if (depth == pdepth) { // Plane Depth
+            PrimaryRay.udata.x = 0u;
+            PrimaryRay.fdata.xyz = vec3(0.9f, 0.9f, 0.9f);
+            PrimaryRay.normal.xyz = vec3(0.f,1.f,0.f);
+        };
+
+        // 
+        origin.xyz = lastps.xyz + faceforward(PrimaryRay.normal.xyz,raydir.xyz,PrimaryRay.normal.xyz) * 0.0001f;
+        raydir.xyz = randomHemisphereCosine(PrimaryRay.normal.xyz);
         energy.xyz *= PrimaryRay.fdata.xyz;
 
-        if (dot(energy.xyz,1.f.xxx) < 0.001f) { 
-            emission = false;
-            break;
+        // 
+        if ( i == 0 ) { // Like In Rasterization
+            imageStore(writeImages[SAMPLES], ivec2(gl_LaunchIDNV.xy), vec4(lastps.xyz,1.f));
+            imageStore(writeImages[COLORED], ivec2(gl_LaunchIDNV.xy), vec4(exchange(energy.xyz,1.f.xxx),1.f));
         };
+
+        // Finalize 
+        if (dot(energy.xyz,1.f.xxx) < 0.001f) { emission = false; break; };
+        if (PrimaryRay.udata.x == 1u) { emission = true; break; };
     };
 
+    // 
     if (!emission) { energy *= 0.f; };
 
     // Diffuse Samples Overall
-    const vec4 originSample = texelFetch(frameBuffers[DIFFUSE],ivec2(gl_LaunchIDNV.xy),0);
-    imageStore(writeImages[DIFFUSE], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + (emission?1.f:0.f)));
+    if ( i > 0 ) {
+        const vec4 originSample = texelFetch(frameBuffers[DIFFUSE],ivec2(gl_LaunchIDNV.xy),0);
+        imageStore(writeImages[DIFFUSE], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + (emission?1.f:0.f)));
+    } else {
+        imageStore(writeImages[COLORED], ivec2(gl_LaunchIDNV.xy), vec4(exchange(energy.xyz,1.f.xxx),1.f));
+    };
 
-    // TRUE SPACE
-    //const vec2 canvasSize = vec2(360.f*(sizPixel.x/sizPixel.y), 360.f);
-    //const vec2 canvasSize = vec2(2.f*(sizPixel.x/sizPixel.y), 2.f);
-
-
-    //vec3 direction = vec3(0.f,0.f,1.f); // like a normal mapping
-    //vec3 origin = vec3(canvasSize * fma(curPixel/sizPixel, 2.f.xx, -1.f.xx), -8.f); // no corrected currently
-    //vec3 origin = vec3(curPixel, 0.f);
-    //vec3 color = vec3(1.f,1.f,1.f);
-    //vec3 accumulation = vec3(0.f,0.f,0.f);
-
-    //for (int i=0;i<4;i++) {
-
-        /* // TODO: Path Tracing Shaders
-        traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
-                 0,
-                 1,
-                 0,
-                 origin,
-                 0.0001f,
-                 direction,
-                 100.f,
-                 0);
-        */
-
-        // move by depth, and bit-shift for correction
-        //origin.xyz = fma(PrimaryRay.depth.xxx, direction.xyz, origin.xyz), origin.z += 0.0002f;
-
-        // currently debug only
-        //if (PrimaryRay.index != 0xFFFFFFFF) {
-
-            // colors by instance
-            //const vec4 shapeColor = shapeColors[PrimaryRay.mdata[0]];
-
-            // normal blending
-            //accumulation += color.xyz*shapeColor.w*shapeColor.xyz;
-            //color *= 1.f-shapeColor.w;
-            
-            // BLUENT DESIGN
-            //vec2 randev = vec2(gold_noise(curPixel.xy, 1.f), gold_noise(curPixel.xy, 2.f));
-            //vec2 offset = vec2(cos(randev.y*PIh),sin(randev.y*PIh))*(BLUR_RADIUS*randev.x);
-            //origin.xy += offset;
-
-            // multiply blending
-            //color *= shapeColor.w*shapeColor.xyz + (1.f-shapeColor.w);
-        //} else {
-            //const vec4 bgColor = vec4(0.5f,0.5f,0.5f,1.f);
-            //accumulation += bgColor.xyz*color.xyz;
-            //break;
-        //}
-    //}
-
-    //imageStore(outputImage, ivec2(gl_LaunchIDNV.xy), vec4(accumulation,1.f));
 };

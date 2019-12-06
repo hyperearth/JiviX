@@ -448,10 +448,10 @@ namespace rnd {
 
 
 
-        // TODO: Fill Descriptor Sets With Images
-        std::array<uint32_t, 4> indices = { 4, 2, 4, 2 };
+        // Fill Descriptor Sets With Images
+        std::array<uint32_t, 4> indices = { 4, 2, 4, 2 }; // 4 is write, 2 read-only
         std::array<uint32_t, 4> pinpong = { 0, 0, 1, 1 };
-        std::array<uint32_t, 4> swaps = { 1, 0, 0, 1 };
+        std::array<uint32_t, 4> swaps   = { 1, 0, 0, 1 };
         std::array<bool, 4> sampler = { false, true, false, true };
         std::array<bool, 4> uniform = { false, true, false, true };
 
