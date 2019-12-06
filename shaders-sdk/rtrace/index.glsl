@@ -68,6 +68,8 @@ const float INV_TWO_PI = 0.15915494309189535f;
 
 
 
+uint counter = 0u;
+
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
 uint hash( uint x ) {
     x += ( x << 10u );
@@ -81,9 +83,9 @@ uint hash( uint x ) {
 
 
 // Compound versions of the hashing algorithm I whipped together.
-uint hash( uvec2 v ) { return hash( v.x ^ hash(v.y)                         ); }
-uint hash( uvec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             ); }
-uint hash( uvec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
+uint hash( uvec2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)                         ); }
+uint hash( uvec3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
+uint hash( uvec4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
 
 
@@ -125,19 +127,19 @@ vec3 dcts(in vec2 hr) {
 };
 
 // geometric random generators
-vec3 randomSphere() { return dcts(vec2(random(),random())); };
-vec3 randomSphere(in uint  s) { return dcts(vec2(random(s),random(s))); };
-vec3 randomSphere(in uvec2 s) { return dcts(vec2(random(s),random(s))); };
+vec3 randomSphere() { return dcts(random2()); };
+vec3 randomSphere(in uint  s) { return dcts(random2(s)); };
+vec3 randomSphere(in uvec2 s) { return dcts(random2(s)); };
 
 
 vec3 randomHemisphereCosine(in uvec2 seed) {
-    const vec2 hmsm = vec2(random2(seed));
+    const vec2 hmsm = random2(seed);
     const float phi = hmsm.x * TWO_PI, up = sqrt(1.0f - hmsm.y), over = sqrt(fma(up,-up,1.f));
     return vec3(cos(phi)*over,up,sin(phi)*over);
 };
 
 vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed) {
-    vec3 rand = randomHemisphereCosine(seed);
+    vec3 rand = vec3(random(seed),random2(seed))*2.f-1.f;
     float r = rand.x * 0.5 + 0.5; // [-1..1) -> [0..1)
     float angle = (rand.y + 1.0) * PI; // [-1..1] -> [0..2*PI)
     float sr = sqrt(r);

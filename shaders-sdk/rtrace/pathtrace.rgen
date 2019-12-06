@@ -129,7 +129,7 @@ void main() {
     // Diffuse Samples Overall
     if ( i > 0 ) {
         const vec4 originSample = texelFetch(frameBuffers[DIFFUSE],ivec2(gl_LaunchIDNV.xy),0);
-        imageStore(writeImages[DIFFUSE], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + (emission?1.f:0.f)));
+        imageStore(writeImages[DIFFUSE], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + 1.f));
     };
 
     
