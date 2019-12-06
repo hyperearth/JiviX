@@ -330,8 +330,8 @@ namespace rnd {
                     .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
                     .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
                     .setInitialLayout(api::ImageLayout::eGeneral)
-                    .setFinalLayout(api::ImageLayout::eColorAttachmentOptimal);
-                mReprojectRenderPass->subpassColorAttachment(i, api::ImageLayout::eColorAttachmentOptimal);
+                    .setFinalLayout(api::ImageLayout::eGeneral);
+                //mReprojectRenderPass->subpassColorAttachment(0u, api::ImageLayout::eColorAttachmentOptimal);
             };
 
             // 
@@ -341,8 +341,10 @@ namespace rnd {
                 .setStoreOp(api::AttachmentStoreOp::eDontCare)
                 .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
                 .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
-                .setInitialLayout(api::ImageLayout::eGeneral)
+                .setInitialLayout(api::ImageLayout::eUndefined)
                 .setFinalLayout(api::ImageLayout::eDepthStencilAttachmentOptimal);
+
+            mReprojectRenderPass->subpassColorAttachment(0u, api::ImageLayout::eColorAttachmentOptimal);
             mReprojectRenderPass->subpassDepthStencilAttachment(1u, api::ImageLayout::eDepthStencilAttachmentOptimal);
 
             // 
@@ -361,14 +363,11 @@ namespace rnd {
                 .setDstStageMask(api::PipelineStageFlagBits::eColorAttachmentOutput | api::PipelineStageFlagBits::eTopOfPipe | api::PipelineStageFlagBits::eTransfer)
                 .setDstAccessMask(api::AccessFlagBits::eColorAttachmentRead | api::AccessFlagBits::eColorAttachmentWrite);
 
-            // 
-            mReprojectRenderPass->create()->getRenderPass();
-
             // Create Framebuffer For Rasterization 
             std::array<api::ImageView, 2> views = {}; // predeclare views
             mDiffuseBuffer[1]->createImageView(&views[0]);
             mDepthStBuffer->createImageView(&views[1]);
-            reprojectFramebuffer = device->least().createFramebuffer(api::FramebufferCreateInfo{ {}, reprojectRenderPass, uint32_t(views.size()), views.data(), this->canvasWidth, this->canvasHeight, 1u });
+            reprojectFramebuffer = device->least().createFramebuffer(api::FramebufferCreateInfo{ {}, mReprojectRenderPass->create()->getRenderPass(), uint32_t(views.size()), views.data(), this->canvasWidth, this->canvasHeight, 1u });
         };
 
 
@@ -426,6 +425,8 @@ namespace rnd {
             mReprojectPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
             mReprojectPipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual);
             mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::ePointList);
+            //mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleList);
+            //mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleFan);
             mReprojectPipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
                 .setBlendEnable(true)
                 .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setAlphaBlendOp(vk::BlendOp::eAdd).setDstAlphaBlendFactor(vk::BlendFactor::eOne)
@@ -444,7 +445,6 @@ namespace rnd {
             mFinalDrawPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
             mFinalDrawPipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
         };
-
 
 
 
@@ -507,12 +507,15 @@ namespace rnd {
             };
         };
 
-
-
         {   // == Ray Tracing Descriptor Set ==
             // Create and apply descriptor set 
 
             // Add Ray Tracing Object
+            (uInputBuffer = vkt::Buffer<Matrices>(device, vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst, 1u)).allocate();
+            *mDescriptorSetSwap[0]->addBufferDesc(0u, 0u, 1u, true) = uInputBuffer.rBuffer;
+            *mDescriptorSetSwap[1]->addBufferDesc(0u, 0u, 1u, true) = uInputBuffer.rBuffer;
+
+            // 
             rtAccelTop->writeForDescription(mDescriptorSetSwap[0]->addAccelerationStructureDesc(1, 0, 1));
             rtAccelTop->writeForDescription(mDescriptorSetSwap[1]->addAccelerationStructureDesc(1, 0, 1));
 
@@ -524,6 +527,21 @@ namespace rnd {
 
     // 
     void Renderer::Draw() {
+
+        glm::mat4 persp = glm::perspective(90.f/180.f*glm::pi<float>(),float(this->canvasWidth)/float(this->canvasHeight),0.0001f,10000.f);
+        glm::mat4 view = glm::lookAt(glm::vec3(3.f, 0.f, 3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+        glm::mat4 perspInv = glm::inverse(persp);
+        glm::mat4 viewInv = glm::inverse(view);
+
+        // 
+        inputData[0].prvproject = inputData[0].projection;
+        inputData[0].prevmodel = inputData[0].modelview;
+        inputData[0].modelview = glm::transpose(view);
+        inputData[0].modelviewInv = glm::transpose(viewInv);
+        inputData[0].projection = glm::transpose(persp);
+        inputData[0].projectionInv = glm::transpose(perspInv);
+
+        // 
         auto n_semaphore = currSemaphore;
         auto c_semaphore = int32_t((size_t(currSemaphore) + 1ull) % framebuffers.size());
         currSemaphore = c_semaphore;
@@ -534,12 +552,27 @@ namespace rnd {
 
         { // Submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{1.f, 1.f, 1.f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
-            auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), appBase->size());
-            auto viewport = vk::Viewport(0.0f, 0.0f, appBase->size().width, appBase->size().height, 0, 1.0f);
+            auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(this->canvasWidth, this->canvasHeight));
+            auto viewport = vk::Viewport(0.0f, 0.0f, renderArea.extent.width, renderArea.extent.height, 0, 1.0f);
 
             // Ray-Trace Command 
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
-                cmd.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, unifiedPipelineLayout, 0u, descriptorSetSwap[0], nullptr);
+                cmd.updateBuffer<Matrices>(uInputBuffer.rBuffer.buffer, uInputBuffer.rBuffer.offset, inputData);
+                lancer::commandBarrier(cmd);
+
+                // Reproject Path Traced Samples Into Another Buffer
+                cmd.beginRenderPass(vk::RenderPassBeginInfo(reprojectRenderPass, reprojectFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+                cmd.setViewport(0, std::vector<vk::Viewport> { viewport });
+                cmd.setScissor(0, std::vector<vk::Rect2D> { renderArea });
+                cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, reprojectPipeline);
+                cmd.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, unifiedPipelineLayout, 0, descriptorSetSwap[0], nullptr);
+                cmd.draw(this->canvasWidth * this->canvasHeight, 1, 0, 0);
+                cmd.draw(4u, 1, 0, 0);
+                cmd.endRenderPass();
+                lancer::commandBarrier(cmd);
+
+                // Experimental Ray Trace
+                cmd.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, unifiedPipelineLayout, 0u, descriptorSetSwap[1], nullptr);
                 cmd.bindPipeline(api::PipelineBindPoint::eRayTracingNV, raytracedPipeline);
                 cmd.traceRaysNV(
                     mRaytracedPipeline->getSBTBuffer(), 0u,                                                                  // Ray-Gen Groups

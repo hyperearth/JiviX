@@ -22,9 +22,9 @@ layout (binding = 0, scalar) uniform Matrices {
     mat4 prvproject;
     mat4 projection;
     mat4 projectionInv;
-    mat4x3 prevmodel;
-    mat4x3 modelview;
-    mat4x3 modelviewInv;
+    mat3x4 prevmodel;
+    mat3x4 modelview;
+    mat3x4 modelviewInv;
     uvec4 indexData;
 };
 
@@ -66,9 +66,6 @@ const float INV_PI = 0.3183098861837907f;
 const float TWO_INV_PI = 0.6366197723675814f;
 const float INV_TWO_PI = 0.15915494309189535f;
 
-vec3 divW(in vec4 vect){
-    return vect.xyz/vect.w;
-};
 
 
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
@@ -103,15 +100,22 @@ float floatConstruct( uint m ) {
     return f - 1.0;                        // Range [0:1]
 }
 
+highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
+
 
 
 // Pseudo-random value in half-open range [0:1].
-float random( float x ) { return floatConstruct(hash(floatBitsToUint(x))); }
-float random( vec2  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
-float random( vec3  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
-float random( vec4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
-float random(         ) { return floatConstruct(hash(clockRealtime2x32EXT())); }
+//float random( float x ) { return floatConstruct(hash(floatBitsToUint(x))); }
+//float random( vec2  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
+//float random( vec3  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
+//float random( vec4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
+float random(            ) { return floatConstruct(hash(clockRealtime2x32EXT())); }
+float random( in uvec2 s ) { return floatConstruct(hash(uvec4(clockRealtime2x32EXT(),s))); }
+float random( in uint  s ) { return floatConstruct(hash(uvec3(clockRealtime2x32EXT(),s))); }
 
+vec2 random2(            ) { return halfConstruct(hash(clockRealtime2x32EXT())); }
+vec2 random2( in uvec2 s ) { return halfConstruct(hash(uvec4(clockRealtime2x32EXT(),s))); }
+vec2 random2( in uint  s ) { return halfConstruct(hash(uvec3(clockRealtime2x32EXT(),s))); }
 
 vec2 lcts(in vec3 direct) { return vec2(fma(atan(direct.z,direct.x),INV_TWO_PI,0.5f),acos(-direct.y)*INV_PI); };
 vec3 dcts(in vec2 hr) { 
@@ -122,15 +126,18 @@ vec3 dcts(in vec2 hr) {
 
 // geometric random generators
 vec3 randomSphere() { return dcts(vec2(random(),random())); };
+vec3 randomSphere(in uint  s) { return dcts(vec2(random(s),random(s))); };
+vec3 randomSphere(in uvec2 s) { return dcts(vec2(random(s),random(s))); };
 
-vec3 randomHemisphereCosine() {
-    const vec2 hmsm = vec2(random(),random());
+
+vec3 randomHemisphereCosine(in uvec2 seed) {
+    const vec2 hmsm = vec2(random2(seed));
     const float phi = hmsm.x * TWO_PI, up = sqrt(1.0f - hmsm.y), over = sqrt(fma(up,-up,1.f));
     return vec3(cos(phi)*over,up,sin(phi)*over);
 };
 
-vec3 randomHemisphereCosine(in vec3 n) {
-    vec3 rand = randomHemisphereCosine();
+vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed) {
+    vec3 rand = randomHemisphereCosine(seed);
     float r = rand.x * 0.5 + 0.5; // [-1..1) -> [0..1)
     float angle = (rand.y + 1.0) * PI; // [-1..1] -> [0..2*PI)
     float sr = sqrt(r);
@@ -141,6 +148,15 @@ vec3 randomHemisphereCosine(in vec3 n) {
     tangent = cross(bitangent, n);
     return tangent * ph.x + bitangent * ph.y + n * ph.z;
 };
+
+
+bool fequal(in float a, in float b){
+    return 
+        a <= b + 0.0001f && 
+        a >= b - 0.0001f;
+};
+
+
 
 struct Box { vec3 min, max; };
 
@@ -167,7 +183,13 @@ vec3 boxNormal(in vec3 point, in vec3 boxMin, in vec3 boxMax) {
 	return normalize(normal);
 };
 
-float planeIntersect(in vec3 p0, in vec3 r, in vec3 l0, in vec3 n){
+float planeIntersect(in vec3 l0, in vec3 r, in vec3 p0, in vec3 n){
     return dot(p0-l0,n)/dot(r,n);
 };
 
+vec3 exchange(inout vec3 orig, in vec3 data) {
+    vec3 old = orig; orig = data; return old;
+};
+
+vec3 divW(in vec4 vect) { return vect.xyz/vect.w; };
+vec3 divW(in vec3 vect) {return vect.xyz; };

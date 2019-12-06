@@ -2,6 +2,8 @@
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_shader_realtime_clock : require
+precision highp float;
+precision highp int;
 #include "./index.glsl"
 
 // 
@@ -11,4 +13,5 @@ layout (location = 0) out vec4 oDiffuse;
 // 
 void main() {
     oDiffuse = gColor;
+    //gl_FragDepth = gl_FragCoord.z;
 };

@@ -1,6 +1,9 @@
 #version 460 core
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_shader_realtime_clock : require
+precision highp float;
+precision highp int;
 #include "./index.glsl"
 
 // 
@@ -25,5 +28,5 @@ void main() {
     gNormals = iNormals;
 
     // Final Output 
-    gl_Position = (iPosition.xyz * modelview) * projection;
+    gl_Position = vec4(vec4(iPosition,1.f) * modelview, 1.f) * projection;
 };

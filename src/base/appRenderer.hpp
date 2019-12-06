@@ -10,6 +10,16 @@
 namespace rnd {
 #define api vk
 
+    struct Matrices {
+        glm::mat4 prvproject = glm::mat4(1.f);
+        glm::mat4 projection = glm::mat4(1.f);
+        glm::mat4 projectionInv = glm::mat4(1.f);
+        glm::mat3x4 prevmodel = glm::mat3x4(1.f);
+        glm::mat3x4 modelview = glm::mat3x4(1.f);
+        glm::mat3x4 modelviewInv = glm::mat3x4(1.f);
+        glm::uvec4 indexData = glm::uvec4(0u);
+    };
+
     // renderer biggest class 
     class Renderer : public std::enable_shared_from_this<Renderer> {
     protected:
@@ -98,6 +108,10 @@ namespace rnd {
         lancer::ImageMaker mParametBuffer = {};
         lancer::ImageMaker mDepthStBuffer = {};
         lancer::ImageMaker mOutputsBuffer = {};
+
+        // 
+        std::array<Matrices, 1u> inputData = {};
+        vkt::Buffer<Matrices> uInputBuffer = {};
 
         // 
         api::SwapchainKHR swapchain = {};
