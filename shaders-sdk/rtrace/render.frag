@@ -17,12 +17,8 @@ void main() {
     vec2 coord = gl_FragCoord.xy; //coord.y = size.y - coord.y;
     coord.y = size.y - coord.y;
     vec4 samples = max(texelFetch(frameBuffers[DIFFUSE],ivec2(coord),0),0.0001f.xxxx); samples.xyz /= samples.w;
-    
-    //vec4 samples = max(imageLoad(writeImages[DIFFUSE],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
-    if (samples.w < 0.5f) samples = 0.f.xxxx;
-    samples = clamp(samples,0.f.xxxx,1.f.xxxx);
-
-    uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORED],ivec2(coord),0).xyz,1.f);
+    uFragColor = vec4(0.f.xxx,1.f);
+    if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORED],ivec2(coord),0).xyz,1.f);
     //uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORED],ivec2(coord),0).xyz,1.f);
     //uFragColor = samples;
 }

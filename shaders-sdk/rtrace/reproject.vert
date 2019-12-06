@@ -26,9 +26,9 @@ void main() {
     if (diffcolor.w > 0.f) {
         gl_Position = vec4(vec4(positions.xyz,1.f) * modelview, 1.f) * projection;
         gl_PointSize = 1;
-        gColor = diffcolor;
+        gColor = clamp(diffcolor, 0.f, 100000.f);
         //imageAtomicExchange(writeImages[DIFFUSE], f2fx, gColor);
-        imageStore(writeImages[DIFFUSE], f2fx, diffcolor);
+        //imageStore(writeImages[DIFFUSE], f2fx, diffcolor);
     };
 
     //gl_PointSize = 1;

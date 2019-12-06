@@ -230,10 +230,10 @@ namespace rnd {
 
             // Run Layout Transition Command 
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
-                mDiffuseBuffer[0]->imageBarrier(cmd);
+                //mDiffuseBuffer[0]->imageBarrier(cmd);
                 mReflectBuffer[0]->imageBarrier(cmd);
                 mSamplesBuffer[0]->imageBarrier(cmd);
-                mDiffuseBuffer[1]->imageBarrier(cmd);
+                //mDiffuseBuffer[1]->imageBarrier(cmd);
                 mReflectBuffer[1]->imageBarrier(cmd);
                 mSamplesBuffer[1]->imageBarrier(cmd);
                 mOutputsBuffer->imageBarrier(cmd);
@@ -268,7 +268,7 @@ namespace rnd {
                     .setStoreOp(api::AttachmentStoreOp::eStore)
                     .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
                     .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
-                    .setInitialLayout(api::ImageLayout::eGeneral)
+                    .setInitialLayout(api::ImageLayout::eUndefined)
                     .setFinalLayout(api::ImageLayout::eGeneral);
                 mFirstPassRenderPass->subpassColorAttachment(i, api::ImageLayout::eColorAttachmentOptimal);
             };
@@ -329,7 +329,7 @@ namespace rnd {
                     .setStoreOp(api::AttachmentStoreOp::eStore)
                     .setStencilLoadOp(api::AttachmentLoadOp::eDontCare)
                     .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
-                    .setInitialLayout(api::ImageLayout::eGeneral)
+                    .setInitialLayout(api::ImageLayout::eUndefined)
                     .setFinalLayout(api::ImageLayout::eGeneral);
                 //mReprojectRenderPass->subpassColorAttachment(0u, api::ImageLayout::eColorAttachmentOptimal);
             };
@@ -423,14 +423,13 @@ namespace rnd {
             mReprojectPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
             mReprojectPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
             mReprojectPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
-            mReprojectPipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual);
+            //mReprojectPipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual); // REQUIRED TRUE RENDERING
             mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::ePointList);
-            //mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleList);
-            //mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleFan);
             mReprojectPipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
                 .setBlendEnable(true)
                 .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setAlphaBlendOp(vk::BlendOp::eAdd).setDstAlphaBlendFactor(vk::BlendFactor::eOne)
                 .setSrcColorBlendFactor(vk::BlendFactor::eOne).setColorBlendOp(vk::BlendOp::eAdd).setDstColorBlendFactor(vk::BlendFactor::eOne)
+                .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA)
             );
             mReprojectPipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&reprojectRenderPass)->create(true);
         };
@@ -529,7 +528,7 @@ namespace rnd {
     void Renderer::Draw() {
 
         glm::mat4 persp = glm::perspective(90.f/180.f*glm::pi<float>(),float(this->canvasWidth)/float(this->canvasHeight),0.0001f,10000.f);
-        glm::mat4 view = glm::lookAt(glm::vec3(3.f, 0.f, 3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+        glm::mat4 view = glm::lookAt(glm::vec3(3.f, 3.f, 3.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
         glm::mat4 perspInv = glm::inverse(persp);
         glm::mat4 viewInv = glm::inverse(view);
 
@@ -551,7 +550,7 @@ namespace rnd {
         device->least().acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
 
         { // Submit rendering (and wait presentation in device)
-            std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{1.f, 1.f, 1.f, 1.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
+            std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
             auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(this->canvasWidth, this->canvasHeight));
             auto viewport = vk::Viewport(0.0f, 0.0f, renderArea.extent.width, renderArea.extent.height, 0, 1.0f);
 
