@@ -107,13 +107,13 @@ namespace rnd {
 
         {   // == Pinning Lake == 
             mUnifiedDescriptorLayout = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &unifiedDescriptorLayout)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Constant-Based Dynamic Buffer
-                ->pushBinding(vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eAccelerationStructureNV, 1u, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Acceleration Structure
-                ->pushBinding(vk::DescriptorSetLayoutBinding(2, vk::DescriptorType::eCombinedImageSampler, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |  vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Sampling Images from Render Passes (Samples, Hi-Z, Colors, Normals, Diffuses)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(3, vk::DescriptorType::eStorageBuffer, 8u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Attribute Data (for Ray-Tracers or Unified Rasterizers)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(4, vk::DescriptorType::eStorageImage, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Writable Output Images
-                ->pushBinding(vk::DescriptorSetLayoutBinding(5, vk::DescriptorType::eSampledImage, 256u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Textures 
-                ->pushBinding(vk::DescriptorSetLayoutBinding(6, vk::DescriptorType::eSampler, 64u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Samplers 
+                ->pushBinding(vk::DescriptorSetLayoutBinding(0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Constant-Based Dynamic Buffer
+                ->pushBinding(vk::DescriptorSetLayoutBinding(1u, vk::DescriptorType::eAccelerationStructureNV, 1u, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Acceleration Structure
+                ->pushBinding(vk::DescriptorSetLayoutBinding(2u, vk::DescriptorType::eCombinedImageSampler, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |  vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Sampling Images from Render Passes (Samples, Hi-Z, Colors, Normals, Diffuses)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(3u, vk::DescriptorType::eStorageBuffer, 16, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Attribute Data (for Ray-Tracers or Unified Rasterizers)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(4u, vk::DescriptorType::eStorageImage, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Writable Output Images
+                ->pushBinding(vk::DescriptorSetLayoutBinding(5u, vk::DescriptorType::eSampledImage, 256u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Textures 
+                ->pushBinding(vk::DescriptorSetLayoutBinding(6u, vk::DescriptorType::eSampler, 64u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Samplers 
                 ->create();
 
             // 
@@ -172,16 +172,16 @@ namespace rnd {
                 instance.mask = 0xff;
                 instance.instanceOffset = 0;
                 instance.flags = uint32_t(vk::GeometryInstanceFlagBitsNV::eTriangleCullDisable); // TODO: Better Type
-                rtAccelTop.pushGeometry(rtAccelLow, instance).allocate();
+                rtAccelTop.pushGeometry(rtAccelLow, instance);
             };
 
             // Upload And Create Cmd
             lancer::submitOnce(*device, appBase->queue, appBase->commandPool, [&](vk::CommandBuffer& cmd) {
+                rtAccelTop.allocate();
                 rtAccelTop.updateCmd(cmd);
             });
 
         };
-
 
         {   // == Mesh Rasterization Shader == 
             mRasterizePipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &rasterizePipeline);
@@ -247,8 +247,10 @@ namespace rnd {
             vmac.flags = {};
 
             // Create Depth Images
-            mDepthStBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eD32SfloatS8Uint).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eDepthStencilAttachment));
-            mDepthStBuffer->link(&depthStBuffer)->create2D(vk::Format::eD32SfloatS8Uint, appBase->applicationWindow.surfaceSize.width, appBase->applicationWindow.surfaceSize.height)->allocate(uintptr_t(&vmac));
+            mDepthStBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eD32SfloatS8Uint).setUsage(vk::ImageUsageFlagBits::eDepthStencilAttachment | api::ImageUsageFlagBits::eTransferSrc), &depthStBuffer)
+                ->setImageSubresourceRange(api::ImageSubresourceRange{ api::ImageAspectFlagBits::eDepth | api::ImageAspectFlagBits::eStencil, 0, 1, 0, 1 })
+                ->create2D(vk::Format::eD32SfloatS8Uint, this->canvasWidth, this->canvasHeight)
+                ->allocate((uintptr_t)(&vmac));
 
             // Create Single Images
             mOutputsBuffer = device->createImageMaker(api::ImageCreateInfo().setFormat(vk::Format::eR32G32B32A32Sfloat).setUsage(vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment));
@@ -302,7 +304,7 @@ namespace rnd {
                 mSamplesBuffer[1]->imageBarrier(cmd);
                 mOutputsBuffer->imageBarrier(cmd);
                 mDenoiseBuffer->imageBarrier(cmd);
-                mDepthStBuffer->imageBarrier(cmd);
+                //mDepthStBuffer->imageBarrier(cmd);
                 mColoredBuffer->imageBarrier(cmd);
                 mNormalsBuffer->imageBarrier(cmd);
                 mNormmodBuffer->imageBarrier(cmd);
@@ -408,7 +410,7 @@ namespace rnd {
                 .setStencilStoreOp(api::AttachmentStoreOp::eDontCare)
                 .setInitialLayout(api::ImageLayout::eGeneral)
                 .setFinalLayout(api::ImageLayout::eDepthStencilAttachmentOptimal);
-            mReprojectRenderPass->subpassDepthStencilAttachment(8u, api::ImageLayout::eDepthStencilAttachmentOptimal);
+            mReprojectRenderPass->subpassDepthStencilAttachment(1u, api::ImageLayout::eDepthStencilAttachmentOptimal);
 
             // 
             mReprojectRenderPass->addDependency(VK_SUBPASS_EXTERNAL, 0u)->getSubpassDependency()
@@ -440,8 +442,10 @@ namespace rnd {
 
         // TODO: Fill Descriptor Sets With Images
         std::array<uint32_t, 4> indices = { 4, 2, 4, 2 };
+        std::array<uint32_t, 4> pinpong = { 0, 0, 1, 1 };
         std::array<uint32_t, 4> swaps = { 1, 0, 0, 1 };
         std::array<bool, 4> sampler = { false, true, false, true };
+        std::array<bool, 4> uniform = { false, true, false, true };
 
         // 
         for (uint32_t i = 0u; i < 4u; i++) { // Swap 0 Image Stores
@@ -449,38 +453,29 @@ namespace rnd {
             const auto S = swaps[i];
 
             // 
-            auto mSamples = mDescriptorSetSwap[0]->addImageDesc(I, 0, 1, false);
-            auto mDiffuse = mDescriptorSetSwap[0]->addImageDesc(I, 1, 1, false);
-            auto mReflect = mDescriptorSetSwap[0]->addImageDesc(I, 2, 1, false);
-            auto mColored = mDescriptorSetSwap[0]->addImageDesc(I, 3, 1, false);
-            auto mNormals = mDescriptorSetSwap[0]->addImageDesc(I, 4, 1, false);
-            auto mNormmod = mDescriptorSetSwap[0]->addImageDesc(I, 5, 1, false);
-            auto mParamet = mDescriptorSetSwap[0]->addImageDesc(I, 6, 1, false);
-            auto mDenoise = mDescriptorSetSwap[0]->addImageDesc(I, 7, 1, false);
-            auto mOutputs = mDescriptorSetSwap[0]->addImageDesc(I, 8, 1, false);
-            auto mDepthSt = mDescriptorSetSwap[0]->addImageDesc(I, 9, 1, false);
+            auto mImages = mDescriptorSetSwap[pinpong[i]]->addImageDesc(I, 0, 9, uniform[i], sampler[i]);
 
             // 
-            mSamplesBuffer[S]->createImageView(&mSamples->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mDiffuseBuffer[S]->createImageView(&mDiffuse->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mReflectBuffer[S]->createImageView(&mReflect->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mColoredBuffer->createImageView(&mColored->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mNormalsBuffer->createImageView(&mNormals->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mNormmodBuffer->createImageView(&mNormmod->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mParametBuffer->createImageView(&mParamet->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mDenoiseBuffer->createImageView(&mDenoise->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
-            mOutputsBuffer->createImageView(&mOutputs->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mSamplesBuffer[S]->createImageView(&(mImages + 0u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mDiffuseBuffer[S]->createImageView(&(mImages + 1u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mReflectBuffer[S]->createImageView(&(mImages + 2u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mColoredBuffer->createImageView(&(mImages + 3u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mNormalsBuffer->createImageView(&(mImages + 4u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mNormmodBuffer->createImageView(&(mImages + 5u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mParametBuffer->createImageView(&(mImages + 6u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mDenoiseBuffer->createImageView(&(mImages + 7u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
+            mOutputsBuffer->createImageView(&(mImages + 8u)->imageView, api::ImageViewType::e2D, vk::Format::eR32G32B32A32Sfloat);
 
             // Create Output Image View
-            mSamples->imageLayout = mSamplesBuffer[S]->getTargetLayout();
-            mDiffuse->imageLayout = mDiffuseBuffer[S]->getTargetLayout();
-            mReflect->imageLayout = mReflectBuffer[S]->getTargetLayout();
-            mColored->imageLayout = mColoredBuffer->getTargetLayout();
-            mNormals->imageLayout = mNormalsBuffer->getTargetLayout();
-            mNormmod->imageLayout = mNormmodBuffer->getTargetLayout();
-            mParamet->imageLayout = mParametBuffer->getTargetLayout();
-            mDenoise->imageLayout = mDenoiseBuffer->getTargetLayout();
-            mOutputs->imageLayout = mOutputsBuffer->getTargetLayout();
+            (mImages + 0u)->imageLayout = mSamplesBuffer[S]->getTargetLayout();
+            (mImages + 1u)->imageLayout = mDiffuseBuffer[S]->getTargetLayout();
+            (mImages + 2u)->imageLayout = mReflectBuffer[S]->getTargetLayout();
+            (mImages + 3u)->imageLayout = mColoredBuffer->getTargetLayout();
+            (mImages + 4u)->imageLayout = mNormalsBuffer->getTargetLayout();
+            (mImages + 5u)->imageLayout = mNormmodBuffer->getTargetLayout();
+            (mImages + 6u)->imageLayout = mParametBuffer->getTargetLayout();
+            (mImages + 7u)->imageLayout = mDenoiseBuffer->getTargetLayout();
+            (mImages + 8u)->imageLayout = mOutputsBuffer->getTargetLayout();
 
             // 
             if (sampler[i]) {
@@ -492,15 +487,15 @@ namespace rnd {
                 samplerInfo.compareEnable = false;
 
                 // Combine With Samplers
-                mSamples->sampler = device->least().createSampler(samplerInfo);
-                mDiffuse->sampler = device->least().createSampler(samplerInfo);
-                mReflect->sampler = device->least().createSampler(samplerInfo);
-                mColored->sampler = device->least().createSampler(samplerInfo);
-                mNormals->sampler = device->least().createSampler(samplerInfo);
-                mNormmod->sampler = device->least().createSampler(samplerInfo);
-                mParamet->sampler = device->least().createSampler(samplerInfo);
-                mDenoise->sampler = device->least().createSampler(samplerInfo);
-                mOutputs->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 0u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 1u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 2u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 3u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 4u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 5u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 6u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 7u)->sampler = device->least().createSampler(samplerInfo);
+                (mImages + 8u)->sampler = device->least().createSampler(samplerInfo);
             };
         };
 

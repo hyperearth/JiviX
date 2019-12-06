@@ -63,8 +63,11 @@ namespace vkt {
             this->vBuffer = buffer.vBuffer;
             this->rBuffer = buffer.rBuffer;
             this->rBuffer.buffer = buffer.mBuffer->handle();
-            this->mBuffer = std::make_shared<lancer::BufferRegion_T<It>>(buffer.mBuffer, &this->rBuffer); // make region independent
-            this->mBuffer->least()->link(&this->rBuffer.buffer); // Fix Wrong Pointer Issue 
+            this->mBuffer = buffer.mBuffer;
+            this->mBuffer = this->mBuffer->least()->createRegion<It>(&this->rBuffer, this->mBuffer->offset(), this->mBuffer->size());
+            this->mBuffer->least()->link(&this->rBuffer.buffer);
+            //std::make_shared<lancer::BufferRegion_T<It>>(buffer.mBuffer, &this->rBuffer); // make region independent
+             // Fix Wrong Pointer Issue 
         };
 
         inline Buffer<It>& operator=(const Buffer<It>& buffer) {
@@ -72,8 +75,11 @@ namespace vkt {
             this->vBuffer = buffer.vBuffer;
             this->rBuffer = buffer.rBuffer;
             this->rBuffer.buffer = buffer.mBuffer->handle();
-            this->mBuffer = std::make_shared<lancer::BufferRegion_T<It>>(buffer.mBuffer, &this->rBuffer); // make region independent
-            this->mBuffer->least()->link(&this->rBuffer.buffer); // Fix Wrong Pointer Issue 
+            this->mBuffer = buffer.mBuffer;
+            this->mBuffer = this->mBuffer->least()->createRegion<It>(&this->rBuffer, this->mBuffer->offset(), this->mBuffer->size());
+            this->mBuffer->least()->link(&this->rBuffer.buffer);
+            //std::make_shared<lancer::BufferRegion_T<It>>(buffer.mBuffer, &this->rBuffer); // make region independent
+             // Fix Wrong Pointer Issue 
             return *this;
         };
 
@@ -354,13 +360,13 @@ namespace vkt {
         inline AccelerationInstanced(const DeviceMaker& device = {}, const api::AccelerationStructureCreateInfoNV& info = {}, const size_t& maxSize = 1024u) : device(device) {
             if (!!device) {
                 topLevel = device->createInstancedAcceleration(info, &structure);
-                topLevel->linkScratch(mScratch = Buffer<uint8_t>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst, maxSize));
+                topLevel->linkScratch(mScratch = Buffer<uint8_t>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst, maxSize * 16u));
                 topLevel->linkGPURegion(mCache = Buffer<lancer::GeometryInstance>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferDst, maxSize));
                 topLevel->linkCacheRegion(mUpload = Buffer<lancer::GeometryInstance>(device, api::BufferUsageFlagBits::eRayTracingNV | api::BufferUsageFlagBits::eTransferSrc, maxSize));
 
                 // Scratch Buffer 
                 mScratch.vBuffer.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-                mScratch.setSize(maxSize * 8u);//.allocate();
+                mScratch.setSize(maxSize * 16u);//.allocate();
 
                 // Create GPU Cache Buffer 
                 mCache.vBuffer.usage = VMA_MEMORY_USAGE_GPU_ONLY;

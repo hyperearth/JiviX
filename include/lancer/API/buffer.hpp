@@ -19,7 +19,10 @@ namespace lancer {
         public: 
             inline  Buffer_T(const DeviceMaker& device = {}, const api::BufferCreateInfo& bfc = api::BufferCreateInfo().setSharingMode(api::SharingMode::eExclusive), api::Buffer* lastbuf = nullptr) : lastbuf(lastbuf), bfc(bfc), device(device) {};
             inline ~Buffer_T(){
-                if (smartFree) { allocation->freeBuffer(shared_from_this()); };
+                if (this->smartFree) {
+                    this->allocation->freeBuffer(shared_from_this());
+                    this->allocation = {};
+                };
             }; // Here will notification about free memory
 
             // Get original Vulkan link 
@@ -86,7 +89,12 @@ namespace lancer {
 
             // 
             inline BufferMaker allocate(const uintptr_t& ptx = 0u) { return this->allocate(device->getAllocatorPtr(),ptx); };
-            inline BufferMaker free() { allocation->smartFree(); smartFree = true; return shared_from_this(); };
+            inline BufferMaker free() { 
+                this->smartFree = true;
+                this->allocation->smartFree();
+                //this->allocation = {};
+                return shared_from_this(); 
+            };
 
             // 
             inline BufferMaker create(const vk::BindBufferMemoryInfo& bindinf = {}) { // 

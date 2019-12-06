@@ -181,7 +181,7 @@ namespace vkt
 #endif
 
             // 
-            assert((instanceVersion = vk::enumerateInstanceVersion()) < VK_MAKE_VERSION(1, 1, 0));
+            assert((instanceVersion = vk::enumerateInstanceVersion()) >= VK_MAKE_VERSION(1, 1, 0));
 
             // get required extensions
             uint32_t glfwExtensionCount = 0;

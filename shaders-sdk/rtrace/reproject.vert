@@ -4,7 +4,7 @@
 #include "./index.glsl"
 
 // 
-layout (location = 3) out vec4 gColor;
+layout (location = 0) out vec4 gColor;
 
 // 
 void main() {

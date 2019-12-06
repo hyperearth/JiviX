@@ -70,7 +70,10 @@ namespace lancer {
                  if (this->imc.format == api::Format::eUndefined) { this->imc.format = api::Format::eR8G8B8A8Unorm; };
             };
             ~Image_T() {
-                 if (smartFree) { allocation->freeImage(shared_from_this()); };
+                if (this->smartFree) {
+                    this->allocation->freeImage(shared_from_this());
+                    this->allocation = {};
+                };
             }; // Here will notification about free memory
 
             // 
