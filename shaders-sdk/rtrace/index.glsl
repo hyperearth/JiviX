@@ -13,8 +13,10 @@
 layout (binding = 0, scalar) uniform Matrices {
     mat4 prvproject;
     mat4 projection;
+    mat4 projectionInv;
     mat4x3 prevmodel;
     mat4x3 modelview;
+    mat4x3 modelviewInv;
 };
 
 // 

@@ -26,10 +26,46 @@ layout ( location = 0 ) rayPayloadNV RayPayload PrimaryRay;
 
 //const vec4 shapeColors[2] = {vec4(0.1f,0.6f,0.1f,0.6f), vec4(0.6f,0.1f,0.1f,0.6f)};
 
+vec3 divW(in vec4 vect){
+    return vect.xyz/vect.w;
+};
+
 void main() {
     // Hi-DPI adaptation
     const vec2 curPixel = vec2(gl_LaunchIDNV.xy) + 0.5f;
     const vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
+
+    const vec4 origin = divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv)*modelviewInv;
+    const vec4 target = divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv)*modelviewInv;
+    const vec4 raydir = target - origin;
+
+    vec3 energy = vec3(1.f,1.f,1.f);
+    bool emission = false;
+
+    for (int i=0;i<4;i++) {
+        traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
+                 0,
+                 1,
+                 0,
+                 origin.xyz,
+                 0.001f,
+                 raydir.xyz,
+                 100.f,
+                 0);
+
+        energy.xyz *= PrimaryRay.fdata.xyz;
+
+        if (dot(energy.xyz,1.f.xxx) < 0.001f) { 
+            emission = false;
+            break;
+        };
+    };
+
+    if (!emission) { energy *= 0.f; };
+
+    // Diffuse Samples Overall
+    const vec4 originSample = texelFetch(frameBuffers[DIFFUSE],ivec2(gl_LaunchIDNV.xy),0);
+    imageStore(writeImages[DIFFUSE], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + (emission?1.f:0.f)));
 
     // TRUE SPACE
     //const vec2 canvasSize = vec2(360.f*(sizPixel.x/sizPixel.y), 360.f);
@@ -84,4 +120,4 @@ void main() {
     //}
 
     //imageStore(outputImage, ivec2(gl_LaunchIDNV.xy), vec4(accumulation,1.f));
-}
+};
