@@ -105,31 +105,6 @@ namespace rnd {
     // 
     void Renderer::InitPipeline() {
 
-        {   // == Pinning Lake == 
-            mUnifiedDescriptorLayout = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &unifiedDescriptorLayout)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Constant-Based Dynamic Buffer
-                ->pushBinding(vk::DescriptorSetLayoutBinding(1u, vk::DescriptorType::eAccelerationStructureNV, 1u, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Acceleration Structure
-                ->pushBinding(vk::DescriptorSetLayoutBinding(2u, vk::DescriptorType::eCombinedImageSampler, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound |  vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Sampling Images from Render Passes (Samples, Hi-Z, Colors, Normals, Diffuses)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(3u, vk::DescriptorType::eStorageBuffer, 16, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Attribute Data (for Ray-Tracers or Unified Rasterizers)
-                ->pushBinding(vk::DescriptorSetLayoutBinding(4u, vk::DescriptorType::eStorageImage, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Writable Output Images
-                ->pushBinding(vk::DescriptorSetLayoutBinding(5u, vk::DescriptorType::eSampledImage, 256u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Textures 
-                ->pushBinding(vk::DescriptorSetLayoutBinding(6u, vk::DescriptorType::eSampler, 64u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Samplers 
-                ->create();
-
-            // 
-            mUnifiedPipelineLayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(), &unifiedPipelineLayout);
-            mUnifiedPipelineLayout->pushDescriptorSetLayout(unifiedDescriptorLayout)->create();
-        };
-
-        {   // == Ray Tracing Pipeline == 
-            // Create Ray Tracing Pipeline and SBT
-            mRaytracedPipeline = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &raytracedPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&unifiedPipelineLayout)->initialize();
-            mRaytracedPipeline->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
-            mRaytracedPipeline->addStageToHitGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV));
-            mRaytracedPipeline->addStageToMissGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV));
-            mRaytracedPipeline->create();
-        };
-
         {   // == Acceleration Structures (RTX Only) == 
             rtAccelTop = vkt::AccelerationInstanced(device, vk::AccelerationStructureCreateInfoNV());
 
@@ -183,62 +158,21 @@ namespace rnd {
 
         };
 
-        {   // == Mesh Rasterization Shader == 
-            mRasterizePipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &rasterizePipeline);
-            mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rasterize.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rasterize.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
-            mRasterizePipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
-            mRasterizePipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
-            mRasterizePipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+        {   // == Pinning Lake == 
+            mUnifiedDescriptorLayout = device->createDescriptorSetLayoutMaker(vk::DescriptorSetLayoutCreateInfo(), &unifiedDescriptorLayout)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(0u, vk::DescriptorType::eUniformBuffer, 1u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Constant-Based Dynamic Buffer
+                ->pushBinding(vk::DescriptorSetLayoutBinding(1u, vk::DescriptorType::eAccelerationStructureNV, 1u, vk::ShaderStageFlagBits::eClosestHitNV | vk::ShaderStageFlagBits::eAnyHitNV | vk::ShaderStageFlagBits::eRaygenNV), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Acceleration Structure
+                ->pushBinding(vk::DescriptorSetLayoutBinding(2u, vk::DescriptorType::eCombinedImageSampler, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Sampling Images from Render Passes (Samples, Hi-Z, Colors, Normals, Diffuses)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(3u, vk::DescriptorType::eStorageBuffer, 16, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending) // Attribute Data (for Ray-Tracers or Unified Rasterizers)
+                ->pushBinding(vk::DescriptorSetLayoutBinding(4u, vk::DescriptorType::eStorageImage, 16u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Writable Output Images
+                ->pushBinding(vk::DescriptorSetLayoutBinding(5u, vk::DescriptorType::eSampledImage, 256u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Textures 
+                ->pushBinding(vk::DescriptorSetLayoutBinding(6u, vk::DescriptorType::eSampler, 64u, vk::ShaderStageFlagBits::eAll), vk::DescriptorBindingFlagBitsEXT::ePartiallyBound | vk::DescriptorBindingFlagBitsEXT::eUpdateUnusedWhilePending)  // Samplers 
+                ->create();
 
             // 
-            mRasterizePipeline->pushVertexBinding(0u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
-            mRasterizePipeline->pushVertexBinding(1u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
-            mRasterizePipeline->pushVertexBinding(2u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
-            mRasterizePipeline->pushVertexBinding(3u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
-            mRasterizePipeline->pushVertexBinding(4u, sizeof(glm::ivec4), vk::VertexInputRate::eVertex); // Index Data
-
-            // 
-            mRasterizePipeline->pushVertexAttribute(0u, 0u, vk::Format::eR32G32B32Sfloat, 0u);
-            mRasterizePipeline->pushVertexAttribute(1u, 1u, vk::Format::eR32G32B32A32Sfloat, 0u);
-            mRasterizePipeline->pushVertexAttribute(2u, 2u, vk::Format::eR32G32B32A32Sfloat, 0u);
-            mRasterizePipeline->pushVertexAttribute(3u, 3u, vk::Format::eR32G32B32A32Sfloat, 0u);
-            mRasterizePipeline->pushVertexAttribute(4u, 4u, vk::Format::eR32G32B32A32Sint, 0u); // Index Data
-
-            // 
-            mRasterizePipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
+            mUnifiedPipelineLayout = device->createPipelineLayoutMaker(vk::PipelineLayoutCreateInfo(), &unifiedPipelineLayout);
+            mUnifiedPipelineLayout->pushDescriptorSetLayout(unifiedDescriptorLayout)->create();
         };
-
-        {   // == Reprojection Rasterization Shader == 
-            mReprojectPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &reprojectPipeline)->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass);
-            mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/reproject.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/reproject.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
-            mReprojectPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
-            mReprojectPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
-            mReprojectPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
-            mReprojectPipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual);
-            mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::ePointList);
-            mReprojectPipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
-                .setBlendEnable(true)
-                .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setAlphaBlendOp(vk::BlendOp::eAdd).setDstAlphaBlendFactor(vk::BlendFactor::eOne)
-                .setSrcColorBlendFactor(vk::BlendFactor::eOne).setColorBlendOp(vk::BlendOp::eAdd).setDstColorBlendFactor(vk::BlendFactor::eOne)
-            );
-            mReprojectPipeline->create(true);
-        };
-
-        {   // == Final Rasterization Shader (Planned To Replace) == 
-            mFinalDrawPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &finalDrawPipeline);
-            mFinalDrawPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
-            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
-            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
-            mFinalDrawPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
-            mFinalDrawPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
-            mFinalDrawPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
-            mFinalDrawPipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
-        };
-
 
         {   // == Output Image Initialization And Binding == 
             // Should Live Before Allocation, BUT NOT ERASE BEFORE ALLOCATION
@@ -322,7 +256,6 @@ namespace rnd {
             mDescriptorSetSwap[0] = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &descriptorSetSwap[0])->linkLayout(&unifiedDescriptorLayout);
             mDescriptorSetSwap[1] = device->createDescriptorSet(vk::DescriptorSetAllocateInfo(), &descriptorSetSwap[1])->linkLayout(&unifiedDescriptorLayout);
         };
-
 
         { // Rasterization RenderPass
             mFirstPassRenderPass = device->createRenderPassMaker({}, &firstPassRenderPass);
@@ -437,6 +370,81 @@ namespace rnd {
             mDepthStBuffer->createImageView(&views[1]);
             reprojectFramebuffer = device->least().createFramebuffer(api::FramebufferCreateInfo{ {}, reprojectRenderPass, uint32_t(views.size()), views.data(), this->canvasWidth, this->canvasHeight, 1u });
         };
+
+
+        {   // == Ray Tracing Pipeline == 
+            // Create Ray Tracing Pipeline and SBT
+            mRaytracedPipeline = device->createSBTHelper(api::RayTracingPipelineCreateInfoNV(), &raytracedPipeline)->linkBuffer(&rtSBT)->linkPipelineLayout(&unifiedPipelineLayout)->initialize();
+            mRaytracedPipeline->setRaygenStage(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rgen.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eRaygenNV));
+            mRaytracedPipeline->addStageToHitGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rchit.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eClosestHitNV));
+            mRaytracedPipeline->addStageToMissGroup(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/pathtrace.rmiss.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eMissNV));
+            mRaytracedPipeline->create();
+        };
+
+        {   // == Mesh Rasterization Shader == 
+            mRasterizePipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &rasterizePipeline);
+            mRasterizePipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rasterize.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mRasterizePipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/rasterize.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mRasterizePipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            mRasterizePipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            mRasterizePipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+
+            // 
+            mRasterizePipeline->pushVertexBinding(0u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(1u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(2u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(3u, sizeof(glm::vec4), vk::VertexInputRate::eVertex);
+            mRasterizePipeline->pushVertexBinding(4u, sizeof(glm::ivec4), vk::VertexInputRate::eVertex); // Index Data
+
+            // 
+            mRasterizePipeline->pushVertexAttribute(0u, 0u, vk::Format::eR32G32B32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(1u, 1u, vk::Format::eR32G32B32A32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(2u, 2u, vk::Format::eR32G32B32A32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(3u, 3u, vk::Format::eR32G32B32A32Sfloat, 0u);
+            mRasterizePipeline->pushVertexAttribute(4u, 4u, vk::Format::eR32G32B32A32Sint, 0u); // Index Data
+
+            for (uint32_t i = 0; i < 8; i++) {
+                mRasterizePipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
+                    .setBlendEnable(false)
+                    .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setAlphaBlendOp(vk::BlendOp::eAdd).setDstAlphaBlendFactor(vk::BlendFactor::eOne)
+                    .setSrcColorBlendFactor(vk::BlendFactor::eOne).setColorBlendOp(vk::BlendOp::eAdd).setDstColorBlendFactor(vk::BlendFactor::eOne)
+                );
+            };
+
+            // 
+            mRasterizePipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&firstPassRenderPass)->create(true);
+        };
+
+        {   // == Reprojection Rasterization Shader == 
+            mReprojectPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &reprojectPipeline);
+            mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
+            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/reproject.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mReprojectPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/reproject.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mReprojectPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            mReprojectPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            mReprojectPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+            mReprojectPipeline->getDepthStencilState().setDepthTestEnable(true).setDepthWriteEnable(true).setDepthCompareOp(vk::CompareOp::eLessOrEqual);
+            mReprojectPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::ePointList);
+            mReprojectPipeline->pushColorBlendAttachment(vk::PipelineColorBlendAttachmentState()
+                .setBlendEnable(true)
+                .setSrcAlphaBlendFactor(vk::BlendFactor::eOne).setAlphaBlendOp(vk::BlendOp::eAdd).setDstAlphaBlendFactor(vk::BlendFactor::eOne)
+                .setSrcColorBlendFactor(vk::BlendFactor::eOne).setColorBlendOp(vk::BlendOp::eAdd).setDstColorBlendFactor(vk::BlendFactor::eOne)
+            );
+            mReprojectPipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&reprojectRenderPass)->create(true);
+        };
+
+        {   // == Final Rasterization Shader (Planned To Replace) == 
+            mFinalDrawPipeline = device->createGraphicsPipelineMaker(vk::GraphicsPipelineCreateInfo(), &finalDrawPipeline);
+            mFinalDrawPipeline->getInputAssemblyState().setTopology(vk::PrimitiveTopology::eTriangleStrip);
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/render.vert.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eVertex));
+            mFinalDrawPipeline->pushShaderModule(vk::PipelineShaderStageCreateInfo().setModule(lancer::createShaderModule(*device, lancer::readBinary(shaderPack + "/rtrace/render.frag.spv"))).setPName("main").setStage(vk::ShaderStageFlagBits::eFragment));
+            mFinalDrawPipeline->pushDynamicState(vk::DynamicState::eViewport)->pushDynamicState(vk::DynamicState::eScissor);
+            mFinalDrawPipeline->getScissor().setExtent(api::Extent2D{ this->canvasWidth, this->canvasHeight });
+            mFinalDrawPipeline->getViewport().setWidth(this->canvasWidth).setHeight(this->canvasHeight);
+            mFinalDrawPipeline->linkPipelineLayout(&unifiedPipelineLayout)->linkRenderPass(&appBase->renderPass)->create(true);
+        };
+
 
 
 
