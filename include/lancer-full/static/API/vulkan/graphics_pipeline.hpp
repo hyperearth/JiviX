@@ -1,5 +1,0 @@
-#pragma one
-
-namespace svt {
-
-};
