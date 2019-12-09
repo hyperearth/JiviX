@@ -2,8 +2,8 @@
 
 namespace svt {
 
-    void buffer::create(){
-        
+    handle_ref<buffer,api::Result> create(const buffer::create_info& info) {
+
     };
 
 };

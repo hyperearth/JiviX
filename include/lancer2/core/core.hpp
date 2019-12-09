@@ -109,21 +109,21 @@ namespace svt {
     class handle_ptr {
         protected:
             union { H _hnd = H(0ull); vH _hni; }; // alternative class/handler
-            using handle_ptr_T = handle_ptr<vH,H>;
+            using handle_ptr_t = handle_ptr<vH,H>;
+            friend handle_ptr_t;
 
         public:
-            friend handle_ptr_T;
-            constexpr handle_ptr_T() : _hnd(0ull) {};
+            constexpr handle_ptr_t() : _hnd(0ull) {};
             //constexpr UHandler(const void * a) : _hnd(uintptr_t(a)) {}; // for nullptr arguments
-            handle_ptr_T(const void * a) : _hnd(uintptr_t(a)) {}; // include, for nullptr arguments
-            handle_ptr_T(const intptr_t& a) : _hnd(uintptr_t(a)) {};
-            handle_ptr_T(const uintptr_t& a) : _hnd(a) {};
-            handle_ptr_T(const int& a) : _hnd(uintptr_t(a)) {};
-            handle_ptr_T(const unsigned& a) : _hnd(a) {};
-            handle_ptr_T(handle_ptr_T& a) : _hnd(a._hnd) {};
-            handle_ptr_T(handle_ptr_T&& a) : _hnd(std::move(a._hnd)) {};
-            handle_ptr_T(const vH& a) : _hni(a) {}; // foreign handler (from C API)
-            handle_ptr_T(const H& a) : _hnd(a) {};
+            handle_ptr_t(const void * a) : _hnd(uintptr_t(a)) {}; // include, for nullptr arguments
+            handle_ptr_t(const intptr_t& a) : _hnd(uintptr_t(a)) {};
+            handle_ptr_t(const uintptr_t& a) : _hnd(a) {};
+            handle_ptr_t(const int& a) : _hnd(uintptr_t(a)) {};
+            handle_ptr_t(const unsigned& a) : _hnd(a) {};
+            handle_ptr_t(handle_ptr_t& a) : _hnd(a._hnd) {};
+            handle_ptr_t(handle_ptr_t&& a) : _hnd(std::move(a._hnd)) {};
+            handle_ptr_t(const vH& a) : _hni(a) {}; // foreign handler (from C API)
+            handle_ptr_t(const H& a) : _hnd(a) {};
 
             // Casting Handlers of API
             operator const vH&() const {return _hni;}; // return original API handler (if need)
@@ -148,9 +148,8 @@ namespace svt {
 
     template<class T, class R> // T SHOULD BE SHARED_PTR<T_n>
     class handle_ref { 
-        protected: 
+        protected: std::pair<T,R> pair;
         using handle_ref_t = handle_ref<T,R>; 
-        std::pair<T,R> pair;
         friend T; friend R; 
         friend handle_ref_t;
 
