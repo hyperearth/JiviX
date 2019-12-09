@@ -1,6 +1,6 @@
 #pragma once
-#include "../../../core/unified/core.hpp"
-#include "../../../static/API/unified/device.hpp"
+
+#include "../types.hpp"
 
 namespace svt {
     
