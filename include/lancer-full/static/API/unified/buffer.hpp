@@ -1,14 +1,16 @@
-#pragma one
+#pragma once
 
 #include "../../../core/unified/core.hpp"
 
 namespace svt {
-    namespace data {
+    namespace api {
+        namespace data {
 
-        struct buffer_t {
-            core::buffer_t buffer;
-            std::vector<uint32_t> queueFamilyIndices = {};
+            struct buffer_t {
+                core::buffer_t buffer;
+                std::vector<uint32_t> queueFamilyIndices = {};
+            };
+
         };
-
     };
 };

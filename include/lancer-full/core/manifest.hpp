@@ -1,4 +1,4 @@
-#pragma one
+#pragma once
 
 #include "./unified/core.hpp"
 

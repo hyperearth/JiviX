@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
+#ifdef USE_VULKAN
 
+#include <vulkan/vulkan.hpp>
 #ifndef VULKAN_ENABLED
 #define VULKAN_ENABLED
 #endif
@@ -10,13 +11,30 @@
 #define VULKAN_HPP_ENABLED
 #endif
 
-namespace svt {
-    namespace core {
-        namespace api { using namespace vk; }; // safer version 
+#endif
 
-        using result_t = api::Result;
-        using buffer_t = api::Buffer;
-        using device_t = api::Device;
+namespace svt {
+#ifdef USE_VULKAN
+#define api vulkan
+#endif
+
+#ifdef USE_VULKAN
+    //namespace api { using namespace vk; }; // safer version 
+    namespace api {
+        using namespace svt;
+        namespace core {
+            using result_t = vk::Result;
+            using buffer_t = vk::Buffer;
+            using device_t = vk::Device;
+        };
+    };
+    namespace core {
         
     };
+#endif
+
+#if defined(USE_VULKAN) && !defined(USE_D3D12)
+    using namespace api;
+#endif
+
 };

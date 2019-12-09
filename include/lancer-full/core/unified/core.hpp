@@ -10,16 +10,23 @@
 #include <windows.h> // Fix HMODULE Type Error
 #endif
 
+// Default Backend
+#if !defined(USE_D3D12) && !defined(USE_VULKAN)
+#define USE_VULKAN
+#endif
+
 // 
-#ifdef ENABLE_D3D12
-#include "../../declare/core/d3d12.inl"
-#else
+#ifdef USE_VULKAN
 #include "../../declare/core/vulkan_hpp.inl"
+#endif
+
+// 
+#ifdef USE_D3D12
+#include "../../declare/core/d3d12.inl"
 #endif
 
 namespace svt {
     namespace core {
-
 
         template<class T, class U = uint32_t> class bit_ops { protected: U n = 0u; //friend BitOps<T,U>;
             public: bit_ops<T,U>(const T& v = 0u) : n((U&)v){};
@@ -151,7 +158,7 @@ namespace svt {
                 const vH& operator->() const { return _hni; };
         };
 
-        template<class T, class R = result_t> // T SHOULD BE SHARED_PTR<T_n>
+        template<class T, class R = uint32_t> // T SHOULD BE SHARED_PTR<T_n>
         class handle_ref { 
             protected: std::pair<T,R> pair;
             using handle_ref_t = handle_ref<T,R>; 
