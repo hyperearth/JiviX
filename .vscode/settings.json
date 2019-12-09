@@ -71,6 +71,7 @@
         "xlocmon": "cpp",
         "xloctime": "cpp",
         "xtree": "cpp",
-        "*.hpp\u0000p": "cpp"
+        "*.hpp\u0000p": "cpp",
+        "future": "cpp"
     }
 }
