@@ -7,6 +7,7 @@ namespace svt {
 
         struct buffer_t {
             api::Buffer buffer;
+            std::vector<uint32_t> queueFamilyIndices = {};
         };
 
     };

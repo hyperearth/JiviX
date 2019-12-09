@@ -6,7 +6,8 @@ namespace svt {
     namespace data {
 
         struct device_t {
-            api::Device buffer;
+            api::Device device;
+            std::vector<uint32_t> queueFamilyIndices = {};
         };
 
     };

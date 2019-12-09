@@ -10,12 +10,23 @@
 #include <windows.h> // Fix HMODULE Type Error
 #endif
 
+#ifdef ENABLE_D3D12
+
+#else
 //#include <volk/volk.h> // Incompatible with Vulkan HPP
 #include <vulkan/vulkan.hpp>
+#endif
 
 namespace svt {
     namespace api { using namespace vk; }; // safer version 
     
+#ifdef ENABLE_D3D12
+
+#else
+    using result_t = api::Result;
+#endif
+
+
     template<class T, class U = uint32_t> class bit_ops { protected: U n = 0u; //friend BitOps<T,U>;
         public: bit_ops<T,U>(const T& v = 0u) : n((U&)v){};
         public: bit_ops<T,U>(const U& n = 0u) : n(n){};
@@ -146,7 +157,7 @@ namespace svt {
             const vH& operator->() const { return _hni; };
     };
 
-    template<class T, class R> // T SHOULD BE SHARED_PTR<T_n>
+    template<class T, class R = result_t> // T SHOULD BE SHARED_PTR<T_n>
     class handle_ref { 
         protected: std::pair<T,R> pair;
         using handle_ref_t = handle_ref<T,R>; 
@@ -191,7 +202,6 @@ namespace svt {
         T& operator->() { return that; };
         const T& operator->() const { return that; };
     };
-
 
 
 };
