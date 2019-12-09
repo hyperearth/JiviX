@@ -1,29 +1,30 @@
 # LancER
 
-Real-Time oriented Vulkan API rendering library...
+Real-Time oriented Vulkan API rendering and computing library...
 Writing for C++20 prior...
+Planned to beat world record as most perfect and most long-time development product... 
 
 ## Tech Spec
 
 ```MD
 - Architecture    : vRt (9:Gen)
 - RHI             : Yes, Vulkan-HPP
-- Support OS      : Windows 10 (1903 or Newer)
+- Support OS      : Windows 10 (2004 or Newer)
 - Support HW      : RTX 2070 or familiar...
-- Leaking API     : YES, FORCED (i.e. SEMI-TRANSPARENT)
+- Extensions      : WIP 
 - Project Type    : Experimental, Personal
 - Portfolio       : Planned
 - Ray-Tracing     : Planned
 - Role/Target     : Simplify Vulkan API, alternate of Vookoo...
 - License         : BSD-3 (Currently)
 - Graphical API   : Vulkan, DirectX 12 (Vulkan-HPP over D3D12)
-- DirectX Alike   : Planned
+- DirectX Support : Planned
 - Target Games    : Minecraft Java Edition, Neverball...
-- Code Language   : C++17 and C++20, Visual Studio 2019 Support
+- Code Language   : C++20, Visual Studio 2019 Support
 - Commercial      : Under Consideration
-- Execute Day     : [2020:Q2]
-- Based On        : RadX, Voron, vkt
-- General To Do   : Add VkResult and vk::Result supports, use dual-arguments, Use Dedicated Implementations (`.hpp` and `.cpp`), Debug Stuff (for GLFW and Vulkan)
+- Execute Day     : [2021:Q1]
+- Based On        : C++20, STL, PartenOS
+- General To Do   : Rewrite Vulkan and D3D12 library set...
 
-Date: 03.12.2019 @helixd-2k18
+Date: 10.12.2019 @helixd-2k18
 ```
