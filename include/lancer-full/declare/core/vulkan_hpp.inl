@@ -26,6 +26,7 @@ namespace svt {
             using result_t = vk::Result;
             using buffer_t = vk::Buffer;
             using device_t = vk::Device;
+            using image_t = vk::Image;
         };
     };
     namespace core {

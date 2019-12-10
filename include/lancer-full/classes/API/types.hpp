@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../../core/unified/core.hpp"
-#include "../../static/types.hpp"
+#include "./statics/API/types.hpp"
 
 namespace svt {
     namespace api {
@@ -19,6 +18,7 @@ namespace svt {
         class raytracing_pipeline;
         class command_pool;
         class descriptor_pool;
+        class allocator;
 
     };
 };

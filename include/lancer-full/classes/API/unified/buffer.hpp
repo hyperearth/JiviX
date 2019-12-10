@@ -1,13 +1,14 @@
 #pragma once
 
-#include "../types.hpp"
+#include "./classes/API/types.hpp"
+#include "./dynamic/API/unified/buffer.hpp"
 
 namespace svt {
     namespace api {
 
         class buffer {
             protected: 
-                std::shared_ptr<data::buffer_t> buffer_t = {};
+                std::shared_ptr<data::dynamic::buffer_t> buffer_t = {};
                 std::shared_ptr<data::device_t> device_t = {};
 
             public: 
@@ -71,7 +72,7 @@ namespace svt {
                 operator const std::shared_ptr<data::device_t>&() const { return device_t; };
 
                 // 
-                svt::core::handle_ref<buffer,core::result_t> create(const create_info& info = {});
+                svt::core::handle_ref<buffer,core::result_t> create(const create_info& info = {}, const allocator& allocator = {});
 
         };
     };

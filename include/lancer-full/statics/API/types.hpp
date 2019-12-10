@@ -1,15 +1,14 @@
 #pragma once
 
-#include "../../core/unified/core.hpp"
-
+#include "./core/unified/core.hpp"
 
 namespace svt {
     namespace api {
         namespace data {
 
-            class buffer_t;
+            //class image_t;
+            //class buffer_t;
             class device_t;
-            class image_t;
             class command_buffer_t;
             class queue_t;
             class descriptor_set_t;
@@ -21,6 +20,12 @@ namespace svt {
             class command_pool_t;
             class descriptor_pool_t;
             
+            namespace dynamic {
+                class allocator_t;
+                class buffer_t;
+                class image_t;
+            };
+
         };
     };
 };
