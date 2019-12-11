@@ -61,7 +61,7 @@ namespace svt {
                 };
 
                 // 
-                buffer(const buffer& buffer_t) : buffer_t(buffer_t), device_t(buffer_t) {};
+                buffer(const buffer& buffer) : buffer_t(buffer.buffer_t), device_t(buffer.device_t) {};
                 buffer(const std::shared_ptr<data::dynamic::buffer_t>& buffer_t = {}) : buffer_t(buffer_t) {};
                 buffer(const std::shared_ptr<data::device_t>& device_t, const std::shared_ptr<data::dynamic::buffer_t>& buffer_t = {}) : buffer_t(buffer_t), device_t(device_t) {};
 
@@ -73,6 +73,9 @@ namespace svt {
 
                 // 
                 svt::core::handle_ref<buffer,core::result_t> create(const create_info& info = {}, const allocator& allocator = {});
+
+                // UN-safe (Debug) API, always should begin from `_`
+                svt::api::core::buffer_t _get_buffer_t();
 
         };
     };
