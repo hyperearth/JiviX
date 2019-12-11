@@ -62,13 +62,13 @@ namespace svt {
 
                 // 
                 buffer(const buffer& buffer_t) : buffer_t(buffer_t), device_t(buffer_t) {};
-                buffer(const std::shared_ptr<data::buffer_t>& buffer_t = {}) : buffer_t(buffer_t) {};
-                buffer(const std::shared_ptr<data::device_t>& device_t = {}, const std::shared_ptr<data::buffer_t>& buffer_t = {}) : buffer_t(buffer_t), device_t(device_t) {};
+                buffer(const std::shared_ptr<data::dynamic::buffer_t>& buffer_t = {}) : buffer_t(buffer_t) {};
+                buffer(const std::shared_ptr<data::device_t>& device_t, const std::shared_ptr<data::dynamic::buffer_t>& buffer_t = {}) : buffer_t(buffer_t), device_t(device_t) {};
 
                 // 
-                operator std::shared_ptr<data::buffer_t>&() { return buffer_t; };
+                operator std::shared_ptr<data::dynamic::buffer_t>&() { return buffer_t; };
                 operator std::shared_ptr<data::device_t>&() { return device_t; };
-                operator const std::shared_ptr<data::buffer_t>&() const { return buffer_t; };
+                operator const std::shared_ptr<data::dynamic::buffer_t>&() const { return buffer_t; };
                 operator const std::shared_ptr<data::device_t>&() const { return device_t; };
 
                 // 
