@@ -1,9 +1,16 @@
 #pragma once
 
-#include <d3d12.h>
+#ifdef USE_D3D12
 
+#include <d3d12.h>
 #ifndef D3D12_ENABLED
 #define D3D12_ENABLED
+#endif
+
+#ifndef D3D12_HPP_ENABLED
+#define D3D12_HPP_ENABLED
+#endif
+
 #endif
 
 namespace svt {
@@ -12,20 +19,21 @@ namespace svt {
 #endif
 
 #ifdef USE_D3D12
-    //namespace api { using namespace vk; }; // safer version 
     namespace api {
-        using namespace svt;
-        namespace core {
-            using result_t = HRESULT;
+        namespace classes {
+
         };
     };
+
     namespace core {
-        
+        namespace api {
+            using result_t = HRESULT;
+        };
     };
 #endif
 
 #if defined(USE_D3D12) && !defined(USE_VULKAN)
-    using namespace api;
+    using namespace api::classes;
 #endif
 
 };

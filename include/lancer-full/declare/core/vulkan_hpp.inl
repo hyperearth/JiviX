@@ -19,23 +19,25 @@ namespace svt {
 #endif
 
 #ifdef USE_VULKAN
-    //namespace api { using namespace vk; }; // safer version 
     namespace api {
-        using namespace svt;
-        namespace core {
+        namespace classes {
+
+        };
+    };
+
+    namespace core {
+        namespace api {
             using result_t = vk::Result;
             using buffer_t = vk::Buffer;
             using device_t = vk::Device;
             using image_t = vk::Image;
+            using buffer_region_t = vk::DescriptorBufferInfo;
         };
-    };
-    namespace core {
-        
     };
 #endif
 
 #if defined(USE_VULKAN) && !defined(USE_D3D12)
-    using namespace api;
+    using namespace api::classes;
 #endif
 
 };

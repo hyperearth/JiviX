@@ -3,10 +3,14 @@
 #ifdef USE_VULKAN
 
 #include <vulkan/vulkan.h>
-
 #ifndef VULKAN_ENABLED
 #define VULKAN_ENABLED
 #endif
+
+#ifndef VULKAN_HPP_ENABLED
+#define VULKAN_HPP_ENABLED
+#endif
+
 #endif
 
 namespace svt {
@@ -15,22 +19,25 @@ namespace svt {
 #endif
 
 #ifdef USE_VULKAN
-    //namespace api { using namespace vk; }; // safer version 
     namespace api {
-        using namespace svt;
-        namespace core {
+        namespace classes {
+
+        };
+    };
+
+    namespace core {
+        namespace api {
             using result_t = VkResult;
             using buffer_t = VkBuffer;
             using device_t = VkDevice;
+            using image_t = VkImage;
+            using buffer_region_t = VkDescriptorBufferInfo;
         };
-    };
-    namespace core {
-        
     };
 #endif
 
 #if defined(USE_VULKAN) && !defined(USE_D3D12)
-    using namespace api;
+    using namespace api::classes;
 #endif
 
 };

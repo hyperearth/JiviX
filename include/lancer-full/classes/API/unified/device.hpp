@@ -5,12 +5,14 @@
 namespace svt {
     
     namespace api {
-        class device {
-            protected: 
-                std::shared_ptr<data::device_t> device_t = {};
+        namespace classes {
+            class device {
+                protected: 
+                    std::shared_ptr<api::statics::device_t> device_t = {};
 
-            public: 
-                
+                public: 
+                    
+            };
         };
     };
 

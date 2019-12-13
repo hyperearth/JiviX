@@ -3,10 +3,10 @@
 
 namespace svt {
     namespace api {
-
+        namespace classes {
 #ifdef USE_D3D12
 
 #endif
-
+        };
     };
 };

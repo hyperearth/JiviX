@@ -4,10 +4,7 @@
 
 namespace svt {
     namespace api {
-        namespace data {
-
-            //class image_t;
-            //class buffer_t;
+        namespace statics {
             class device_t;
             class command_buffer_t;
             class queue_t;
@@ -19,13 +16,12 @@ namespace svt {
             class compute_pipeline_t;
             class command_pool_t;
             class descriptor_pool_t;
-            
-            namespace dynamic {
-                class allocator_t;
-                class buffer_t;
-                class image_t;
-            };
-
+        };
+        namespace dynamic {
+            class allocator_t;
+            class buffer_t;
+            class vector_t;
+            class image_t;
         };
     };
 };

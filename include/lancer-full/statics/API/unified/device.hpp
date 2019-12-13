@@ -4,10 +4,10 @@
 
 namespace svt {
     namespace api {
-        namespace data {
+        namespace statics {
 
             struct device_t {
-                core::device_t device;
+                core::api::device_t device;
                 std::vector<uint32_t> queueFamilyIndices = {};
             };
 
