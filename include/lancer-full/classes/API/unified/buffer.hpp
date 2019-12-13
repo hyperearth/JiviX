@@ -16,34 +16,36 @@ namespace svt {
 
                 // TODO: extendent bits support
                 struct flags_t {
-                    uint32_t sparse_binding_bit : 1,
-                            residency_binding_bit : 1,
-                            sparse_alised_bit : 1,
-                            protected_bit : 1,
-                            device_address_capture_bit : 1;
+                    uint32_t 
+                        bit_sparse_binding : 1,
+                        bit_residency_binding : 1,
+                        bit_sparse_alised : 1,
+                        bit_protected : 1,
+                        bit_device_address_capture : 1;
                 };
-
+                
                 struct usage_t {
-                    uint32_t transfer_src_bit : 1,
-                            transfer_dst_bit : 1,
-                            uniform_texel_buffer_bit : 1,
-                            storage_texel_buffer_bit : 1,
-                            uniform_buffer_bit : 1,
-                            storage_buffer_bit : 1,
-                            index_buffer_bit : 1,
-                            vertex_buffer_bit : 1,
-                            indirect_buffer_bit : 1,
-                            conditional_rendering_bit : 1,
-                            ray_tracing_bit : 1,
-                            transform_feedback_buffer_bit : 1,
-                            transform_feedback_counter_buffer_bit : 1,
-                            shader_device_address : 1;
+                    uint32_t 
+                        bit_transfer_src : 1,
+                        bit_transfer_dst : 1,
+                        bit_uniform_texel_buffer : 1,
+                        bit_storage_texel_buffer : 1,
+                        bit_uniform_buffer : 1,
+                        bit_storage_buffer : 1,
+                        bit_index_buffer : 1,
+                        bit_vertex_buffer : 1,
+                        bit_indirect_buffer : 1,
+                        bit_conditional_rendering : 1,
+                        bit_ray_tracing : 1,
+                        bit_transform_feedback_buffer : 1,
+                        bit_transform_feedback_counter_buffer : 1,
+                        bit_shader_device_address : 1;
                 };
 
                 // 
                 enum class sharing_mode_t : uint32_t {
-                    exclusive = 0u,
-                    concurrent = 1u
+                    e_exclusive = 0u,
+                    e_concurrent = 1u
                 };
 
                 // 
@@ -56,7 +58,7 @@ namespace svt {
                         uint32_t usage32u = 0u;
                         usage_t usage;
                     };
-                    sharing_mode_t sharing_mode = sharing_mode_t::exclusive;
+                    sharing_mode_t sharing_mode = sharing_mode_t::e_exclusive;
                     size_t size = 4u;
                 };
 
