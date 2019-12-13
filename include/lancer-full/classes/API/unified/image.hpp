@@ -56,6 +56,34 @@ namespace svt {
                             bit_64: 1;
                     };
 
+                    enum class image_tiling : uint32_t {
+                        t_optimal = 0u,
+                        t_linear = 1u,
+                        t_drm_format_modifier = 1000158000u,
+                    };
+
+                    enum class image_layout : uint32_t {
+                        t_undefined = 0u,
+                        t_general = 1u,
+                        t_color_attachment = 2u,
+                        t_depth_stencil_attachment = 3u,
+                        t_depth_stencil_read_only = 4u,
+                        t_shader_read_only = 5u,
+                        t_transfer_src = 6u,
+                        t_transfer_dst = 7u,
+                        t_preinitialized = 8u,
+                        t_depth_read_only_stencil_attachment = 1000117000u,
+                        t_depth_attachment_stencil_read_only = 1000117001u,
+                        t_present_src = 1000001002u,
+                        t_shared_present = 1000111000u,
+                        t_shading_rate_optimal = 1000164003u,
+                        t_fragment_density_optimal = 1000218000u,
+                        t_depth_attachment_optimal = 1000241000u,
+                        t_depth_read_only_optimal = 1000241001u,
+                        t_stencil_attachment_optimal = 1000241002u,
+                        t_stencil_read_only_optimal = 1000241003,
+                    };
+
                     struct create_info {
                         union {
                             uint32_t flags32u = 0u;
@@ -71,13 +99,12 @@ namespace svt {
                         };
                         
                         sharing_mode sharing_mode = sharing_mode::t_exclusive;
+                        image_layout initial_layout = image_layout::t_undefined;
+                        image_tiling tiling = image_tiling::t_optimal;
                         format format{0u};
                         extent_3d extent;
                         uint32_t mip_levels = 1u;
                         uint32_t array_layers = 1u;
-
-                        uint32_t tiling = 0u; // TODO: Tiling Type
-                        uint32_t initial_layout = 0u; // TODO: Image Layout Type
                     };
 
                     // 
