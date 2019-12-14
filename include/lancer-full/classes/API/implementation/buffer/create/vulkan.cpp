@@ -13,8 +13,9 @@ namespace svt {
                 vk_info.flags = vk::BufferCreateFlagBits(info.flags32u);
                 vk_info.size = info.size;
                 vk_info.sharingMode = vk::SharingMode(info.sharing_mode);
+                vk_info.queueFamilyIndexCount = this->device_t->queueFamilyIndices.size();
+                vk_info.pQueueFamilyIndices = this->device_t->queueFamilyIndices.data();
                 this->buffer_t->buffer = this->device_t->device.createBuffer(vk_info);
-
                 return {*this,core::result_t(0u)};
             };
 #endif
