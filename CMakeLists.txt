@@ -17,12 +17,31 @@ set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_C_STANDARD 11)
 
 # Set source directories
-set(SOURCES_LIST 
+set (SOURCES_LIST 
     "./include/*.h"
     "./include/*.hpp"
-    "./include/lancer/*"
-    "./include/lancer/*/*"
-    "./include/lancer/*/*/*"
+
+    "./include/lancer-full/core/*/*/vulkan_hpp.inl"
+    "./include/lancer-full/core/*/*/*.hpp"
+
+    "./include/lancer-full/classes/*/*.hpp"
+    "./include/lancer-full/classes/*/vulkan.*"
+    "./include/lancer-full/classes/*/*/*.hpp"
+    "./include/lancer-full/classes/*/*/vulkan.*"
+    "./include/lancer-full/classes/*/*/*/*.hpp"
+    "./include/lancer-full/classes/*/*/*/vulkan.*"
+    "./include/lancer-full/classes/*/*/*/*/*.hpp"
+    "./include/lancer-full/classes/*/*/*/*/vulkan.*"
+
+    "./include/lancer-full/factory/*/*.hpp"
+    "./include/lancer-full/factory/*/vulkan.*"
+    "./include/lancer-full/factory/*/*/*.hpp"
+    "./include/lancer-full/factory/*/*/vulkan.*"
+    "./include/lancer-full/factory/*/*/*/*.hpp"
+    "./include/lancer-full/factory/*/*/*/vulkan.*"
+    "./include/lancer-full/factory/*/*/*/*/*.hpp"
+    "./include/lancer-full/factory/*/*/*/*/vulkan.*"
+
     "./include/radx/*"
     "./include/vulkan/*"
     "./include/vma/*"
@@ -52,7 +71,9 @@ pkg_search_module(GLFW QUIET renderdoc)
 set (LIBS glfw3)
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
 set (INC_DIR 
-    "${DEP_DIR}/include" 
+    "${DEP_DIR}/include/lancer-full/"
+    "${DEP_DIR}/include/*/"
+    "${DEP_DIR}/include/" 
     "${DEP_DIR}/src/" 
     "${DEP_DIR}/src/base/" 
     "${DEP_DIR}")
@@ -66,6 +87,7 @@ set (DEFINES
     -DGLM_ENABLE_EXPERIMENTAL
     -DGLFW_INCLUDE_NONE
     -DEXPERIMENTAL_GLTF
+    -DUSE_VULKAN
 )
 
 # Set MSVC/Windows specific 
@@ -130,7 +152,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 # Compute test 
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
-add_executable(${APPLICATION_NAME} src/examples/rtvg.cpp src/examples/main.cpp ${RSOURCES})
+add_executable(${APPLICATION_NAME} src/examples/triangle/main.cpp ${RSOURCES})
 target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
 
 # Add includes to MSVC explorer 

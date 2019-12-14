@@ -3,57 +3,59 @@
 #include "./classes/API/types.hpp"
 #include "./factory/API/unified/allocator.hpp"
 #include "./factory/API/unified/image.hpp"
+#include "./factory/API/unified/allocator.hpp"
+#include "./classes/API/unified/allocator.hpp"
 
 namespace svt {
     namespace api {
         namespace classes {
             class image {
                 protected: 
-                    std::shared_ptr<api::factory::image_t> image_t = {};
-                    std::shared_ptr<api::factory::device_t> device_t = {};
+                    using image_st = std::shared_ptr<api::factory::image_t>;
+                    using device_st = std::shared_ptr<api::factory::device_t>;
+
+                    image_st image_t = {};
+                    device_st device_t = {};
 
                 public: 
-                    struct flags {
-                        uint32_t
-                            bit_sparse_binding: 1,
-                            bit_sparse_residency: 1,
-                            bit_sparse_aliased: 1,
-                            bit_mutable_format: 1, 
-                            bit_cube_compatible: 1,
-                            bit_2d_array_compatible: 1, 
-                            bit_block_texel_view_compatible: 1, 
-                            bit_extended_usage: 1,
-                            bit_disjoint: 1, 
-                            bit_alias: 1,
-                            bit_protected: 1,
-                            bit_sample_location_compatible_depth: 1,
-                            bit_corner_sampled: 1,
-                            bit_subsampled: 1;
+                    struct flags { uint32_t
+                        bit_sparse_binding: 1,
+                        bit_sparse_residency: 1,
+                        bit_sparse_aliased: 1,
+                        bit_mutable_format: 1, 
+                        bit_cube_compatible: 1,
+                        bit_2d_array_compatible: 1, 
+                        bit_block_texel_view_compatible: 1, 
+                        bit_extended_usage: 1,
+                        bit_disjoint: 1, 
+                        bit_alias: 1,
+                        bit_protected: 1,
+                        bit_sample_location_compatible_depth: 1,
+                        bit_corner_sampled: 1,
+                        bit_subsampled: 1;
                     };
 
-                    struct usage {
-                        uint32_t 
-                            bit_transfer_src : 1,
-                            bit_transfer_dst : 1,
-                            bit_sampled : 1,
-                            bit_storage : 1,
-                            bit_color_attachment: 1, 
-                            bit_depth_stencil_attachment: 1, 
-                            bit_transiend_attachment: 1,
-                            bit_input_attachment: 1,
-                            bit_shading_rate: 1,
-                            bit_fragment_density_map: 1;
+                    struct usage { uint32_t 
+                        bit_transfer_src : 1,
+                        bit_transfer_dst : 1,
+                        bit_sampled : 1,
+                        bit_storage : 1,
+                        bit_color_attachment: 1, 
+                        bit_depth_stencil_attachment: 1, 
+                        bit_transiend_attachment: 1,
+                        bit_input_attachment: 1,
+                        bit_shading_rate: 1,
+                        bit_fragment_density_map: 1;
                     };
 
-                    struct sample_count {
-                        uint32_t 
-                            bit_1: 1,
-                            bit_2: 1,
-                            bit_4: 1,
-                            bit_8: 1,
-                            bit_16: 1,
-                            bit_32: 1,
-                            bit_64: 1;
+                    struct sample_count { uint32_t 
+                        bit_1: 1,
+                        bit_2: 1,
+                        bit_4: 1,
+                        bit_8: 1,
+                        bit_16: 1,
+                        bit_32: 1,
+                        bit_64: 1;
                     };
 
                     enum class image_tiling : uint32_t {
@@ -108,9 +110,15 @@ namespace svt {
                     };
 
                     // 
-                    image(const image& image) : device_t(image.device_t), image_t(image.image_t) {};
-                    image(const std::shared_ptr<api::factory::image_t>& image_t = {}) : image_t(image_t) {};
-                    image(const std::shared_ptr<api::factory::device_t>& device_t, const std::shared_ptr<api::factory::image_t>& image_t = {}) : image_t(image_t), device_t(device_t) {};
+                    image(                           const image_st& image_t = {}) : image_t(image_t) {};
+                    image(const device_st& device_t, const image_st& image_t = {}) : image_t(image_t), device_t(device_t) {};
+                    image(const image& image) : device_t(image), image_t(image) {};
+
+                    // TODO: merge into `.cpp`
+                    operator image_st&() { return image_t; };
+                    operator device_st&() { return device_t; };
+                    operator const image_st&() const { return image_t; };
+                    operator const device_st&() const { return device_t; };
 
                     // UN-safe (Debug) API, always should begin from `_`
                     svt::core::api::image_t _get_image_t();
