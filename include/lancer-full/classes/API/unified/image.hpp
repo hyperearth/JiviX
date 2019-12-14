@@ -1,16 +1,16 @@
 #pragma once
 
 #include "./classes/API/types.hpp"
-#include "./dynamic/API/unified/allocator.hpp"
-#include "./dynamic/API/unified/image.hpp"
+#include "./factory/API/unified/allocator.hpp"
+#include "./factory/API/unified/image.hpp"
 
 namespace svt {
     namespace api {
         namespace classes {
             class image {
                 protected: 
-                    std::shared_ptr<api::dynamic::image_t> image_t = {};
-                    std::shared_ptr<api::statics::device_t> device_t = {};
+                    std::shared_ptr<api::factory::image_t> image_t = {};
+                    std::shared_ptr<api::factory::device_t> device_t = {};
 
                 public: 
                     struct flags {
@@ -109,8 +109,8 @@ namespace svt {
 
                     // 
                     image(const image& image) : device_t(image.device_t), image_t(image.image_t) {};
-                    image(const std::shared_ptr<api::dynamic::image_t>& image_t = {}) : image_t(image_t) {};
-                    image(const std::shared_ptr<api::statics::device_t>& device_t, const std::shared_ptr<api::dynamic::image_t>& image_t = {}) : image_t(image_t), device_t(device_t) {};
+                    image(const std::shared_ptr<api::factory::image_t>& image_t = {}) : image_t(image_t) {};
+                    image(const std::shared_ptr<api::factory::device_t>& device_t, const std::shared_ptr<api::factory::image_t>& image_t = {}) : image_t(image_t), device_t(device_t) {};
 
                     // UN-safe (Debug) API, always should begin from `_`
                     svt::core::api::image_t _get_image_t();

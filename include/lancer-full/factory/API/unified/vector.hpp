@@ -1,12 +1,12 @@
 #pragma once
 
 #include "./core/unified/core.hpp"
-#include "./dynamic/API/types.hpp"
-#include "./dynamic/API/unified/buffer.hpp"
+#include "./factory/API/types.hpp"
+#include "./factory/API/unified/buffer.hpp"
 
 namespace svt {
     namespace api {
-        namespace dynamic {
+        namespace factory {
             class vector_t : public std::enable_shared_from_this<vector_t> { public: 
                 vector_t(const std::shared_ptr<buffer_t>& buffer = {}, const uintptr_t& offset = 0u, const size_t& range = 4u) : offset(offset), range(range), handle(*buffer) {};
                 //core::buffer_t buffer;

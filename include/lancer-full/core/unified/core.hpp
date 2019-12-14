@@ -17,12 +17,12 @@
 
 // 
 #ifdef USE_VULKAN
-#include "./declare/core/vulkan_hpp.inl"
+#include "./core/implementation/core/vulkan_hpp.inl"
 #endif
 
 // 
 #ifdef USE_D3D12
-#include "./declare/core/d3d12.inl"
+#include "./core/implementation/core/d3d12.inl"
 #endif
 
 namespace svt {

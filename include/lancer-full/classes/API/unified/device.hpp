@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types.hpp"
+#include "./classes/API/types.hpp"
 
 namespace svt {
     
@@ -8,7 +8,7 @@ namespace svt {
         namespace classes {
             class device {
                 protected: 
-                    std::shared_ptr<api::statics::device_t> device_t = {};
+                    std::shared_ptr<api::factory::device_t> device_t = {};
 
                 public: 
                     

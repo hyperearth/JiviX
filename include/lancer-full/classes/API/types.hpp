@@ -1,7 +1,7 @@
 #pragma once
 
-#include "./statics/API/types.hpp"
-#include "./dynamic/API/types.hpp"
+#include "./factory/API/types.hpp"
+#include "./factory/API/types.hpp"
 #include "./classes/API/unified/enums.hpp"
 
 namespace svt {

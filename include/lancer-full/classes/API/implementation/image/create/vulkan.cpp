@@ -1,5 +1,5 @@
-#include "./static/API/unified/device.hpp"
-#include "./dynamic/API/unified/allocator.hpp"
+#include "./factory/API/unified/device.hpp"
+#include "./factory/API/unified/allocator.hpp"
 #include "./classes/API/unified/image.hpp"
 
 namespace svt {
@@ -7,7 +7,7 @@ namespace svt {
         namespace classes {
 #ifdef USE_VULKAN
             svt::core::handle_ref<image,core::result_t> image::create(const create_info& info, const svt::api::allocator& allocator) {
-                // SHOULD OVERRIDE `std::shared_ptr<data::dynamic::image_t>`
+                // SHOULD OVERRIDE `std::shared_ptr<data::factory::image_t>`
                 vk::ImageCreateInfo vk_info{};
                 vk_info.usage = vk::ImageUsageFlagBits(info.usage32u);
                 vk_info.flags = vk::ImageCreateFlagBits(info.flags32u);

@@ -5,7 +5,7 @@
 
 namespace svt {
     namespace api {
-        namespace dynamic {
+        namespace factory {
 
             // Can Be Extended By VMA Allocators
             class image_t : public std::enable_shared_from_this<image_t> { public: 
