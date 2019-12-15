@@ -12,12 +12,8 @@ namespace svt {
         namespace classes {
             class buffer {
                 protected: 
-                    using buffer_st = std::shared_ptr<api::factory::buffer_t>;
-                    using device_st = std::shared_ptr<api::factory::device_t>;
-                    using vector_st = std::shared_ptr<api::factory::vector_t>;
-
-                    buffer_st buffer_t = {};
-                    device_st device_t = {};
+                    stu::buffer buffer_t = {};
+                    stu::device device_t = {};
 
                 public: 
                     // structs by C++20
@@ -63,23 +59,34 @@ namespace svt {
                     };
 
                     // 
-                    buffer(const buffer_st& buffer_t = {}) : buffer_t(buffer_t) {};
-                    buffer(const device_st& device_t, const buffer_st& buffer_t = {}) : buffer_t(buffer_t), device_t(device_t) {};
+                    buffer(const stu::buffer& buffer_t = {}) : buffer_t(buffer_t) {};
+                    buffer(const stu::device& device_t, const stu::buffer& buffer_t = {}) : buffer_t(buffer_t), device_t(device_t) {};
                     buffer(const buffer& buffer) : buffer_t(buffer), device_t(buffer) {};
 
                     // TODO: merge into `.cpp`
-                    operator buffer_st&() { return buffer_t; };
-                    operator device_st&() { return device_t; };
-                    operator const buffer_st&() const { return buffer_t; };
-                    operator const device_st&() const { return device_t; };
+                    operator stu::buffer&() { return buffer_t; };
+                    operator stu::device&() { return device_t; };
+                    operator const stu::buffer&() const { return buffer_t; };
+                    operator const stu::device&() const { return device_t; };
 
                     // 
-                    vector_st vector(uintptr_t offset = 0u, size_t size = 4u);
+                    stu::vector vector(uintptr_t offset = 0u, size_t size = 4u);
                     svt::core::handle_ref<buffer,core::api::result_t> create(const create_info& info = {}, const allocator& allocator = {});
 
                     // UN-safe (Debug) API, always should begin from `_`
                     svt::core::api::buffer_t _get_buffer_t();
                     
+                    // assign mode 
+                    // TODO: move into `.cpp` file
+                    buffer& operator=(const buffer &buffer) { 
+                        this->buffer_t = buffer;
+                        this->device_t = buffer;
+                        return *this;
+                    };
+                    
+                    // TODO: move into `.cpp` file
+                    api::factory::buffer_t* operator->() { return &(*this->buffer_t); };
+                    const api::factory::buffer_t* operator->() const { return &(*this->buffer_t); };
             };
         };
     };

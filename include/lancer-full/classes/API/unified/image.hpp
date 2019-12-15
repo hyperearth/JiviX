@@ -11,11 +11,8 @@ namespace svt {
         namespace classes {
             class image {
                 protected: 
-                    using image_st = std::shared_ptr<api::factory::image_t>;
-                    using device_st = std::shared_ptr<api::factory::device_t>;
-
-                    image_st image_t = {};
-                    device_st device_t = {};
+                    stu::image image_t = {};
+                    stu::device device_t = {};
 
                 public: 
                     struct flags { uint32_t
@@ -110,15 +107,27 @@ namespace svt {
                     };
 
                     // 
-                    image(                           const image_st& image_t = {}) : image_t(image_t) {};
-                    image(const device_st& device_t, const image_st& image_t = {}) : image_t(image_t), device_t(device_t) {};
-                    image(const image& image) : device_t(image), image_t(image) {};
+                    image(                             const stu::image& image_t = {}) : image_t(image_t) {};
+                    image(const stu::device& device_t, const stu::image& image_t = {}) : image_t(image_t), device_t(device_t) {};
+                    image(const image& image = {}) : device_t(image), image_t(image) {};
 
                     // TODO: merge into `.cpp`
-                    operator image_st&() { return image_t; };
-                    operator device_st&() { return device_t; };
-                    operator const image_st&() const { return image_t; };
-                    operator const device_st&() const { return device_t; };
+                    operator stu::image&() { return image_t; };
+                    operator stu::device&() { return device_t; };
+                    operator const stu::image&() const { return image_t; };
+                    operator const stu::device&() const { return device_t; };
+
+                    // assign mode 
+                    // TODO: move into `.cpp` file
+                    image& operator=(const image &image) { 
+                        this->image_t = image;
+                        this->device_t = image;
+                        return *this;
+                    };
+
+                    // TODO: move into `.cpp` file
+                    api::factory::image_t* operator->() { return &(*this->image_t); };
+                    const api::factory::image_t* operator->() const { return &(*this->image_t); };
 
                     // UN-safe (Debug) API, always should begin from `_`
                     svt::core::api::image_t _get_image_t();

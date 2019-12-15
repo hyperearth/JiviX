@@ -9,22 +9,31 @@ namespace svt {
             // Agregated type from `allocator_t`, and can be created by dedicated utils (such as VMA)
             class allocator {
                 protected: friend allocator;
-                    using device_st = std::shared_ptr<api::factory::device_t>;
-                    using allocator_st = std::shared_ptr<api::factory::allocator_t>;
-
-                    allocator_st allocator_t = {};
-                    device_st device_t = {};
+                    stu::allocator allocator_t = {};
+                    stu::device device_t = {};
 
                 public: 
                     allocator(const allocator& allocator_t) : device_t(allocator_t), allocator_t(allocator_t) {};
-                    allocator(                         const allocator_st& allocator_t = {}) : allocator_t(allocator_t) {};
-                    allocator(const device_st& device, const allocator_st& allocator_t = {}) : allocator_t(allocator_t), device_t(device) {};
+                    allocator(                           const stu::allocator& allocator_t = {}) : allocator_t(allocator_t) {};
+                    allocator(const stu::device& device, const stu::allocator& allocator_t = {}) : allocator_t(allocator_t), device_t(device) {};
 
                     // TODO: merge into `.cpp`
-                    operator allocator_st&() { return allocator_t; };
-                    operator device_st&() { return device_t; };
-                    operator const allocator_st&() const { return allocator_t; };
-                    operator const device_st&() const { return device_t; };
+                    operator stu::allocator&() { return allocator_t; };
+                    operator stu::device&() { return device_t; };
+                    operator const stu::allocator&() const { return allocator_t; };
+                    operator const stu::device&() const { return device_t; };
+
+                    // assign mode 
+                    // TODO: move into `.cpp` file
+                    allocator& operator=(const allocator &allocator) { 
+                        this->allocator_t = allocator;
+                        this->device_t = allocator;
+                        return *this;
+                    };
+
+                    // TODO: move into `.cpp` file
+                    api::factory::allocator_t* operator->() { return &(*this->allocator_t); };
+                    const api::factory::allocator_t* operator->() const { return &(*this->allocator_t); };
             };
         };
     };
