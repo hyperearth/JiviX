@@ -74,7 +74,7 @@ namespace svt {
 
                     // 
                     stu::vector vector(uintptr_t offset = 0u, size_t size = 4u);
-                    svt::core::handle_ref<buffer,core::api::result_t> create(const create_info& info = {}, const allocator& allocator = {});
+                    svt::core::handle_ref<buffer,core::api::result_t> create(const allocator& allocator = {}, const create_info& info = {});
 
                     // UN-safe (Debug) API, always should begin from `_`
                     svt::core::api::buffer_t _get_buffer_t();

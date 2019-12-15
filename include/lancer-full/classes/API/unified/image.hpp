@@ -127,7 +127,7 @@ namespace svt {
                     operator const stu::device&() const { return device_t; };
 
                     // 
-                    svt::core::handle_ref<image, core::api::result_t> create(const create_info& info = {}, const allocator& allocator = {}, const image_layout& initial_layout = image_layout::t_undefined);
+                    svt::core::handle_ref<image, core::api::result_t> create(const allocator& allocator = {}, const create_info& info = {}, const image_layout& initial_layout = image_layout::t_undefined);
 
                     // assign mode 
                     // TODO: move into `.cpp` file

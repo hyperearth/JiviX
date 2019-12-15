@@ -6,7 +6,7 @@ namespace svt {
     namespace api {
         namespace classes {
 #ifdef USE_VULKAN
-            svt::core::handle_ref<image, core::api::result_t> image::create(const create_info& info, const allocator& allocator, const image_layout& initial_layout) {
+            svt::core::handle_ref<image, core::api::result_t> image::create(const allocator& allocator, const create_info& info, const image_layout& initial_layout) {
                 vk::ImageCreateInfo vk_info{};
                 vk_info.usage = vk::ImageUsageFlagBits(info.usage32u);
                 vk_info.flags = vk::ImageCreateFlagBits(info.flags32u);

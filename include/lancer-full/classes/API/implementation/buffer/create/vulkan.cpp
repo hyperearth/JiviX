@@ -7,7 +7,7 @@ namespace svt {
     namespace api {
         namespace classes {
 #ifdef USE_VULKAN
-            svt::core::handle_ref<buffer,core::api::result_t> buffer::create(const create_info& info, const allocator& allocator) {
+            svt::core::handle_ref<buffer,core::api::result_t> buffer::create(const allocator& allocator, const create_info& info) {
                 // SHOULD OVERRIDE `std::shared_ptr<data::factory::buffer_t>`
                 vk::BufferCreateInfo vk_info{};
                 vk_info.size = info.size;
