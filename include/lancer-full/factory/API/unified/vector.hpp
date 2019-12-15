@@ -7,10 +7,9 @@
 namespace svt {
     namespace api {
         namespace factory {
-            class vector_t : public std::enable_shared_from_this<vector_t> { public: 
-                vector_t(const std::shared_ptr<buffer_t>& buffer = {}, const uintptr_t& offset = 0u, const size_t& range = 4u) : offset(offset), range(range), handle(*buffer) {};
-                //core::buffer_t buffer;
-                uintptr_t handle = 0u; uintptr_t offset = 0u; size_t range = 4u;
+            class vector_t : public std::enable_shared_from_this<vector_t> { protected: friend vector_t; uintptr_t handle = 0u; uintptr_t offset = 0u; size_t range = 4u;
+                public: vector_t(const std::shared_ptr<buffer_t>& buffer = {}, const uintptr_t& offset = 0u, const size_t& range = 4u) : offset(offset), range(range), handle(*buffer) {};
+                public: vector_t(const vector_t& vector = {}) : offset(vector.offset), range(vector.range), handle(vector.handle) {};
 
                 vector_t& operator=(const std::shared_ptr<buffer_t>& buffer){
                     this->handle = *buffer;
@@ -24,10 +23,30 @@ namespace svt {
                     return *this;
                 };
 
+                virtual size_t& range() { return this->range; };
+                virtual uintptr_t& offset() { return this->offset; };
+                virtual uintptr_t& handle() { return this->handle; };
+                virtual const size_t& range() const { return this->range; };
+                virtual const uintptr_t& offset() const { return this->offset; };
+                virtual const uintptr_t& handle() const { return this->handle; };
+                virtual void* map() { return nullptr; };
+                virtual void* mapped() { return nullptr; };
+
                 // Un-Safe API Related
-                operator const svt::core::api::buffer_region_t&() const;
-                operator svt::core::api::buffer_region_t&();
+                operator const svt::core::api::buffer_region_t& () const;
+                operator svt::core::api::buffer_region_t& ();
             };
+
+            //template<class T = uint8_t>
+            //class vector : public vector_t { protected: friend vector_t; friend vector<T>; //using T = uint8_t;
+            //    public: vector<T>(const std::shared_ptr<buffer_t>& buffer = {}, const uintptr_t& offset = 0u, const size_t& size = 1u) : vector_t(buffer, offset, range*sizeof(T)) {};
+            //    public: vector<T>(const vector<T>& vector = {}) : vector_t(dynamic_cast<const vector_t&>(vector)) {};
+
+            //    virtual size_t size() override { return this->range / sizeof(T); };
+            //    virtual uintptr_t offset() override { return this->offset; };
+            //    virtual uintptr_t handle() override { return this->handle; };
+            //    //virtual void* map() override {};
+            //};
 
         };
     };

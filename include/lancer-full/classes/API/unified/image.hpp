@@ -61,6 +61,10 @@ namespace svt {
                         t_drm_format_modifier = 1000158000u,
                     };
 
+                    enum class image_type : uint32_t {
+                        t_1d = 0u, t_2d, t_3d,
+                    };
+
                     enum class image_layout : uint32_t {
                         t_undefined = 0u,
                         t_general = 1u,
@@ -88,22 +92,27 @@ namespace svt {
                             uint32_t flags32u = 0u;
                             flags flags;
                         };
-                        union {
-                            uint32_t usage32u = 0u;
-                            usage usage;
-                        };
+
+                        image_type image_type = image_type::t_1d;
+                        format format{ 0u };
+                        extent_3d extent;
+                        uint32_t mip_levels = 1u;
+                        uint32_t array_layers = 1u;
+
                         union {
                             uint32_t samples32u = 1u;
                             sample_count samples;
                         };
-                        
-                        sharing_mode sharing_mode = sharing_mode::t_exclusive;
-                        image_layout initial_layout = image_layout::t_undefined;
+
                         image_tiling tiling = image_tiling::t_optimal;
-                        format format{0u};
-                        extent_3d extent;
-                        uint32_t mip_levels = 1u;
-                        uint32_t array_layers = 1u;
+
+                        union {
+                            uint32_t usage32u = 0u;
+                            usage usage;
+                        };
+
+                        sharing_mode sharing_mode = sharing_mode::t_exclusive;
+                        //image_layout initial_layout = image_layout::t_undefined;
                     };
 
                     // 
@@ -116,6 +125,9 @@ namespace svt {
                     operator stu::device&() { return device_t; };
                     operator const stu::image&() const { return image_t; };
                     operator const stu::device&() const { return device_t; };
+
+                    // 
+                    svt::core::handle_ref<image, core::api::result_t> create(const create_info& info = {}, const allocator& allocator = {}, const image_layout& initial_layout = image_layout::t_undefined);
 
                     // assign mode 
                     // TODO: move into `.cpp` file

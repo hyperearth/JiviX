@@ -50,12 +50,15 @@ namespace svt {
                             uint32_t flags32u = 0u;
                             flags flags;
                         };
+
+                        size_t size = 4u;
+
                         union {
                             uint32_t usage32u = 0u;
                             usage usage;
                         };
+
                         sharing_mode sharing_mode = sharing_mode::t_exclusive;
-                        size_t size = 4u;
                     };
 
                     // 
