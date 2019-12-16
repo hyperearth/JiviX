@@ -20,6 +20,9 @@ namespace svt {
             class buffer_t;
             class vector_t;
             class image_t;
+            class buffer_view_t;
+            class image_view_t;
+            class sampler_t;
         };
     };
 };

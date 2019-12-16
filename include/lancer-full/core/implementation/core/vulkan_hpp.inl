@@ -31,7 +31,9 @@ namespace svt {
             using buffer_t = vk::Buffer;
             using device_t = vk::Device;
             using image_t = vk::Image;
-            using buffer_region_t = vk::DescriptorBufferInfo;
+            using buffer_descriptor_t = vk::DescriptorBufferInfo;
+            using buffer_view_t = vk::BufferView;
+            using image_view_t = vk::ImageView;
         };
     };
 #endif

@@ -12,6 +12,9 @@ namespace svt {
             using buffer = std::shared_ptr<api::factory::buffer_t>;
             using device = std::shared_ptr<api::factory::device_t>;
             using allocator = std::shared_ptr<api::factory::allocator_t>;
+            using buffer_view = std::shared_ptr<api::factory::buffer_view_t>;
+            using image_view = std::shared_ptr<api::factory::image_view_t>;
+            using sampler = std::shared_ptr<api::factory::sampler_t>;
         };
 
         namespace classes {
@@ -29,6 +32,12 @@ namespace svt {
             class command_pool;
             class descriptor_pool;
             class allocator;
+            class sampler;
+            class buffer_view;
+            class image_view;
+
+            template<class T = uint8_t>
+            class vector;
         };
 
         

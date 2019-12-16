@@ -21,6 +21,7 @@ namespace svt {
                 vk_info.queueFamilyIndexCount = this->device_t->queueFamilyIndices.size();
                 vk_info.pQueueFamilyIndices = this->device_t->queueFamilyIndices.data();
                 this->image_t->image = this->device_t->device.createImage(vk_info);
+                this->layout_t = initial_layout;
                 return { *this,core::api::result_t(0u) };
             };
 #endif

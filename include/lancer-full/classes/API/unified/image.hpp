@@ -10,9 +10,7 @@ namespace svt {
     namespace api {
         namespace classes {
             class image {
-                protected: 
-                    stu::image image_t = {};
-                    stu::device device_t = {};
+                
 
                 public: 
                     struct flags { uint32_t
@@ -143,6 +141,11 @@ namespace svt {
 
                     // UN-safe (Debug) API, always should begin from `_`
                     svt::core::api::image_t _get_image_t();
+
+                protected: 
+                    stu::image image_t = {};
+                    svt::image::image_layout layout_t = {};
+                    stu::device device_t = {};
             };
         };
     };
