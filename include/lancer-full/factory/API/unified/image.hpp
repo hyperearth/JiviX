@@ -12,6 +12,18 @@ namespace svt {
                 //std::vector<uint32_t> queueFamilyIndices = {};
                 core::api::image_t image;
 
+
+                image_t(const image_t& image) : image(image) {};
+                image_t(const core::api::image_t& image) : image(image) {};
+                image_t& operator=(const image_t& image) { this->image = image; return *this; };
+
+                operator core::api::image_t&() { return image; };
+                operator const core::api::image_t&() const { return image; };
+
+                core::api::image_t* operator->() { return &(this->image); };
+                const core::api::image_t* operator->() const { return &(this->image); };
+
+
                 virtual ~image_t(){};
             };
         };

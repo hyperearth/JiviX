@@ -15,6 +15,8 @@ namespace svt {
             using buffer_view = std::shared_ptr<api::factory::buffer_view_t>;
             using image_view = std::shared_ptr<api::factory::image_view_t>;
             using sampler = std::shared_ptr<api::factory::sampler_t>;
+            using descriptor_set = std::shared_ptr<api::factory::descriptor_set_t>;
+            using descriptor_set_layout = std::shared_ptr<api::factory::descriptor_set_layout_t>;
         };
 
         namespace classes {

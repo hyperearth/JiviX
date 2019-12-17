@@ -1,6 +1,9 @@
 #pragma once
 
 #include "./classes/API/types.hpp"
+#include "./classes/API/unified/device.hpp"
+#include "./classes/API/unified/descriptor_set_layout.hpp"
+#include "./factory/API/unified/descriptor_set.hpp"
 
 namespace svt {
     namespace api {
@@ -8,13 +11,12 @@ namespace svt {
 
             class descriptor_set {
                 protected: 
-                    //std::vector<vector<>> buffers = {};
-                    //std::vector<buffer_view> buffer_views = {};
-                    //std::vector<image_view> image_views = {};
-                    
+                    stu::descriptor_set descriptor_set_t = {};
+                    stu::descriptor_set_layout descriptor_set_layout_t = {};
+                    stu::device device_t = {};
                     std::vector<uint8_t> heap = {};
                     std::vector<vk::DescriptorUpdateTemplateEntry> entries = {};
-                    //std::vector<descriptor_set_entry> entry = {};
+                    
                 public: 
 
                     enum class type : uint32_t {
@@ -43,6 +45,7 @@ namespace svt {
                         entry* entry_t = nullptr;
                         void* field_t = nullptr;
 
+                        // any buffers and images can `write` into types
                         template<class T = uint8_t> operator T&() { return (T*)field_t; };
                         template<class T = uint8_t> operator const T&() const { return (T*)field_t; };
                         template<class T = uint8_t> T& handle() { return (T*)field_t; };
@@ -61,16 +64,24 @@ namespace svt {
                     };
 
                     // TODO: add finally apply method support
-                    
+                    // TODO: add into `.cpp` file
+                    // TODO: add RTX description_write support
+                    void apply() {
+                        vk::DescriptorUpdateTemplateCreateInfo info{};
+                        info.templateType = vk::DescriptorUpdateTemplateType::eDescriptorSet;
+                        info.flags = {};
+                        info.descriptorUpdateEntryCount = entries.size();
+                        info.pDescriptorUpdateEntries = entries.data();
+                        info.descriptorSetLayout = descriptor_set_layout_t->layout;
 
-                    //struct cpu_handle {
-                        //type type_t = type::t_sampler;
-                        
-                        
-                        //vector<>* buffer = nullptr;
-                        //buffer_view* buffer_view = nullptr;
-                        //image_view* image_view = nullptr;
-                    //};
+                        // IGNORE due isn't push descriptor 
+                        //info.pipelineBindPoint = 0u;
+                        info.pipelineLayout = nullptr;
+                        info.set = {};
+
+                        device_t->device.createDescriptorUpdateTemplate(&info,nullptr,&descriptor_set_t->temp); // TODO: destroy previous template 
+                        device_t->device.updateDescriptorSetWithTemplate(descriptor_set_t->set,descriptor_set_t->temp,heap.data()); // 
+                    };
                     
             };
         };

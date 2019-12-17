@@ -24,6 +24,16 @@ namespace svt {
 
                 operator uintptr_t&() { return (uintptr_t&)(this->buffer); };
                 operator const uintptr_t&() const { return (uintptr_t&)(this->buffer); };
+
+                buffer_t(const buffer_t& buffer) : buffer(buffer) {};
+                buffer_t(const core::api::buffer_t& buffer) : buffer(buffer) {};
+                buffer_t& operator=(const buffer_t& buffer) { this->buffer = buffer; return *this; };
+
+                operator core::api::buffer_t&() { return buffer; };
+                operator const core::api::buffer_t&() const { return buffer; };
+
+                core::api::buffer_t* operator->() { return &(this->buffer); };
+                const core::api::buffer_t* operator->() const { return &(this->buffer); };
             };
 
         };

@@ -7,11 +7,19 @@ namespace svt {
     namespace api {
         namespace factory {
             class descriptor_set_t : public std::enable_shared_from_this<descriptor_set_t> { public: 
-                //std::vector<api::factory::vector_t> buffers = {};
-                //std::vector<api::factory::buffer_view_t> buffer_views = {};
-                //std::vector<api::factory::image_view_t> image_views = {};
+                core::api::descriptor_set_t set = {};
+                core::api::descriptor_set_template_t temp = {};
 
-                //core::api::result_t set_buffer();
+                descriptor_set_t(const descriptor_set_t& descriptor_set_t) : set(descriptor_set_t), temp(descriptor_set_t) {};
+                descriptor_set_t& operator=(const descriptor_set_t& descriptor_set_t) { set = descriptor_set_t, temp = descriptor_set_t; return *this; };
+
+                operator core::api::descriptor_set_t&() {return set; };
+                operator core::api::descriptor_set_template_t&() {return temp; };
+                operator const core::api::descriptor_set_t&() const {return set; };
+                operator const core::api::descriptor_set_template_t&() const {return temp; };
+
+                core::api::descriptor_set_t* operator->() { return &(this->set); };
+                const core::api::descriptor_set_t* operator->() const { return &(this->set); };
             };
         };
     };

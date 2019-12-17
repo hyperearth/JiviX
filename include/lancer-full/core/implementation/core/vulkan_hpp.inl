@@ -34,6 +34,9 @@ namespace svt {
             using buffer_descriptor_t = vk::DescriptorBufferInfo;
             using buffer_view_t = vk::BufferView;
             using image_view_t = vk::ImageView;
+            using descriptor_set_t = vk::DescriptorSet;
+            using descriptor_set_template_t = vk::DescriptorUpdateTemplate;
+            using descriptor_set_layout_t = vk::DescriptorSetLayout;
         };
     };
 #endif
