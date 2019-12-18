@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./core/unified/core.hpp"
+#include "./factory/API/unified/enums.hpp"
 
 namespace svt {
     namespace api {

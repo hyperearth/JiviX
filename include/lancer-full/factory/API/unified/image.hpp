@@ -10,7 +10,8 @@ namespace svt {
             // Can Be Extended By VMA Allocators
             class image_t : public std::enable_shared_from_this<image_t> { public: 
                 //std::vector<uint32_t> queueFamilyIndices = {};
-                core::api::image_t image;
+                core::api::image_t image = (core::api::image_t)(nullptr);
+                image_layout layout = image_layout::t_undefined;
 
 
                 image_t(const image_t& image) : image(image) {};

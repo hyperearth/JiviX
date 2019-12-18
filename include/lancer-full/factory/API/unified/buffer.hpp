@@ -10,7 +10,7 @@ namespace svt {
             // Can Be Extended By VMA Allocators
             class buffer_t : public std::enable_shared_from_this<buffer_t> { public: 
                 //std::vector<uint32_t> queueFamilyIndices = {};
-                core::api::buffer_t buffer;
+                core::api::buffer_t buffer = (core::api::buffer_t)(nullptr);
 
                 // custom destructor for inheritance
                 virtual ~buffer_t(){};

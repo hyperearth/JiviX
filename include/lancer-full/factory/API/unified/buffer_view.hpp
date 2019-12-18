@@ -7,7 +7,8 @@ namespace svt {
     namespace api {
         namespace factory {
             class buffer_view_t : public std::enable_shared_from_this<buffer_view_t> { public: 
-                core::api::buffer_view_t buffer_view;
+                core::api::buffer_view_t buffer_view = (core::api::buffer_view_t)(nullptr);
+                svt::api::format format_t = svt::api::format::t_undefined;
 
                 buffer_view_t(const buffer_view_t& buffer_view) : buffer_view(buffer_view) {};
                 buffer_view_t(const core::api::buffer_view_t& buffer_view) : buffer_view(buffer_view) {};

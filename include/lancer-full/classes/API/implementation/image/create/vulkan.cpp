@@ -6,7 +6,7 @@ namespace svt {
     namespace api {
         namespace classes {
 #ifdef USE_VULKAN
-            svt::core::handle_ref<image, core::api::result_t> image::create(const allocator& allocator, const create_info& info, const image_layout& initial_layout) {
+            svt::core::handle_ref<image, core::api::result_t> image::create(const allocator& allocator, const image_create_info& info, const image_layout& initial_layout) {
                 vk::ImageCreateInfo vk_info{};
                 vk_info.usage = vk::ImageUsageFlagBits(info.usage32u);
                 vk_info.flags = vk::ImageCreateFlagBits(info.flags32u);
@@ -21,7 +21,7 @@ namespace svt {
                 vk_info.queueFamilyIndexCount = this->device_t->queueFamilyIndices.size();
                 vk_info.pQueueFamilyIndices = this->device_t->queueFamilyIndices.data();
                 this->image_t->image = this->device_t->device.createImage(vk_info);
-                this->layout_t = initial_layout;
+                this->image_t->layout = initial_layout;
                 return { *this,core::api::result_t(0u) };
             };
 #endif

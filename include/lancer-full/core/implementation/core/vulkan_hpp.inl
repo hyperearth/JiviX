@@ -37,6 +37,7 @@ namespace svt {
             using descriptor_set_t = vk::DescriptorSet;
             using descriptor_set_template_t = vk::DescriptorUpdateTemplate;
             using descriptor_set_layout_t = vk::DescriptorSetLayout;
+            using sampler_t = vk::Sampler;
         };
     };
 #endif

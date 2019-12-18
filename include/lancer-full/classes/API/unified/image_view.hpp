@@ -7,18 +7,14 @@ namespace svt {
     namespace api {
         namespace classes {
 
-            // TODO: image_view class
-            class image_view {
-                protected: 
-                    stu::image_view image_view_t = {};
-                    stu::sampler sampler_t = {};
-                    stu::device device_t = {};
-                    svt::image::image_layout layout_t = {};
-                    
-                public:
+            // TODO: create image_view method
+            class image_view { public: 
 
-
-                    // TODO: create image_view method
+            protected: 
+                stu::image_view image_view_t = {};
+                stu::image image_t = {};
+                stu::sampler sampler_t = {};
+                stu::device device_t = {};
             };
 
         };

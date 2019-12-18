@@ -37,17 +37,6 @@ namespace svt {
                 operator svt::core::api::buffer_region_t& ();
             };
 
-            //template<class T = uint8_t>
-            //class vector : public vector_t { protected: friend vector_t; friend vector<T>; //using T = uint8_t;
-            //    public: vector<T>(const std::shared_ptr<buffer_t>& buffer = {}, const uintptr_t& offset = 0u, const size_t& size = 1u) : vector_t(buffer, offset, range*sizeof(T)) {};
-            //    public: vector<T>(const vector<T>& vector = {}) : vector_t(dynamic_cast<const vector_t&>(vector)) {};
-
-            //    virtual size_t size() override { return this->range / sizeof(T); };
-            //    virtual uintptr_t offset() override { return this->offset; };
-            //    virtual uintptr_t handle() override { return this->handle; };
-            //    //virtual void* map() override {};
-            //};
-
         };
     };
 };
