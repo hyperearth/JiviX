@@ -6,6 +6,8 @@
 #include "./factory/API/unified/vector.hpp"
 #include "./classes/API/unified/allocator.hpp"
 #include "./classes/API/unified/buffer.hpp"
+#include "./classes/API/unified/buffer_view.hpp"
+#include "./classes/API/unified/descriptor_set.hpp"
 
 
 namespace svt {
@@ -19,7 +21,6 @@ namespace svt {
                 stu::device device_t = {};
 
             public: 
-                //vector<T>(const vector<T>& vector_t) : vector_t(vector_t), buffer_t(vector_t), device_t(vector_t) {}; 
                 template<class A = T>
                 vector<T>(const vector<A>& vector_t) : vector_t(vector_t), buffer_t(vector_t), device_t(vector_t) {};
                 vector<T>(                             const stu::buffer& buffer_t = {}, const stu::vector& vector_t = {}) : vector_t(vector_t), buffer_t(buffer_t) {};
@@ -44,27 +45,28 @@ namespace svt {
                 const uintptr_t& offset() const { return this->vector_t->offset(); };
                 const uintptr_t& handle() const { return this->vector_t->handle(); };
 
-                // assign mode 
-                // TODO: move into `.cpp` file
-                //vector<T>& operator=(const vector<T>&vector) {
-                //    this->vector_t = vector;
-                //    this->buffer_t = vector;
-                //    this->device_t = vector;
-                //    return *this;
-                //};
-
-                // TODO: move into `.cpp` file
+                // TODO: move into `.inl` file
                 template<class A = T>
-                vector<T>& operator=(const vector<A>& vector_t) {
+                inline vector<T>& operator=(const vector<A>& vector_t) {
                     this->vector_t = vector_t;
                     this->buffer_t = vector_t;
                     this->device_t = vector_t;
                     return *this;
                 };
 
-                // TODO: move into `.cpp` file
-                api::factory::vector_t* operator->() { return &(*this->vector_t); };
-                const api::factory::vector_t* operator->() const { return &(*this->vector_t); };
+                // TODO: move into `.inl` file
+                inline vector<T>& write_into_description(descriptor_set::cpu_handle& handle, const uint32_t& idx = 0u){
+                    core::api::buffer_region_t& ref = handle.offset<core::api::buffer_region_t>(idx);
+                    ref.buffer = *vector_t, ref.offset = vector_t->offset, ref.range = vector_t->range;
+                    return *this;
+                };
+
+                // TODO: create format from native type
+                inline buffer_view create_buffer_view();
+
+                // TODO: move into `.inl` file
+                inline api::factory::vector_t* operator->() { return &(*this->vector_t); };
+                inline const api::factory::vector_t* operator->() const { return &(*this->vector_t); };
             };
         };
     };

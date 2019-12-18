@@ -7,7 +7,8 @@ namespace svt {
     namespace api {
         namespace classes {
 
-            class image {
+            // TODO: image_view class
+            class image_view {
                 protected: 
                     stu::image_view image_view_t = {};
                     stu::sampler sampler_t = {};
@@ -16,6 +17,8 @@ namespace svt {
                     
                 public:
 
+
+                    // TODO: create image_view method
             };
 
         };

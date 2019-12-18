@@ -1,7 +1,9 @@
 #pragma once
 
 #include "./classes/API/types.hpp"
+#include "./classes/API/unified/descriptor_set.hpp"
 #include "./factory/API/unified/descriptor_set_layout.hpp"
+
 namespace svt {
     namespace api {
         namespace classes {
@@ -9,16 +11,36 @@ namespace svt {
             // TODO: complete descriptor layout entries
             // TODO: add implementation into `.cpp`
             class descriptor_set_layout {
-                protected: friend descriptor_set;
-                    stu::descriptor_set_layout descriptor_set_layout_t = {};
-                    stu::device device_t = {};
-                    
+                
                 public: 
+                    struct bindings {
+                        uint32_t binding = 0u;
+
+                        // TODO: resolve header ordering conflicts
+                        descriptor_set::type type = descriptor_set::type::t_sampler;
+
+                        // 
+                        uint32_t count = 1u;
+
+                        // TODO: shader stage flags type
+                        uint32_t shader_stages = 1u;
+
+                        // TODO: immutable samplers
+                        //api::factory::sampler_t sampler;
+                        uintptr_t samplers = 0u;
+                        
+                        // TODO: flags EXT type support
+                        uint32_t flags_ext = 0u;
+                    };
+
                     descriptor_set_layout& operator=(const descriptor_set_layout &descriptor_set_layout) { 
                         this->descriptor_set_layout_t = descriptor_set_layout;
                         this->device_t = descriptor_set_layout;
                         return *this;
                     };
+
+                    // TODO: push bindings, full version
+                    
 
                     // 
                     operator stu::descriptor_set_layout&() { return descriptor_set_layout_t; };
@@ -29,7 +51,17 @@ namespace svt {
                     // 
                     api::factory::descriptor_set_layout_t* operator->() { return &(*this->descriptor_set_layout_t); };
                     const api::factory::descriptor_set_layout_t* operator->() const { return &(*this->descriptor_set_layout_t); };
+
+                    // 
+                    void create(const uint32_t& flags = 0u);
+
+                protected: friend descriptor_set;
+                    stu::descriptor_set_layout descriptor_set_layout_t = {};
+                    stu::device device_t = {};
+                    std::vector<bindings> bindings_t = {};
             };
+
+
         };
     };
 };

@@ -46,42 +46,22 @@ namespace svt {
                         void* field_t = nullptr;
 
                         // any buffers and images can `write` into types
-                        template<class T = uint8_t> operator T&() { return (T*)field_t; };
-                        template<class T = uint8_t> operator const T&() const { return (T*)field_t; };
-                        template<class T = uint8_t> T& handle() { return (T*)field_t; };
-                        template<class T = uint8_t> const T& handle() const { return (T*)field_t; };
-                        uint32_t& size() { return entry_t->descs_count; };
+                        template<class T = uint8_t> operator T&() { return (*field_t); };
+                        template<class T = uint8_t> operator const T&() const { return (*field_t); };
+                        template<class T = uint8_t> T& offset(const uint32_t& idx = 0u) { return cpu_handle{entry_t+idx,(T*)field_t}; };
+                        template<class T = uint8_t> const T& offset(const uint32_t& idx = 0u) const { return cpu_handle{entry_t+idx,(T*)field_t}; };
+                        const uint32_t& size() const { return entry_t->descs_count; };
+                        
+                        // 
+                        
                     };
 
                     // TODO: add into `.cpp` file
-                    //using T = vk::DescriptorImageInfo;
                     template<class T>
-                    inline T* _add_desc( const entry& entry_t ) { // Un-Safe API again
-                        const uintptr_t pt0 = heap.size();
-                        heap.resize(pt0+sizeof(T)*entry_t.descriptor_count, 0u);
-                        entries.push_back(vk::DescriptorUpdateTemplateEntry{entry_t.dst_binding,entry_t.dst_array_element,entry_t.descs_count,(vk::DescriptorType)(entry_t),pt0,sizeof(T)});
-                        return (T*)(&heap[pt0]);
-                    };
+                    inline cpu_handle add_description( const entry& entry_t );
 
-                    // TODO: add finally apply method support
-                    // TODO: add into `.cpp` file
-                    // TODO: add RTX description_write support
-                    void apply() {
-                        vk::DescriptorUpdateTemplateCreateInfo info{};
-                        info.templateType = vk::DescriptorUpdateTemplateType::eDescriptorSet;
-                        info.flags = {};
-                        info.descriptorUpdateEntryCount = entries.size();
-                        info.pDescriptorUpdateEntries = entries.data();
-                        info.descriptorSetLayout = descriptor_set_layout_t->layout;
-
-                        // IGNORE due isn't push descriptor 
-                        //info.pipelineBindPoint = 0u;
-                        info.pipelineLayout = nullptr;
-                        info.set = {};
-
-                        device_t->device.createDescriptorUpdateTemplate(&info,nullptr,&descriptor_set_t->temp); // TODO: destroy previous template 
-                        device_t->device.updateDescriptorSetWithTemplate(descriptor_set_t->set,descriptor_set_t->temp,heap.data()); // 
-                    };
+                    // 
+                    void apply();
                     
             };
         };
