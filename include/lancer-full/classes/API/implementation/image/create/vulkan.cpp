@@ -18,10 +18,10 @@ namespace svt {
                 vk_info.format = vk::Format(info.format);
                 vk_info.arrayLayers = info.array_layers;
                 vk_info.mipLevels = info.mip_levels;
-                vk_info.queueFamilyIndexCount = this->device_t->queueFamilyIndices.size();
-                vk_info.pQueueFamilyIndices = this->device_t->queueFamilyIndices.data();
-                this->image_t->image = this->device_t->device.createImage(vk_info);
-                this->image_t->layout = initial_layout;
+                vk_info.queueFamilyIndexCount = device_->queue_family_indices_.size();
+                vk_info.pQueueFamilyIndices = device_->queue_family_indices_.data();
+                (*image_) = (*device_)->createImage(vk_info);
+                (*image_).layout_ = initial_layout;
                 return { *this,core::api::result_t(0u) };
             };
 #endif

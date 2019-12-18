@@ -7,21 +7,21 @@ namespace svt {
     namespace api {
         namespace factory {
             class sampler_t : public std::enable_shared_from_this<sampler_t> { public: 
-                core::api::sampler_t sampler = (core::api::sampler_t)(nullptr);
+                core::api::sampler_t sampler_ = API_NULL_HANDLE;
 
 
-                operator uintptr_t&() { return (uintptr_t&)(this->sampler); };
-                operator const uintptr_t&() const { return (uintptr_t&)(this->sampler); };
+                operator uintptr_t&() { return (uintptr_t&)(this->sampler_); };
+                operator const uintptr_t&() const { return (uintptr_t&)(this->sampler_); };
 
-                sampler_t(const sampler_t& buffer) : sampler(sampler) {};
-                sampler_t(const core::api::sampler_t& buffer) : sampler(sampler) {};
-                sampler_t& operator=(const sampler_t& buffer) { this->sampler = sampler; return *this; };
+                sampler_t(const sampler_t& sampler) : sampler_(sampler) {};
+                sampler_t(const core::api::sampler_t& sampler_) : sampler_(sampler_) {};
+                sampler_t& operator=(const sampler_t& sampler) { this->sampler_ = sampler; return *this; };
 
-                operator core::api::sampler_t&() { return sampler; };
-                operator const core::api::sampler_t&() const { return sampler; };
+                operator core::api::sampler_t&() { return sampler_; };
+                operator const core::api::sampler_t&() const { return sampler_; };
 
-                core::api::sampler_t* operator->() { return &(this->sampler); };
-                const core::api::sampler_t* operator->() const { return &(this->sampler); };
+                core::api::sampler_t* operator->() { return &(this->sampler_); };
+                const core::api::sampler_t* operator->() const { return &(this->sampler_); };
             };
         };
     };

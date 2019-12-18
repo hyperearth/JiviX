@@ -7,18 +7,18 @@ namespace svt {
     namespace api {
         namespace classes {
             class device { public: 
-                device(const device& device) : device_t(device) {};
-                device(const stu::device& device_t = {}) : device_t(device_t) {};
-                device& operator=(const device &device) { this->device_t = device; return *this; };
+                device(const device& device) : device_(device) {};
+                device(const stu::device& device_ = {}) : device_(device_) {};
+                device& operator=(const device &device) { this->device_ = device; return *this; };
 
-                operator stu::device&() { return device_t; };
-                operator const stu::device&() const { return device_t; };
+                operator stu::device&() { return device_; };
+                operator const stu::device&() const { return device_; };
 
-                api::factory::device_t* operator->() { return &(*this->device_t); };
-                const api::factory::device_t* operator->() const { return &(*this->device_t); };
+                api::factory::device_t* operator->() { return &(*this->device_); };
+                const api::factory::device_t* operator->() const { return &(*this->device_); };
 
             protected: 
-                stu::device device_t = {};
+                stu::device device_ = {};
             };
         };
     };

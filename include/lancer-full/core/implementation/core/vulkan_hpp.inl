@@ -38,6 +38,10 @@ namespace svt {
             using descriptor_set_template_t = vk::DescriptorUpdateTemplate;
             using descriptor_set_layout_t = vk::DescriptorSetLayout;
             using sampler_t = vk::Sampler;
+
+            #ifndef API_NULL_HANDLE
+            #define API_NULL_HANDLE {}
+            #endif
         };
     };
 #endif

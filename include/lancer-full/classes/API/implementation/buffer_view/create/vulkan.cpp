@@ -15,9 +15,9 @@ namespace svt {
                 info.format = vk::Format(format);
                 info.offset = vector->offset;
                 info.range = vector->range;
-                vector_t = vector;
-                buffer_view_t->format_t = format;
-                buffer_view_t->buffer_view = (device_t->device).createBufferView(info);
+                vector_ = vector;
+                (*buffer_view_).format_ = format;
+                (*buffer_view_) = (*device_)->createBufferView(info);
                 return {*this,core::api::result_t(0u)};
             };
 #endif

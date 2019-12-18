@@ -21,7 +21,7 @@ namespace svt {
                 std::vector<vk::DescriptorBindingFlagsEXT> bindings_flags_vk = {};
 
                 // 
-                for (auto& bi : this->bindings_t) {
+                for (auto& bi : this->bindings_) {
                     bindings_vk.push_back(vk::DescriptorSetLayoutBinding{bi.binding,vk::DescriptorType(bi.type),bi.count,vk::ShaderStageFlags(bi.shader_stages),(vk::Sampler*)(bi.samplers)});
                     bindings_flags_vk.push_back(vk::DescriptorBindingFlagsEXT{bi.flags_ext});
                 };
@@ -32,7 +32,7 @@ namespace svt {
                 info.pBindings = bindings_vk.data();
                 info.bindingCount = bindings_vk.size();
 
-                (core::api::descriptor_set_layout_t&)(*descriptor_set_layout_t) = (*device_t)->createDescriptorSetLayout(info);
+                (core::api::descriptor_set_layout_t&)(*descriptor_set_layout_) = (*device_)->createDescriptorSetLayout(info);
                 return {*this,core::api::result_t(0u)};
             };
 #endif

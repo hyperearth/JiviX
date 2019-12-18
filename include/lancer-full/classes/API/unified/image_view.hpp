@@ -11,10 +11,10 @@ namespace svt {
             class image_view { public: 
 
             protected: 
-                stu::image_view image_view_t = {};
-                stu::image image_t = {};
-                stu::sampler sampler_t = {};
-                stu::device device_t = {};
+                stu::image_view image_view_ = {};
+                stu::image image_ = {};
+                stu::sampler sampler_ = {};
+                stu::device device_ = {};
             };
 
         };

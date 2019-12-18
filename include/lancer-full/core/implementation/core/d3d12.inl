@@ -28,6 +28,10 @@ namespace svt {
     namespace core {
         namespace api {
             using result_t = HRESULT;
+
+            #ifndef API_NULL_HANDLE
+            #define API_NULL_HANDLE {}
+            #endif
         };
     };
 #endif

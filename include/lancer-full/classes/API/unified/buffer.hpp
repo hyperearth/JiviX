@@ -11,15 +11,15 @@ namespace svt {
     namespace api {
         namespace classes {
             class buffer { public: 
-                buffer(const stu::buffer& buffer_t = {}) : buffer_t(buffer_t) {};
-                buffer(const stu::device& device_t, const stu::buffer& buffer_t = {}) : buffer_t(buffer_t), device_t(device_t) {};
-                buffer(const buffer& buffer) : buffer_t(buffer), device_t(buffer) {};
+                buffer(                            const stu::buffer& buffer_ = {}) : buffer_(buffer_) {};
+                buffer(const stu::device& device_, const stu::buffer& buffer_ = {}) : buffer_(buffer_), device_(device_) {};
+                buffer(const buffer& buffer) : buffer_(buffer), device_(buffer) {};
 
                 // TODO: move into `.cpp` file
-                operator stu::buffer&() { return buffer_t; };
-                operator stu::device&() { return device_t; };
-                operator const stu::buffer&() const { return buffer_t; };
-                operator const stu::device&() const { return device_t; };
+                operator stu::buffer&() { return buffer_; };
+                operator stu::device&() { return device_; };
+                operator const stu::buffer&() const { return buffer_; };
+                operator const stu::device&() const { return device_; };
 
                 // 
                 stu::vector vector(uintptr_t offset = 0u, size_t size = 4u);
@@ -30,18 +30,18 @@ namespace svt {
                 
                 // TODO: move into `.cpp` file
                 buffer& operator=(const buffer &buffer) { 
-                    this->buffer_t = buffer;
-                    this->device_t = buffer;
+                    this->buffer_ = buffer;
+                    this->device_ = buffer;
                     return *this;
                 };
                 
                 // TODO: move into `.cpp` file
-                api::factory::buffer_t* operator->() { return &(*this->buffer_t); };
-                const api::factory::buffer_t* operator->() const { return &(*this->buffer_t); };
+                api::factory::buffer_t* operator->() { return &(*this->buffer_); };
+                const api::factory::buffer_t* operator->() const { return &(*this->buffer_); };
 
             protected: friend buffer;
-                stu::buffer buffer_t = {};
-                stu::device device_t = {};
+                stu::buffer buffer_ = {};
+                stu::device device_ = {};
             };
         };
     };

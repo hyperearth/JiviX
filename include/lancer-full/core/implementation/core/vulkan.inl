@@ -32,6 +32,10 @@ namespace svt {
             using device_t = VkDevice;
             using image_t = VkImage;
             using buffer_region_t = VkDescriptorBufferInfo;
+
+            #ifndef API_NULL_HANDLE
+            #define API_NULL_HANDLE VK_NULL_HANDLE
+            #endif
         };
     };
 #endif
