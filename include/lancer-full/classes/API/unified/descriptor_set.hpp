@@ -61,7 +61,7 @@ namespace svt {
                     inline cpu_handle add_description( const entry& entry_t );
 
                     // 
-                    void apply();
+                    svt::core::handle_ref<descriptor_set,core::api::result_t> update();
                     
             };
         };

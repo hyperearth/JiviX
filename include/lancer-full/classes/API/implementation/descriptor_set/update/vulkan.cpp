@@ -9,7 +9,7 @@ namespace svt {
 #ifdef USE_VULKAN
             // TODO: add finally apply method support
             // TODO: add RTX description_write support
-            void descriptor_set::apply() {
+            svt::core::handle_ref<descriptor_set,core::api::result_t> descriptor_set::update() {
                 vk::DescriptorUpdateTemplateCreateInfo info{};
                 info.templateType = vk::DescriptorUpdateTemplateType::eDescriptorSet;
                 info.flags = {};
@@ -25,6 +25,7 @@ namespace svt {
                 // 
                 (*device_t)->createDescriptorUpdateTemplate(&info,nullptr,&descriptor_set_t->temp); // TODO: destroy previous template 
                 (*device_t)->updateDescriptorSetWithTemplate(descriptor_set_t->set,descriptor_set_t->temp,heap.data()); // 
+                return {*this,core::api::result_t(0u)};
             };
 #endif
         };

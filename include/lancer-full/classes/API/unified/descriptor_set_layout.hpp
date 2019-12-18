@@ -53,7 +53,7 @@ namespace svt {
                     const api::factory::descriptor_set_layout_t* operator->() const { return &(*this->descriptor_set_layout_t); };
 
                     // 
-                    void create(const uint32_t& flags = 0u);
+                    svt::core::handle_ref<descriptor_set_layout,core::api::result_t> create(const uint32_t& flags = 0u);
 
                 protected: friend descriptor_set;
                     stu::descriptor_set_layout descriptor_set_layout_t = {};

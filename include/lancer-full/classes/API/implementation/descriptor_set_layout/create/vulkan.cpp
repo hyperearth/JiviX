@@ -10,7 +10,7 @@ namespace svt {
         namespace classes {
 #ifdef USE_VULKAN
             // 
-            void descriptor_set_layout::create(const uint32_t& flags){
+            svt::core::handle_ref<descriptor_set_layout,core::api::result_t> descriptor_set_layout::create(const uint32_t& flags){
                 vk::DescriptorSetLayoutCreateInfo info = {};
                 vk::DescriptorSetLayoutBindingFlagsCreateInfoEXT f_info = {};
                 info.flags = vk::DescriptorSetLayoutCreateFlags(flags);
@@ -33,6 +33,7 @@ namespace svt {
                 info.bindingCount = bindings_vk.size();
 
                 (core::api::descriptor_set_layout_t&)(*descriptor_set_layout_t) = (*device_t)->createDescriptorSetLayout(info);
+                return {*this,core::api::result_t(0u)};
             };
 #endif
         };
