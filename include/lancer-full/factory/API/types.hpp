@@ -23,6 +23,7 @@ namespace svt {
             class image_t;
             class buffer_view_t;
             class image_view_t;
+            class allocation_t;
             class sampler_t;
         };
     };

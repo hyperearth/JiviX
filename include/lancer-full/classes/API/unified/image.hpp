@@ -37,8 +37,8 @@ namespace svt {
             protected: friend image;
                 stu::image image_ = {};
                 stu::device device_ = {};
-                //image_layout layout_ = {};
-                
+                stu::allocator allocator_ = {};
+                stu::allocation allocation_ = {};
             };
         };
     };

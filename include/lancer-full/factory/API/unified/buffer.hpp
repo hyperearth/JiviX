@@ -26,6 +26,9 @@ namespace svt {
                 core::api::buffer_t* operator->() { return &(this->buffer_); };
                 const core::api::buffer_t* operator->() const { return &(this->buffer_); };
 
+                // export allocation ONCE as dedicated (should to be unbound from that object)
+                virtual std::shared_ptr<allocation_t> export_allocation();
+
                 // 
                 virtual ~buffer_t(){};
                 virtual uintptr_t get_allocation();

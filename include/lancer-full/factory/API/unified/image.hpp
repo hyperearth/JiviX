@@ -23,6 +23,9 @@ namespace svt {
                 core::api::image_t* operator->() { return &(this->image_); };
                 const core::api::image_t* operator->() const { return &(this->image_); };
 
+                // export allocation ONCE as dedicated (should to be unbound from that object)
+                virtual std::shared_ptr<allocation_t> export_allocation();
+
                 // 
                 virtual ~image_t() {};
                 virtual uintptr_t get_allocation();
