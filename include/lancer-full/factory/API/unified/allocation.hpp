@@ -11,7 +11,7 @@ namespace svt {
                 virtual ~allocation_t(){};
                 virtual uintptr_t get_allocation();
                 virtual uintptr_t get_allocation_info();
-                virtual void* get_mapped();
+                virtual void* mapped();
                 virtual void* map();
                 virtual void unmap(void* ptr = nullptr);
             };

@@ -26,6 +26,7 @@ namespace svt {
                 core::api::buffer_t* operator->() { return &(this->buffer_); };
                 const core::api::buffer_t* operator->() const { return &(this->buffer_); };
 
+                // TODO: import/claim allocation
                 // export allocation ONCE as dedicated (should to be unbound from that object)
                 virtual std::shared_ptr<allocation_t> export_allocation();
 
@@ -33,7 +34,7 @@ namespace svt {
                 virtual ~buffer_t(){};
                 virtual uintptr_t get_allocation();
                 virtual uintptr_t get_allocation_info();
-                virtual void* get_mapped();
+                virtual void* mapped();
                 virtual void* map();
                 virtual void unmap(void* ptr = nullptr);
             };
