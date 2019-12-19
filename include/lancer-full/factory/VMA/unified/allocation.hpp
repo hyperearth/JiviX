@@ -13,7 +13,7 @@ namespace svt {
             class allocation_t : public svt::api::factory::allocation_t { public: 
                 internal_allocation allocation_ = {};
                 allocation_t(internal_allocation allocation_ = {}) : allocation_(std::move(allocation_)) {};
-                virtual ~allocation_t() override { vmaFreeMemory(allocation_->allocator, allocation_->allocation); allocation_ = {}; };
+                virtual ~allocation_t() override { if (allocation_) vmaFreeMemory(allocation_->allocator, allocation_->allocation); allocation_ = {}; };
                 virtual uintptr_t get_allocation() override { return uintptr_t(&allocation_->allocation_); };
                 virtual uintptr_t get_allocation_info() override { return uintptr_t(&allocation_->allocation_info_); };
                 virtual void* mapped() override { return allocation_->allocation_info_->pMappedData; };

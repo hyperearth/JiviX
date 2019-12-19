@@ -34,7 +34,7 @@ namespace svt {
                 };
 
                 // 
-                virtual ~buffer_t() override { vmaDestroyBuffer(allocation_->allocator, buffer_, allocation_->allocation_); allocation_ = {}; };
+                virtual ~buffer_t() override { if (allocation_) vmaDestroyBuffer(allocation_->allocator, buffer_, allocation_->allocation_); allocation_ = {}; };
                 virtual uintptr_t get_allocation() override { return uintptr_t(&allocation_->allocation_); };
                 virtual uintptr_t get_allocation_info() override { return uintptr_t(&allocation_->allocation_info_); };
                 virtual void* mapped() override { return allocation_->allocation_info_->pMappedData; };
