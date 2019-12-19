@@ -39,9 +39,9 @@ namespace svt {
 
             protected: friend buffer;
                 stu::buffer buffer_ = {};
-                stu::device device_ = {};
-                stu::allocator allocator_ = {};
                 stu::allocation allocation_ = {};
+                stu::allocator allocator_ = {};
+                stu::device device_ = {};
             };
         };
     };

@@ -10,8 +10,8 @@ namespace svt {
             class allocation { public: 
             protected: friend allocation;
                 stu::allocation allocation_ = {};
-                stu::device device_ = {};
                 stu::allocator allocator_ = {};
+                stu::device device_ = {};
             };
         };
     };
