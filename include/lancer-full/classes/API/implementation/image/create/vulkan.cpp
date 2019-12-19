@@ -1,5 +1,8 @@
-#include "./factory/API/unified/device.hpp"
-#include "./factory/API/unified/allocator.hpp"
+// 
+#include "./classes/API/unified/device.hpp"
+#include "./classes/API/unified/allocator.hpp"
+
+// 
 #include "./factory/API/unified/image.hpp"
 #include "./classes/API/unified/image.hpp"
 

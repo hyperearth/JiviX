@@ -2,7 +2,6 @@
 
 #include "./classes/API/types.hpp"
 #include "./factory/API/unified/buffer.hpp"
-//#include "./factory/API/unified/vector.hpp"
 
 namespace svt {
     namespace api {
