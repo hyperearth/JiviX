@@ -192,6 +192,9 @@ namespace svt {
             
             // TODO: flags EXT type support
             uint32_t flags_ext = 0b00000000000000000000000000000000;
+
+            // 
+            //std::vector<sampler_t> vSamplers = {};
         };
 
         struct buffer_create_info {
@@ -239,6 +242,40 @@ namespace svt {
         };
 
 
+        // TODO: Complete Pipeline Support
+        class pipeline_shader_stage { public: 
+            
+        };
+
+        class graphics_pipeline_create_info { public: uint32_t flags = 0u;
+            std::vector<pipeline_shader_stage> stages = {};
+
+            struct dynamic_state {} dynamic_state;
+            struct viewport_state {} viewport_state;
+            struct tesselation_state {} tesselation_state;
+            struct multisample_state {} multisample_state;
+            struct color_blend_state {} color_blend_state;
+            struct vertex_input_state {} vertex_input_state;
+            struct rasterization_state {} rasterization_state;
+            struct depth_stencil_state {} depth_stencil_state;
+            struct vertex_assembly_state {} vertex_assembly_state;
+
+            //struct conservative_rasterization_state {} conservative_rasterization_state;
+            uintptr_t pipeline_layout = 0u;
+            uintptr_t render_pass = 0u;
+            uint32_t subpass = 0u;
+
+            // 
+            std::vector<uintptr_t> base_pipeline_handle = {};
+        };
+
+        class compute_pipeline_create_info { public: uint32_t flags = 0u;
+            pipeline_shader_stage stage = {};
+            uintptr_t pipeline_layout = 0u;
+
+            // 
+            std::vector<uintptr_t> base_pipeline_handle = {};
+        };
 
     };
 };
