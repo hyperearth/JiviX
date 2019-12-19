@@ -12,7 +12,7 @@ namespace svt {
 
             class allocation_t : public svt::api::factory::allocation_t { public: 
                 internal_allocation allocation_ = {};
-                allocation_t(internal_allocation&& allocation_ = {}) : allocation_(allocation_) {};
+                allocation_t(internal_allocation allocation_ = {}) : allocation_(std::move(allocation_)) {};
                 virtual ~allocation_t() override {};
                 virtual uintptr_t get_allocation() override;
                 virtual uintptr_t get_allocation_info() override;
