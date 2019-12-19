@@ -12,15 +12,6 @@ namespace svt {
                 //std::vector<uint32_t> queueFamilyIndices = {};
                 core::api::buffer_t buffer_ = API_NULL_HANDLE;
 
-                // custom destructor for inheritance
-                virtual ~buffer_t(){};
-
-                // due std::shared_ptr<data::factory::buffer_t> is dynamic, should contain some general methods
-                virtual uintptr_t get_allocation();
-                virtual uintptr_t get_allocation_info();
-                virtual void* get_mapped();
-                virtual void* map();
-                virtual void unmap(void* ptr = nullptr);
 
                 operator uintptr_t&() { return (uintptr_t&)(this->buffer_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(this->buffer_); };
@@ -34,6 +25,14 @@ namespace svt {
 
                 core::api::buffer_t* operator->() { return &(this->buffer_); };
                 const core::api::buffer_t* operator->() const { return &(this->buffer_); };
+
+                // 
+                virtual ~buffer_t(){};
+                virtual uintptr_t get_allocation();
+                virtual uintptr_t get_allocation_info();
+                virtual void* get_mapped();
+                virtual void* map();
+                virtual void unmap(void* ptr = nullptr);
             };
 
         };

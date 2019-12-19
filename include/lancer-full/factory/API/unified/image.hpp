@@ -23,9 +23,13 @@ namespace svt {
                 core::api::image_t* operator->() { return &(this->image_); };
                 const core::api::image_t* operator->() const { return &(this->image_); };
 
-
+                // 
                 virtual ~image_t(){};
-            };
+                virtual uintptr_t get_allocation();
+                virtual uintptr_t get_allocation_info();
+                virtual void* get_mapped();
+                virtual void* map();
+                virtual void unmap(void* ptr = nullptr);
         };
     };
 };

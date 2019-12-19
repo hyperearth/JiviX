@@ -1,11 +1,8 @@
 #pragma once
 
 #include "./classes/API/types.hpp"
-#include "./factory/API/unified/allocator.hpp"
 #include "./factory/API/unified/buffer.hpp"
-#include "./factory/API/unified/vector.hpp"
-#include "./factory/API/unified/allocator.hpp"
-#include "./classes/API/unified/allocator.hpp"
+//#include "./factory/API/unified/vector.hpp"
 
 namespace svt {
     namespace api {
@@ -21,9 +18,11 @@ namespace svt {
                 operator const stu::buffer&() const { return buffer_; };
                 operator const stu::device&() const { return device_; };
 
-                // 
+                // TODO: vector construction
                 stu::vector vector(uintptr_t offset = 0u, size_t size = 4u);
-                svt::core::handle_ref<buffer,core::api::result_t> create(const allocator& allocator = {}, const buffer_create_info& info = {});
+
+                // Currently Aggregator
+                svt::core::handle_ref<buffer,core::api::result_t> create(const stu::allocator& allocator_ = {}, const buffer_create_info& info = {}, const uintptr_t& info_ptr = 0u);
 
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::buffer_t _get_buffer_t();

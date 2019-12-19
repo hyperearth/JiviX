@@ -1,10 +1,7 @@
 #pragma once
 
 #include "./classes/API/types.hpp"
-#include "./factory/API/unified/allocator.hpp"
 #include "./factory/API/unified/image.hpp"
-#include "./factory/API/unified/allocator.hpp"
-#include "./classes/API/unified/allocator.hpp"
 
 namespace svt {
     namespace api {
@@ -20,8 +17,8 @@ namespace svt {
                 operator const stu::image&() const { return image_; };
                 operator const stu::device&() const { return device_; };
 
-                // 
-                svt::core::handle_ref<image, core::api::result_t> create(const allocator& allocator = {}, const image_create_info& info = {}, const image_layout& initial_layout = image_layout::t_undefined);
+                // Currently Aggregator
+                svt::core::handle_ref<image, core::api::result_t> create(const stu::allocator& allocator_ = {}, const image_create_info& info = {}, const uintptr_t& info_ptr = 0u, const image_layout& initial_layout = image_layout::t_undefined);
 
                 // TODO: move into `.cpp` file
                 image& operator=(const image &image) { 
@@ -37,7 +34,7 @@ namespace svt {
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::image_t _get_image_t();
 
-            protected: 
+            protected: friend image;
                 stu::image image_ = {};
                 stu::device device_ = {};
                 //image_layout layout_ = {};

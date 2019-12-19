@@ -2,6 +2,8 @@
 
 #include "./classes/API/types.hpp"
 #include "./factory/API/unified/allocator.hpp"
+#include "./classes/API/unified/buffer.hpp"
+#include "./classes/API/unified/image.hpp"
 
 namespace svt {
     namespace api {
@@ -30,9 +32,19 @@ namespace svt {
                         return *this;
                     };
 
+                    // TODO: full version
+                    // TODO: move into `.cpp` file
+                    virtual buffer& create_buffer(const buffer_create_info& info, const uintptr_t& info_ptr = 0u) { 
+                        auto buffer_ = buffer(); buffer_.create(allocator_, info, info_ptr); return buffer_;
+                    };
+                    virtual image& create_image(const image_create_info& info, const uintptr_t& info_ptr = 0u, const image_layout& initial_layout = image_layout::t_undefined) {
+                        auto image_ = image(); image_.create(allocator_, info, info_ptr, initial_layout); return image_;
+                    };
+
                     // TODO: move into `.cpp` file
                     api::factory::allocator_t* operator->() { return &(*this->allocator_); };
                     const api::factory::allocator_t* operator->() const { return &(*this->allocator_); };
+                    
             };
         };
     };
