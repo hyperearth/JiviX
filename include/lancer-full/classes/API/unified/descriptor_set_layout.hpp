@@ -37,6 +37,12 @@ namespace svt {
                 // 
                 svt::core::handle_ref<descriptor_set_layout,core::api::result_t> create(const uint32_t& flags = 0u);
 
+                // 
+                svt::core::handle_ref<descriptor_set_layout,core::api::result_t> push_binding( const description_binding& binding_ = {} ) {
+                    bindings_.push_back(binding_); return {*this, core::api::result_t(0u)};
+                };
+
+
             protected: friend descriptor_set; friend descriptor_set_layout;
                 stu::descriptor_set_layout descriptor_set_layout_ = {};
                 stu::device device_ = {};

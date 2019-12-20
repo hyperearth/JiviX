@@ -141,7 +141,9 @@ namespace svt {
             t_storage_buffer = 7u,
             t_uniform_buffer_dynamic = 8u,
             t_storage_buffer_dynamic = 9u,
-            t_input_attachment = 10u
+            t_input_attachment = 10u,
+            t_inline_uniform_block = 1000138000u,
+            t_acceleration_structure = 1000165000u
         };
 
         
