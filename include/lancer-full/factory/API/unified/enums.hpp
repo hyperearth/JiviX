@@ -265,6 +265,25 @@ namespace svt {
             t_max = 4u
         };
 
+        enum class logic_op : uint32_t {
+            t_clear = 0u,
+            t_and = 1u,
+            t_and_rev = 2u,
+            t_copy = 3u,
+            t_add_inv = 4u,
+            t_no_op = 5u,
+            t_xor = 6u,
+            t_or = 7u,
+            t_nor = 8u,
+            t_equivalent = 9u,
+            t_inv = 10u,
+            t_or_rev = 11u,
+            t_copy_inv = 12u,
+            t_or_inv = 13u,
+            t_nand = 14u, 
+            t_set = 15u,
+        };
+
         // blend factors
         enum class blend_factor : uint32_t {
             t_zero = 0u,
@@ -302,21 +321,61 @@ namespace svt {
             };
         };
 
+        
+
         // TODO: complete pipeline create info
         class graphics_pipeline_create_info { public: uint32_t flags = 0u;
             std::vector<pipeline_shader_stage> stages = {};
 
-            struct dynamic_state {} dynamic_state;
-            struct viewport_state {} viewport_state;
-            struct tesselation_state {} tesselation_state;
-            struct multisample_state {} multisample_state;
-            struct color_blend_state {} color_blend_state;
-            struct vertex_input_state {} vertex_input_state;
-            struct rasterization_state {} rasterization_state;
-            struct depth_stencil_state {} depth_stencil_state;
-            struct vertex_assembly_state {} vertex_assembly_state;
+            // 
+            struct vertex_input_state {
 
-            //struct conservative_rasterization_state {} conservative_rasterization_state;
+            } vertex_input_state;
+
+            // 
+            struct input_assembly_state {
+
+            } input_assembly_state;
+            
+            // 
+            struct tesselation_state {
+
+            } tesselation_state;
+
+            // 
+            struct viewport_state {
+
+            } viewport_state;
+
+            // 
+            struct rasterization_state {
+
+            } rasterization_state;
+
+            // 
+            struct multisample_state {
+
+            } multisample_state;
+
+            // 
+            struct depth_stencil_state {
+                
+            } depth_stencil_state;
+            
+            // Blend State WIP
+            struct color_blend_state {
+                bool logic_op_enabled = false;
+                logic_op logic_op = logic_op::t_clear;
+                std::vector<blend_state> attachments = {};
+                glm::vec4 constants = {};
+            } color_blend_state;
+            
+            // 
+            struct dynamic_state {
+                
+            } dynamic_state;
+
+            // TODO: pipeline_layout and render_pass types
             uintptr_t pipeline_layout = 0u;
             uintptr_t render_pass = 0u;
             uint32_t subpass = 0u;
