@@ -208,14 +208,14 @@ namespace svt {
 
         struct buffer_create_info {
             union {
-                uint32_t flags32u = 0b00000000000000000000000000000000;
+                uint32_t flags_32u = 0b00000000000000000000000000000000;
                 buffer_flags flags;
             };
 
             size_t size = 4u;
 
             union {
-                uint32_t usage32u = 0b00000000000000000000000000000000;
+                uint32_t usage_32u = 0b00000000000000000000000000000000;
                 buffer_usage usage;
             };
 
@@ -224,25 +224,28 @@ namespace svt {
 
         struct image_create_info {
             union {
-                uint32_t flags32u = 0b00000000000000000000000000000000;
+                uint32_t flags_32u = 0b00000000000000000000000000000000;
                 image_flags flags;
             };
 
             image_type image_type = image_type::t_1d;
             format format{ 0u };
-            extent_3d extent;
+            union {
+                glm::uvec3 extent_32u;//{1u,1u};
+                extent_3d extent;
+            };
             uint32_t mip_levels = 1u;
             uint32_t array_layers = 1u;
 
             union {
-                uint32_t samples32u = 0b00000000000000000000000000000001;
+                uint32_t samples_32u = 0b00000000000000000000000000000001;
                 image_sample_count samples;
             };
 
             image_tiling tiling = image_tiling::t_optimal;
 
             union {
-                uint32_t usage32u = 0b00000000000000000000000000000000;
+                uint32_t usage_32u = 0b00000000000000000000000000000000;
                 image_usage usage;
             };
 
@@ -317,7 +320,7 @@ namespace svt {
             blend_factor dst_alpha_factor = blend_factor::t_one;
             union {
                 color_mask color_write_mask;
-                uint32_t color_write_mask_u32 = 0u;
+                uint32_t color_write_mask_32u = 0u;
             };
         };
 
