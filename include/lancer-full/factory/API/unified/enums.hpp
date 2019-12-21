@@ -62,7 +62,7 @@ namespace svt {
             bit_fragment_density_map: 1;
         };
 
-        struct image_sample_count { uint32_t 
+        struct sample_count { uint32_t 
             bit_1: 1,
             bit_2: 1,
             bit_4: 1,
@@ -207,48 +207,22 @@ namespace svt {
         };
 
         struct buffer_create_info {
-            union {
-                uint32_t flags_32u = 0b00000000000000000000000000000000;
-                buffer_flags flags;
-            };
-
+            union { uint32_t flags_32u = 0b00000000000000000000000000000000; buffer_flags flags; };
             size_t size = 4u;
-
-            union {
-                uint32_t usage_32u = 0b00000000000000000000000000000000;
-                buffer_usage usage;
-            };
-
+            union { uint32_t usage_32u = 0b00000000000000000000000000000000; buffer_usage usage; };
             sharing_mode sharing_mode = sharing_mode::t_exclusive;
         };
 
         struct image_create_info {
-            union {
-                uint32_t flags_32u = 0b00000000000000000000000000000000;
-                image_flags flags;
-            };
-
+            union { uint32_t flags_32u = 0b00000000000000000000000000000000; image_flags flags; };
             image_type image_type = image_type::t_1d;
             format format{ 0u };
-            union {
-                glm::uvec3 extent_32u;//{1u,1u};
-                extent_3d extent;
-            };
+            union { glm::uvec3 extent; extent_3d extent_32u; };
             uint32_t mip_levels = 1u;
             uint32_t array_layers = 1u;
-
-            union {
-                uint32_t samples_32u = 0b00000000000000000000000000000001;
-                image_sample_count samples;
-            };
-
+            union { uint32_t samples_32u = 0b00000000000000000000000000000001; sample_count samples; };
             image_tiling tiling = image_tiling::t_optimal;
-
-            union {
-                uint32_t usage_32u = 0b00000000000000000000000000000000;
-                image_usage usage;
-            };
-
+            union { uint32_t usage_32u = 0b00000000000000000000000000000000; image_usage usage; };
             sharing_mode sharing_mode = sharing_mode::t_exclusive;
             //image_layout initial_layout = image_layout::t_undefined;
         };
@@ -310,21 +284,98 @@ namespace svt {
             t_one_minus_src1_alpha = 18u,
         };
 
-        class blend_state { public: 
-            bool enable = false;
-            blend_factor src_color_factor = blend_factor::t_one;
-            blend_factor src_alpha_factor = blend_factor::t_one;
-            blend_op color_op = blend_op::t_add;
-            blend_op alpha_op = blend_op::t_add;
-            blend_factor dst_color_factor = blend_factor::t_one;
-            blend_factor dst_alpha_factor = blend_factor::t_one;
-            union {
-                color_mask color_write_mask;
-                uint32_t color_write_mask_32u = 0u;
-            };
+        enum class primitive_topology : uint32_t {
+            t_point_list = 0u,
+            t_line_list = 1u,
+            t_line_strip = 2u,
+            t_triangle_list = 3u,
+            t_triangle_strip = 4u,
+            t_triangle_fan = 5u,
+            t_line_list_with_adjacency = 6u,
+            t_line_strip_with_adjacency = 7u,
+            t_triangle_list_adjacency = 8u,
+            t_triangle_strip_adjacency = 9u,
+            t_patch_list = 10u,
         };
 
-        
+        enum class polygon_mode : uint32_t {
+            t_fill = 0u,
+            t_line = 1u,
+            t_point = 2u,
+            t_fill_rectangle = 1000153000u
+        };
+
+        enum class front_face : uint32_t {
+            t_ccw = 0u,
+            t_cw = 1u
+        };
+
+        enum class compare_op : uint32_t {
+            t_never = 0u,
+            t_less = 1u,
+            t_equal = 2u,
+            t_less_equal = 3u,
+            t_greater = 4u,
+            t_not_equal = 5u,
+            t_greater_or_equal = 6u,
+            t_always = 7u
+        };
+
+        // TODO: dynamic states
+        enum class dynamic_state : uint32_t {
+            viewport = 0u,
+        };
+
+        enum class stencil_op : uint32_t {
+            t_keep = 0u,
+            t_zero = 1u,
+            t_replace = 2u,
+            t_increment_and_clamp = 3u,
+            t_decrement_and_clamp = 4u,
+            t_invert = 5u,
+            t_increment_and_wrap = 6u,
+            t_decrement_and_wrap = 7u
+        };
+
+        struct stencil_op_state {
+            stencil_op fail = stencil_op::t_keep;
+            stencil_op pass = stencil_op::t_keep;
+            stencil_op depth_fail = stencil_op::t_keep;
+            compare_op compare_op = compare_op::t_never;
+            uint32_t compare_mask = 0u;
+            uint32_t write_mask = 0u;
+            uint32_t reference = 0u;
+        };
+
+        struct cull_mode { uint32_t 
+            bit_front: 1,
+            bit_back: 1;
+        };
+
+
+        class blend_state { public: 
+            bool enable = false;
+            blend_factor src_color_factor = blend_factor::t_one; blend_op color_op = blend_op::t_add; blend_factor dst_color_factor = blend_factor::t_one;
+            blend_factor src_alpha_factor = blend_factor::t_one; blend_op alpha_op = blend_op::t_add; blend_factor dst_alpha_factor = blend_factor::t_one;
+            union { uint32_t color_write_mask_32u = 0u; color_mask color_write_mask; };
+        };
+
+        // TODO:  
+        class vertex_binding_desc { public: 
+            
+        };
+
+        // TODO:  
+        class vertex_attribute_desc { public: 
+            
+        };
+
+        // TODO: 
+        class viewport { public: float x = 0.f, y = 0.f, width = 1.f, height = 1.f, min_depth = 0.f, max_depth = 1.f; };
+        class rect_2d { public: 
+            union { glm::ivec2 offset; offset_2d offset_32i; };
+            union { glm::uvec2 extent; extent_2d extent_32u; };
+        };
 
         // TODO: complete pipeline create info
         class graphics_pipeline_create_info { public: uint32_t flags = 0u;
@@ -332,37 +383,62 @@ namespace svt {
 
             // 
             struct vertex_input_state {
-
+                std::vector<vertex_binding_desc> bindings = {};
+                std::vector<vertex_attribute_desc> attributes = {};
             } vertex_input_state;
 
             // 
             struct input_assembly_state {
-
+                primitive_topology topology = primitive_topology::t_point_list;
+                bool primitive_restart = false;
             } input_assembly_state;
             
             // 
             struct tesselation_state {
-
+                uint32_t patch_control_points = 1u;
             } tesselation_state;
 
             // 
             struct viewport_state {
-
+                std::vector<viewport> viewports = {};
+                std::vector<rect_2d> scissors = {};
             } viewport_state;
 
             // 
             struct rasterization_state {
-
+                bool depth_clamp = true;
+                bool rasterizer_discard = true;
+                polygon_mode polygon_mode = polygon_mode::t_fill;
+                union { uint32_t cull_mode_32u = 0b00000000000000000000000000000000; cull_mode cull_mode; };
+                front_face front_face = front_face::t_ccw;
+                bool depth_bias = false;
+                float depth_bias_constant_factor;
+                float depth_bias_clamp = 0.0001f;
+                float depth_bias_clope_factor = 0.f;
+                float line_width = 1.f;
             } rasterization_state;
 
             // 
             struct multisample_state {
-
+                union { uint32_t samples_32u = 0b00000000000000000000000000000001; sample_count samples; };
+                bool sample_shading = false;
+                float min_sample_shading = 0.f;
+                const uint32_t* sample_mask = nullptr;
+                bool alpha_to_coverage = false;
+                bool alpha_to_one = false;
             } multisample_state;
 
             // 
             struct depth_stencil_state {
-                
+                bool depth_test = false;
+                bool depth_write = false;
+                uint32_t compare_op = 0u;
+                bool depth_bounds_test = false;
+                bool stencil_test = false;
+                stencil_op_state front = {};
+                stencil_op_state back = {};
+                float min_depth_bounds = 0.f;
+                float max_depth_bounds = 1.f;
             } depth_stencil_state;
             
             // Blend State WIP
@@ -370,13 +446,11 @@ namespace svt {
                 bool logic_op_enabled = false;
                 logic_op logic_op = logic_op::t_clear;
                 std::vector<blend_state> attachments = {};
-                glm::vec4 constants = {};
+                glm::vec4 constants{0.f,0.f,0.f,0.f};
             } color_blend_state;
             
-            // 
-            struct dynamic_state {
-                
-            } dynamic_state;
+            // simpler dynamic states
+            std::vector<dynamic_state> dynamic_states = {};
 
             // TODO: pipeline_layout and render_pass types
             uintptr_t pipeline_layout = 0u;
