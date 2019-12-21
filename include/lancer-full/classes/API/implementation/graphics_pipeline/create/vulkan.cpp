@@ -37,7 +37,8 @@ namespace svt {
                 vk::PipelineDepthStencilStateCreateInfo depth_stencil = {};
                 vk::PipelineColorBlendStateCreateInfo color_blend = {};
                 vk::PipelineDynamicStateCreateInfo dynamic = {};
-                
+                vk::PipelineRasterizationConservativeStateCreateInfoEXT conservative = {};
+
                 // 
                 vertex_input.pVertexAttributeDescriptions = vertex_attribute.data();
                 vertex_input.pVertexBindingDescriptions = vertex_bindings.data();
@@ -65,6 +66,11 @@ namespace svt {
                 viewport.viewportCount = viewports.size();
                 
                 // 
+                conservative.conservativeRasterizationMode = vk::ConservativeRasterizationModeEXT(info.rasterization_state.convervative_rasterization_mode);
+                conservative.extraPrimitiveOverestimationSize = info.rasterization_state.extra_primitive_overestimation_size;
+
+                // 
+                rasterization.pNext = &conservative;
                 rasterization.cullMode = vk::CullModeFlags(info.rasterization_state.cull_mode_32u);
                 rasterization.depthBiasEnable = info.rasterization_state.depth_bias;
                 rasterization.depthBiasClamp = info.rasterization_state.depth_bias_clamp;

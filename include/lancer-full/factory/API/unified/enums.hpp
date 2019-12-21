@@ -194,6 +194,12 @@ namespace svt {
             t_decrement_and_wrap = 7u
         };
 
+        enum class convervative_rasterization_mode {
+            t_disabled = 0u,
+            t_overstimate = 1u,
+            t_understimate = 2u,
+        };
+
 
         struct image_flags { uint32_t
             b_sparse_binding: 1,
@@ -470,6 +476,10 @@ namespace svt {
                 float depth_bias_clamp = 0.0001f;
                 float depth_bias_clope_factor = 0.f;
                 float line_width = 1.f;
+
+                // in-line conservative rasterization
+                convervative_rasterization_mode convervative_rasterization_mode = convervative_rasterization_mode::t_disabled;
+                float extra_primitive_overestimation_size = 0.0001f;
             } rasterization_state;
 
             // 
