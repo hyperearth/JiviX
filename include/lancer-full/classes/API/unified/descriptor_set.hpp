@@ -39,12 +39,7 @@ namespace svt {
 
 
                 template<class T>
-                inline description_handle _push_description( const description_entry& entry_ = {} ); //{ // Un-Safe API again
-                    //const uintptr_t pt0 = heap.size();
-                    //heap.resize(pt0+sizeof(T)*entry_.descriptor_count, 0u);
-                    //entries.push_back(vk::DescriptorUpdateTemplateEntry{entry_.dst_binding,entry_.dst_array_element,entry_.descs_count,(vk::DescriptorType)(entry_),pt0,sizeof(T)});
-                    //return cpu_handle{ &entries.back(), &heap.back() };
-                //};
+                inline description_handle _push_description( const description_entry& entry_ = {} );
 
                 // official function (not template)
                 description_handle  push_description( const description_entry& entry_ = {} );

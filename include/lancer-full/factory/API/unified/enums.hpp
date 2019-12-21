@@ -130,6 +130,13 @@ namespace svt {
             bit_shader_device_address : 1;
         };
 
+        struct color_mask { uint32_t 
+            r: 1,
+            g: 1,
+            b: 1,
+            a: 1;
+        };
+
         enum class description_type : uint32_t {
             t_sampler = 0u,
             t_combined_image_sampler = 1u,
@@ -249,6 +256,53 @@ namespace svt {
             
         };
 
+        // TODO: more blend factors (with EXT)
+        enum class blend_op : uint32_t {
+            t_add = 0u,
+            t_sub = 1u,
+            t_rev_sub = 2u,
+            t_min = 3u,
+            t_max = 4u
+        };
+
+        // blend factors
+        enum class blend_factor : uint32_t {
+            t_zero = 0u,
+            t_one = 1u,
+            t_src_color = 2u,
+            t_one_minus_src_color = 3u, 
+            t_dst_color = 4u,
+            t_one_minus_dst_color = 5u, 
+            t_src_alpha = 6u,
+            t_one_minus_src_alpha = 7u, 
+            t_dst_alpha = 8u,
+            t_one_minus_dst_alpha = 9u,
+            t_const_color = 10u,
+            t_one_minus_const_color = 11u,
+            t_const_alpha = 12u,
+            t_one_minus_const_alpha = 13u,
+            t_alpha_saturate = 14u,
+            t_src1_color = 15u,
+            t_one_minus_src1_color = 16u,
+            t_src1_alpha = 17u,
+            t_one_minus_src1_alpha = 18u,
+        };
+
+        class blend_state { public: 
+            bool enable = false;
+            blend_factor src_color_factor = blend_factor::t_one;
+            blend_factor src_alpha_factor = blend_factor::t_one;
+            blend_op color_op = blend_op::t_add;
+            blend_op alpha_op = blend_op::t_add;
+            blend_factor dst_color_factor = blend_factor::t_one;
+            blend_factor dst_alpha_factor = blend_factor::t_one;
+            union {
+                color_mask color_write_mask;
+                uint32_t color_write_mask_u32 = 0u;
+            };
+        };
+
+        // TODO: complete pipeline create info
         class graphics_pipeline_create_info { public: uint32_t flags = 0u;
             std::vector<pipeline_shader_stage> stages = {};
 
