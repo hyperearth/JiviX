@@ -12,7 +12,7 @@ namespace svt {
             class descriptor_set_t;
             class descriptor_set_layout_t;
             class pipeline_layout_t;
-            class raytracing_pipeline_t;
+            class ray_tracing_pipeline_t;
             class graphics_pipeline_t;
             class compute_pipeline_t;
             class command_pool_t;

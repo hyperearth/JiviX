@@ -39,6 +39,9 @@ namespace svt {
             using descriptor_set_layout_t = vk::DescriptorSetLayout;
             using sampler_t = vk::Sampler;
             using image_desc_t = vk::DescriptorImageInfo;
+            using graphics_pipeline_t = vk::Pipeline;
+            using compute_pipeline_t = vk::Pipeline;
+            using ray_tracing_pipeline_t = vk::Pipeline;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}

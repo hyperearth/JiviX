@@ -497,7 +497,7 @@ namespace svt {
             
             // Blend State WIP
             struct color_blend_state {
-                bool logic_op_enabled = false;
+                bool logic_op_enable = false;
                 logic_op logic_op = logic_op::t_clear;
                 std::vector<blend_state> attachments = {};
                 glm::vec4 constants{0.f,0.f,0.f,0.f};
