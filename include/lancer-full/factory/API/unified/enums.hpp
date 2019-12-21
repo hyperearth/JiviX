@@ -6,12 +6,6 @@
 namespace svt {
     namespace api {
 
-        // 
-        enum class sharing_mode : uint32_t {
-            t_exclusive = 0u,
-            t_concurrent = 1u
-        };
-
         // TODO: more formats
         enum class format : uint32_t {
             t_undefined = 0u,
@@ -29,47 +23,20 @@ namespace svt {
             t_r32g32g32a32_sint = 108u,
             t_r32g32g32a32_sfloat = 109u,
         };
-        
-        
 
-        struct image_flags { uint32_t
-            bit_sparse_binding: 1,
-            bit_sparse_residency: 1,
-            bit_sparse_aliased: 1,
-            bit_mutable_format: 1, 
-            bit_cube_compatible: 1,
-            bit_2d_array_compatible: 1, 
-            bit_block_texel_view_compatible: 1, 
-            bit_extended_usage: 1,
-            bit_disjoint: 1, 
-            bit_alias: 1,
-            bit_protected: 1,
-            bit_sample_location_compatible_depth: 1,
-            bit_corner_sampled: 1,
-            bit_subsampled: 1;
+        // TODO: more blend factors (with EXT)
+        enum class blend_op : uint32_t {
+            t_add = 0u,
+            t_sub = 1u,
+            t_rev_sub = 2u,
+            t_min = 3u,
+            t_max = 4u
         };
-
-        struct image_usage { uint32_t 
-            bit_transfer_src : 1,
-            bit_transfer_dst : 1,
-            bit_sampled : 1,
-            bit_storage : 1,
-            bit_color_attachment: 1, 
-            bit_depth_stencil_attachment: 1, 
-            bit_transiend_attachment: 1,
-            bit_input_attachment: 1,
-            bit_shading_rate: 1,
-            bit_fragment_density_map: 1;
-        };
-
-        struct sample_count { uint32_t 
-            bit_1: 1,
-            bit_2: 1,
-            bit_4: 1,
-            bit_8: 1,
-            bit_16: 1,
-            bit_32: 1,
-            bit_64: 1;
+        
+        // 
+        enum class sharing_mode : uint32_t {
+            t_exclusive = 0u,
+            t_concurrent = 1u
         };
 
         enum class image_tiling : uint32_t {
@@ -78,10 +45,7 @@ namespace svt {
             t_drm_format_modifier = 1000158000u,
         };
 
-        enum class image_type : uint32_t {
-            t_1d = 0u, t_2d, t_3d,
-        };
-
+        enum class image_type : uint32_t { t_1d = 0u, t_2d = 1u, t_3d = 2u };
         enum class image_layout : uint32_t {
             t_undefined = 0u,
             t_general = 1u,
@@ -104,38 +68,6 @@ namespace svt {
             t_stencil_read_only_optimal = 1000241003,
         };
 
-        // TODO: extendent bits support
-        struct buffer_flags { uint32_t 
-            bit_sparse_binding : 1,
-            bit_residency_binding : 1,
-            bit_sparse_alised : 1,
-            bit_protected : 1,
-            bit_device_address_capture : 1;
-        };
-
-        struct buffer_usage { uint32_t 
-            bit_transfer_src : 1,
-            bit_transfer_dst : 1,
-            bit_uniform_texel_buffer : 1,
-            bit_storage_texel_buffer : 1,
-            bit_uniform_buffer : 1,
-            bit_storage_buffer : 1,
-            bit_index_buffer : 1,
-            bit_vertex_buffer : 1,
-            bit_indirect_buffer : 1,
-            bit_conditional_rendering : 1,
-            bit_ray_tracing : 1,
-            bit_transform_feedback_buffer : 1,
-            bit_transform_feedback_counter_buffer : 1,
-            bit_shader_device_address : 1;
-        };
-
-        struct color_mask { uint32_t 
-            r: 1,
-            g: 1,
-            b: 1,
-            a: 1;
-        };
 
         enum class description_type : uint32_t {
             t_sampler = 0u,
@@ -151,95 +83,6 @@ namespace svt {
             t_input_attachment = 10u,
             t_inline_uniform_block = 1000138000u,
             t_acceleration_structure = 1000165000u
-        };
-
-        
-        // structs by C++20
-
-
-        // TODO: GLM types and compatibles
-        struct extent_2d { uint32_t width = 1u, height = 1u; };
-        struct extent_3d { uint32_t width = 1u, height = 1u, depth = 1u; };
-        struct offset_2d { int32_t x = 0u, x = 0u; };
-        struct offset_3d { int32_t x = 0u, y = 0u, z = 0u; };
-
-        // 
-        struct description_entry {
-            description_type type = description_type::t_sampler;
-            uint32_t dst_binding = 0u;
-            uint32_t dst_item_id = 0u;
-            uint32_t descs_count = 1u;
-        };
-
-        // TODO: typing control, add into `.cpp` file
-        struct description_handle {
-            description_entry* entry_t = nullptr;
-            void* field_t = nullptr;
-
-            // any buffers and images can `write` into types
-            template<class T = uint8_t> operator T&() { return (*field_t); };
-            template<class T = uint8_t> operator const T&() const { return (*field_t); };
-            template<class T = uint8_t> T& offset(const uint32_t& idx = 0u) { return cpu_handle{entry_t+idx,(T*)field_t}; };
-            template<class T = uint8_t> const T& offset(const uint32_t& idx = 0u) const { return cpu_handle{entry_t+idx,(T*)field_t}; };
-            const uint32_t& size() const { return entry_t->descs_count; }; 
-        };
-
-        struct description_binding {
-            uint32_t binding = 0u;
-
-            // TODO: resolve header ordering conflicts
-            description_type type = description_type::t_sampler;
-
-            // 
-            uint32_t count = 1u;
-
-            // TODO: shader stage flags type
-            uint32_t shader_stages = 0b00000000000000000000000000000000;
-
-            // samplers
-            core::api::sampler_t* samplers = nullptr;
-            
-            // TODO: flags EXT type support
-            uint32_t flags_ext = 0b00000000000000000000000000000000;
-
-            // 
-            //std::vector<sampler_t> vSamplers = {};
-        };
-
-        struct buffer_create_info {
-            union { uint32_t flags_32u = 0b00000000000000000000000000000000; buffer_flags flags; };
-            size_t size = 4u;
-            union { uint32_t usage_32u = 0b00000000000000000000000000000000; buffer_usage usage; };
-            sharing_mode sharing_mode = sharing_mode::t_exclusive;
-        };
-
-        struct image_create_info {
-            union { uint32_t flags_32u = 0b00000000000000000000000000000000; image_flags flags; };
-            image_type image_type = image_type::t_1d;
-            format format{ 0u };
-            union { glm::uvec3 extent; extent_3d extent_32u; };
-            uint32_t mip_levels = 1u;
-            uint32_t array_layers = 1u;
-            union { uint32_t samples_32u = 0b00000000000000000000000000000001; sample_count samples; };
-            image_tiling tiling = image_tiling::t_optimal;
-            union { uint32_t usage_32u = 0b00000000000000000000000000000000; image_usage usage; };
-            sharing_mode sharing_mode = sharing_mode::t_exclusive;
-            //image_layout initial_layout = image_layout::t_undefined;
-        };
-
-
-        // TODO: Complete Pipeline Support
-        class pipeline_shader_stage { public: 
-            
-        };
-
-        // TODO: more blend factors (with EXT)
-        enum class blend_op : uint32_t {
-            t_add = 0u,
-            t_sub = 1u,
-            t_rev_sub = 2u,
-            t_min = 3u,
-            t_max = 4u
         };
 
         enum class logic_op : uint32_t {
@@ -321,9 +164,23 @@ namespace svt {
             t_always = 7u
         };
 
-        // TODO: dynamic states
         enum class dynamic_state : uint32_t {
-            viewport = 0u,
+            t_viewport = 0u,
+            t_scissor = 1u,
+            t_line_width = 2u,
+            t_depth_bias = 3u,
+            t_blend_constants = 4u,
+            t_depth_bounds = 5u,
+            t_stencil_compare_mask = 6u,
+            t_stencil_write_mask = 7u,
+            t_stencil_reference = 8u,
+            t_viewport_w_scaling = 1000087000u,
+            t_discard_rectangle = 1000099000u,
+            t_sample_locations = 1000143000u,
+            t_viewport_shading_rate_palette = 1000164004u,
+            t_viewport_coarse_sample_order = 1000164006u,
+            t_exclusive_scissor = 1000205001u,
+            t_line_stipple = 1000259000u,
         };
 
         enum class stencil_op : uint32_t {
@@ -337,6 +194,193 @@ namespace svt {
             t_decrement_and_wrap = 7u
         };
 
+
+        struct image_flags { uint32_t
+            b_sparse_binding: 1,
+            b_sparse_residency: 1,
+            b_sparse_aliased: 1,
+            b_mutable_format: 1, 
+            b_cube_compatible: 1,
+            b_2d_array_compatible: 1, 
+            b_block_texel_view_compatible: 1, 
+            b_extended_usage: 1,
+            b_disjoint: 1, 
+            b_alias: 1,
+            b_protected: 1,
+            b_sample_location_compatible_depth: 1,
+            b_corner_sampled: 1,
+            b_subsampled: 1;
+        };
+
+        struct image_usage { uint32_t 
+            b_transfer_src : 1,
+            b_transfer_dst : 1,
+            b_sampled : 1,
+            b_storage : 1,
+            b_color_attachment: 1, 
+            b_depth_stencil_attachment: 1, 
+            b_transiend_attachment: 1,
+            b_input_attachment: 1,
+            b_shading_rate: 1,
+            b_fragment_density_map: 1;
+        };
+
+        struct sample_count { uint32_t 
+            b_1: 1,
+            b_2: 1,
+            b_4: 1,
+            b_8: 1,
+            b_16: 1,
+            b_32: 1,
+            b_64: 1;
+        };
+
+
+        // TODO: extendent bits support
+        struct buffer_flags { uint32_t 
+            b_sparse_binding : 1,
+            b_residency_binding : 1,
+            b_sparse_alised : 1,
+            b_protected : 1,
+            b_device_address_capture : 1;
+        };
+
+        struct buffer_usage { uint32_t 
+            b_transfer_src : 1,
+            b_transfer_dst : 1,
+            b_uniform_texel_buffer : 1,
+            b_storage_texel_buffer : 1,
+            b_uniform_buffer : 1,
+            b_storage_buffer : 1,
+            b_index_buffer : 1,
+            b_vertex_buffer : 1,
+            b_indirect_buffer : 1,
+            b_conditional_rendering : 1,
+            b_ray_tracing : 1,
+            b_transform_feedback_buffer : 1,
+            b_transform_feedback_counter_buffer : 1,
+            b_shader_device_address : 1;
+        };
+
+        struct color_mask { uint32_t r: 1, g: 1, b: 1,  a: 1; };
+
+        struct pipeline_stage_flags { uint32_t 
+            b_top_of_pipe: 1,
+            b_draw_indirect: 1,
+            b_vertex_input: 1,
+            b_vertex_shader: 1,
+            b_tesselation_control_shader: 1,
+            b_tesselation_evalution_shader: 1,
+            b_geometry_shader: 1,
+            b_fragment_shader: 1,
+            b_early_fragment_tests: 1,
+            b_late_fragment_tests: 1,
+            b_color_attachment_output: 1,
+            b_compute_shader: 1,
+            b_transfer_bit: 1,
+            b_bottom_of_pipe: 1,
+            b_host: 1,
+            b_all_graphics: 1,
+            b_all_commands: 1,
+            b_command_process: 1,
+            b_conditional_rendering: 1,
+            b_task_shader: 1,
+            b_mesh_shader: 1,
+            b_ray_tracing: 1,
+            b_shading_rate_image: 1,
+            b_fragment_density_process: 1,
+            b_transform_feedback: 1,
+            b_acceleration_structure: 1;
+        };
+
+        struct shader_stage_flags { uint32_t 
+            b_vertex: 1,
+            b_tesselation_control: 1,
+            b_tesselation_evalution: 1,
+            b_geometry: 1,
+            b_fragment: 1,
+            b_compute: 1,
+            b_task: 1,
+            b_mesh: 1,
+            b_raygen: 1,
+            b_any_hit: 1,
+            b_closest_hit: 1,
+            b_miss_hit: 1,
+            b_intersection: 1,
+            b_callable: 1;
+        };
+        
+
+
+        struct extent_2d { uint32_t width = 1u, height = 1u; };
+        struct extent_3d { uint32_t width = 1u, height = 1u, depth = 1u; };
+        struct offset_2d { int32_t x = 0u, x = 0u; };
+        struct offset_3d { int32_t x = 0u, y = 0u, z = 0u; };
+
+        // 
+        struct description_entry {
+            description_type type = description_type::t_sampler;
+            uint32_t dst_binding = 0u;
+            uint32_t dst_item_id = 0u;
+            uint32_t descs_count = 1u;
+        };
+
+        // TODO: typing control, add into `.cpp` file
+        struct description_handle {
+            description_entry* entry_t = nullptr;
+            void* field_t = nullptr;
+
+            // any buffers and images can `write` into types
+            template<class T = uint8_t> operator T&() { return (*field_t); };
+            template<class T = uint8_t> operator const T&() const { return (*field_t); };
+            template<class T = uint8_t> T& offset(const uint32_t& idx = 0u) { return cpu_handle{entry_t+idx,(T*)field_t}; };
+            template<class T = uint8_t> const T& offset(const uint32_t& idx = 0u) const { return cpu_handle{entry_t+idx,(T*)field_t}; };
+            const uint32_t& size() const { return entry_t->descs_count; }; 
+        };
+
+        struct description_binding {
+            uint32_t binding = 0u;
+
+            // TODO: resolve header ordering conflicts
+            description_type type = description_type::t_sampler;
+
+            // 
+            uint32_t count = 1u;
+
+            // TODO: shader stage flags type
+            uint32_t shader_stages = 0b00000000000000000000000000000000u;
+
+            // samplers
+            core::api::sampler_t* samplers = nullptr;
+            
+            // TODO: flags EXT type support
+            uint32_t flags_ext = 0b00000000000000000000000000000000u;
+
+            // 
+            //std::vector<sampler_t> vSamplers = {};
+        };
+
+        struct buffer_create_info {
+            union { uint32_t flags_32u = 0b00000000000000000000000000000000u; buffer_flags flags; };
+            size_t size = 4u;
+            union { uint32_t usage_32u = 0b00000000000000000000000000000000u; buffer_usage usage; };
+            sharing_mode sharing_mode = sharing_mode::t_exclusive;
+        };
+
+        struct image_create_info {
+            union { uint32_t flags_32u = 0b00000000000000000000000000000000u; image_flags flags; };
+            image_type image_type = image_type::t_1d;
+            format format{ 0u };
+            union { glm::uvec3 extent; extent_3d extent_32u; };
+            uint32_t mip_levels = 1u;
+            uint32_t array_layers = 1u;
+            union { uint32_t samples_32u = 0b00000000000000000000000000000001u; sample_count samples; };
+            image_tiling tiling = image_tiling::t_optimal;
+            union { uint32_t usage_32u = 0b00000000000000000000000000000000u; image_usage usage; };
+            sharing_mode sharing_mode = sharing_mode::t_exclusive;
+            //image_layout initial_layout = image_layout::t_undefined;
+        };
+
         struct stencil_op_state {
             stencil_op fail = stencil_op::t_keep;
             stencil_op pass = stencil_op::t_keep;
@@ -348,8 +392,8 @@ namespace svt {
         };
 
         struct cull_mode { uint32_t 
-            bit_front: 1,
-            bit_back: 1;
+            b_front: 1,
+            b_back: 1;
         };
 
 
@@ -360,24 +404,34 @@ namespace svt {
             union { uint32_t color_write_mask_32u = 0u; color_mask color_write_mask; };
         };
 
-        // TODO:  
+        enum class vertex_input_rate : uint32_t {
+            t_vertex = 0u,
+            t_instance = 1u,
+        };
+
         class vertex_binding_desc { public: 
-            
+            uint32_t binding = 0u;
+            uint32_t stride = 4u;
+            vertex_input_rate input_rate = vertex_input_rate::t_vertex;
         };
 
-        // TODO:  
         class vertex_attribute_desc { public: 
-            
+            uint32_t location = 0u;
+            uint32_t binding = 0u;
+            format format = format::t_r32g32g32a32_sfloat;
+            uint32_t offset = 0u;
         };
 
-        // TODO: 
-        class viewport { public: float x = 0.f, y = 0.f, width = 1.f, height = 1.f, min_depth = 0.f, max_depth = 1.f; };
+        // TODO: vierport aggregation
+        class viewport { public: float x = -1.f, y = -1.f, width = 2.f, height = 2.f, min_depth = 0.f, max_depth = 1.f; };
+
+        // Aggregated Rect 2D
         class rect_2d { public: 
             union { glm::ivec2 offset; offset_2d offset_32i; };
             union { glm::uvec2 extent; extent_2d extent_32u; };
         };
 
-        // TODO: complete pipeline create info
+        // TODO: complete pipeline create info, extensions
         class graphics_pipeline_create_info { public: uint32_t flags = 0u;
             std::vector<pipeline_shader_stage> stages = {};
 
@@ -409,7 +463,7 @@ namespace svt {
                 bool depth_clamp = true;
                 bool rasterizer_discard = true;
                 polygon_mode polygon_mode = polygon_mode::t_fill;
-                union { uint32_t cull_mode_32u = 0b00000000000000000000000000000000; cull_mode cull_mode; };
+                union { uint32_t cull_mode_32u = 0b00000000000000000000000000000000u; cull_mode cull_mode; };
                 front_face front_face = front_face::t_ccw;
                 bool depth_bias = false;
                 float depth_bias_constant_factor;
@@ -420,7 +474,7 @@ namespace svt {
 
             // 
             struct multisample_state {
-                union { uint32_t samples_32u = 0b00000000000000000000000000000001; sample_count samples; };
+                union { uint32_t samples_32u = 0b00000000000000000000000000000001u; sample_count samples; };
                 bool sample_shading = false;
                 float min_sample_shading = 0.f;
                 const uint32_t* sample_mask = nullptr;
