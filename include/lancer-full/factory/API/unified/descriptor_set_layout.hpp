@@ -20,7 +20,8 @@ namespace svt {
 
                 core::api::descriptor_set_layout_t* operator->() { return &(this->layout_); };
                 const core::api::descriptor_set_layout_t* operator->() const { return &(this->layout_); };
-                
+                core::api::descriptor_set_layout_t& operator*() { return (this->layout_); };
+                const core::api::descriptor_set_layout_t& operator*() const { return (this->layout_); };
             };
         };
     };

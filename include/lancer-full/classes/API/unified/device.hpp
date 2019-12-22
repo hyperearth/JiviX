@@ -18,6 +18,8 @@ namespace svt {
 
                 api::factory::device_t* operator->() { return &(*this->device_); };
                 const api::factory::device_t* operator->() const { return &(*this->device_); };
+                api::factory::device_t& operator*() { return (*this->device_); };
+                const api::factory::device_t& operator*() const { return (*this->device_); };
 
                 // 
                 operator uintptr_t&() { return device_; };

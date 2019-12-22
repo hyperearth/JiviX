@@ -38,6 +38,8 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 api::factory::buffer_t* operator->() { return &(*this->buffer_); };
                 const api::factory::buffer_t* operator->() const { return &(*this->buffer_); };
+                api::factory::buffer_t& operator*() { return (*this->buffer_); };
+                const api::factory::buffer_t& operator*() const { return (*this->buffer_); };
 
                 // 
                 operator uintptr_t&() { return (uintptr_t&)(buffer_->buffer_); };

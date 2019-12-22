@@ -25,6 +25,8 @@ namespace svt {
 
                 core::api::image_t* operator->() { return &(this->image_); };
                 const core::api::image_t* operator->() const { return &(this->image_); };
+                core::api::image_t& operator*() { return (this->image_); };
+                const core::api::image_t& operator*() const { return (this->image_); };
 
                 // TODO: import/claim allocation
                 // export allocation ONCE as dedicated (should to be unbound from that object)

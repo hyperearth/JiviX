@@ -21,6 +21,8 @@ namespace svt {
 
                 core::api::image_view_t* operator->() { return &(this->image_view_); };
                 const core::api::image_view_t* operator->() const { return &(this->image_view_); };
+                core::api::image_view_t& operator*() { return (this->image_view_); };
+                const core::api::image_view_t& operator*() const { return (this->image_view_); };
             };
         };
     };

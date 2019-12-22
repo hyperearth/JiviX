@@ -60,6 +60,8 @@ namespace svt {
                 // TODO: move into `.inl` file
                 inline api::factory::vector_t* operator->() { return &(*this->vector_); };
                 inline const api::factory::vector_t* operator->() const { return &(*this->vector_); };
+                inline api::factory::vector_t& operator*() { return (*this->vector_); };
+                inline const api::factory::vector_t& operator*() const { return (*this->vector_); };
 
 
                 // TODO: low-level casting operator

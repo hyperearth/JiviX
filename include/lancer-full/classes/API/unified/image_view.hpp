@@ -32,6 +32,8 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 api::factory::image_view_t* operator->() { return &(*this->image_view_); };
                 const api::factory::image_view_t* operator->() const { return &(*this->image_view_); };
+                api::factory::image_view_t& operator*() { return (*this->image_view_); };
+                const api::factory::image_view_t& operator*() const { return (*this->image_view_); };
 
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::image_view_t _get_image_view_t();

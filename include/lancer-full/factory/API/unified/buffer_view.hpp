@@ -22,6 +22,8 @@ namespace svt {
 
                 core::api::buffer_view_t* operator->() { return &(this->buffer_view_); };
                 const core::api::buffer_view_t* operator->() const { return &(this->buffer_view_); };
+                core::api::buffer_view_t& operator*() { return (this->buffer_view_); };
+                const core::api::buffer_view_t& operator*() const { return (this->buffer_view_); };
             };
         };
     };

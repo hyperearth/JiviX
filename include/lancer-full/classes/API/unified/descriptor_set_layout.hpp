@@ -35,6 +35,8 @@ namespace svt {
                 // 
                 api::factory::descriptor_set_layout_t* operator->() { return &(*this->descriptor_set_layout_); };
                 const api::factory::descriptor_set_layout_t* operator->() const { return &(*this->descriptor_set_layout_); };
+                api::factory::descriptor_set_layout_t& operator*() { return (*this->descriptor_set_layout_); };
+                const api::factory::descriptor_set_layout_t& operator*() const { return (*this->descriptor_set_layout_); };
 
                 // 
                 svt::core::handle_ref<descriptor_set_layout,core::api::result_t> create(const uint32_t& flags = 0u);

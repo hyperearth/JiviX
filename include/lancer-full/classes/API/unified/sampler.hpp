@@ -32,6 +32,8 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 api::factory::sampler_t* operator->() { return &(*this->sampler_); };
                 const api::factory::sampler_t* operator->() const { return &(*this->sampler_); };
+                api::factory::sampler_t& operator*() { return (*this->sampler_); };
+                const api::factory::sampler_t& operator*() const { return (*this->sampler_); };
 
                 // 
                 operator uintptr_t&() { return (uintptr_t&)(*sampler_->sampler_); };

@@ -20,7 +20,8 @@ namespace svt {
 
                 core::api::ray_tracing_pipeline_t* operator->() { return &(this->pipeline_); };
                 const core::api::ray_tracing_pipeline_t* operator->() const { return &(this->pipeline_); };
-                
+                core::api::ray_tracing_pipeline_t& operator*() { return (this->pipeline_); };
+                const core::api::ray_tracing_pipeline_t& operator*() const { return (this->pipeline_); };
             };
         };
     };

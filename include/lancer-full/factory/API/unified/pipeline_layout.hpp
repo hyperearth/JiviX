@@ -20,6 +20,8 @@ namespace svt {
 
                 core::api::pipeline_layout_t* operator->() { return &(this->layout_); };
                 const core::api::pipeline_layout_t* operator->() const { return &(this->layout_); };
+                core::api::pipeline_layout_t& operator*() { return (this->layout_); };
+                const core::api::pipeline_layout_t& operator*() const { return (this->layout_); };
                 
             };
         };

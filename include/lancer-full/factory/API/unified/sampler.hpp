@@ -25,6 +25,8 @@ namespace svt {
 
                 core::api::sampler_t* operator->() { return &(this->sampler_); };
                 const core::api::sampler_t* operator->() const { return &(this->sampler_); };
+                core::api::sampler_t& operator*() { return (this->sampler_); };
+                const core::api::sampler_t& operator*() const { return (this->sampler_); };
             };
         };
     };

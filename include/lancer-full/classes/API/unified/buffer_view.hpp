@@ -35,6 +35,8 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 api::factory::buffer_view_t* operator->() { return &(*this->buffer_view_); };
                 const api::factory::buffer_view_t* operator->() const { return &(*this->buffer_view_); };
+                api::factory::buffer_view_t& operator*() { return (*this->buffer_view_); };
+                const api::factory::buffer_view_t& operator*() const { return (*this->buffer_view_); };
 
                 // TODO: complete that versions
                 template<class T = float>

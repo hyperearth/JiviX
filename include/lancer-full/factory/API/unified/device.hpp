@@ -23,6 +23,8 @@ namespace svt {
 
                 core::api::device_t* operator->() { return &(this->device_); };
                 const core::api::device_t* operator->() const { return &(this->device_); };
+                core::api::device_t& operator*() { return (this->device_); };
+                const core::api::device_t& operator*() const { return (this->device_); };
             };
 
         };

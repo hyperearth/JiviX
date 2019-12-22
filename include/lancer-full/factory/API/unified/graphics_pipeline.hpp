@@ -20,7 +20,8 @@ namespace svt {
 
                 core::api::graphics_pipeline_t* operator->() { return &(this->pipeline_); };
                 const core::api::graphics_pipeline_t* operator->() const { return &(this->pipeline_); };
-                
+                core::api::graphics_pipeline_t& operator*() { return (this->pipeline_); };
+                const core::api::graphics_pipeline_t& operator*() const { return (this->pipeline_); };
             };
         };
     };

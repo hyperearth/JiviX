@@ -25,7 +25,8 @@ namespace svt {
             using graphics_pipeline = std::shared_ptr<api::factory::graphics_pipeline_t>;
             using compute_pipeline = std::shared_ptr<api::factory::compute_pipeline_t>;
             using pipeline_layout = std::shared_ptr<api::factory::pipeline_layout_t>;
-
+            using command_buffer = std::shared_ptr<api::factory::command_buffer_t>;
+            using command_pool = std::shared_ptr<api::factory::command_pool_t>;
 
             struct device_t {
                 stu::device device_ = {};
@@ -61,7 +62,6 @@ namespace svt {
             class graphics_pipeline;
             class compute_pipeline;
             class ray_tracing_pipeline;
-            class command_pool;
             class descriptor_pool;
             class allocator;
             class sampler;
@@ -70,6 +70,8 @@ namespace svt {
             class allocation;
             class sampler;
             class pipeline_layout;
+            class command_pool_t;
+            class command_buffer_t;
 
             template<class T = uint8_t>
             class vector;

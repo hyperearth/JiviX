@@ -36,7 +36,9 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 api::factory::allocator_t* operator->() { return &(*this->allocator_); };
                 const api::factory::allocator_t* operator->() const { return &(*this->allocator_); };
-                
+                api::factory::allocator_t& operator*() { return (*this->allocator_); };
+                const api::factory::allocator_t& operator*() const { return (*this->allocator_); };
+
             protected: friend allocator;
                 stu::allocator allocator_ = {};
                 stu::device_t device_ = {};

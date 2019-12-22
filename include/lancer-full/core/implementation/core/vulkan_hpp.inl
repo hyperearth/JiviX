@@ -45,7 +45,7 @@ namespace svt {
             using ray_tracing_pipeline_t = vk::Pipeline;
             using pipeline_layout_t = vk::PipelineLayout;
             using pipeline_cache_t = vk::PipelineCache;
-            
+            using command_buffer_t = vk::CommandBuffer;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}

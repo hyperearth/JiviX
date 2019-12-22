@@ -23,6 +23,8 @@ namespace svt {
 
                 core::api::descriptor_set_t* operator->() { return &(this->set_); };
                 const core::api::descriptor_set_t* operator->() const { return &(this->set_); };
+                core::api::descriptor_set_t& operator*() { return (this->set_); };
+                const core::api::descriptor_set_t& operator*() const { return (this->set_); };
             };
         };
     };

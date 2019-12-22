@@ -26,8 +26,10 @@ namespace svt {
                 operator const stu::device_t&() const { return device_; };
 
                 // 
-                api::factory::descriptor_set_layout_t* operator->() { return &(*this->descriptor_set_layout_); };
-                const api::factory::descriptor_set_layout_t* operator->() const { return &(*this->descriptor_set_layout_); };
+                api::factory::descriptor_set_t* operator->() { return &(*this->descriptor_set_); };
+                const api::factory::descriptor_set_t* operator->() const { return &(*this->descriptor_set_); };
+                api::factory::descriptor_set_t& operator*() { return (*this->descriptor_set_); };
+                const api::factory::descriptor_set_t& operator*() const { return (*this->descriptor_set_); };
 
                 // 
                 descriptor_set& operator=(const descriptor_set &descriptor_set) { 

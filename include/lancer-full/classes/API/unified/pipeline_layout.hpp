@@ -33,6 +33,8 @@ namespace svt {
                 // 
                 api::factory::pipeline_layout_t* operator->() { return &(*this->pipeline_layout_); };
                 const api::factory::pipeline_layout_t* operator->() const { return &(*this->pipeline_layout_); };
+                api::factory::pipeline_layout_t& operator*() { return (*this->pipeline_layout_); };
+                const api::factory::pipeline_layout_t& operator*() const { return (*this->pipeline_layout_); };
 
                 // 
                 svt::core::handle_ref<pipeline_layout,core::api::result_t> create(const uint32_t& flags = 0u);

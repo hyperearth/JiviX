@@ -34,6 +34,8 @@ namespace svt {
                 // 
                 api::factory::compute_pipeline_t* operator->() { return &(*this->pipeline_); };
                 const api::factory::compute_pipeline_t* operator->() const { return &(*this->pipeline_); };
+                api::factory::compute_pipeline_t& operator*() { return (*this->pipeline_); };
+                const api::factory::compute_pipeline_t& operator*() const { return (*this->pipeline_); };
 
                 // 
                 svt::core::handle_ref<compute_pipeline,core::api::result_t> create(const compute_pipeline_create_info& info = {});

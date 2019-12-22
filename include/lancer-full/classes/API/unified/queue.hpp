@@ -21,6 +21,8 @@ namespace svt {
 
                 api::factory::queue_t* operator->() { return &(*this->queue_); };
                 const api::factory::queue_t* operator->() const { return &(*this->queue_); };
+                api::factory::queue_t& operator*() { return (*this->queue_); };
+                const api::factory::queue_t& operator*() const { return (*this->queue_); };
 
                 // 
                 operator uintptr_t&() { return (*queue_); };

@@ -16,7 +16,6 @@ namespace svt {
             class raytracing_pipeline_t;
             class graphics_pipeline_t;
             class compute_pipeline_t;
-            class command_pool_t;
             class descriptor_pool_t;
             class allocator_t;
             class buffer_t;
@@ -26,6 +25,8 @@ namespace svt {
             class image_view_t;
             class allocation_t;
             class sampler_t;
+            class command_pool_t;
+            class command_buffer_t;
         };
     };
 };

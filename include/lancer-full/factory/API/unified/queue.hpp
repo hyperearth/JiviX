@@ -22,6 +22,8 @@ namespace svt {
 
                 core::api::queue_t* operator->() { return &(this->queue_); };
                 const core::api::queue_t* operator->() const { return &(this->queue_); };
+                core::api::queue_t& operator*() { return (this->queue_); };
+                const core::api::queue_t& operator*() const { return (this->queue_); };
             };
 
         };
