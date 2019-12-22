@@ -2,6 +2,7 @@
 
 #include "./classes/API/types.hpp"
 #include "./classes/API/unified/device.hpp"
+#include "./factory/API/unified/pipeline_layout.hpp"
 #include "./factory/API/unified/graphics_pipeline.hpp"
 
 namespace svt {
@@ -49,9 +50,9 @@ namespace svt {
 
             protected: friend graphics_pipeline;
                 stu::graphics_pipeline pipeline_ = {};
+                stu::pipeline_layout layout_ = {};
                 stu::device_t device_ = {};
             };
-
 
         };
     };

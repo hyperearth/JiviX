@@ -38,8 +38,6 @@ namespace svt {
 
                 // 
                 svt::core::handle_ref<pipeline_layout,core::api::result_t> create(const uint32_t& flags = 0u);
-
-                // 
                 svt::core::handle_ref<pipeline_layout,core::api::result_t> push_binding( const description_binding& binding_ = {} ) {
                     bindings_.push_back(binding_); return {*this, core::api::result_t(0u)};
                 };

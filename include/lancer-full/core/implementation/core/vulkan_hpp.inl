@@ -35,17 +35,21 @@ namespace svt {
             using buffer_region_t = vk::DescriptorBufferInfo;
             using buffer_view_t = vk::BufferView;
             using image_view_t = vk::ImageView;
-            using descriptor_set_t = vk::DescriptorSet;
             using descriptor_set_template_t = vk::DescriptorUpdateTemplate;
             using descriptor_set_layout_t = vk::DescriptorSetLayout;
             using sampler_t = vk::Sampler;
             using image_desc_t = vk::DescriptorImageInfo;
+            using physical_device_t = vk::PhysicalDevice;
+            using pipeline_layout_t = vk::PipelineLayout;
             using graphics_pipeline_t = vk::Pipeline;
             using compute_pipeline_t = vk::Pipeline;
             using ray_tracing_pipeline_t = vk::Pipeline;
-            using pipeline_layout_t = vk::PipelineLayout;
+            using descriptor_set_t = vk::DescriptorSet;
             using pipeline_cache_t = vk::PipelineCache;
             using command_buffer_t = vk::CommandBuffer;
+            using command_pool_t = vk::CommandPool;
+            using instance_t = vk::Instance;
+            using render_pass_t = vk::RenderPass;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}

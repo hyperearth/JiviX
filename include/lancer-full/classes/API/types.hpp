@@ -3,6 +3,8 @@
 #include "./core/unified/core.hpp"
 #include "./factory/API/types.hpp"
 #include "./factory/API/unified/enums.hpp"
+#include "./factory/API/unified/instance.hpp"
+#include "./factory/API/unified/physical_device.hpp"
 #include "./factory/API/unified/device.hpp"
 
 namespace svt {
@@ -27,23 +29,35 @@ namespace svt {
             using pipeline_layout = std::shared_ptr<api::factory::pipeline_layout_t>;
             using command_buffer = std::shared_ptr<api::factory::command_buffer_t>;
             using command_pool = std::shared_ptr<api::factory::command_pool_t>;
+            using instance = std::shared_ptr<api::factory::instance_t>;
+            using physical_device = std::shared_ptr<api::factory::physical_device_t>;
+            using render_pass = std::shared_ptr<api::factory::render_pass_t>;
 
             struct device_t {
                 stu::device device_ = {};
+                stu::physical_device physical_device_ = {};
                 std::vector<uint32_t> queue_family_indices_ = {};
 
                 operator std::vector<uint32_t>&() { return queue_family_indices_; };
                 operator const std::vector<uint32_t>&() const { return queue_family_indices_; };
                 operator stu::device&() { return device_; };
                 operator const stu::device&() const { return device_; };
+                operator stu::physical_device&() { return physical_device_; };
+                operator const stu::physical_device&() const { return physical_device_; };
 
                 api::factory::device_t& operator *() { return *device_; };
                 const api::factory::device_t& operator *() const { return *device_; };
+                api::factory::device_t* operator ->() { return &(*device_); };
+                const api::factory::device_t* operator ->() const { return &(*device_); };
+                //api::factory::physical_device_t& operator *() { return *physical_device_; };
+                //const api::factory::physical_device_t& operator *() const { return *physical_device_; };
 
                 operator uintptr_t&() { return (*device_); };
                 operator const uintptr_t&() const { return (*device_); };
                 operator core::api::device_t&() { return (*device_); };
                 operator const core::api::device_t&() const { return (*device_); };
+                operator core::api::physical_device_t&() { return (*physical_device_); };
+                operator const core::api::physical_device_t&() const { return (*physical_device_); };
             };
         };
 
@@ -56,6 +70,7 @@ namespace svt {
             class queue;
             class image;
             class command_buffer;
+            class command_pool;
             class descriptor_set;
             class descriptor_set_layout;
             class pipeline_layout;
@@ -69,9 +84,9 @@ namespace svt {
             class image_view;
             class allocation;
             class sampler;
-            class pipeline_layout;
-            class command_pool_t;
-            class command_buffer_t;
+            class instance;
+            class physical_device;
+            class render_pass;
 
             template<class T = uint8_t>
             class vector;
