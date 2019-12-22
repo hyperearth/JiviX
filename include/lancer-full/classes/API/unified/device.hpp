@@ -11,8 +11,10 @@ namespace svt {
                 device(const stu::device_t& device_ = {}) : device_(device_) {};
                 device& operator=(const device &device) { this->device_ = device; return *this; };
 
+                operator stu::physical_device&() { return device_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };
+                operator const stu::physical_device&() const { return device_; };
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
