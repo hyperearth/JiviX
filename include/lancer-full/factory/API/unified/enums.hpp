@@ -496,6 +496,9 @@ namespace svt {
                 const uint32_t* sample_mask = nullptr;
                 bool alpha_to_coverage = false;
                 bool alpha_to_one = false;
+
+                union { glm::uvec2 sample_location_grid_size; extent_2d sample_location_grid_size_32u; };
+                std::vector<glm::vec2> sample_locations = {};
             } multisample_state;
 
             // 

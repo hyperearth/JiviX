@@ -38,6 +38,14 @@ namespace svt {
                 vk::PipelineColorBlendStateCreateInfo color_blend = {};
                 vk::PipelineDynamicStateCreateInfo dynamic = {};
                 vk::PipelineRasterizationConservativeStateCreateInfoEXT conservative = {};
+                vk::PipelineSampleLocationsStateCreateInfoEXT sample_locations = {};
+
+                // 
+                sample_locations.sampleLocationsEnable = info.multisample_state.sample_locations.size() > 0u ? true : false;
+                sample_locations.sampleLocationsInfo.pSampleLocations = (vk::SampleLocationEXT*)info.multisample_state.sample_locations.data();
+                sample_locations.sampleLocationsInfo.sampleLocationsCount = info.multisample_state.sample_locations.size();
+                sample_locations.sampleLocationsInfo.sampleLocationGridSize = (vk::Extent2D&)info.multisample_state.sample_location_grid_size_32u;
+                sample_locations.sampleLocationsInfo.sampleLocationsPerPixel = vk::SampleCountFlagBits(info.multisample_state.samples_32u);
 
                 // 
                 vertex_input.pVertexAttributeDescriptions = vertex_attribute.data();
@@ -70,6 +78,9 @@ namespace svt {
                 conservative.extraPrimitiveOverestimationSize = info.rasterization_state.extra_primitive_overestimation_size;
 
                 // 
+                
+
+                // 
                 rasterization.pNext = &conservative;
                 rasterization.cullMode = vk::CullModeFlags(info.rasterization_state.cull_mode_32u);
                 rasterization.depthBiasEnable = info.rasterization_state.depth_bias;
@@ -87,7 +98,8 @@ namespace svt {
                 multisample.pSampleMask = info.multisample_state.sample_mask;
                 multisample.rasterizationSamples = vk::SampleCountFlagBits(info.multisample_state.samples_32u);
                 multisample.sampleShadingEnable = info.multisample_state.sample_shading;
-                
+                multisample.pNext = &sample_locations;
+
                 // 
                 depth_stencil.back = vk::StencilOpState{ vk::StencilOp(info.depth_stencil_state.back.fail), vk::StencilOp(info.depth_stencil_state.back.pass), vk::StencilOp(info.depth_stencil_state.back.depth_fail), vk::CompareOp(info.depth_stencil_state.back.compare_op), info.depth_stencil_state.back.compare_mask, info.depth_stencil_state.back.write_mask,  info.depth_stencil_state.back.reference };
                 depth_stencil.front = vk::StencilOpState{ vk::StencilOp(info.depth_stencil_state.front.fail), vk::StencilOp(info.depth_stencil_state.front.pass), vk::StencilOp(info.depth_stencil_state.front.depth_fail), vk::CompareOp(info.depth_stencil_state.front.compare_op), info.depth_stencil_state.front.compare_mask, info.depth_stencil_state.front.write_mask,  info.depth_stencil_state.front.reference };
