@@ -23,7 +23,7 @@ namespace svt {
                     vk::PhysicalDeviceSubgroupSizeControlPropertiesEXT subgroup_size_control_properties_ = {};
                     vk::PhysicalDeviceSampleLocationsPropertiesEXT sample_locations_properties = {};
                     vk::PhysicalDeviceRayTracingPropertiesNV ray_tracing_properties_ = {};
-                    vk::MultisamplePropertiesEXT multisample_properties_ = {};
+                    //vk::MultisamplePropertiesEXT multisample_properties_ = {};
                 #endif
 
                 physical_device_t() {};
