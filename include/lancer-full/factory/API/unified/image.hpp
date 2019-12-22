@@ -13,10 +13,13 @@ namespace svt {
                 core::api::image_t image_ = API_NULL_HANDLE;
                 image_layout layout_ = image_layout::t_undefined;
 
+                image_t() {};
                 image_t(const image_t& image) : image_(image) {};
                 image_t(const core::api::image_t& image_) : image_(image_) {};
                 image_t& operator=(const image_t& image) { this->image_ = image; return *this; };
 
+                operator uintptr_t&() { return (uintptr_t&)(image_); };
+                operator const uintptr_t&() const { return (uintptr_t&)(image_); };
                 operator core::api::image_t& () { return image_; };
                 operator const core::api::image_t& () const { return image_; };
 

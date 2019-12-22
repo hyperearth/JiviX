@@ -18,13 +18,15 @@ namespace svt {
             class vector { public: using T = T; using vector_t = vector<T>;
                 template<class A = T>
                 inline vector_t(const vector<A>& vector) : vector_(vector), buffer_(vector), device_(vector) {};
-                inline vector_t(                            const stu::buffer& buffer_ = {}, const stu::vector& vector_ = {}) : vector_(vector_), buffer_(buffer_) {};
-                inline vector_t(const stu::device& device_, const stu::buffer& buffer_ = {}, const stu::vector& vector_ = {}) : vector_(vector_), buffer_(buffer_), device_(device_) {};
+                inline vector_t(                              const stu::buffer& buffer_ = {}, const stu::vector& vector_ = {}) : vector_(vector_), buffer_(buffer_) {};
+                inline vector_t(const stu::device_t& device_, const stu::buffer& buffer_ = {}, const stu::vector& vector_ = {}) : vector_(vector_), buffer_(buffer_), device_(device_) {};
 
                 // 
+                inline operator const stu::device_t&() const { return device_; };
                 inline operator const stu::vector&() const { return vector_; };
                 inline operator const stu::device&() const { return device_; };
                 inline operator const stu::buffer&() const { return buffer_; };
+                inline operator stu::device_t&() { return device_; };
                 inline operator stu::vector&() { return vector_; };
                 inline operator stu::device&() { return device_; };
                 inline operator stu::buffer&() { return buffer_; };
@@ -59,10 +61,13 @@ namespace svt {
                 inline api::factory::vector_t* operator->() { return &(*this->vector_); };
                 inline const api::factory::vector_t* operator->() const { return &(*this->vector_); };
 
+
+                // TODO: low-level casting operator
+
             protected: friend vector_t; 
                 stu::vector vector_ = {};
                 stu::buffer buffer_ = {};
-                stu::device device_ = {};
+                stu::device_t device_ = {};
             };
         };
     };

@@ -35,6 +35,9 @@ namespace svt {
                 // Un-Safe API Related
                 operator const svt::core::api::buffer_region_t& () const;
                 operator svt::core::api::buffer_region_t& ();
+
+                //operator uintptr_t&() { return (uintptr_t&)(sampler_); };
+                //operator const uintptr_t&() const { return (uintptr_t&)(sampler_); };
             };
 
         };

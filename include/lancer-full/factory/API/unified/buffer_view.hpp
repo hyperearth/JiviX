@@ -10,10 +10,13 @@ namespace svt {
                 core::api::buffer_view_t buffer_view_ = API_NULL_HANDLE;
                 svt::api::format format_ = svt::api::format::t_undefined;
 
+                buffer_view_t() {};
                 buffer_view_t(const buffer_view_t& buffer_view) : buffer_view_(buffer_view) {};
                 buffer_view_t(const core::api::buffer_view_t& buffer_view_) : buffer_view_(buffer_view_) {};
                 buffer_view_t& operator=(const buffer_view_t& buffer_view) { this->buffer_view_ = buffer_view; return *this; };
 
+                operator uintptr_t&() { return (uintptr_t&)(buffer_view_); };
+                operator const uintptr_t&() const { return (uintptr_t&)(buffer_view_); };
                 operator core::api::buffer_view_t&() { return buffer_view_; };
                 operator const core::api::buffer_view_t&() const { return buffer_view_; };
 

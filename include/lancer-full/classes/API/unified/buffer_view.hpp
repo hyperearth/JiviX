@@ -12,7 +12,7 @@ namespace svt {
             // TODO: auto format for types and template<T>
             class buffer_view { public:
                 buffer_view(const buffer_view& buffer_view) : buffer_view_(buffer_view), vector_(buffer_view), device_(buffer_view) { };
-                buffer_view(const stu::device& device_, const stu::buffer_view& buffer_view_ = {}) : buffer_view_(buffer_view_), device_(device_) {};
+                buffer_view(const stu::device_t& device_, const stu::buffer_view& buffer_view_ = {}) : buffer_view_(buffer_view_), device_(device_) {};
 
                 // TODO: move into `.cpp` file
                 buffer_view& operator=(const buffer_view &buffer_view) { 
@@ -26,9 +26,11 @@ namespace svt {
                 operator const stu::vector&() const { return vector_; };
                 operator const stu::device&() const { return device_; };
                 operator const stu::buffer_view&() const { return buffer_view_; };
+                operator const stu::device_t&() const { return device_; };
                 operator stu::vector&() { return vector_; };
                 operator stu::device&() { return device_; };
                 operator stu::buffer_view&() { return buffer_view_; };
+                operator stu::device_t&() { return device_; };
 
                 // TODO: move into `.cpp` file
                 api::factory::buffer_view_t* operator->() { return &(*this->buffer_view_); };
@@ -46,10 +48,16 @@ namespace svt {
                     return {*this, handle};
                 };
 
+                // 
+                operator uintptr_t&() { return (*buffer_view_); };
+                operator const uintptr_t&() const { return (*buffer_view_); };
+                operator core::api::buffer_view_t&() { return (*buffer_view_); };
+                operator const core::api::buffer_view_t&() const { return (*buffer_view_); };
+
             protected: friend buffer_view;
                 stu::buffer_view buffer_view_ = {};
                 stu::vector vector_ = {};
-                stu::device device_ = {};
+                stu::device_t device_ = {};
             };
 
         };

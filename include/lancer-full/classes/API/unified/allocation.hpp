@@ -8,10 +8,12 @@ namespace svt {
     namespace api {
         namespace classes {
             class allocation { public: 
+                
+
             protected: friend allocation;
                 stu::allocation allocation_ = {};
                 stu::allocator allocator_ = {};
-                stu::device device_ = {};
+                stu::device_t device_ = {};
             };
         };
     };

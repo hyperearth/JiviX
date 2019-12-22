@@ -437,6 +437,12 @@ namespace svt {
             union { glm::uvec2 extent; extent_2d extent_32u; };
         };
 
+        // TODO: 
+        class pipeline_shader_stage {
+            
+        };
+
+
         // TODO: complete pipeline create info, extensions
         class graphics_pipeline_create_info { public: uint32_t flags = 0u;
             std::vector<pipeline_shader_stage> stages = {};

@@ -25,6 +25,10 @@ namespace svt {
             class image_view_t;
             class allocation_t;
             class sampler_t;
+            class pipeline_layout_t;
+            class pipeline_cache_t;
+            class queue_t;
+            
         };
     };
 };

@@ -12,16 +12,18 @@ namespace svt {
 
             class descriptor_set { public: 
                 descriptor_set(const descriptor_set& descriptor_set) : device_(descriptor_set), descriptor_set_(descriptor_set) {};
-                descriptor_set(                            const stu::descriptor_set& descriptor_set_ = {}) : descriptor_set_(descriptor_set_) {};
-                descriptor_set(const stu::device& device_, const stu::descriptor_set& descriptor_set_ = {}) : descriptor_set_(descriptor_set_), device_(device_) {};
+                descriptor_set(                              const stu::descriptor_set& descriptor_set_ = {}) : descriptor_set_(descriptor_set_) {};
+                descriptor_set(const stu::device_t& device_, const stu::descriptor_set& descriptor_set_ = {}) : descriptor_set_(descriptor_set_), device_(device_) {};
 
                 // 
                 operator stu::descriptor_set_layout&() { return descriptor_set_layout_; };
                 operator stu::descriptor_set&() { return descriptor_set_; };
                 operator stu::device&() { return device_; };
+                operator stu::device_t&() { return device_; };
                 operator const stu::descriptor_set_layout&() const { return descriptor_set_layout_; };
                 operator const stu::descriptor_set&() const { return descriptor_set_; };
                 operator const stu::device&() const { return device_; };
+                operator const stu::device_t&() const { return device_; };
 
                 // 
                 api::factory::descriptor_set_layout_t* operator->() { return &(*this->descriptor_set_layout_); };
@@ -49,14 +51,18 @@ namespace svt {
                 svt::core::handle_ref<descriptor_set,core::api::result_t> update();
                 svt::core::handle_ref<descriptor_set,core::api::result_t> create();
 
-
+                // 
+                operator uintptr_t&() { return (*descriptor_set_); };
+                operator const uintptr_t&() const { return (*descriptor_set_); };
+                operator core::api::descriptor_set_t&() { return (*descriptor_set_); };
+                operator const core::api::descriptor_set_t&() const { return (*descriptor_set_); };
 
             protected: 
                 stu::descriptor_set descriptor_set_ = {};
                 stu::descriptor_set_layout descriptor_set_layout_ = {};
-                stu::device device_ = {};
                 std::vector<uint8_t> heap_ = {};
                 std::vector<vk::DescriptorUpdateTemplateEntry> entries_ = {};
+                stu::device_t device_ = {};
             };
         };
     };

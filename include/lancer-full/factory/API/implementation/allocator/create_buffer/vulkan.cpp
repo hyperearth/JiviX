@@ -1,7 +1,7 @@
 #include "./factory/API/unified/device.hpp"
 #include "./factory/API/unified/buffer.hpp"
 #include "./factory/API/unified/allocator.hpp"
-
+//#include "./classes/API/unified/allocator.hpp"
 
 namespace svt {
     namespace api {
@@ -15,8 +15,8 @@ namespace svt {
             ) {
                 vk::BufferCreateInfo vk_info{};
                 vk_info.size = create_info.size;
-                vk_info.usage = vk::BufferUsageFlagBits(create_info.usage32u);
-                vk_info.flags = vk::BufferCreateFlagBits(create_info.flags32u);
+                vk_info.usage = vk::BufferUsageFlagBits(create_info.usage_32u);
+                vk_info.flags = vk::BufferCreateFlagBits(create_info.flags_32u);
                 vk_info.sharingMode = vk::SharingMode(create_info.sharing_mode);
                 vk_info.queueFamilyIndexCount = queue_family_indices.size();
                 vk_info.pQueueFamilyIndices = queue_family_indices.data();

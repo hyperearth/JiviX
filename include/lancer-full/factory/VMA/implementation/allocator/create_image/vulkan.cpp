@@ -15,8 +15,8 @@ namespace svt {
                 const svt::api::image_layout& initial_layout
             ) {
                 vk::ImageCreateInfo vk_info{};
-                vk_info.usage = vk::ImageUsageFlagBits(create_info.usage32u);
-                vk_info.flags = vk::ImageCreateFlagBits(create_info.flags32u);
+                vk_info.usage = vk::ImageUsageFlagBits(create_info.usage_32u);
+                vk_info.flags = vk::ImageCreateFlagBits(create_info.flags_32u);
                 vk_info.sharingMode = vk::SharingMode(create_info.sharing_mode);
                 vk_info.imageType = vk::ImageType(create_info.image_type);
                 vk_info.initialLayout = vk::ImageLayout(initial_layout);

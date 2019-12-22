@@ -31,6 +31,7 @@ namespace svt {
             using buffer_t = vk::Buffer;
             using device_t = vk::Device;
             using image_t = vk::Image;
+            using queue_t = vk::Queue;
             using buffer_region_t = vk::DescriptorBufferInfo;
             using buffer_view_t = vk::BufferView;
             using image_view_t = vk::ImageView;
@@ -42,6 +43,9 @@ namespace svt {
             using graphics_pipeline_t = vk::Pipeline;
             using compute_pipeline_t = vk::Pipeline;
             using ray_tracing_pipeline_t = vk::Pipeline;
+            using pipeline_layout_t = vk::PipelineLayout;
+            using pipeline_cache_t = vk::PipelineCache;
+            
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}
