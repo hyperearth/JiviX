@@ -40,8 +40,8 @@ namespace svt {
                 const api::factory::buffer_t* operator->() const { return &(*this->buffer_); };
 
                 // 
-                operator uintptr_t&() { return (*buffer_); };
-                operator const uintptr_t&() const { return (*buffer_); };
+                operator uintptr_t&() { return (uintptr_t&)(buffer_->buffer_); };
+                operator const uintptr_t&() const { return (uintptr_t&)(buffer_->buffer_); };
                 operator core::api::buffer_t&() { return (*buffer_); };
                 operator const core::api::buffer_t&() const { return (*buffer_); };
 

@@ -19,6 +19,8 @@ namespace svt {
 
                 operator core::api::image_t& () { return image_; };
                 operator const core::api::image_t& () const { return image_; };
+                operator uintptr_t&() { return (uintptr_t&)(image_); };
+                operator const uintptr_t&() const { return (uintptr_t&)(image_); };
 
                 core::api::image_t* operator->() { return &(this->image_); };
                 const core::api::image_t* operator->() const { return &(this->image_); };

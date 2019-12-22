@@ -13,16 +13,15 @@ namespace svt {
             // Can Be Extended By VMA Allocators
             class buffer_t : public api::factory::buffer_t { public: 
                 internal_allocation allocation_ = {};
-
-                operator uintptr_t&() { return (uintptr_t&)(this->buffer_); };
-                operator const uintptr_t&() const { return (uintptr_t&)(this->buffer_); };
-
+                
                 buffer_t(const buffer_t& buffer) : api::factory::buffer_t(buffer) {};
                 buffer_t(const core::api::buffer_t& buffer_) : api::factory::buffer_t(buffer_) {};
                 buffer_t& operator=(const buffer_t& buffer) { this->buffer_ = buffer_; return *this; };
 
                 operator core::api::buffer_t&() { return buffer_; };
                 operator const core::api::buffer_t&() const { return buffer_; };
+                operator uintptr_t&() { return (uintptr_t&)(buffer_); };
+                operator const uintptr_t&() const { return (uintptr_t&)(buffer_); };
 
                 core::api::buffer_t* operator->() { return &(this->buffer_); };
                 const core::api::buffer_t* operator->() const { return &(this->buffer_); };
