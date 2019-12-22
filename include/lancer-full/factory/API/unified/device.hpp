@@ -6,7 +6,7 @@ namespace svt {
     namespace api {
         namespace factory {
 
-            class device_t { public: 
+            class device_t : public std::enable_shared_from_this<device_t> { public: 
                 core::api::device_t device_ = API_NULL_HANDLE;
                 core::api::pipeline_cache_t pipeline_cache_ = API_NULL_HANDLE;
                 //std::vector<uint32_t> queue_family_indices_ = {};

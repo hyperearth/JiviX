@@ -6,7 +6,7 @@ namespace svt {
     namespace api {
         namespace factory {
 
-            class queue_t { public: 
+            class queue_t : public std::enable_shared_from_this<queue_t> { public: 
                 core::api::queue_t queue_ = API_NULL_HANDLE;
                 //std::vector<uint32_t> queue_family_indices_ = {};
 
