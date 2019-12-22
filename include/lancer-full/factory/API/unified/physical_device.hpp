@@ -11,6 +11,20 @@ namespace svt {
                 //core::api::pipeline_cache_t pipeline_cache_ = API_NULL_HANDLE;
                 //std::vector<uint32_t> queue_family_indices_ = {};
 
+                // TODO: unified features and properties
+                #if defined(USE_VULKAN)
+                    // main features
+                    vk::PhysicalDeviceFeatures2 features_ = {};
+                    vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT subgroup_size_control_features_ = {};
+
+                    // main properties
+                    vk::PhysicalDeviceProperties2 properties_ = {};
+                    vk::PhysicalDeviceConservativeRasterizationPropertiesEXT conservative_rasterization_properties_ = {};
+                    vk::PhysicalDeviceSubgroupSizeControlPropertiesEXT subgroup_size_control_properties_ = {};
+                    vk::PhysicalDeviceSampleLocationsPropertiesEXT sample_locations_properties = {};
+                    vk::PhysicalDeviceRayTracingPropertiesNV ray_tracing_properties_ = {};
+                #endif
+
                 physical_device_t() {};
                 physical_device_t(const physical_device_t& physical_device) : physical_device_(physical_device) {};
                 physical_device_t(const core::api::physical_device_t& physical_device_) : physical_device_(physical_device_) {};
