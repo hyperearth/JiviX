@@ -25,6 +25,8 @@ namespace svt {
 
                 core::api::buffer_t* operator->() { return &(this->buffer_); };
                 const core::api::buffer_t* operator->() const { return &(this->buffer_); };
+                core::api::buffer_t& operator*() { return (this->buffer_); };
+                const core::api::buffer_t& operator*() const { return (this->buffer_); };
 
                 // TODO: import/claim allocation
                 // export allocation ONCE as dedicated (should to be unbound from that object)
