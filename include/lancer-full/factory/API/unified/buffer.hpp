@@ -6,12 +6,10 @@
 namespace svt {
     namespace api {
         namespace factory {
-
             // Can Be Extended By VMA Allocators
             class buffer_t : public std::enable_shared_from_this<buffer_t> { public: 
                 //std::vector<uint32_t> queueFamilyIndices = {};
                 core::api::buffer_t buffer_ = API_NULL_HANDLE;
-
 
                 operator uintptr_t&() { return (uintptr_t&)(this->buffer_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(this->buffer_); };

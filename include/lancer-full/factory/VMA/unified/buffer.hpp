@@ -11,14 +11,14 @@ namespace svt {
         namespace factory {
 
             // Can Be Extended By VMA Allocators
-            class buffer_t : public svt::api::factory::buffer_t { public: 
+            class buffer_t : public api::factory::buffer_t { public: 
                 internal_allocation allocation_ = {};
 
                 operator uintptr_t&() { return (uintptr_t&)(this->buffer_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(this->buffer_); };
 
-                buffer_t(const buffer_t& buffer) : svt::api::factory::buffer_t(buffer) {};
-                buffer_t(const core::api::buffer_t& buffer_) : svt::api::factory::buffer_t(buffer_) {};
+                buffer_t(const buffer_t& buffer) : api::factory::buffer_t(buffer) {};
+                buffer_t(const core::api::buffer_t& buffer_) : api::factory::buffer_t(buffer_) {};
                 buffer_t& operator=(const buffer_t& buffer) { this->buffer_ = buffer_; return *this; };
 
                 operator core::api::buffer_t&() { return buffer_; };
@@ -29,8 +29,8 @@ namespace svt {
 
                 // TODO: import/claim allocation
                 // export allocation ONCE as dedicated (should to be unbound from that object)
-                virtual std::shared_ptr<svt::api::factory::allocation_t> export_allocation() override {
-                    return std::dynamic_pointer_cast<svt::api::factory::allocation_t>(std::make_shared<allocation_t>(std::move(allocation_)));
+                virtual std::shared_ptr<api::factory::allocation_t> export_allocation() override {
+                    return std::dynamic_pointer_cast<api::factory::allocation_t>(std::make_shared<allocation_t>(std::move(allocation_)));
                 };
 
                 // 
