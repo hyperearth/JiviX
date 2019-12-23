@@ -12,6 +12,7 @@ namespace svt {
 
                 descriptor_set_t() {};
                 descriptor_set_t(const descriptor_set_t& descriptor_set_t) : set_(descriptor_set_t), temp_(descriptor_set_t) {};
+                descriptor_set_t(const core::api::descriptor_set_t& set_ = API_NULL_HANDLE, core::api::descriptor_set_template_t temp_ = API_NULL_HANDLE) : set_(set_), temp_(temp_) {};
                 descriptor_set_t& operator=(const descriptor_set_t& descriptor_set_t) { set_ = descriptor_set_t, temp_ = descriptor_set_t; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(set_); };

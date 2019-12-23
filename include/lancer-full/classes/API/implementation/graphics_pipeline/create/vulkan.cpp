@@ -8,7 +8,7 @@
 namespace svt {
     namespace api {
         namespace classes {
-            
+#if defined(USE_VULKAN)
             // TODO: validate 
             svt::core::handle_ref<graphics_pipeline,core::api::result_t> graphics_pipeline::create(const graphics_pipeline_create_info& info) {
                 // 
@@ -135,7 +135,7 @@ namespace svt {
 
                 return { *this, core::api::result_t(0u) };
             };
-
+#endif
         };
     };
 };

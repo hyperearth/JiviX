@@ -11,6 +11,7 @@ namespace svt {
 
                 graphics_pipeline_t() {};
                 graphics_pipeline_t(const graphics_pipeline_t& graphics_pipeline_t) : pipeline_(graphics_pipeline_t) {};
+                graphics_pipeline_t(core::api::graphics_pipeline_t pipeline_ = API_NULL_HANDLE) : pipeline_(pipeline_) {};
                 graphics_pipeline_t& operator=(const graphics_pipeline_t& graphics_pipeline_t) { pipeline_ = graphics_pipeline_t; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(pipeline_); };

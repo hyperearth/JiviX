@@ -18,10 +18,12 @@ namespace svt {
                 // 
                 operator stu::descriptor_set_layout&() { return descriptor_set_layout_; };
                 operator stu::descriptor_set&() { return descriptor_set_; };
+                operator stu::descriptor_pool&() { return descriptor_pool_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };
                 operator const stu::descriptor_set_layout&() const { return descriptor_set_layout_; };
                 operator const stu::descriptor_set&() const { return descriptor_set_; };
+                operator const stu::descriptor_pool&() const { return descriptor_pool_; };
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
@@ -54,6 +56,7 @@ namespace svt {
 
             protected: 
                 stu::descriptor_set descriptor_set_ = {};
+                stu::descriptor_pool descriptor_pool_ = {};
                 stu::descriptor_set_layout descriptor_set_layout_ = {};
                 stu::device_t device_ = {};
 

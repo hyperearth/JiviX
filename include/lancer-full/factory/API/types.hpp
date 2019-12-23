@@ -12,12 +12,12 @@ namespace svt {
             class queue_t;
             class descriptor_set_t;
             class descriptor_set_layout_t;
+            class descriptor_pool_t;
             class pipeline_layout_t;
             class ray_tracing_pipeline_t;
             class graphics_pipeline_t;
             class compute_pipeline_t;
             class command_pool_t;
-            class descriptor_pool_t;
             class allocator_t;
             class buffer_t;
             class vector_t;

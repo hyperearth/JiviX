@@ -11,6 +11,7 @@ namespace svt {
 
                 pipeline_layout_t() {};
                 pipeline_layout_t(const pipeline_layout_t& pipeline_layout_t = {}) : layout_(pipeline_layout_t) {};
+                pipeline_layout_t(core::api::pipeline_layout_t layout_ = API_NULL_HANDLE) : layout_(layout_) {};
                 pipeline_layout_t& operator=(const pipeline_layout_t& pipeline_layout_t) { layout_ = pipeline_layout_t; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(layout_); };

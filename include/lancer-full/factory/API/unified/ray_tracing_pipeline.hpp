@@ -11,6 +11,7 @@ namespace svt {
 
                 ray_tracing_pipeline_t() {};
                 ray_tracing_pipeline_t(const ray_tracing_pipeline_t& ray_tracing_pipeline_t) : pipeline_(ray_tracing_pipeline_t) {};
+                ray_tracing_pipeline_t(core::api::ray_tracing_pipeline_t pipeline_ = API_NULL_HANDLE) : pipeline_(pipeline_) {};
                 ray_tracing_pipeline_t& operator=(const ray_tracing_pipeline_t& ray_tracing_pipeline_t) { pipeline_ = ray_tracing_pipeline_t; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(pipeline_); };

@@ -11,6 +11,7 @@ namespace svt {
 
                 command_pool_t() {};
                 command_pool_t(const command_pool_t& command_pool_t) : cmdpool_(cmdpool_) {};
+                command_pool_t(core::api::command_pool_t cmdbuf_ = API_NULL_HANDLE) : cmdpool_(cmdpool_) {};
                 command_pool_t& operator=(const command_pool_t& command_pool_t) { cmdpool_ = command_pool_t; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(cmdpool_); };

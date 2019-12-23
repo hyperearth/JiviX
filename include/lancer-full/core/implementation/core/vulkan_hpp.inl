@@ -39,6 +39,7 @@ namespace svt {
             using descriptor_set_layout_t = vk::DescriptorSetLayout;
             using sampler_t = vk::Sampler;
             using image_desc_t = vk::DescriptorImageInfo;
+            using descriptor_pool_t = vk::DescriptorPool;
             using physical_device_t = vk::PhysicalDevice;
             using pipeline_layout_t = vk::PipelineLayout;
             using graphics_pipeline_t = vk::Pipeline;

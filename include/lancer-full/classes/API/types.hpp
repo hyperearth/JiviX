@@ -23,6 +23,7 @@ namespace svt {
             using allocation = std::shared_ptr<api::factory::allocation_t>;
             using descriptor_set = std::shared_ptr<api::factory::descriptor_set_t>;
             using descriptor_set_layout = std::shared_ptr<api::factory::descriptor_set_layout_t>;
+            using descriptor_pool = std::shared_ptr<api::factory::descriptor_pool_t>;
             using ray_tracing_pipeline = std::shared_ptr<api::factory::ray_tracing_pipeline_t>;
             using graphics_pipeline = std::shared_ptr<api::factory::graphics_pipeline_t>;
             using compute_pipeline = std::shared_ptr<api::factory::compute_pipeline_t>;
@@ -73,11 +74,11 @@ namespace svt {
             class command_pool;
             class descriptor_set;
             class descriptor_set_layout;
+            class descriptor_pool;
             class pipeline_layout;
             class graphics_pipeline;
             class compute_pipeline;
             class ray_tracing_pipeline;
-            class descriptor_pool;
             class allocator;
             class sampler;
             class buffer_view;

@@ -7,9 +7,11 @@ namespace svt {
     namespace api {
         namespace classes {
 #ifdef USE_VULKAN
-            // TODO: add finally apply method support
             // TODO: add RTX description_write support
             svt::core::handle_ref<descriptor_set,core::api::result_t> descriptor_set::update(const descriptor_set_update_info& info) {
+                // If not exists, create it
+                if (!this->descriptor_set_) { this->create(info); };
+
                 vk::DescriptorUpdateTemplateCreateInfo vk_info{};
                 vk_info.templateType = vk::DescriptorUpdateTemplateType::eDescriptorSet;
                 vk_info.flags = {};

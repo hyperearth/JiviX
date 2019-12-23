@@ -11,6 +11,7 @@ namespace svt {
 
                 command_buffer_t() {};
                 command_buffer_t(const command_buffer_t& command_buffer_t) : cmdbuf_(cmdbuf_) {};
+                command_buffer_t(core::api::command_buffer_t cmdbuf_ = API_NULL_HANDLE) : cmdbuf_(cmdbuf_) {};
                 command_buffer_t& operator=(const command_buffer_t& command_buffer_t) { cmdbuf_ = command_buffer_t; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(cmdbuf_); };

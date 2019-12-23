@@ -13,6 +13,7 @@ namespace svt {
                 queue_t() {};
                 queue_t(const queue_t& queue) : queue_(queue) {};
                 queue_t(const core::api::queue_t& queue_) : queue_(queue_) {};
+                queue_t(core::api::queue_t queue_ = API_NULL_HANDLE) : queue_(queue_) {};
                 queue_t& operator=(const queue_t& queue) { this->queue_ = queue; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(queue_); };
