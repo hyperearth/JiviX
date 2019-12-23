@@ -62,9 +62,12 @@ namespace svt {
             protected: 
                 stu::descriptor_set descriptor_set_ = {};
                 stu::descriptor_set_layout descriptor_set_layout_ = {};
+                stu::device_t device_ = {};
+
+                // TODO: move into constructive create_info and update_info
                 std::vector<uint8_t> heap_ = {};
                 std::vector<vk::DescriptorUpdateTemplateEntry> entries_ = {};
-                stu::device_t device_ = {};
+                
             };
         };
     };

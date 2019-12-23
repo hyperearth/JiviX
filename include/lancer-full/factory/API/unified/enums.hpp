@@ -208,6 +208,13 @@ namespace svt {
             t_instance = 1u,
         };
 
+        enum class ray_tracing_shader_group_type : uint32_t {
+            t_general = 0u,
+            t_triangles_hit = 1u,
+            t_procedural_hit = 2u,
+        };
+
+
         struct image_flags { uint32_t
             b_sparse_binding: 1,
             b_sparse_residency: 1,
@@ -470,9 +477,12 @@ namespace svt {
             union { glm::uvec2 extent; extent_2d extent_32u; };
         };
 
-        // TODO: 
-        class pipeline_shader_stage {
-            
+        // TODO: module support
+        class pipeline_shader_stage { public: 
+            shader_stage_flags stage = {};
+            uintptr_t module = 0u;
+            std::string name = "";
+            uintptr_t specialization = 0u;
         };
 
 
@@ -617,6 +627,38 @@ namespace svt {
             std::vector<attachment_description> attachments = {};
             std::vector<subpass_description> subpasses = {};
             std::vector<subpass_dependency> dependencies = {};
+        };
+
+
+
+
+        //class 
+        class ray_tracing_shader_group { public: //uint32_t flags = 0u;
+            ray_tracing_shader_group_type type = ray_tracing_shader_group_type::t_general;
+            uint32_t general_shader = ~0U;
+            uint32_t closest_hit_shader = ~0U;
+            uint32_t any_hit_shader = ~0U;
+            uint32_t intersection_shader = ~0U;
+        };
+
+        // constructor with helpers
+        class ray_tracing_pipeline_create_info { public: uint32_t flags = 0u;
+            std::vector<pipeline_shader_stage> stages = {};
+            std::vector<ray_tracing_shader_group> groups = {};
+
+            // 
+            ray_tracing_pipeline_create_info& add_shader_stages_group(const std::vector<pipeline_shader_stage>& stages_in = {}){
+                const uintptr_t group_idx = groups.size(); groups.push_back({}); auto& group = groups[group_idx];
+                for (auto& stage : stages_in) {
+                    const uintptr_t last_idx = stages.size(); stages.push_back(stage);
+                    if (stage.stage.b_raygen) { group.general_shader = last_idx; break; };
+                    if (stage.stage.b_miss_hit) { group.general_shader = last_idx; break; };
+                    if (stage.stage.b_closest_hit) { group.type = ray_tracing_shader_group_type::t_triangles_hit, group.closest_hit_shader = last_idx; };
+                    if (stage.stage.b_any_hit) { group.type = ray_tracing_shader_group_type::t_triangles_hit, group.any_hit_shader = last_idx; };
+                    if (stage.stage.b_intersection) { group.type = ray_tracing_shader_group_type::t_procedural_hit, group.intersection_shader = last_idx; };
+                };
+                return *this;
+            };
         };
 
     };

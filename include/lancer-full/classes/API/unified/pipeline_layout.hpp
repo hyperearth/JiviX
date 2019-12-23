@@ -50,8 +50,10 @@ namespace svt {
 
             protected: friend descriptor_set; friend pipeline_layout;
                 stu::pipeline_layout pipeline_layout_ = {};
-                std::vector<description_binding> bindings_ = {};
                 stu::device_t device_ = {};
+
+                // TODO: move into constructive create_info and update_info
+                std::vector<description_binding> bindings_ = {};
             };
 
         };

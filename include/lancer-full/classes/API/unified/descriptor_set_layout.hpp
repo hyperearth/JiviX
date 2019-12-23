@@ -55,8 +55,11 @@ namespace svt {
 
             protected: friend descriptor_set; friend descriptor_set_layout;
                 stu::descriptor_set_layout descriptor_set_layout_ = {};
-                std::vector<description_binding> bindings_ = {};
                 stu::device_t device_ = {};
+
+                // TODO: move into constructive create_info and update_info
+                std::vector<description_binding> bindings_ = {};
+                
             };
 
 
