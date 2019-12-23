@@ -2,7 +2,7 @@
 
 #include "./core/unified/core.hpp"
 #include "./factory/API/types.hpp"
-#include "./factory/API/unified/enums.hpp"
+#include "./factory/API/unified/structures.hpp"
 #include "./factory/API/unified/instance.hpp"
 #include "./factory/API/unified/physical_device.hpp"
 #include "./factory/API/unified/device.hpp"

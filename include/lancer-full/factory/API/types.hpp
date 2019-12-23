@@ -1,11 +1,12 @@
 #pragma once
 
-#include "./core/unified/core.hpp"
-#include "./factory/API/unified/enums.hpp"
+//#include "./core/unified/core.hpp"
+#include "./factory/API/unified/structures.hpp"
 
 namespace svt {
     namespace api {
         namespace factory {
+            
             class device_t;
             class command_buffer_t;
             class queue_t;

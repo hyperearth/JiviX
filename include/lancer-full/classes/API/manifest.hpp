@@ -1,7 +1,7 @@
 #pragma once
 
 #include "./core/unified/core.hpp"
-//#include "./classes/API/unified/enums.hpp"
+#include "./classes/API/types.hpp"
 #include "./classes/API/unified/device.hpp"
 #include "./classes/API/unified/queue.hpp"
 #include "./classes/API/unified/allocator.hpp"
