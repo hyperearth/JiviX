@@ -194,12 +194,19 @@ namespace svt {
             t_decrement_and_wrap = 7u
         };
 
-        enum class convervative_rasterization_mode {
+        enum class convervative_rasterization_mode : uint32_t {
             t_disabled = 0u,
             t_overstimate = 1u,
             t_understimate = 2u,
         };
 
+        enum class attachment_load_op : uint32_t { t_load = 0u, t_clear = 1u, t_dont_care = 2u };
+        enum class attachment_store_op : uint32_t { t_store = 0u, t_dont_care = 1u };
+
+        enum class vertex_input_rate : uint32_t {
+            t_vertex = 0u,
+            t_instance = 1u,
+        };
 
         struct image_flags { uint32_t
             b_sparse_binding: 1,
@@ -315,7 +322,44 @@ namespace svt {
             b_intersection: 1,
             b_callable: 1;
         };
+
+        struct cull_mode { uint32_t 
+            b_front: 1,
+            b_back: 1;
+        };
         
+        // TODO: 
+        struct access_flags { uint32_t 
+            b_indirect_command_read: 1,
+            b_index_read: 1,
+            b_vertex_attribute_read: 1,
+            b_uniform_read_read: 1,
+            b_input_attachment_read: 1,
+            b_shader_read: 1,
+            b_shader_write: 1,
+            b_color_attachment_read: 1,
+            b_color_attachment_write: 1,
+            b_depth_stencil_attachment_read: 1,
+            b_depth_stencil_attachment_write: 1,
+            b_transfer_read: 1,
+            b_transfer_write: 1,
+            b_host_read: 1,
+            b_host_write: 1,
+            b_memory_write: 1,
+            b_memory_write: 1,
+            b_command_process_read: 1,
+            b_command_process_write: 1,
+            b_color_attachment_read_noncoherent: 1,
+            b_conditional_rendering_read: 1,
+            b_acceleration_structure_read: 1,
+            b_acceleration_structure_write: 1,
+            b_shading_rate_image_read: 1,
+            b_fragment_density_map_read: 1,
+            b_transform_feedback_write: 1,
+            b_transform_feedback_counter_read: 1,
+            b_transform_feedback_counter_write: 1;
+        };
+
 
 
         struct extent_2d { uint32_t width = 1u, height = 1u; };
@@ -397,22 +441,11 @@ namespace svt {
             uint32_t reference = 0u;
         };
 
-        struct cull_mode { uint32_t 
-            b_front: 1,
-            b_back: 1;
-        };
-
-
         class blend_state { public: 
             bool enable = false;
             blend_factor src_color_factor = blend_factor::t_one; blend_op color_op = blend_op::t_add; blend_factor dst_color_factor = blend_factor::t_one;
             blend_factor src_alpha_factor = blend_factor::t_one; blend_op alpha_op = blend_op::t_add; blend_factor dst_alpha_factor = blend_factor::t_one;
             union { uint32_t color_write_mask_32u = 0u; color_mask color_write_mask; };
-        };
-
-        enum class vertex_input_rate : uint32_t {
-            t_vertex = 0u,
-            t_instance = 1u,
         };
 
         class vertex_binding_desc { public: 
@@ -540,6 +573,50 @@ namespace svt {
 
             // 
             std::vector<uintptr_t> base_pipeline_handle = {};
+        };
+
+
+
+
+        // VK Comaptible 
+        struct attachment_description { uint32_t flags = 0u;
+            format format = format::t_r16g16g16a16_unorm;
+            union { uint32_t samples_32u = 0b00000000000000000000000000000001u; sample_count samples; };
+            attachment_load_op load_op = attachment_load_op::t_load;
+            attachment_store_op store_op = attachment_store_op::t_store;
+            attachment_load_op stencil_load_op = attachment_load_op::t_load;
+            attachment_store_op stencil_store_op = attachment_store_op::t_store;
+            image_layout initial_layout = image_layout::t_undefined;
+            image_layout final_layout = image_layout::t_color_attachment;
+        };
+
+        // VK Comaptible 
+        struct attachment_reference {
+            uint32_t attachment = 0u;
+            image_layout layout = image_layout::t_color_attachment;
+        };
+
+        // VK Comaptible 
+        struct subpass_dependency {
+            uint32_t src_subpass = 0u;
+            uint32_t dst_subpass = 0u;
+            union { uint32_t src_stage_mask_32u = 0b00000000000000000000000000000000u; pipeline_stage_flags src_stage_mask; };
+            union { uint32_t dst_stage_mask_32u = 0b00000000000000000000000000000000u; pipeline_stage_flags dst_stage_mask; };
+            union { uint32_t src_access_mask_32u = 0b00000000000000000000000000000000u; access_flags src_access_mask; };
+            union { uint32_t dst_access_mask_32u = 0b00000000000000000000000000000000u; access_flags dst_access_mask; };
+            uint32_t dependency_flags = 0u;
+        };
+
+        struct subpass_description {
+            std::vector<attachment_reference> input_attachments = {};
+            std::vector<attachment_reference> color_attachments = {};
+            attachment_reference depth_stencil_attachment = {};
+        };
+
+        class render_pass_create_info { public: uint32_t flags = 0u;
+            std::vector<attachment_description> attachments = {};
+            std::vector<subpass_description> subpasses = {};
+            std::vector<subpass_dependency> dependencies = {};
         };
 
     };
