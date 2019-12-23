@@ -38,7 +38,7 @@ namespace svt {
             union { glm::uvec3 extent; extent_3d extent_32u; };
             uint32_t mip_levels = 1u;
             uint32_t array_layers = 1u;
-            union { uint32_t samples_32u = 0b00000000000000000000000000000001u; sample_count samples; };
+            union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
             image_tiling tiling = image_tiling::t_optimal;
             union { uint32_t usage_32u = 0b00000000000000000000000000000000u; image_usage usage; };
             sharing_mode sharing_mode = sharing_mode::t_exclusive;
@@ -140,7 +140,7 @@ namespace svt {
 
             // 
             struct multisample_state {
-                union { uint32_t samples_32u = 0b00000000000000000000000000000001u; sample_count samples; };
+                union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
                 bool sample_shading = false;
                 float min_sample_shading = 0.f;
                 const uint32_t* sample_mask = nullptr;
@@ -198,7 +198,7 @@ namespace svt {
         // VK Comaptible 
         struct attachment_description { uint32_t flags = 0u;
             format format = format::t_r16g16g16a16_unorm;
-            union { uint32_t samples_32u = 0b00000000000000000000000000000001u; sample_count samples; };
+            union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
             attachment_load_op load_op = attachment_load_op::t_load;
             attachment_store_op store_op = attachment_store_op::t_store;
             attachment_load_op stencil_load_op = attachment_load_op::t_load;
