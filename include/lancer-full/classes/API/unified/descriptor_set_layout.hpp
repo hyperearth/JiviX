@@ -9,9 +9,7 @@ namespace svt {
     namespace api {
         namespace classes {
 
-            // TODO: push bindings, full version
-            // TODO: complete descriptor layout entries
-            // TODO: add implementation into `.cpp`
+            // TODO: move some implementations into `.cpp`
             class descriptor_set_layout { public: 
                 descriptor_set_layout(const descriptor_set_layout& descriptor_set_layout) : device_(descriptor_set_layout), descriptor_set_layout_(descriptor_set_layout) {};
                 descriptor_set_layout(                              const stu::descriptor_set_layout& descriptor_set_layout_ = {}) : descriptor_set_layout_(descriptor_set_layout_) {};
