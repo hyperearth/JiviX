@@ -23,7 +23,7 @@ namespace svt {
                 vk_info.set = {};
 
                 // TODO: destroy previous template 
-                (*device_)->updateDescriptorSetWithTemplate(*descriptor_set_,descriptor_set_->temp_=(*device_)->createDescriptorUpdateTemplate(vk_info,nullptr),info.heap_.data()); // 
+                (*device_)->updateDescriptorSetWithTemplate(*descriptor_set_,descriptor_set_->temp_=(*device_)->createDescriptorUpdateTemplate(vk_info,nullptr,*device_),info.heap_.data(),*device_); // 
                 return {*this,core::api::result_t(0u)};
             };
 #endif

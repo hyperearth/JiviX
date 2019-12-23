@@ -50,6 +50,7 @@ namespace svt {
             using command_pool_t = vk::CommandPool;
             using instance_t = vk::Instance;
             using render_pass_t = vk::RenderPass;
+            using dispatch_t = vk::DispatchLoaderDynamic;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}
