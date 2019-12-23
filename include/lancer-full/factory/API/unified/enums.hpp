@@ -644,19 +644,57 @@ namespace svt {
         // constructor with helpers
         class ray_tracing_pipeline_create_info { public: uint32_t flags = 0u;
             std::vector<pipeline_shader_stage> stages = {};
-            std::vector<ray_tracing_shader_group> groups = {};
+            ray_tracing_shader_group raygen_shader_group = {};
+            std::vector<ray_tracing_shader_group> miss_shader_groups = {};
+            std::vector<ray_tracing_shader_group> hit_shader_groups = {};
+            std::vector<ray_tracing_shader_group> compiled_shader_groups = {};
 
+            // result groups
+            std::vector<ray_tracing_shader_group>& compile_groups(){
+                compiled_shader_groups = { raygen_shader_group };
+                for (auto& group : miss_shader_groups) { compiled_shader_groups.push_back(group); };
+                for (auto& group : hit_shader_groups) { compiled_shader_groups.push_back(group); };
+                return compiled_shader_groups;
+            };
+            
             // 
             ray_tracing_pipeline_create_info& add_shader_stages_group(const std::vector<pipeline_shader_stage>& stages_in = {}){
-                const uintptr_t group_idx = groups.size(); groups.push_back({}); auto& group = groups[group_idx];
                 for (auto& stage : stages_in) {
-                    const uintptr_t last_idx = stages.size(); stages.push_back(stage);
-                    if (stage.stage.b_raygen) { group.general_shader = last_idx; break; };
-                    if (stage.stage.b_miss_hit) { group.general_shader = last_idx; break; };
-                    if (stage.stage.b_closest_hit) { group.type = ray_tracing_shader_group_type::t_triangles_hit, group.closest_hit_shader = last_idx; };
-                    if (stage.stage.b_any_hit) { group.type = ray_tracing_shader_group_type::t_triangles_hit, group.any_hit_shader = last_idx; };
-                    if (stage.stage.b_intersection) { group.type = ray_tracing_shader_group_type::t_procedural_hit, group.intersection_shader = last_idx; };
+                    if (stage.stage.b_raygen) {
+                        const uintptr_t last_idx = stages.size(); stages.push_back(stage);
+                        raygen_shader_group.general_shader = last_idx;
+                    };
                 };
+
+                uintptr_t group_idx = -1U;
+                for (auto& stage : stages_in) {
+                    if (stage.stage.b_miss_hit) {
+                        if (group_idx == -1U) { group_idx = miss_shader_groups.size(); miss_shader_groups.push_back({}); };
+                        const uintptr_t last_idx = stages.size(); stages.push_back(stage);
+                        miss_shader_groups[group_idx].general_shader = last_idx;
+                    };
+                };
+
+                group_idx = -1U;
+                for (auto& stage : stages_in) {
+                    if (stage.stage.b_closest_hit | stage.stage.b_any_hit | stage.stage.b_intersection) {
+                        if (group_idx == -1U) { group_idx = hit_shader_groups.size(); hit_shader_groups.push_back({}); };
+                        const uintptr_t last_idx = stages.size(); stages.push_back(stage);
+                        if (stage.stage.b_closest_hit) {
+                            hit_shader_groups[group_idx].type = ray_tracing_shader_group_type::t_triangles_hit, 
+                            hit_shader_groups[group_idx].closest_hit_shader = last_idx; 
+                        };
+                        if (stage.stage.b_any_hit) {
+                            hit_shader_groups[group_idx].type = ray_tracing_shader_group_type::t_triangles_hit, 
+                            hit_shader_groups[group_idx].any_hit_shader = last_idx; 
+                        };
+                        if (stage.stage.b_intersection) { 
+                            hit_shader_groups[group_idx].type = ray_tracing_shader_group_type::t_procedural_hit, 
+                            hit_shader_groups[group_idx].intersection_shader = last_idx; 
+                        };
+                    };
+                };
+
                 return *this;
             };
         };
