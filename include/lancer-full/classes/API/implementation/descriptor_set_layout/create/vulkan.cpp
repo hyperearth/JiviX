@@ -18,7 +18,7 @@ namespace svt {
                 // 
                 for (auto& bi : info.bindings_) {
                     bindings_vk.push_back(vk::DescriptorSetLayoutBinding{bi.binding,vk::DescriptorType(bi.type),bi.count,vk::ShaderStageFlags(bi.shader_stages_32u),(vk::Sampler*)(bi.samplers)});
-                    bindings_flags_vk.push_back(vk::DescriptorBindingFlagsEXT{bi.flags_ext});
+                    bindings_flags_vk.push_back(vk::DescriptorBindingFlagsEXT(bi.flags_ext_32u));
                 };
 
                 // re-assign bindings (full version)
