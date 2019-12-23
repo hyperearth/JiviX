@@ -36,22 +36,15 @@ namespace svt {
                     this->descriptor_set_layout_ = descriptor_set;
                     this->descriptor_set_ = descriptor_set;
                     this->device_ = descriptor_set;
-                    this->heap_ = descriptor_set.heap_;
-                    this->entries_ = descriptor_set.entries_;
+                    //this->heap_ = descriptor_set.heap_;
+                    //this->entries_ = descriptor_set.entries_;
                     return *this;
                 };
 
 
-                template<class T>
-                inline description_handle _push_description( const description_entry& entry_ = {} );
-
-                // official function (not template)
-                description_handle  push_description( const description_entry& entry_ = {} );
-
-
                 // TODO: create descriptor set method
-                svt::core::handle_ref<descriptor_set,core::api::result_t> update();
-                svt::core::handle_ref<descriptor_set,core::api::result_t> create();
+                svt::core::handle_ref<descriptor_set,core::api::result_t> update(const descriptor_set_update_info& info = {});
+                svt::core::handle_ref<descriptor_set,core::api::result_t> create(const descriptor_set_create_info& info = {});
 
                 // 
                 operator uintptr_t&() { return (*descriptor_set_); };
@@ -64,9 +57,7 @@ namespace svt {
                 stu::descriptor_set_layout descriptor_set_layout_ = {};
                 stu::device_t device_ = {};
 
-                // TODO: move into constructive create_info and update_info
-                std::vector<uint8_t> heap_ = {};
-                std::vector<vk::DescriptorUpdateTemplateEntry> entries_ = {};
+                
                 
             };
         };

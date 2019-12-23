@@ -375,25 +375,7 @@ namespace svt {
         struct offset_3d { int32_t x = 0u, y = 0u, z = 0u; };
 
         // 
-        struct description_entry {
-            description_type type = description_type::t_sampler;
-            uint32_t dst_binding = 0u;
-            uint32_t dst_item_id = 0u;
-            uint32_t descs_count = 1u;
-        };
-
-        // TODO: typing control, add into `.cpp` file
-        struct description_handle {
-            description_entry* entry_t = nullptr;
-            void* field_t = nullptr;
-
-            // any buffers and images can `write` into types
-            template<class T = uint8_t> operator T&() { return (*field_t); };
-            template<class T = uint8_t> operator const T&() const { return (*field_t); };
-            template<class T = uint8_t> T& offset(const uint32_t& idx = 0u) { return cpu_handle{entry_t+idx,(T*)field_t}; };
-            template<class T = uint8_t> const T& offset(const uint32_t& idx = 0u) const { return cpu_handle{entry_t+idx,(T*)field_t}; };
-            const uint32_t& size() const { return entry_t->descs_count; }; 
-        };
+        
 
         struct description_binding {
             uint32_t binding = 0u;
@@ -658,7 +640,7 @@ namespace svt {
             };
             
             // 
-            ray_tracing_pipeline_create_info& add_shader_stages_group(const std::vector<pipeline_shader_stage>& stages_in = {}){
+            ray_tracing_pipeline_create_info& add_shader_stages_group(const std::vector<pipeline_shader_stage>& stages_in = {}) {
                 for (auto& stage : stages_in) {
                     if (stage.stage.b_raygen) {
                         const uintptr_t last_idx = stages.size(); stages.push_back(stage);
@@ -698,6 +680,77 @@ namespace svt {
                 return *this;
             };
         };
+
+
+        // VK Comaptible 
+        class descriptor_update_template_entry { public: 
+            uint32_t binding = 0u;
+            uint32_t dst_array_element = 0u;
+            uint32_t descriptor_count = 1u;
+            description_type descriptor_type = description_type::t_sampler;
+            size_t offset = 0u;
+            size_t stride = 8u; 
+        };
+
+        //struct descriptor_update_template_entry {
+        //    uint32_t binding = 0u;
+        //    uint32_t dst_array_element = 0u;
+        //    uint32_t descriptor_count = 1u;
+        //    description_type type = description_type::t_sampler;
+        //};
+
+        // TODO: typing control, add into `.cpp` file
+        struct description_handle {
+            descriptor_update_template_entry* entry_t = nullptr;
+            void* field_t = nullptr;
+
+            // any buffers and images can `write` into types
+            template<class T = uint8_t> operator T&() { return (*field_t); };
+            template<class T = uint8_t> operator const T&() const { return (*field_t); };
+            template<class T = uint8_t> T& offset(const uint32_t& idx = 0u) { return description_handle{entry_t+idx,(T*)field_t}; };
+            template<class T = uint8_t> const T& offset(const uint32_t& idx = 0u) const { return description_handle{entry_t+idx,(T*)field_t}; };
+            const uint32_t& size() const { return entry_t->descriptor_count; }; 
+        };
+
+        class descriptor_set_create_info { public: uint32_t flags = 0u; using T = uintptr_t;
+            template<class T = T>
+            inline description_handle& _push_description( const descriptor_update_template_entry& entry_ ) { // Un-Safe API again
+                const uintptr_t pt0 = heap_.size();
+                heap_.resize(pt0+sizeof(T)*entry_.descriptor_count, 0u);
+                entries_.push_back({
+                    .binding = entry_.binding,
+                    .dst_array_element = entry_.dst_array_element,
+                    .descriptor_count = entry_.descriptor_count,
+                    .descriptor_type = entry_.descriptor_type,
+                    .offset = pt0,
+                    .stride = sizeof(T)
+                });
+                handles_.push_back({ &entries_.back(), &heap.back() }); return handles_.back();
+            };
+
+            // official function (not template)
+            description_handle& push_description( const descriptor_update_template_entry& entry_ = {} ) {
+                if (entry_.descriptor_type == description_type::t_storage_buffer || entry_.descriptor_type == description_type::t_uniform_buffer) {
+                    return _push_description<core::api::buffer_region_t>(entry_);
+                } else 
+                if (entry_.descriptor_type == description_type::t_storage_texel_buffer || entry_.descriptor_type == description_type::t_uniform_texel_buffer) {
+                    return _push_description<core::api::buffer_view_t>(entry_);
+                } else 
+                if (entry_.descriptor_type == description_type::t_acceleration_structure) {
+                    return _push_description<uintptr_t>(entry_); // TODO: Acceleration Structure Support
+                } else {
+                    return _push_description<core::api::image_desc_t>(entry_);
+                };
+            };
+
+            // TODO: move into constructive create_info and update_info
+            std::vector<uint8_t> heap_ = {};
+            std::vector<descriptor_update_template_entry> entries_ = {};
+            std::vector<description_handle> handles_ = {};
+        };
+
+        // TODO: resolve typing of update or re-create
+        using descriptor_set_update_info = descriptor_set_create_info;
 
     };
 };

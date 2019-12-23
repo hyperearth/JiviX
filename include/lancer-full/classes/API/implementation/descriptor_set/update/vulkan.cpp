@@ -9,22 +9,21 @@ namespace svt {
 #ifdef USE_VULKAN
             // TODO: add finally apply method support
             // TODO: add RTX description_write support
-            svt::core::handle_ref<descriptor_set,core::api::result_t> descriptor_set::update() {
-                vk::DescriptorUpdateTemplateCreateInfo info{};
-                info.templateType = vk::DescriptorUpdateTemplateType::eDescriptorSet;
-                info.flags = {};
-                info.descriptorUpdateEntryCount = entries_.size();
-                info.pDescriptorUpdateEntries = entries_.data();
-                info.descriptorSetLayout = descriptor_set_layout_->layout;
+            svt::core::handle_ref<descriptor_set,core::api::result_t> descriptor_set::update(const descriptor_set_update_info& info) {
+                vk::DescriptorUpdateTemplateCreateInfo vk_info{};
+                vk_info.templateType = vk::DescriptorUpdateTemplateType::eDescriptorSet;
+                vk_info.flags = {};
+                vk_info.descriptorUpdateEntryCount = info.entries_.size();
+                vk_info.pDescriptorUpdateEntries = (vk::DescriptorUpdateTemplateEntry*)info.entries_.data();
+                vk_info.descriptorSetLayout = *descriptor_set_layout_;
 
                 // IGNORE due isn't push descriptor 
                 //info.pipelineBindPoint = 0u;
-                info.pipelineLayout = nullptr;
-                info.set = {};
+                vk_info.pipelineLayout = nullptr;
+                vk_info.set = {};
 
-                // 
-                (*device_)->createDescriptorUpdateTemplate(&info,nullptr,&descriptor_set_->temp); // TODO: destroy previous template 
-                (*device_)->updateDescriptorSetWithTemplate(descriptor_set_->set,descriptor_set_->temp,heap_.data()); // 
+                // TODO: destroy previous template 
+                (*device_)->updateDescriptorSetWithTemplate(*descriptor_set_,descriptor_set_->temp_=(*device_)->createDescriptorUpdateTemplate(vk_info,nullptr),info.heap_.data()); // 
                 return {*this,core::api::result_t(0u)};
             };
 #endif
