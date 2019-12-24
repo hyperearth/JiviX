@@ -7,6 +7,7 @@
 namespace svt {
     namespace api {
 
+        // VK Comaptible 
         struct extent_2d { uint32_t width = 1u, height = 1u; };
         struct extent_3d { uint32_t width = 1u, height = 1u, depth = 1u; };
         struct offset_2d { int32_t x = 0u, x = 0u; };
@@ -45,6 +46,7 @@ namespace svt {
             //image_layout initial_layout = image_layout::t_undefined;
         };
 
+        // VK Comaptible 
         struct stencil_op_state {
             stencil_op fail = stencil_op::t_keep;
             stencil_op pass = stencil_op::t_keep;
@@ -55,19 +57,22 @@ namespace svt {
             uint32_t reference = 0u;
         };
 
+        // VK Comaptible 
         class blend_state { public: 
-            bool enable = false;
-            blend_factor src_color_factor = blend_factor::t_one; blend_op color_op = blend_op::t_add; blend_factor dst_color_factor = blend_factor::t_one;
-            blend_factor src_alpha_factor = blend_factor::t_one; blend_op alpha_op = blend_op::t_add; blend_factor dst_alpha_factor = blend_factor::t_one;
+            core::bool32_t enable = false;
+            blend_factor src_color_factor = blend_factor::t_one; blend_factor dst_color_factor = blend_factor::t_one; blend_op color_op = blend_op::t_add;
+            blend_factor src_alpha_factor = blend_factor::t_one; blend_factor dst_alpha_factor = blend_factor::t_one; blend_op alpha_op = blend_op::t_add; 
             union { uint32_t color_write_mask_32u = 0u; color_mask color_write_mask; };
         };
 
+        // VK Comaptible 
         class vertex_binding_desc { public: 
             uint32_t binding = 0u;
             uint32_t stride = 4u;
             vertex_input_rate input_rate = vertex_input_rate::t_vertex;
         };
 
+        // VK Comaptible 
         class vertex_attribute_desc { public: 
             uint32_t location = 0u;
             uint32_t binding = 0u;
@@ -76,9 +81,11 @@ namespace svt {
         };
 
         // TODO: vierport aggregation
+        // VK Comaptible 
         class viewport { public: float x = -1.f, y = -1.f, width = 2.f, height = 2.f, min_depth = 0.f, max_depth = 1.f; };
 
         // Aggregated Rect 2D
+        // VK Comaptible (should to be)
         class rect_2d { public: 
             union { glm::ivec2 offset; offset_2d offset_32i; };
             union { glm::uvec2 extent; extent_2d extent_32u; };
@@ -106,7 +113,7 @@ namespace svt {
             // 
             struct input_assembly_state {
                 primitive_topology topology = primitive_topology::t_point_list;
-                bool primitive_restart = false;
+                core::bool32_t primitive_restart = false;
             } input_assembly_state;
             
             // 
@@ -122,12 +129,12 @@ namespace svt {
 
             // 
             struct rasterization_state {
-                bool depth_clamp = true;
-                bool rasterizer_discard = true;
+                core::bool32_t depth_clamp = true;
+                core::bool32_t rasterizer_discard = true;
                 polygon_mode polygon_mode = polygon_mode::t_fill;
                 union { uint32_t cull_mode_32u = 0b00000000000000000000000000000000u; cull_mode cull_mode; };
                 front_face front_face = front_face::t_ccw;
-                bool depth_bias = false;
+                core::bool32_t depth_bias = false;
                 float depth_bias_constant_factor;
                 float depth_bias_clamp = 0.0001f;
                 float depth_bias_clope_factor = 0.f;
@@ -141,11 +148,11 @@ namespace svt {
             // 
             struct multisample_state {
                 union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
-                bool sample_shading = false;
+                core::bool32_t sample_shading = false;
                 float min_sample_shading = 0.f;
                 const uint32_t* sample_mask = nullptr;
-                bool alpha_to_coverage = false;
-                bool alpha_to_one = false;
+                core::bool32_t alpha_to_coverage = false;
+                core::bool32_t alpha_to_one = false;
 
                 union { glm::uvec2 sample_location_grid_size; extent_2d sample_location_grid_size_32u; };
                 std::vector<glm::vec2> sample_locations = {};
@@ -153,11 +160,11 @@ namespace svt {
 
             // 
             struct depth_stencil_state {
-                bool depth_test = false;
-                bool depth_write = false;
+                core::bool32_t depth_test = false;
+                core::bool32_t depth_write = false;
                 uint32_t compare_op = 0u;
-                bool depth_bounds_test = false;
-                bool stencil_test = false;
+                core::bool32_t depth_bounds_test = false;
+                core::bool32_t stencil_test = false;
                 stencil_op_state front = {};
                 stencil_op_state back = {};
                 float min_depth_bounds = 0.f;
@@ -166,7 +173,7 @@ namespace svt {
             
             // Blend State WIP
             struct color_blend_state {
-                bool logic_op_enable = false;
+                core::bool32_t logic_op_enable = false;
                 logic_op logic_op = logic_op::t_clear;
                 std::vector<blend_state> attachments = {};
                 glm::vec4 constants{0.f,0.f,0.f,0.f};
@@ -255,6 +262,11 @@ namespace svt {
             std::vector<ray_tracing_shader_group> miss_shader_groups = {};
             std::vector<ray_tracing_shader_group> hit_shader_groups = {};
             std::vector<ray_tracing_shader_group> compiled_shader_groups = {};
+
+            // get offsets of shader groups
+            uintptr_t raygen_offset_index() { return 0u; };
+            uintptr_t miss_offset_index() {return 1u; };
+            uintptr_t hit_offset_index() { return miss_shader_groups.size()+1u; };
 
             // result groups
             std::vector<ray_tracing_shader_group>& compile_groups(){

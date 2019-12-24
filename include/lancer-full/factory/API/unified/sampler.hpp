@@ -9,7 +9,6 @@ namespace svt {
             class sampler_t : public std::enable_shared_from_this<sampler_t> { public: 
                 core::api::sampler_t sampler_ = API_NULL_HANDLE;
 
-
                 operator uintptr_t&() { return (uintptr_t&)(this->sampler_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(this->sampler_); };
 

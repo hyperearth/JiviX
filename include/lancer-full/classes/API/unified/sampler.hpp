@@ -46,8 +46,6 @@ namespace svt {
 
             protected: friend sampler;
                 stu::sampler sampler_ = {};
-                stu::allocation allocation_ = {};
-                stu::allocator allocator_ = {};
                 stu::device_t device_ = {};
             };
         };

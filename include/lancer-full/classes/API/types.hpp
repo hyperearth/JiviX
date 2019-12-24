@@ -33,6 +33,7 @@ namespace svt {
             using instance = std::shared_ptr<api::factory::instance_t>;
             using physical_device = std::shared_ptr<api::factory::physical_device_t>;
             using render_pass = std::shared_ptr<api::factory::render_pass_t>;
+            using shader_module = std::shared_ptr<api::factory::shader_module_t>;
 
             struct device_t {
                 stu::device device_ = {};
@@ -86,10 +87,10 @@ namespace svt {
             class buffer_view;
             class image_view;
             class allocation;
-            class sampler;
             class instance;
             class physical_device;
             class render_pass;
+            class shader_module;
 
             template<class T = uint8_t>
             class vector;

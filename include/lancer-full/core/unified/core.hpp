@@ -113,21 +113,21 @@ namespace svt {
 
         // boolean 32-bit capable for C++
         class bool32_t { // TODO: support operators
-            protected: uint32_t _b = 0u;
-            public: 
-                friend bool32_t;
-                constexpr bool32_t(): _b(0u) {}
-                bool32_t(const bool& a): _b(a?1u:0u) {}
-                bool32_t(const uint32_t& a): _b(a&1u) {} // make bitmasked
-                bool32_t(const bool32_t& a): _b(a._b) {}
-                bool32_t(bool32_t& a): _b(a._b) {}
-                bool32_t(bool32_t&& a): _b(std::move(a._b)) {}
+            protected: uint32_t b_:1;
+            public: friend bool32_t;
+                constexpr bool32_t(): b_(0u) {};
+                bool32_t(const bool&a=false): b_(a?1u:0u) {};
+                bool32_t(const uint32_t&a): b_(a&1u) {}; // make bitmasked
+                bool32_t(const bool32_t&a): b_(a) {};
 
                 // type conversion operators
-                operator bool() const { return bool(_b&1u); };
-                //operator bool&() { return (bool&)(_b); } // I suppose it not possible
-                operator uint32_t() const { return _b&1u; };
-                operator uint32_t&() { return _b; } // return uint32 link
+                operator bool() const {return bool(b_&1u);};
+                operator uint32_t() const {return (b_&1u);};
+
+                // 
+                bool32_t& operator=(const bool&a){b_=(a?1u:0u);};
+                bool32_t& operator=(const uint32_t&a){b_=a&1u;};
+                bool32_t& operator=(const bool32_t&a){b_=a;};
         };
 
         // insider handler (TODO: cast from original type i.e. `H`)

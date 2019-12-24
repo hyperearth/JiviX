@@ -52,6 +52,7 @@ namespace svt {
             using instance_t = vk::Instance;
             using render_pass_t = vk::RenderPass;
             using dispatch_t = vk::DispatchLoaderDynamic;
+            using shader_module_t = vk::ShaderModule;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}

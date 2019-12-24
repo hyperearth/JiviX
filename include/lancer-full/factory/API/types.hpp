@@ -32,6 +32,7 @@ namespace svt {
             class queue_t;
             class instance_t;
             class render_pass_t;
+            class shader_module_t;
             
         };
     };
