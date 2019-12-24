@@ -50,12 +50,16 @@ namespace svt {
                 vk_info.compactedSize = create_info.compacted_size;
                 auto acceleration = std::make_shared<acceleration_structure_t>((*device)->createAccelerationStructureNV(vk_info,nullptr,*device));
 
-                // Allocate Memory 
+                // Get Memory Requirements
                 vk::AccelerationStructureMemoryRequirementsInfoNV mem_info = {};
                 mem_info.accelerationStructure = *acceleration;
                 mem_info.type = vk::AccelerationStructureMemoryRequirementsTypeNV::eObject;
                 vk::MemoryRequirements2 requirements = (*device)->getAccelerationStructureMemoryRequirementsNV(mem_info,*device);
-                vmaAllocateMemory(allocator_, (VkMemoryRequirements*)&requirements.memoryRequirements, (VmaAllocationCreateInfo*)info_ptr, &acceleration->allocation_->allocation_, &acceleration->allocation_->allocation_info_);
+
+                // Allocate Memory 
+                auto* vma_info = (VmaAllocationCreateInfo*)info_ptr;
+                vma_info->requiredFlags = requirements.memoryRequirements.memoryTypeBits;
+                vmaAllocateMemory(allocator_, (VkMemoryRequirements*)&requirements.memoryRequirements, vma_info, &acceleration->allocation_->allocation_, &acceleration->allocation_->allocation_info_);
 
                 // Bind Memory 
                 vk::BindAccelerationStructureMemoryInfoNV bind_info{};
