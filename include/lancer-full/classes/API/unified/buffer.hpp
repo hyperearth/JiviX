@@ -19,22 +19,24 @@ namespace svt {
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
-                // TODO: vector construction
-                stu::vector vector(uintptr_t offset = 0u, size_t size = 4u);
+                // TODO: move into `.cpp` file
+                stu::vector vector(uintptr_t offset = 0u, size_t size = 4u, size_t stride = 1u) {
+                    return std::make_shared<api::factory::vector_t>(*buffer_,offset,size,stride);
+                };
 
                 // Currently Aggregator
                 svt::core::handle_ref<buffer,core::api::result_t> create(const stu::allocator& allocator_ = {}, const buffer_create_info& info = {}, const uintptr_t& info_ptr = 0u);
 
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::buffer_t _get_buffer_t();
-                
+
                 // TODO: move into `.cpp` file
                 buffer& operator=(const buffer &buffer) { 
                     this->buffer_ = buffer;
                     this->device_ = buffer;
                     return *this;
                 };
-                
+
                 // TODO: move into `.cpp` file
                 api::factory::buffer_t* operator->() { return &(*this->buffer_); };
                 const api::factory::buffer_t* operator->() const { return &(*this->buffer_); };

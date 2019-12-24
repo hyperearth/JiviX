@@ -47,7 +47,15 @@ namespace svt {
                 operator core::api::acceleration_structure_t&() { return (*structure_); };
                 operator const core::api::acceleration_structure_t&() const { return (*structure_); };
 
+                // 
+                stu::buffer& get_scratch_buffer() { return scratch_; };
+                //stu::buffer& get_instances_buffer() { return instances_; };
+
             protected: friend acceleration_structure; friend allocator;
+                stu::buffer scratch_ = {};
+                //stu::buffer instances_ = {};
+                //stu::vector scratch_ = {};
+                //stu::vector instances_ = {};
                 stu::acceleration_structure structure_ = {};
                 stu::allocation allocation_ = {};
                 stu::allocator allocator_ = {};

@@ -410,32 +410,10 @@ namespace svt {
             };
         };
         
-        // 
-        class vector_structure { public: 
-            core::api::buffer_t data = {};
-            uintptr_t offset = 0u;
-            size_t size = 4u;
-            size_t stride = 1u; // uint8_t default
-            size_t range() const { return size * stride; };
-        };
-
-        // 
-        class geometry_triangles { public: 
-            vector_structure vertices = {}; format vertex_format = format::t_r32g32g32_sfloat;
-            vector_structure indices = {}; index_type index_type = index_type::t_none;
-            vector_structure transform = {};
-        };
-
-        // 
-        class geometry { public: union { uint32_t flags_32u = 1u; geometry_flags flags; };
-            geometry_type type = geometry_type::t_triangles;
-            geometry_aabbs aabbs = {};
-            geometry_triangles triangles = {};
-        };
 
         // Instance Data Type
 #pragma pack(push, 1)
-        struct instance_data {
+        class instance_data { public: 
             glm::mat3x4 transform = {};
             uint32_t instanceId : 24;
             uint32_t mask : 8;
@@ -444,12 +422,39 @@ namespace svt {
             uint64_t accelerationStructureHandle = 0ull;
         };
 #pragma pack(pop)
-        using instances_t = std::vector<instance_data>;
-        using geometries_t = std::vector<geometry>;
+
+        // 
+        class vector_structure { public: 
+            core::api::buffer_t data = {};
+            uintptr_t offset = 0u;
+            size_t size = 4u;
+            size_t stride = 1u; // uint8_t default
+            size_t range() const { return size * stride; };
+
+            // 
+            operator core::api::buffer_region_t() const { return {data,offset,range() }; };
+        };
 
         // 
         using geometry_instances = vector_structure; geometry_instances create_geometry_instances(const geometry_instances& instances = { .data = {}, .offset = 0u, .size = 1u, .stride = sizeof(instance_data) }) { return instances; };
         using geometry_aabbs = vector_structure; geometry_aabbs create_geometry_aabbs(const geometry_aabbs& aabbs = { .data = {}, .offset = 0u, .size = 1u, .stride = 24u }) { return aabbs; };
+
+        // 
+        class geometry_triangles { public: 
+            vector_structure vertices = { .data = {}, .offset = 0u, .size = 0u, .stride = 16u }; format vertex_format = format::t_r32g32g32_sfloat;
+            vector_structure indices = { .data = {}, .offset = 0u, .size = 0u, .stride = 4u }; index_type index_type = index_type::t_none;
+            vector_structure transform = { .data = {}, .offset = 0u, .size = 0u, .stride = 48u };
+        };
+
+        // 
+        class geometry { public: union { uint32_t flags_32u = 1u; geometry_flags flags; };
+            geometry_type type = geometry_type::t_triangles;
+            geometry_aabbs aabbs = { .data = {}, .offset = 0u, .size = 0u, .stride = 24u };
+            geometry_triangles triangles = {};
+        };
+
+        using instances_t = std::vector<instance_data>;
+        using geometries_t = std::vector<geometry>;
 
         // 
         class acceleration_structure_info { public: 
@@ -462,6 +467,7 @@ namespace svt {
         // 
         class acceleration_structure_create_info { public: uint32_t flags = 0u;
             acceleration_structure_info info = {};
+            size_t compacted_size = 0ull;
         };
 
     };
