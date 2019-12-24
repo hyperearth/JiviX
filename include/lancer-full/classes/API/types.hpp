@@ -39,8 +39,10 @@ namespace svt {
                 stu::physical_device physical_device_ = {};
                 std::vector<uint32_t> queue_family_indices_ = {};
 
-                operator std::vector<uint32_t>&() { return queue_family_indices_; };
-                operator const std::vector<uint32_t>&() const { return queue_family_indices_; };
+                //operator std::vector<uint32_t>&() { return queue_family_indices_; };
+                //operator const std::vector<uint32_t>&() const { return queue_family_indices_; };
+                operator std::vector<uint32_t>&() { return *device_; };
+                operator const std::vector<uint32_t>&() const { return *device_; };
                 operator stu::device&() { return device_; };
                 operator const stu::device&() const { return device_; };
                 operator stu::physical_device&() { return physical_device_; };

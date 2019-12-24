@@ -18,8 +18,8 @@ namespace svt {
                 core::api::descriptor_pool_t descriptor_pool_ = API_NULL_HANDLE;
                 core::api::command_pool_t command_pool_ = API_NULL_HANDLE;
 
-                // 
-                //std::vector<uint32_t> queue_family_indices_ = {};
+                // Native Queue Family Indices
+                std::vector<uint32_t> queue_family_indices_ = {};
 
                 device_t() {};
                 device_t(const device_t& device) : device_(device) {};
@@ -38,6 +38,8 @@ namespace svt {
                 operator const core::api::command_pool_t&() const { return command_pool_; };
                 operator core::api::pipeline_cache_t&() { return pipeline_cache_; };
                 operator const core::api::pipeline_cache_t&() const { return pipeline_cache_; };
+                operator std::vector<uint32_t>&() { return queue_family_indices_; };
+                operator const std::vector<uint32_t>&() const { return queue_family_indices_; };
 
                 core::api::device_t* operator->() { return &(this->device_); };
                 const core::api::device_t* operator->() const { return &(this->device_); };
