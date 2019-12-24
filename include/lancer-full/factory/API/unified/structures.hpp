@@ -387,7 +387,7 @@ namespace svt {
                     return _push_description<core::api::buffer_view_t>(entry_);
                 } else 
                 if (entry_.descriptor_type == description_type::t_acceleration_structure) {
-                    return _push_description<uintptr_t>(entry_); // TODO: Acceleration Structure Support
+                    return _push_description<core::api::acceleration_structure_t>(entry_);
                 } else {
                     return _push_description<core::api::image_desc_t>(entry_);
                 };
@@ -418,7 +418,7 @@ namespace svt {
             uint32_t instanceId : 24;
             uint32_t mask : 8;
             uint32_t instanceOffset : 24;
-            uint32_t flags : 8;
+            union { uint32_t flags_8u : 8; geometry_instance_flags flags; };
             uint64_t accelerationStructureHandle = 0ull;
         };
 #pragma pack(pop)

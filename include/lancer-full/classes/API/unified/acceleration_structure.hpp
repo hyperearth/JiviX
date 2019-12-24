@@ -9,7 +9,7 @@ namespace svt {
             class acceleration_structure { public: 
                 acceleration_structure(                              const stu::acceleration_structure& structure_ = {}) : structure_(structure_) {};
                 acceleration_structure(const stu::device_t& device_, const stu::acceleration_structure& structure_ = {}) : structure_(structure_), device_(device_) {};
-                acceleration_structure(const acceleration_structure& acceleration_structure) : structure_(structure_), device_(acceleration_structure) {};
+                acceleration_structure(const acceleration_structure& acceleration_structure) : scratch_(acceleration_structure.scratch_), structure_(structure_), device_(acceleration_structure) {};
 
                 // TODO: move into `.cpp` file
                 operator stu::acceleration_structure&() { return structure_; };
@@ -19,22 +19,20 @@ namespace svt {
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
-                // TODO: vector construction
-                stu::vector vector(uintptr_t offset = 0u, size_t size = 4u);
-
                 // Currently Aggregator
                 svt::core::handle_ref<acceleration_structure,core::api::result_t> create(const stu::allocator& allocator_ = {}, const acceleration_structure_create_info& info = {}, const uintptr_t& info_ptr = 0u);
 
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::acceleration_structure_t _get_acceleration_structure_t();
-                
+
                 // TODO: move into `.cpp` file
                 acceleration_structure& operator=(const acceleration_structure &acceleration_structure) { 
                     this->structure_ = acceleration_structure;
                     this->device_ = acceleration_structure;
+                    this->scratch_ = acceleration_structure.scratch_;
                     return *this;
                 };
-                
+
                 // TODO: move into `.cpp` file
                 api::factory::acceleration_structure_t* operator->() { return &(*this->structure_); };
                 const api::factory::acceleration_structure_t* operator->() const { return &(*this->structure_); };
@@ -52,12 +50,12 @@ namespace svt {
                 //stu::buffer& get_instances_buffer() { return instances_; };
 
             protected: friend acceleration_structure; friend allocator;
-                stu::buffer scratch_ = {};
                 //stu::buffer instances_ = {};
                 //stu::vector scratch_ = {};
                 //stu::vector instances_ = {};
                 stu::acceleration_structure structure_ = {};
-                stu::allocation allocation_ = {};
+                stu::buffer scratch_ = {};
+                //stu::allocation allocation_ = {};
                 stu::allocator allocator_ = {};
                 stu::device_t device_ = {};
             };

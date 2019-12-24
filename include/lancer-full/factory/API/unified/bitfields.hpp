@@ -180,6 +180,15 @@ namespace svt {
             b_no_dublicate_any_hit_invocation: 1;
         };
 
+#pragma pack(push, 1)
+        struct geometry_instance_flags { uint8_t //uint32_t
+            b_triangle_cull_disable: 1,
+            b_triangle_front_ccw: 1,
+            b_force_opaque: 1,
+            b_force_no_opaque: 1;
+        };
+#pragma pack(pop)
+
 
     };
 };

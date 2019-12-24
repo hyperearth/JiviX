@@ -47,7 +47,7 @@ namespace svt {
 
             protected: friend image; friend allocator;
                 stu::image image_ = {};
-                stu::allocation allocation_ = {};
+                //stu::allocation allocation_ = {};
                 stu::allocator allocator_ = {};
                 stu::device_t device_ = {};
             };
