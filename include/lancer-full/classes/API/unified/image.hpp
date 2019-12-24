@@ -6,10 +6,11 @@
 namespace svt {
     namespace api {
         namespace classes {
+            // TODO: image layout support and image layout barrier
             class image { public: 
                 image(                              const stu::image& image_ = {}) : image_(image_) {};
                 image(const stu::device_t& device_, const stu::image& image_ = {}) : image_(image_), device_(device_) {};
-                image(const image& image = {}) : device_(image), image_(image) {};
+                image(const image& image = {}) : allocator_(image.allocator_), device_(image), image_(image) {};
 
                 // TODO: merge into `.cpp`
                 operator stu::image&() { return image_; };
@@ -25,6 +26,7 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 image& operator=(const image &image) { 
                     this->image_ = image;
+                    this->allocator_ = image.allocator_;
                     this->device_ = image;
                     return *this;
                 };

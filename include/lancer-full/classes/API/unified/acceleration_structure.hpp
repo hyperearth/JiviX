@@ -9,7 +9,7 @@ namespace svt {
             class acceleration_structure { public: 
                 acceleration_structure(                              const stu::acceleration_structure& structure_ = {}) : structure_(structure_) {};
                 acceleration_structure(const stu::device_t& device_, const stu::acceleration_structure& structure_ = {}) : structure_(structure_), device_(device_) {};
-                acceleration_structure(const acceleration_structure& acceleration_structure) : scratch_(acceleration_structure.scratch_), structure_(structure_), device_(acceleration_structure) {};
+                acceleration_structure(const acceleration_structure& acceleration_structure) : allocator_(acceleration_structure.allocator_), scratch_(acceleration_structure.scratch_), structure_(structure_), device_(acceleration_structure) {};
 
                 // TODO: move into `.cpp` file
                 operator stu::acceleration_structure&() { return structure_; };
@@ -28,9 +28,15 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 acceleration_structure& operator=(const acceleration_structure &acceleration_structure) { 
                     this->structure_ = acceleration_structure;
-                    this->device_ = acceleration_structure;
                     this->scratch_ = acceleration_structure.scratch_;
+                    this->device_ = acceleration_structure;
+                    this->allocator_ = acceleration_structure.allocator_;
                     return *this;
+                };
+
+                // TODO: move into `.cpp` file
+                inline std::pair<acceleration_structure&, description_handle&> write_into_description(description_handle& handle, const uint32_t& idx = 0u){
+                    handle.offset<core::api::acceleration_structure_t>(idx) = (*structure_); return {*this, handle};
                 };
 
                 // TODO: move into `.cpp` file

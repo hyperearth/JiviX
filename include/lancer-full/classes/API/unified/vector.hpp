@@ -62,7 +62,7 @@ namespace svt {
                 };
 
                 // TODO: move into `.inl` file
-                inline std::pair<vector_t&, description_handle&>& write_into_description(description_handle& handle, const uint32_t& idx = 0u){
+                inline std::pair<vector<T>&, description_handle&> write_into_description(description_handle& handle, const uint32_t& idx = 0u){
                     handle.offset<core::api::buffer_region_t>(idx) = (*vector_); return {*this, handle};
                 };
 

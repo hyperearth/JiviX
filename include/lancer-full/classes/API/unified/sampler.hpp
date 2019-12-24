@@ -30,6 +30,13 @@ namespace svt {
                 };
 
                 // TODO: move into `.cpp` file
+                inline std::pair<sampler&, description_handle&> write_into_description(description_handle& handle, const uint32_t& idx = 0u) {
+                    auto& handle_ = handle.offset<core::api::image_desc_t>(idx);
+                    handle_.sampler = core::api::sampler_t(*sampler_);
+                    return {*this, handle};
+                };
+
+                // TODO: move into `.cpp` file
                 api::factory::sampler_t* operator->() { return &(*this->sampler_); };
                 const api::factory::sampler_t* operator->() const { return &(*this->sampler_); };
                 api::factory::sampler_t& operator*() { return (*this->sampler_); };

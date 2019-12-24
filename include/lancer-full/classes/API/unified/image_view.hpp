@@ -2,6 +2,7 @@
 
 #include "./classes/API/types.hpp"
 #include "./factory/API/unified/image.hpp"
+#include "./factory/API/unified/sampler.hpp"
 #include "./factory/API/unified/image_view.hpp"
 
 namespace svt {
@@ -27,6 +28,15 @@ namespace svt {
                     this->image_view_ = image_view;
                     this->device_ = image_view;
                     return *this;
+                };
+
+                // TODO: move into `.cpp` file
+                // TODO: image layout support and image layout barrier
+                inline std::pair<image_view&, description_handle&> write_into_description(description_handle& handle, const uint32_t& idx = 0u) {
+                    auto& handle_ = handle.offset<core::api::image_desc_t>(idx);
+                    handle_.sampler = core::api::sampler_t(*sampler_);
+                    handle_.imageView = core::api::image_view_t(*image_view_);
+                    return {*this, handle};
                 };
 
                 // TODO: move into `.cpp` file

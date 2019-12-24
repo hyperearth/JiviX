@@ -9,7 +9,7 @@ namespace svt {
             class buffer { public: 
                 buffer(                              const stu::buffer& buffer_ = {}) : buffer_(buffer_) {};
                 buffer(const stu::device_t& device_, const stu::buffer& buffer_ = {}) : buffer_(buffer_), device_(device_) {};
-                buffer(const buffer& buffer) : buffer_(buffer), device_(buffer) {};
+                buffer(const buffer& buffer) : allocator_(buffer.allocator_), buffer_(buffer), device_(buffer) {};
 
                 // TODO: move into `.cpp` file
                 operator stu::buffer&() { return buffer_; };
@@ -33,6 +33,7 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 buffer& operator=(const buffer &buffer) { 
                     this->buffer_ = buffer;
+                    this->allocator_ = buffer.allocator_;
                     this->device_ = buffer;
                     return *this;
                 };

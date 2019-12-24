@@ -46,8 +46,7 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 // TODO: better type for dual-version-returnement
                 std::pair<buffer_view&, description_handle&> write_into_description(description_handle& handle, const uint32_t& idx = 0u) {
-                    handle.offset<core::api::buffer_view_t>(idx) = (*this->buffer_view_);
-                    return {*this, handle};
+                    handle.offset<core::api::buffer_view_t>(idx) = (*buffer_view_); return {*this, handle};
                 };
 
                 // 

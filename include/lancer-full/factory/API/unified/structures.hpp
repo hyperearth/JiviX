@@ -350,16 +350,19 @@ namespace svt {
         };
 
         // TODO: typing control, add into `.cpp` file
-        struct description_handle {
+        struct description_handle { using T = uint8_t;
             descriptor_update_template_entry* entry_t = nullptr;
             void* field_t = nullptr;
 
             // any buffers and images can `write` into types
-            template<class T = uint8_t> operator T&() { return (*field_t); };
-            template<class T = uint8_t> operator const T&() const { return (*field_t); };
-            template<class T = uint8_t> T& offset(const uint32_t& idx = 0u) { return description_handle{entry_t+idx,(T*)field_t}; };
-            template<class T = uint8_t> const T& offset(const uint32_t& idx = 0u) const { return description_handle{entry_t+idx,(T*)field_t}; };
-            const uint32_t& size() const { return entry_t->descriptor_count; }; 
+            template<class T = uint8_t> inline operator T&() { return (*field_t); };
+            template<class T = uint8_t> inline operator const T&() const { return (*field_t); };
+            template<class T = uint8_t> inline T& offset(const uint32_t& idx = 0u) { return description_handle{entry_t,(T*)field_t+idx}; };
+            template<class T = uint8_t> inline const T& offset(const uint32_t& idx = 0u) const { return description_handle{entry_t,(T*)field_t+idx}; };
+            inline const uint32_t& size() const { return entry_t->descriptor_count; }; 
+
+            template<class T = uint8_t>
+            inline description_handle& operator=(const T& d) { *(T*)field_t = d; return *this; };
         };
 
         class descriptor_set_create_info { public: uint32_t flags = 0u; using T = uintptr_t;
