@@ -167,5 +167,19 @@ namespace svt {
             b_variable_descriptor_count: 1;
         };
 
+        struct acceleration_structure_flags { uint32_t
+            b_allow_update: 1,
+            b_allow_compation: 1,
+            b_prefer_fast_trace: 1,
+            b_prefer_fast_build: 1,
+            b_low_memory: 1;
+        };
+
+        struct geometry_flags { uint32_t
+            b_opaque: 1,
+            b_no_dublicate_any_hit_invocation: 1;
+        };
+
+
     };
 };

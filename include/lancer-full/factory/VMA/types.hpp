@@ -11,6 +11,7 @@ namespace svt {
             class image_t;
             class allocation_t;
             class allocator_t;
+            class acceleration_structure_t;
         };
     };
 };

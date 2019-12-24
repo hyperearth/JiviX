@@ -33,6 +33,7 @@ namespace svt {
             class instance_t;
             class render_pass_t;
             class shader_module_t;
+            class acceleration_structure_t;
             
         };
     };

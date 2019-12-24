@@ -10,15 +10,39 @@ namespace svt {
         enum class format : uint32_t {
             t_undefined = 0u,
 
+            t_r16_uint = 74u,
+            t_r16_sint = 75u,
+            t_r16_sfloat = 76u,
+            t_r16g16_unorm = 77u,
+            t_r16g16_snorm = 78u,
+            t_r16g16_uscaled = 79u,
+            t_r16g16_sscaled = 80u,
+            t_r16g16_uint = 81u,
+            t_r16g16_sint = 82u,
+            t_r16g16_sfloat = 83u,
+            t_r16g16g16_unorm = 84u,
+            t_r16g16g16_snorm = 85u,
+            t_r16g16g16_uscaled = 86u,
+            t_r16g16g16_sscaled = 87u,
+            t_r16g16g16_uint = 88u,
+            t_r16g16g16_sint = 89u,
+            t_r16g16g16_sfloat = 90u,
             t_r16g16g16a16_unorm = 91u,
             t_r16g16g16a16_snorm = 92u,
             t_r16g16g16a16_uscaled = 93u,
             t_r16g16g16a16_sscaled = 94u,
-
             t_r16g16g16a16_uint = 95u,
             t_r16g16g16a16_sint = 96u,
             t_r16g16g16a16_sfloat = 97u,
-            
+            t_r32_uint = 98u,
+            t_r32_sint = 99u,
+            t_r32_sfloat = 100u,
+            t_r32g32_uint = 101u,
+            t_r32g32_sint = 102u,
+            t_r32g32_sfloat = 103u,
+            t_r32g32g32_uint = 104u,
+            t_r32g32g32_sint = 105u,
+            t_r32g32g32_sfloat = 106u,
             t_r32g32g32a32_uint = 107u,
             t_r32g32g32a32_sint = 108u,
             t_r32g32g32a32_sfloat = 109u,
@@ -212,6 +236,23 @@ namespace svt {
             t_general = 0u,
             t_triangles_hit = 1u,
             t_procedural_hit = 2u,
+        };
+
+        enum class acceleration_structure_type : uint32_t {
+            t_top_level = 0u,
+            t_bottom_level = 1u
+        };
+
+        enum class geometry_type : uint32_t {
+            t_triangles = 0u,
+            t_aabbs = 1u
+        };
+
+        enum class index_type : uint32_t {
+            t_uint16 = 0u,
+            t_uint32 = 1u,
+            t_none = 1000165000u,
+            t_uint8 = 1000265000
         };
 
     };

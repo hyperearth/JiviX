@@ -58,6 +58,7 @@ namespace svt {
             using render_pass_t = vk::RenderPass;
             using dispatch_t = vk::DispatchLoaderDynamic;
             using shader_module_t = vk::ShaderModule;
+            using acceleration_structure_t = vk::AccelerationStructureNV;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}
