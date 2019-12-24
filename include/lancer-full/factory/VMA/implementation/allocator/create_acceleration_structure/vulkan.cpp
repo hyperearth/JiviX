@@ -58,7 +58,7 @@ namespace svt {
 
                 // Allocate Memory 
                 auto* vma_info = (VmaAllocationCreateInfo*)info_ptr;
-                vma_info->requiredFlags = requirements.memoryRequirements.memoryTypeBits;
+                vma_info->memoryTypeBits = requirements.memoryRequirements.memoryTypeBits;
                 vmaAllocateMemory(allocator_, (VkMemoryRequirements*)&requirements.memoryRequirements, vma_info, &acceleration->allocation_->allocation_, &acceleration->allocation_->allocation_info_);
 
                 // Bind Memory 
