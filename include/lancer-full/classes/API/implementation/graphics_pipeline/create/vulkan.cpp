@@ -12,12 +12,23 @@ namespace svt {
             // TODO: validate 
             svt::core::handle_ref<graphics_pipeline,core::api::result_t> graphics_pipeline::create(const graphics_pipeline_create_info& info) {
                 // 
+                std::vector<vk::PipelineShaderStageCreateInfo> stages = {};
                 std::vector<vk::VertexInputBindingDescription> vertex_bindings = {};
                 std::vector<vk::VertexInputAttributeDescription> vertex_attribute = {};
                 std::vector<vk::DynamicState> dynamic_states = {};
                 std::vector<vk::PipelineColorBlendAttachmentState> blend_states = {};
                 std::vector<vk::Rect2D> scissors = {};
                 std::vector<vk::Viewport> viewports = {};
+
+                for (auto& stage : info.stages) {
+                    auto stage_info = vk::PipelineShaderStageCreateInfo{};
+                    stage_info.flags = {};
+                    stage_info.module = VkShaderModule(stage.module);
+                    stage_info.pName = stage.name.c_str();//"main";
+                    stage_info.stage = vk::ShaderStageFlagBits(stage.stage_32u);
+                    stage_info.pSpecializationInfo = nullptr;
+                    stages.push_back(stage_info);
+                };
 
                 // 
                 for (auto &d : info.dynamic_states) { dynamic_states.push_back(vk::DynamicState(d)); };
@@ -78,9 +89,6 @@ namespace svt {
                 conservative.extraPrimitiveOverestimationSize = info.rasterization_state.extra_primitive_overestimation_size;
 
                 // 
-                
-
-                // 
                 rasterization.pNext = &conservative;
                 rasterization.cullMode = vk::CullModeFlags(info.rasterization_state.cull_mode_32u);
                 rasterization.depthBiasEnable = info.rasterization_state.depth_bias;
@@ -109,14 +117,15 @@ namespace svt {
                 depth_stencil.depthWriteEnable = info.depth_stencil_state.depth_write;
                 depth_stencil.minDepthBounds = info.depth_stencil_state.min_depth_bounds;
                 depth_stencil.maxDepthBounds = info.depth_stencil_state.max_depth_bounds;
-                
+
                 // 
                 dynamic.dynamicStateCount = dynamic_states.size();
                 dynamic.pDynamicStates = dynamic_states.data();
 
-                // TODO: Shader Modules Support 
-                // TODO: Pipeline and RenderPass Layout Support
+                // 
                 vk::GraphicsPipelineCreateInfo vk_info = {};
+                vk_info.pStages = stages.data();
+                vk_info.stageCount = stages.size();
                 vk_info.layout = VkPipelineLayout(info.pipeline_layout);
                 vk_info.renderPass = VkRenderPass(info.render_pass);
                 vk_info.subpass = info.subpass;
@@ -129,10 +138,9 @@ namespace svt {
                 vk_info.pDepthStencilState = &depth_stencil;
                 vk_info.pColorBlendState = &color_blend;
                 vk_info.pDynamicState = &dynamic;
-                
-                // TODO: pipeline_cache
-                pipeline_->pipeline_ = vk::Device(*device_).createGraphicsPipeline(vk::PipelineCache{},vk_info);
-
+                vk_info.renderPass = VkRenderPass(info.render_pass);
+                vk_info.layout = VkPipelineLayout(info.pipeline_layout);
+                pipeline_->pipeline_ = (*device_)->createGraphicsPipeline(*device_,vk_info);
                 return { *this, core::api::result_t(0u) };
             };
 #endif

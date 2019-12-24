@@ -91,11 +91,30 @@ namespace svt {
             union { glm::uvec2 extent; extent_2d extent_32u; };
         };
 
+        // almost same as `std::vector<uint8_t>`
+        class shader_module_create_info { public: 
+            std::vector<uint32_t> code = {};
+            operator std::vector<uint32_t>&() { return code; };
+            operator const std::vector<uint32_t>&() const { return code; };
+
+            // aggregate vector
+            operator size_t() const { return code.size(); };
+            operator const uint32_t*() const { return code.data(); };
+            std::vector<uint32_t>* operator->() { return &(code); };
+            const std::vector<uint32_t>* operator->() const { return &(code); };
+            std::vector<uint32_t>& operator*() { return (code); };
+            const std::vector<uint32_t>& operator*() const { return (code); };
+
+            // shader module
+            shader_module_create_info& operator=(const std::vector<uint32_t>& code) { this->code = code; return *this; };
+            shader_module_create_info& operator=(const shader_module_create_info& info) { this->code = info.code; return *this; };
+        };
+
         // TODO: module support
         class pipeline_shader_stage { public: 
-            shader_stage_flags stage = {};
+            union { uint32_t stage_32u = 0b00000000000000000000000000000000u; shader_stage_flags stage; };
             uintptr_t module = 0u;
-            std::string name = "";
+            std::string name = "main";
             uintptr_t specialization = 0u;
         };
 
@@ -188,7 +207,7 @@ namespace svt {
             uint32_t subpass = 0u;
 
             // 
-            std::vector<uintptr_t> base_pipeline_handle = {};
+            //std::vector<uintptr_t> base_pipeline_handle = {};
         };
 
         class compute_pipeline_create_info { public: uint32_t flags = 0u;
@@ -196,7 +215,7 @@ namespace svt {
             uintptr_t pipeline_layout = 0u;
 
             // 
-            std::vector<uintptr_t> base_pipeline_handle = {};
+            //std::vector<uintptr_t> base_pipeline_handle = {};
         };
 
 
@@ -246,7 +265,7 @@ namespace svt {
 
 
 
-        //class 
+        //  
         class ray_tracing_shader_group { public: //uint32_t flags = 0u;
             ray_tracing_shader_group_type type = ray_tracing_shader_group_type::t_general;
             uint32_t general_shader = ~0U;
@@ -276,8 +295,8 @@ namespace svt {
                 return compiled_shader_groups;
             };
             
-            // 
-            ray_tracing_pipeline_create_info& add_shader_stages_group(const std::vector<pipeline_shader_stage>& stages_in = {}) {
+            // WARNING: Only One Hit Group Supported At Once
+            ray_tracing_pipeline_create_info& add_shader_stages_group(const std::vector<pipeline_shader_stage>& stages_in = {}, ray_tracing_shader_group_type prior_group_type = ray_tracing_shader_group_type::t_triangles_hit) {
                 for (auto& stage : stages_in) {
                     if (stage.stage.b_raygen) {
                         const uintptr_t last_idx = stages.size(); stages.push_back(stage);
@@ -288,26 +307,27 @@ namespace svt {
                 uintptr_t group_idx = -1U;
                 for (auto& stage : stages_in) {
                     if (stage.stage.b_miss_hit) {
-                        if (group_idx == -1U) { group_idx = miss_shader_groups.size(); miss_shader_groups.push_back({}); };
                         const uintptr_t last_idx = stages.size(); stages.push_back(stage);
-                        miss_shader_groups[group_idx].general_shader = last_idx;
+                        group_idx = miss_shader_groups.size(); miss_shader_groups.push_back({});
+                        //if (group_idx == -1U) { group_idx = miss_shader_groups.size(); miss_shader_groups.push_back({}); };
+                        miss_shader_groups[group_idx].general_shader = last_idx;//break;
                     };
                 };
 
-                group_idx = -1U;
+                group_idx = -1U; // Only One Hit Group Supported At Once
                 for (auto& stage : stages_in) {
                     if (stage.stage.b_closest_hit | stage.stage.b_any_hit | stage.stage.b_intersection) {
-                        if (group_idx == -1U) { group_idx = hit_shader_groups.size(); hit_shader_groups.push_back({}); };
                         const uintptr_t last_idx = stages.size(); stages.push_back(stage);
+                        if (group_idx == -1U) { group_idx = hit_shader_groups.size(); hit_shader_groups.push_back({}); };
                         if (stage.stage.b_closest_hit) {
-                            hit_shader_groups[group_idx].type = ray_tracing_shader_group_type::t_triangles_hit, 
-                            hit_shader_groups[group_idx].closest_hit_shader = last_idx; 
+                            hit_shader_groups[group_idx].type = prior_group_type;
+                            hit_shader_groups[group_idx].closest_hit_shader = last_idx;
                         };
                         if (stage.stage.b_any_hit) {
-                            hit_shader_groups[group_idx].type = ray_tracing_shader_group_type::t_triangles_hit, 
-                            hit_shader_groups[group_idx].any_hit_shader = last_idx; 
+                            hit_shader_groups[group_idx].type = prior_group_type;
+                            hit_shader_groups[group_idx].any_hit_shader = last_idx;
                         };
-                        if (stage.stage.b_intersection) { 
+                        if (stage.stage.b_intersection) {
                             hit_shader_groups[group_idx].type = ray_tracing_shader_group_type::t_procedural_hit, 
                             hit_shader_groups[group_idx].intersection_shader = last_idx; 
                         };
@@ -373,7 +393,6 @@ namespace svt {
                 };
             };
 
-            // TODO: move into constructive create_info and update_info
             std::vector<uint8_t> heap_ = {};
             std::vector<descriptor_update_template_entry> entries_ = {};
             std::vector<description_handle> handles_ = {};

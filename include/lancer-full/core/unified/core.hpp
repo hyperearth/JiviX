@@ -1,42 +1,19 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <thread>
-#include <atomic>
-
-// Currently Windows Only Supported
-#if (defined(_WIN32) || defined(__MINGW32__) || defined(_MSC_VER_) || defined(__MINGW64__)) 
-#include <windows.h> // Fix HMODULE Type Error
-#endif
-
 // Default Backend
 #if !defined(USE_D3D12) && !defined(USE_VULKAN)
 #define USE_VULKAN
 #endif
 
 // 
-#include <misc/args.hxx>
-#include <misc/half.hpp>
-#include <misc/pcg_random.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/vec_swizzle.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/random.hpp>
-#include <glm/gtx/component_wise.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-#include <glm/gtx/transform.hpp>
-
-// 
 #ifdef USE_VULKAN
-#include "./core/implementation/core/vulkan_hpp.inl"
+//#include "./core/implementation/core/vulkan_hpp.inl"
+#include "./core/implementation/util/vulkan.hpp"
 #endif
 
 // 
 #ifdef USE_D3D12
-#include "./core/implementation/core/d3d12.inl"
+#include "./core/implementation/util/d3d12.hpp"
 #endif
 
 namespace svt {
@@ -113,68 +90,67 @@ namespace svt {
 
         // boolean 32-bit capable for C++
         class bool32_t { // TODO: support operators
-            protected: uint32_t b_:1;
-            public: friend bool32_t;
-                constexpr bool32_t(): b_(0u) {};
-                bool32_t(const bool&a=false): b_(a?1u:0u) {};
-                bool32_t(const uint32_t&a): b_(a&1u) {}; // make bitmasked
-                bool32_t(const bool32_t&a): b_(a) {};
+        protected: uint32_t b_:1;
+        public: friend bool32_t;
+            constexpr bool32_t(): b_(0u) {};
+            bool32_t(const bool&a=false): b_(a?1u:0u) {};
+            bool32_t(const uint32_t&a): b_(a&1u) {}; // make bitmasked
+            bool32_t(const bool32_t&a): b_(a) {};
 
-                // type conversion operators
-                operator bool() const {return bool(b_&1u);};
-                operator uint32_t() const {return (b_&1u);};
+            // type conversion operators
+            operator bool() const {return bool(b_&1u);};
+            operator uint32_t() const {return (b_&1u);};
 
-                // 
-                bool32_t& operator=(const bool&a){b_=(a?1u:0u);};
-                bool32_t& operator=(const uint32_t&a){b_=a&1u;};
-                bool32_t& operator=(const bool32_t&a){b_=a;};
+            // 
+            bool32_t& operator=(const bool&a){b_=(a?1u:0u);};
+            bool32_t& operator=(const uint32_t&a){b_=a&1u;};
+            bool32_t& operator=(const bool32_t&a){b_=a;};
         };
 
         // insider handler (TODO: cast from original type i.e. `H`)
         template<class H, class vH = uintptr_t> // first and just handler, second may be class with methods
         class handle_ptr {
-            protected:
-                union { H _hnd = H(0ull); vH _hni; }; // alternative class/handler
-                using handle_ptr_t = handle_ptr<vH,H>;
-                friend handle_ptr_t;
+        protected:
+            union { H _hnd = H(0ull); vH _hni; }; // alternative class/handler
+            using handle_ptr_t = handle_ptr<vH,H>;
+            friend handle_ptr_t;
 
-            public:
-                constexpr handle_ptr_t() : _hnd(0ull) {};
-                //constexpr UHandler(const void * a) : _hnd(uintptr_t(a)) {}; // for nullptr arguments
-                handle_ptr_t(const void * a) : _hnd(uintptr_t(a)) {}; // include, for nullptr arguments
-                handle_ptr_t(const intptr_t& a) : _hnd(uintptr_t(a)) {};
-                handle_ptr_t(const uintptr_t& a) : _hnd(a) {};
-                handle_ptr_t(const int& a) : _hnd(uintptr_t(a)) {};
-                handle_ptr_t(const unsigned& a) : _hnd(a) {};
-                handle_ptr_t(handle_ptr_t& a) : _hnd(a._hnd) {};
-                handle_ptr_t(handle_ptr_t&& a) : _hnd(std::move(a._hnd)) {};
-                handle_ptr_t(const vH& a) : _hni(a) {}; // foreign handler (from C API)
-                handle_ptr_t(const H& a) : _hnd(a) {};
+        public:
+            constexpr handle_ptr_t() : _hnd(0ull) {};
+            //constexpr UHandler(const void * a) : _hnd(uintptr_t(a)) {}; // for nullptr arguments
+            handle_ptr_t(const void * a) : _hnd(uintptr_t(a)) {}; // include, for nullptr arguments
+            handle_ptr_t(const intptr_t& a) : _hnd(uintptr_t(a)) {};
+            handle_ptr_t(const uintptr_t& a) : _hnd(a) {};
+            handle_ptr_t(const int& a) : _hnd(uintptr_t(a)) {};
+            handle_ptr_t(const unsigned& a) : _hnd(a) {};
+            handle_ptr_t(handle_ptr_t& a) : _hnd(a._hnd) {};
+            handle_ptr_t(handle_ptr_t&& a) : _hnd(std::move(a._hnd)) {};
+            handle_ptr_t(const vH& a) : _hni(a) {}; // foreign handler (from C API)
+            handle_ptr_t(const H& a) : _hnd(a) {};
 
-                // Casting Handlers of API
-                operator const vH&() const {return _hni;}; // return original API handler (if need)
-                operator vH&() {return _hni;};
-                operator const H&() const {return _hnd;}; // return original API handler (if need)
-                operator H&() {return _hnd;};
-                operator const void*&() const {return (const void*&)(_hnd);}; // return original API handler (if need)
-                operator void*&() {return (void*&)(_hnd);};
-                operator const uintptr_t&() const {return (uintptr_t&)_hnd;}; // return pointer value
-                operator uintptr_t&() {return (uintptr_t&)_hnd;};
-                operator const intptr_t&() const {return (intptr_t&)_hnd;}; // return pointer value
-                operator intptr_t&() {return (intptr_t&)_hnd;};
+            // Casting Handlers of API
+            operator const vH&() const {return _hni;}; // return original API handler (if need)
+            operator vH&() {return _hni;};
+            operator const H&() const {return _hnd;}; // return original API handler (if need)
+            operator H&() {return _hnd;};
+            operator const void*&() const {return (const void*&)(_hnd);}; // return original API handler (if need)
+            operator void*&() {return (void*&)(_hnd);};
+            operator const uintptr_t&() const {return (uintptr_t&)_hnd;}; // return pointer value
+            operator uintptr_t&() {return (uintptr_t&)_hnd;};
+            operator const intptr_t&() const {return (intptr_t&)_hnd;}; // return pointer value
+            operator intptr_t&() {return (intptr_t&)_hnd;};
 
-                // use another reference
-                template<class T = vH> T& ref() {return (T&)(*this); };
-                template<class T = vH> const T& ref() const {return (const T&)(*this); };
+            // use another reference
+            template<class T = vH> T& ref() {return (T&)(*this); };
+            template<class T = vH> const T& ref() const {return (const T&)(*this); };
 
-                // use secondary class methods
-                vH& operator->() { return _hni; };
-                const vH& operator->() const { return _hni; };
+            // use secondary class methods
+            vH& operator->() { return _hni; };
+            const vH& operator->() const { return _hni; };
         };
 
         template<class T, class R = uint32_t> // T SHOULD BE SHARED_PTR<T_n>
-        class handle_ref { 
-            protected: std::pair<T,R> pair;
+        class handle_ref { protected: std::pair<T,R> pair;
             using handle_ref_t = handle_ref<T,R>; 
             friend T; friend R; 
             friend handle_ref_t;

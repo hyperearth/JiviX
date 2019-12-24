@@ -38,8 +38,8 @@ namespace svt {
                 api::factory::ray_tracing_pipeline_t& operator*() { return (*this->pipeline_); };
                 const api::factory::ray_tracing_pipeline_t& operator*() const { return (*this->pipeline_); };
 
-                // TODO: 
-                //svt::core::handle_ref<ray_tracing_pipeline,core::api::result_t> create(const ray_tracing_pipeline_create_info& info = {});
+                // 
+                svt::core::handle_ref<ray_tracing_pipeline,core::api::result_t> create(const ray_tracing_pipeline_create_info& info = {});
 
                 // 
                 operator uintptr_t&() { return (*pipeline_); };

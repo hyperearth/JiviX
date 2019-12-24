@@ -19,8 +19,8 @@ namespace svt {
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
-                // TODO: shader_module Aggregator
-                // svt::core::handle_ref<shader_module, core::api::result_t> create(const shader_module_create_info& info = {});
+                // 
+                svt::core::handle_ref<shader_module, core::api::result_t> create(const shader_module_create_info& info = {});
 
                 // TODO: move into `.cpp` file
                 shader_module& operator=(const shader_module &shader_module) { 

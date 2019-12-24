@@ -1,5 +1,10 @@
 #pragma once
 
+// Default Backend
+#if !defined(USE_D3D12) && !defined(USE_VULKAN)
+#define USE_VULKAN
+#endif
+
 #ifdef USE_VULKAN
 
 #include <vulkan/vulkan.hpp>
