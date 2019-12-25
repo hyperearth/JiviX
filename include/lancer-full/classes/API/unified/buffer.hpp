@@ -15,9 +15,11 @@ namespace svt {
                 operator stu::buffer&() { return buffer_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };
+                operator stu::allocator&() { return allocator_; };
                 operator const stu::buffer&() const { return buffer_; };
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
+                operator const stu::allocator&() const { return allocator_; };
 
                 // TODO: move into `.cpp` file
                 stu::vector vector(uintptr_t offset = 0u, size_t size = 4u, size_t stride = 1u) {
@@ -25,7 +27,7 @@ namespace svt {
                 };
 
                 // Currently Aggregator
-                svt::core::handle_ref<buffer,core::api::result_t> create(const stu::allocator& allocator_ = {}, const buffer_create_info& info = {}, const uintptr_t& info_ptr = 0u);
+                svt::core::handle_ref<buffer,core::api::result_t> create(const stu::allocator& allocator_ = {}, const buffer_create_info& info = {}, const uintptr_t& info_ptr = 0u, const buffer_modifier& modifier = buffer_modifier::t_unknown);
 
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::buffer_t _get_buffer_t();

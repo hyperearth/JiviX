@@ -11,7 +11,8 @@ namespace svt {
                 const std::shared_ptr<device_t>& device, 
                 const std::vector<uint32_t>& queue_family_indices, 
                 const buffer_create_info& create_info, 
-                const uintptr_t& info_ptr
+                const uintptr_t& info_ptr,
+                const buffer_modifier& modifier
             ) {
                 vk::BufferCreateInfo vk_info{};
                 vk_info.size = create_info.size;

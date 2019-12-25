@@ -15,9 +15,11 @@ namespace svt {
                 operator stu::acceleration_structure&() { return structure_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };
+                operator stu::allocator&() { return allocator_; };
                 operator const stu::acceleration_structure&() const { return structure_; };
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
+                operator const stu::allocator&() const { return allocator_; };
 
                 // Currently Aggregator
                 svt::core::handle_ref<acceleration_structure,core::api::result_t> create(const stu::allocator& allocator_ = {}, const acceleration_structure_create_info& info = {}, const uintptr_t& info_ptr = 0u);

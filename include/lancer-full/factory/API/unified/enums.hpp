@@ -255,5 +255,13 @@ namespace svt {
             t_uint8 = 1000265000
         };
 
+
+        enum class buffer_modifier : uint32_t {
+            t_unknown = 0u,
+            t_gpu_only = 1u,
+            t_cpu_to_gpu = 2u,
+            t_gpu_to_cpu = 3u,
+        };
+
     };
 };
