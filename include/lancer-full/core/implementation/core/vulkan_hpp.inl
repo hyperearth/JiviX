@@ -60,26 +60,30 @@ namespace svt {
             using shader_module_t = vk::ShaderModule;
             using acceleration_structure_t = vk::AccelerationStructureNV;
             using framebuffer_t = vk::Framebuffer;
+            using swapchain_t = vk::SwapchainKHR;
+            using surface_t = vk::SurfaceKHR;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}
             #endif
 
+            // TODO: Getting Recommended Properties
             class physical_device_properties_t { public: 
             #if defined(USE_VULKAN)
-                vk::PhysicalDeviceProperties2 properties_ = {};
-                vk::PhysicalDeviceConservativeRasterizationPropertiesEXT conservative_rasterization_properties_ = {};
-                vk::PhysicalDeviceSubgroupSizeControlPropertiesEXT subgroup_size_control_properties_ = {};
-                vk::PhysicalDeviceSampleLocationsPropertiesEXT sample_locations_properties = {};
-                vk::PhysicalDeviceRayTracingPropertiesNV ray_tracing_properties_ = {};
+                //vk::PhysicalDeviceProperties2 properties_ = {};
+                //vk::PhysicalDeviceConservativeRasterizationPropertiesEXT conservative_rasterization_properties_ = {};
+                //vk::PhysicalDeviceSubgroupSizeControlPropertiesEXT subgroup_size_control_properties_ = {};
+                //vk::PhysicalDeviceSampleLocationsPropertiesEXT sample_locations_properties = {};
+                //vk::PhysicalDeviceRayTracingPropertiesNV ray_tracing_properties_ = {};
                 //vk::MultisamplePropertiesEXT multisample_properties_ = {};
             #endif
             };
 
+            // TODO: Getting Recommended Features
             class physical_device_features_t { public: 
             #if defined(USE_VULKAN)
-                vk::PhysicalDeviceFeatures2 features_ = {};
-                vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT subgroup_size_control_features_ = {};
+                //vk::PhysicalDeviceFeatures2 features_ = {};
+                //vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT subgroup_size_control_features_ = {};
             #endif
             };
 

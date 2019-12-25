@@ -10,6 +10,25 @@ namespace svt {
         enum class format : uint32_t {
             t_undefined = 0u,
 
+            // RGBA8
+            t_r8g8g8a8_unorm = 37u,
+            t_r8g8g8a8_snorm = 38u,
+            t_r8g8g8a8_uscaled = 39u,
+            t_r8g8g8a8_sscaled = 40u,
+            t_r8g8g8a8_uint = 41u,
+            t_r8g8g8a8_sint = 42u,
+            t_r8g8g8a8_srgb = 43u,
+
+            // RGBA8
+            t_b8g8r8a8_unorm = 44u,
+            t_b8g8r8a8_snorm = 45u,
+            t_b8g8r8a8_uscaled = 46u,
+            t_b8g8r8a8_sscaled = 47u,
+            t_b8g8r8a8_uint = 48u,
+            t_b8g8r8a8_sint = 49u,
+            t_b8g8r8a8_srgb = 50u,
+
+            // 16-bit
             t_r16_uint = 74u,
             t_r16_sint = 75u,
             t_r16_sfloat = 76u,
@@ -20,32 +39,34 @@ namespace svt {
             t_r16g16_uint = 81u,
             t_r16g16_sint = 82u,
             t_r16g16_sfloat = 83u,
-            t_r16g16g16_unorm = 84u,
-            t_r16g16g16_snorm = 85u,
-            t_r16g16g16_uscaled = 86u,
-            t_r16g16g16_sscaled = 87u,
-            t_r16g16g16_uint = 88u,
-            t_r16g16g16_sint = 89u,
-            t_r16g16g16_sfloat = 90u,
-            t_r16g16g16a16_unorm = 91u,
-            t_r16g16g16a16_snorm = 92u,
-            t_r16g16g16a16_uscaled = 93u,
-            t_r16g16g16a16_sscaled = 94u,
-            t_r16g16g16a16_uint = 95u,
-            t_r16g16g16a16_sint = 96u,
-            t_r16g16g16a16_sfloat = 97u,
+            t_r16g16b16_unorm = 84u,
+            t_r16g16b16_snorm = 85u,
+            t_r16g16b16_uscaled = 86u,
+            t_r16g16b16_sscaled = 87u,
+            t_r16g16b16_uint = 88u,
+            t_r16g16b16_sint = 89u,
+            t_r16g16b16_sfloat = 90u,
+            t_r16g16b16a16_unorm = 91u,
+            t_r16g16b16a16_snorm = 92u,
+            t_r16g16b16a16_uscaled = 93u,
+            t_r16g16b16a16_sscaled = 94u,
+            t_r16g16b16a16_uint = 95u,
+            t_r16g16b16a16_sint = 96u,
+            t_r16g16b16a16_sfloat = 97u,
+
+            /// 32-bit 
             t_r32_uint = 98u,
             t_r32_sint = 99u,
             t_r32_sfloat = 100u,
             t_r32g32_uint = 101u,
             t_r32g32_sint = 102u,
             t_r32g32_sfloat = 103u,
-            t_r32g32g32_uint = 104u,
-            t_r32g32g32_sint = 105u,
-            t_r32g32g32_sfloat = 106u,
-            t_r32g32g32a32_uint = 107u,
-            t_r32g32g32a32_sint = 108u,
-            t_r32g32g32a32_sfloat = 109u,
+            t_r32g32b32_uint = 104u,
+            t_r32g32b32_sint = 105u,
+            t_r32g32b32_sfloat = 106u,
+            t_r32g32b32a32_uint = 107u,
+            t_r32g32b32a32_sint = 108u,
+            t_r32g32b32a32_sfloat = 109u,
         };
 
         // TODO: more blend factors (with EXT)
@@ -261,6 +282,15 @@ namespace svt {
             t_gpu_only = 1u,
             t_cpu_to_gpu = 2u,
             t_gpu_to_cpu = 3u,
+        };
+
+        // TODO: more color spaces
+        enum class color_space : uint32_t {
+            t_srgb_non_linear = 0u,
+            t_display_p3_non_linear = 1000104001u,
+            t_extended_srgb_linear = 1000104002u,
+            t_display_p3_linear = 1000104003u
+            
         };
 
     };

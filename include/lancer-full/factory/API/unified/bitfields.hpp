@@ -180,6 +180,44 @@ namespace svt {
             b_no_dublicate_any_hit_invocation: 1;
         };
 
+        struct queue_family_flags { uint32_t
+            b_graphics: 1,
+            b_compute: 1,
+            b_transfer: 1,
+            b_sparse_binding: 1,
+            b_protected: 1;
+        };
+
+        struct format_features_flags { uint32_t
+            b_sampled_image: 1,
+            b_storage_image: 1,
+            b_storage_image_atomic: 1,
+            b_uniform_texel_buffer: 1,
+            b_storage_texel_buffer: 1,
+            b_storage_texel_buffer_atomic: 1,
+            b_vertex_buffer: 1,
+            b_color_attachment: 1,
+            b_color_attachment_blend: 1,
+            b_depth_stencil_attachment: 1,
+            b_blit_src: 1,
+            b_blit_dst: 1,
+            b_sampled_image_filter_linear: 1,
+            b_sampled_image_filter_cubic: 1,
+            b_transfer_src: 1,
+            b_transfer_dst: 1,
+            b_sampled_image_filter_minmax: 1,
+            b_midpoint_chroma_samples: 1,
+            b_sampled_image_ycbcr_conversion_linear_filter: 1,
+            b_sampled_image_ycbcr_conversion_separate_reconstruction_filter: 1,
+            b_sampled_image_ycbcr_conversion_chroma_reconstruction_explicit: 1,
+            b_sampled_image_ycbcr_conversion_chroma_reconstruction_explicit_forceable: 1,
+            b_disjoint: 1,
+            b_cosited_chroma_samples: 1,
+            b_fragment_density_map: 1;
+        };
+
+        
+
 #pragma pack(push, 1)
         struct geometry_instance_flags { uint8_t //uint32_t
             b_triangle_cull_disable: 1,

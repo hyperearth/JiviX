@@ -504,6 +504,7 @@ namespace svt {
             union { extent_3d size_32u; glm::uvec3 size = {1u,1u,1u}; };
         };
 
+        // VK Comaptible 
         class descriptor_pool_size { public: //uint32_t flags = 0u;
             description_type type = description_type::t_sampler; 
             uint32_t size = 64u;
@@ -523,6 +524,24 @@ namespace svt {
             std::vector<descriptor_pool_size> pool_sizes = {};
         };
 
+        // VK Comaptible 
+        class surface_format { public:
+            format format = format::t_r8g8g8a8_unorm;
+            color_space color_space = color_space::t_srgb_non_linear;
+        };
+
+        // VK Comaptible 
+        class format_properties { public: 
+            union { format_features_flags linear_tiling_features; uint32_t linear_tiling_features_32u = 0u; };
+            union { format_features_flags optimal_tiling_features; uint32_t optimal_tiling_features_32u = 0u; };
+            union { format_features_flags buffer_features; uint32_t buffer_features_32u = 0u; };
+        };
+
+        // VK Comaptible 
+        class queue_family_properties { public: union { uint32_t queue_flags_32u; queue_family_flags queue_flags; };
+            uint32_t count = 1u, timestamp_valid_bits = 0u;
+            union { extent_3d min_image_transfer_granularity_32u; glm::uvec3 min_image_transfer_granularity = {1u,1u,1u}; };
+        };
 
     };
 };

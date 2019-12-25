@@ -36,6 +36,8 @@ namespace svt {
             using framebuffer = std::shared_ptr<api::factory::framebuffer_t>;
             using shader_module = std::shared_ptr<api::factory::shader_module_t>;
             using acceleration_structure = std::shared_ptr<api::factory::acceleration_structure_t>;
+            using swapchain = std::shared_ptr<api::factory::swapchain_t>;
+            using surface = std::shared_ptr<api::factory::surface_t>;
 
             struct device_t {
                 stu::device device_ = {};
@@ -95,6 +97,8 @@ namespace svt {
             class shader_module;
             class acceleration_structure;
             class framebuffer;
+            class surface;
+            class swapchain;
 
             template<class T = uint8_t>
             class vector;

@@ -35,6 +35,8 @@ namespace svt {
             class shader_module_t;
             class acceleration_structure_t;
             class framebuffer_t;
+            class surface_t;
+            class swapchain_t;
             
         };
     };
