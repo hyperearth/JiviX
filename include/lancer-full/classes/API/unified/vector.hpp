@@ -5,7 +5,7 @@
 #include "./factory/API/unified/buffer.hpp"
 #include "./factory/API/unified/vector.hpp"
 #include "./factory/API/unified/descriptor_set.hpp"
-#include "./classes/API/unified/descriptor_set.hpp"
+//#include "./classes/API/unified/descriptor_set.hpp"
 
 
 namespace svt {
@@ -69,6 +69,9 @@ namespace svt {
                 inline const api::factory::vector_t* operator->() const { return &(*this->vector_); };
                 inline api::factory::vector_t& operator*() { return (*this->vector_); };
                 inline const api::factory::vector_t& operator*() const { return (*this->vector_); };
+
+                // create direct buffer region for assigments...
+                operator core::api::buffer_region_t() const { return (*vector_); };
 
                 // 
                 operator core::api::device_t&() { return device_; };

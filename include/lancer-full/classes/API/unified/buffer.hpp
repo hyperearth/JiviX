@@ -29,7 +29,7 @@ namespace svt {
                 };
                 template<class T = uint8_t>
                 vector<T> vector(uintptr_t offset = 0u, size_t size = 1u) {
-                    return svt::api::classes::vector<T>(device_, buffer_, _vector(offset,size,sizeof(T)));
+                    return api::classes::vector<T>(device_, buffer_, _vector(offset,size,sizeof(T)));
                 };
 
                 // Currently Aggregator
