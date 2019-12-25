@@ -225,9 +225,9 @@ namespace svt {
         struct attachment_description { uint32_t flags = 0u;
             format format = format::t_r16g16g16a16_unorm;
             union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
-            attachment_load_op load_op = attachment_load_op::t_load;
+            attachment_load_op load_op = attachment_load_op::t_clear;
             attachment_store_op store_op = attachment_store_op::t_store;
-            attachment_load_op stencil_load_op = attachment_load_op::t_load;
+            attachment_load_op stencil_load_op = attachment_load_op::t_clear;
             attachment_store_op stencil_store_op = attachment_store_op::t_store;
             image_layout initial_layout = image_layout::t_undefined;
             image_layout final_layout = image_layout::t_undefined;
