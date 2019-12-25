@@ -230,7 +230,7 @@ namespace svt {
             attachment_load_op stencil_load_op = attachment_load_op::t_load;
             attachment_store_op stencil_store_op = attachment_store_op::t_store;
             image_layout initial_layout = image_layout::t_undefined;
-            image_layout final_layout = image_layout::t_color_attachment;
+            image_layout final_layout = image_layout::t_undefined;
         };
 
         // VK Comaptible 
@@ -253,6 +253,7 @@ namespace svt {
         struct subpass_description {
             std::vector<attachment_reference> input_attachments = {};
             std::vector<attachment_reference> color_attachments = {};
+            std::vector<attachment_reference> resolve_attachments = {};
             attachment_reference depth_stencil_attachment = {};
         };
 
@@ -260,6 +261,26 @@ namespace svt {
             std::vector<attachment_description> attachments = {};
             std::vector<subpass_description> subpasses = {};
             std::vector<subpass_dependency> dependencies = {};
+
+            render_pass_create_info& begin_subpass(){
+                subpasses.push_back({});
+            };
+
+            render_pass_create_info& add_color_attachment(const attachment_description& attachment = {}) {
+                uintptr_t ptr = attachments.size(); attachments.push_back(attachment); auto& layout = attachments.back().final_layout;
+                if (layout == image_layout::t_undefined) { attachments.back().final_layout = image_layout::t_color_attachment; };
+                subpasses.back().color_attachments.push_back({ .attachment = ptr, .layout = layout });
+            };
+
+            render_pass_create_info& set_depth_stencil_attachment(const attachment_description& attachment = {}) {
+                uintptr_t ptr = attachments.size(); attachments.push_back(attachment); auto& layout = attachments.back().final_layout;
+                if (layout == image_layout::t_undefined) { attachments.back().final_layout = image_layout::t_depth_stencil_attachment; };
+                subpasses.back().depth_stencil_attachment = { .attachment = ptr, .layout = layout };
+            };
+
+            render_pass_create_info& add_subpass_dependency(const subpass_dependency& dependency = {}){
+                dependencies.push_back(dependency);
+            };
         };
 
 
