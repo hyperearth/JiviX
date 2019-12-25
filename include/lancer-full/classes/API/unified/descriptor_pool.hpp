@@ -39,8 +39,6 @@ namespace svt {
                 // 
                 svt::core::handle_ref<descriptor_pool,core::api::result_t> create(const descriptor_pool_create_info& info = {});
 
-                
-
                 // 
                 operator uintptr_t&() { return (*descriptor_pool_); };
                 operator const uintptr_t&() const { return (*descriptor_pool_); };

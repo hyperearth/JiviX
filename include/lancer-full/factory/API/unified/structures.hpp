@@ -504,5 +504,25 @@ namespace svt {
             union { extent_3d size_32u; glm::uvec3 size = {1u,1u,1u}; };
         };
 
+        class descriptor_pool_size { public: //uint32_t flags = 0u;
+            description_type type = description_type::t_sampler; 
+            uint32_t size = 64u;
+            
+            // make more editable
+            operator description_type&() { return type; };
+            operator const description_type&() const { return type; };
+            operator uint32_t&() { return size; };
+            operator const uint32_t&() const { return size; };
+            descriptor_pool_size& operator=(const description_type& type) { this->type = type; return *this; };
+            descriptor_pool_size& operator=(const uint32_t& size) { this->size = size; return *this; };
+        };
+
+        // VK Comaptible 
+        class descriptor_pool_create_info { public: uint32_t flags = 0u;
+            uint32_t max_sets = 256u;
+            std::vector<descriptor_pool_size> pool_sizes = {};
+        };
+
+
     };
 };
