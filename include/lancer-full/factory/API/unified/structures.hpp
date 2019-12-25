@@ -220,6 +220,7 @@ namespace svt {
 
 
 
+        // TODO: Render Pass 2 KHR Support
 
         // VK Comaptible 
         struct attachment_description { uint32_t flags = 0u;
@@ -262,24 +263,27 @@ namespace svt {
             std::vector<subpass_description> subpasses = {};
             std::vector<subpass_dependency> dependencies = {};
 
-            render_pass_create_info& begin_subpass(){
-                subpasses.push_back({});
-            };
+            //
+            render_pass_create_info& begin_subpass() { subpasses.push_back({}); return *this; };
 
+            // 
+            render_pass_create_info& add_subpass_dependency(const subpass_dependency& dependency = {}) { dependencies.push_back(dependency); return *this; };
+
+            // 
             render_pass_create_info& add_color_attachment(const attachment_description& attachment = {}) {
                 uintptr_t ptr = attachments.size(); attachments.push_back(attachment); auto& layout = attachments.back().final_layout;
                 if (layout == image_layout::t_undefined) { attachments.back().final_layout = image_layout::t_color_attachment; };
+                if (subpasses.size() < 1u) { begin_subpass(); };
                 subpasses.back().color_attachments.push_back({ .attachment = ptr, .layout = layout });
             };
 
+            // 
             render_pass_create_info& set_depth_stencil_attachment(const attachment_description& attachment = {}) {
                 uintptr_t ptr = attachments.size(); attachments.push_back(attachment); auto& layout = attachments.back().final_layout;
                 if (layout == image_layout::t_undefined) { attachments.back().final_layout = image_layout::t_depth_stencil_attachment; };
+                if (subpasses.size() < 1u) { begin_subpass(); };
                 subpasses.back().depth_stencil_attachment = { .attachment = ptr, .layout = layout };
-            };
-
-            render_pass_create_info& add_subpass_dependency(const subpass_dependency& dependency = {}){
-                dependencies.push_back(dependency);
+                return *this;
             };
         };
 
