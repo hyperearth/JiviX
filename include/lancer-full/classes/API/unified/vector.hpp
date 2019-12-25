@@ -12,7 +12,7 @@ namespace svt {
     namespace api {
         namespace classes {
             
-            template<class T = uint8_t>
+            template<class T = uint8_t> //TODO: MORE VECTOR OPERATIONS
             class vector { public: using T = T; using vector_t = vector<T>;
                 template<class A = T>
                 inline vector_t(const vector<A>& vector) : vector_(vector), buffer_(vector), device_(vector) {};
