@@ -22,6 +22,8 @@ namespace svt {
                 const api::factory::physical_device_t& operator*() const { return (*this->physical_device_); };
 
                 // 
+
+                // 
                 operator uintptr_t&() { return physical_device_; };
                 operator const uintptr_t&() const { return physical_device_; };
                 

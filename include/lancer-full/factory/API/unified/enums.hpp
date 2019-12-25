@@ -293,5 +293,14 @@ namespace svt {
             
         };
 
+        enum class present_mode : uint32_t {
+            t_immediate = 0u,
+            t_mailbox = 1u,
+            t_fifo = 2u,
+            t_fifo_relaxed = 3u,
+            t_shared_demand_refresh = 1000111000u,
+            t_shared_continuous_refresh = 1000111001u
+        };
+
     };
 };

@@ -39,9 +39,9 @@ namespace svt {
             union { glm::uvec3 extent; extent_3d extent_32u; };
             uint32_t mip_levels = 1u;
             uint32_t array_layers = 1u;
-            union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
+            union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count_flags samples; };
             image_tiling tiling = image_tiling::t_optimal;
-            union { uint32_t usage_32u = 0b00000000000000000000000000000000u; image_usage usage; };
+            union { uint32_t usage_32u = 0b00000000000000000000000000000000u; image_usage_flags usage; };
             sharing_mode sharing_mode = sharing_mode::t_exclusive;
             //image_layout initial_layout = image_layout::t_undefined;
         };
@@ -166,7 +166,7 @@ namespace svt {
 
             // 
             struct multisample_state {
-                union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
+                union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count_flags samples; };
                 core::bool32_t sample_shading = false;
                 float min_sample_shading = 0.f;
                 const uint32_t* sample_mask = nullptr;
@@ -224,8 +224,8 @@ namespace svt {
 
         // VK Comaptible 
         struct attachment_description { uint32_t flags = 0u;
-            format format = format::t_r16g16g16a16_unorm;
-            union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count samples; };
+            format format = format::t_r16g16b16a16_unorm;
+            union { uint32_t samples_32u = 0b00000000000000000000000000000000u; sample_count_flags samples; };
             attachment_load_op load_op = attachment_load_op::t_clear;
             attachment_store_op store_op = attachment_store_op::t_store;
             attachment_load_op stencil_load_op = attachment_load_op::t_clear;
@@ -542,6 +542,43 @@ namespace svt {
             uint32_t count = 1u, timestamp_valid_bits = 0u;
             union { extent_3d min_image_transfer_granularity_32u; glm::uvec3 min_image_transfer_granularity = {1u,1u,1u}; };
         };
+
+        // VK Comaptible 
+        class surface_capabilities { public:
+            uint32_t min_image_count = 1u;
+            uint32_t max_image_count = 1u;
+            union { extent_2d current_extent_32u; glm::uvec2 current_extent = {1u,1u}; };
+            union { extent_2d min_image_extent_32u; glm::uvec2 min_image_extent = {1u,1u}; };
+            union { extent_2d max_image_extent_32u; glm::uvec2 max_image_extent = {1u,1u}; };
+            uint32_t max_image_array_layers = 1u;
+            union { surface_transform_flags supported_transforms; uint32_t supported_transforms_32u = 0u; };
+            union { surface_transform_flags current_transforms; uint32_t current_transforms_32u = 0u; };
+            union { surface_transform_flags supported_composite_alpha; uint32_t supported_composite_alpha_32u = 0u; };
+            union { image_usage_flags supported_usage_flags; uint32_t supported_usage_flags_32u = 0u; };
+        };
+
+
+        class swapchain_create_info { public: uint32_t flags = 0u;
+            core::api::surface_t surface = API_NULL_HANDLE;
+            uint32_t min_image_count = 1u;
+            format image_format = format::t_r8g8g8a8_unorm;
+            color_space image_color_space = color_space::t_srgb_non_linear;
+            union { extent_2d image_extent_32u; glm::uvec2 image_extent = {1u,1u}; };
+            uint32_t image_array_layers = 1u;
+            union { uint32_t image_usage_32u = 0u; image_usage_flags image_usage; };
+            sharing_mode image_sharing_mode = sharing_mode::t_exclusive;
+
+            std::vector<uint32_t> queue_family_indices = {};
+            union { uint32_t pre_transform_32u = 0u; surface_transform_flags pre_transform; };
+            union { uint32_t composite_alpha_flags_32u = 0u; composite_alpha_flags composite_alpha_flags; };
+            present_mode present_mode = present_mode::t_immediate;
+            bool clipped = true;
+            //bool32_t clipped = true;
+            core::api::swapchain_t old_swapchain = API_NULL_HANDLE;
+        };
+
+
+        //surface_transform_flags
 
     };
 };

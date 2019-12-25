@@ -25,7 +25,7 @@ namespace svt {
             b_subsampled: 1;
         };
 
-        struct image_usage { uint32_t 
+        struct image_usage_flags { uint32_t 
             b_transfer_src : 1,
             b_transfer_dst : 1,
             b_sampled : 1,
@@ -38,7 +38,7 @@ namespace svt {
             b_fragment_density_map: 1;
         };
 
-        struct sample_count { uint32_t 
+        struct sample_count_flags { uint32_t 
             b_1: 1,
             b_2: 1,
             b_4: 1,
@@ -214,6 +214,25 @@ namespace svt {
             b_disjoint: 1,
             b_cosited_chroma_samples: 1,
             b_fragment_density_map: 1;
+        };
+
+        struct surface_transform_flags { uint32_t
+            b_identity: 1,
+            b_rotate_90: 1,
+            b_rotate_180: 1,
+            b_rotate_270: 1,
+            b_horizontal_mirror: 1,
+            b_horizontal_mirror_rotate_90: 1,
+            b_horizontal_mirror_rotate_180: 1,
+            b_horizontal_mirror_rotate_270: 1,
+            b_inherit: 1;
+        };
+
+        struct composite_alpha_flags { uint32_t
+            b_opaque: 1,
+            b_pre_multiplied: 1,
+            b_post_multiplied: 1,
+            b_inherit: 1;
         };
 
         
