@@ -2,6 +2,8 @@
 
 #include "./classes/API/types.hpp"
 #include "./factory/API/unified/buffer.hpp"
+#include "./factory/API/unified/vector.hpp"
+#include "./factory/API/classes/vector.hpp"
 
 namespace svt {
     namespace api {
@@ -22,8 +24,12 @@ namespace svt {
                 operator const stu::allocator&() const { return allocator_; };
 
                 // TODO: move into `.cpp` file
-                stu::vector vector(uintptr_t offset = 0u, size_t size = 4u, size_t stride = 1u) {
+                stu::vector _vector(uintptr_t offset = 0u, size_t size = 4u, size_t stride = 1u) {
                     return std::make_shared<api::factory::vector_t>(*buffer_,offset,size,stride);
+                };
+                template<class T = uint8_t>
+                vector<T> vector(uintptr_t offset = 0u, size_t size = 1u) {
+                    return svt::api::classes::vector<T>(device_, buffer_, _vector(offset,size,sizeof(T)));
                 };
 
                 // Currently Aggregator
