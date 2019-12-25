@@ -34,6 +34,7 @@ namespace svt {
             class render_pass_t;
             class shader_module_t;
             class acceleration_structure_t;
+            class framebuffer_t;
             
         };
     };

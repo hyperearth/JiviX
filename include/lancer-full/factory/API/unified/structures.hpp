@@ -498,5 +498,11 @@ namespace svt {
             size_t compacted_size = 0ull;
         };
 
+        class framebuffer_create_info { public: uint32_t flags = 0u;
+            core::api::render_pass_t render_pass = API_NULL_HANDLE;
+            std::vector<core::api::image_view_t> attachments = {};
+            union { extent_3d size_32u; glm::uvec3 size = {1u,1u,1u}; };
+        };
+
     };
 };

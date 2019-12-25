@@ -59,6 +59,7 @@ namespace svt {
             using dispatch_t = vk::DispatchLoaderDynamic;
             using shader_module_t = vk::ShaderModule;
             using acceleration_structure_t = vk::AccelerationStructureNV;
+            using framebuffer_t = vk::Framebuffer;
 
             #ifndef API_NULL_HANDLE
             #define API_NULL_HANDLE {}

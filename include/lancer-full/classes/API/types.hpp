@@ -33,6 +33,7 @@ namespace svt {
             using instance = std::shared_ptr<api::factory::instance_t>;
             using physical_device = std::shared_ptr<api::factory::physical_device_t>;
             using render_pass = std::shared_ptr<api::factory::render_pass_t>;
+            using framebuffer = std::shared_ptr<api::factory::framebuffer_t>;
             using shader_module = std::shared_ptr<api::factory::shader_module_t>;
             using acceleration_structure = std::shared_ptr<api::factory::acceleration_structure_t>;
 
@@ -93,6 +94,7 @@ namespace svt {
             class render_pass;
             class shader_module;
             class acceleration_structure;
+            class framebuffer;
 
             template<class T = uint8_t>
             class vector;

@@ -23,7 +23,7 @@ namespace svt {
                 const api::factory::render_pass_t& operator*() const { return (*this->render_pass_); };
 
                 // 
-                svt::core::handle_ref<render_pass, core::api::result_t> render_pass::create(const render_pass_create_info& info = {});
+                svt::core::handle_ref<render_pass, core::api::result_t> create(const render_pass_create_info& info = {});
 
                 // 
                 operator uintptr_t&() { return *render_pass_; };
