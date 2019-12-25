@@ -24,10 +24,11 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return instance_; };
                 operator const uintptr_t&() const { return instance_; };
+
                 operator core::api::instance_t&() { return instance_; };
                 operator const core::api::instance_t&() const { return instance_; };
 
-            protected: 
+            protected: friend instance;
                 stu::instance_t instance_ = {};
             };
         };

@@ -70,6 +70,16 @@ namespace svt {
                 inline api::factory::vector_t& operator*() { return (*this->vector_); };
                 inline const api::factory::vector_t& operator*() const { return (*this->vector_); };
 
+                // 
+                operator core::api::device_t&() { return device_; };
+                operator const core::api::device_t&() const { return device_; };
+
+                operator core::api::physical_device_t&() { return device_; };
+                operator const core::api::physical_device_t&() const { return device_; };
+
+                operator core::api::buffer_t&() { return vector_; };
+                operator const core::api::buffer_t&() const { return vector_; };
+
             // TODO: low-level casting operator
             protected: friend vector_t; 
                 stu::vector vector_ = {};

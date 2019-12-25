@@ -45,9 +45,17 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return (*pipeline_layout_); };
                 operator const uintptr_t&() const { return (*pipeline_layout_); };
+                
                 operator core::api::pipeline_layout_t&() { return (*pipeline_layout_); };
                 operator const core::api::pipeline_layout_t&() const { return (*pipeline_layout_); };
 
+                operator core::api::device_t&() { return device_; };
+                operator const core::api::device_t&() const { return device_; };
+
+                operator core::api::physical_device_t&() { return device_; };
+                operator const core::api::physical_device_t&() const { return device_; };
+
+            // 
             protected: friend descriptor_set; friend pipeline_layout;
                 stu::pipeline_layout pipeline_layout_ = {};
                 stu::device_t device_ = {};

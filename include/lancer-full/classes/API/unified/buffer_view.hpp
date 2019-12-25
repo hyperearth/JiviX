@@ -52,9 +52,20 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return (*buffer_view_); };
                 operator const uintptr_t&() const { return (*buffer_view_); };
+
                 operator core::api::buffer_view_t&() { return (*buffer_view_); };
                 operator const core::api::buffer_view_t&() const { return (*buffer_view_); };
 
+                operator core::api::device_t&() { return device_; };
+                operator const core::api::device_t&() const { return device_; };
+
+                operator core::api::physical_device_t&() { return device_; };
+                operator const core::api::physical_device_t&() const { return device_; };
+                
+                operator core::api::buffer_t&() { return vector_; };
+                operator const core::api::buffer_t&() const { return vector_; };
+
+            // 
             protected: friend buffer_view;
                 stu::buffer_view buffer_view_ = {};
                 stu::vector vector_ = {};

@@ -38,8 +38,15 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return (uintptr_t&)(*module_->module_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(*module_->module_); };
+
                 operator core::api::shader_module_t&() { return (*module_); };
                 operator const core::api::shader_module_t&() const { return (*module_); };
+
+                operator core::api::device_t&() { return device_; };
+                operator const core::api::device_t&() const { return device_; };
+
+                operator core::api::physical_device_t&() { return device_; };
+                operator const core::api::physical_device_t&() const { return device_; };
 
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::shader_module_t _get_shader_module_t();

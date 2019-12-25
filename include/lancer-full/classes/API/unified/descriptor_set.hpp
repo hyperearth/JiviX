@@ -51,17 +51,24 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return (*descriptor_set_); };
                 operator const uintptr_t&() const { return (*descriptor_set_); };
+
                 operator core::api::descriptor_set_t&() { return (*descriptor_set_); };
                 operator const core::api::descriptor_set_t&() const { return (*descriptor_set_); };
 
-            protected: 
+                operator core::api::descriptor_set_layout_t&() { return (*descriptor_set_layout_); };
+                operator const core::api::descriptor_set_layout_t&() const { return (*descriptor_set_layout_); };
+
+                operator core::api::device_t&() { return device_; };
+                operator const core::api::device_t&() const { return device_; };
+                
+                operator core::api::physical_device_t&() { return device_; };
+                operator const core::api::physical_device_t&() const { return device_; };
+
+            protected: friend descriptor_set;
                 stu::descriptor_set descriptor_set_ = {};
                 stu::descriptor_pool descriptor_pool_ = {};
                 stu::descriptor_set_layout descriptor_set_layout_ = {};
                 stu::device_t device_ = {};
-
-                
-                
             };
         };
     };
