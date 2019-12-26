@@ -31,8 +31,8 @@ namespace svt {
                 operator const stu::device_t&() const { return device_; };
 
                 // TODO: move into `.cpp` file
-                virtual buffer& create_buffer(const buffer_create_info& info, const uintptr_t& info_ptr = 0u, const buffer_modifier& modifier = buffer_modifier::t_unknown) { auto buffer_ = buffer(device_); buffer_.create(allocator_, info, info_ptr); return buffer_; };
-                virtual image&  create_image (const  image_create_info& info, const uintptr_t& info_ptr = 0u, const image_layout& initial_layout = image_layout::t_undefined) { auto image_ = image(device_); image_.create(allocator_, info, info_ptr, initial_layout); return image_; };
+                svt::core::handle_ref<buffer,core::api::result_t> create_buffer(const buffer_create_info& info, const uintptr_t& info_ptr = 0u, const buffer_modifier& modifier = buffer_modifier::t_unknown) { auto buffer_ = buffer(device_); return buffer_.create(allocator_, info, info_ptr, modifier);        };
+                svt::core::handle_ref<image ,core::api::result_t> create_image (const  image_create_info& info, const uintptr_t& info_ptr = 0u, const image_layout& initial_layout = image_layout::t_undefined) { auto image_ = image(device_); return  image_.create(allocator_, info, info_ptr, initial_layout);  };
 
                 // TODO: move into `.cpp` file
                 api::factory::allocator_t* operator->() { return &(*this->allocator_); };
