@@ -11,13 +11,13 @@ namespace svt {
             t_undefined = 0u,
 
             // RGBA8
-            t_r8g8g8a8_unorm = 37u,
-            t_r8g8g8a8_snorm = 38u,
-            t_r8g8g8a8_uscaled = 39u,
-            t_r8g8g8a8_sscaled = 40u,
-            t_r8g8g8a8_uint = 41u,
-            t_r8g8g8a8_sint = 42u,
-            t_r8g8g8a8_srgb = 43u,
+            t_r8g8b8a8_unorm = 37u,
+            t_r8g8b8a8_snorm = 38u,
+            t_r8g8b8a8_uscaled = 39u,
+            t_r8g8b8a8_sscaled = 40u,
+            t_r8g8b8a8_uint = 41u,
+            t_r8g8b8a8_sint = 42u,
+            t_r8g8b8a8_srgb = 43u,
 
             // RGBA8
             t_b8g8r8a8_unorm = 44u,

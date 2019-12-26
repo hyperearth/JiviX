@@ -14,6 +14,8 @@ namespace svt {
                 buffer_view_t(const buffer_view_t& buffer_view) : buffer_view_(buffer_view) {};
                 buffer_view_t(const core::api::buffer_view_t& buffer_view_) : buffer_view_(buffer_view_) {};
                 buffer_view_t& operator=(const buffer_view_t& buffer_view) { this->buffer_view_ = buffer_view; return *this; };
+                buffer_view_t& operator=(const std::shared_ptr<buffer_view_t>& buffer_view) { this->buffer_view_ = *buffer_view; return *this; };
+                buffer_view_t& operator=(const core::api::buffer_view_t& buffer_view_){ this->buffer_view_ = buffer_view_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(buffer_view_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(buffer_view_); };

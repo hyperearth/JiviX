@@ -4,6 +4,8 @@
 #include "./factory/API/unified/bitfields.hpp"
 #include "./factory/API/unified/enums.hpp"
 
+// TODO: MAKE ALL POSSIBLE STRUCTURES COMPATIBLE WITH ORIGINAL VULKAN API
+// ADD HELPER AGGREGATED VERSION OF CREATE_INFO
 namespace svt {
     namespace api {
 
@@ -469,7 +471,7 @@ namespace svt {
 
         // 
         class geometry_triangles { public: 
-            vector_structure vertices = { .data = {}, .offset = 0u, .size = 0u, .stride = 16u }; format vertex_format = format::t_r32g32g32_sfloat;
+            vector_structure vertices = { .data = {}, .offset = 0u, .size = 0u, .stride = 16u }; format vertex_format = format::t_r32g32b32_sfloat;
             vector_structure indices = { .data = {}, .offset = 0u, .size = 0u, .stride = 4u }; index_type index_type = index_type::t_none;
             vector_structure transform = { .data = {}, .offset = 0u, .size = 0u, .stride = 48u };
         };
@@ -525,9 +527,15 @@ namespace svt {
         };
 
         // VK Comaptible 
-        class surface_format { public:
-            format format = format::t_r8g8g8a8_unorm;
+        class surface_format { public: using format_t = format; using color_space_t = color_space;
+            format_t format = format::t_r8g8b8a8_unorm;
             color_space color_space = color_space::t_srgb_non_linear;
+
+            // 
+            operator format_t&() { return format; };
+            operator const format_t&() const { return format; };
+            operator color_space_t&() { return color_space; };
+            operator const color_space_t&() const { return color_space; };
         };
 
         // VK Comaptible 
@@ -561,7 +569,7 @@ namespace svt {
         class swapchain_create_info { public: uint32_t flags = 0u;
             core::api::surface_t surface = API_NULL_HANDLE;
             uint32_t min_image_count = 1u;
-            format image_format = format::t_r8g8g8a8_unorm;
+            format image_format = format::t_r8g8b8a8_unorm;
             color_space image_color_space = color_space::t_srgb_non_linear;
             union { extent_2d image_extent_32u; glm::uvec2 image_extent = {1u,1u}; };
             uint32_t image_array_layers = 1u;

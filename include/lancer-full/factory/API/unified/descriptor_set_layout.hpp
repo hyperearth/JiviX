@@ -12,7 +12,9 @@ namespace svt {
                 descriptor_set_layout_t() {};
                 descriptor_set_layout_t(const descriptor_set_layout_t& descriptor_set_layout_t) : layout_(descriptor_set_layout_t) {};
                 descriptor_set_layout_t(core::api::descriptor_set_layout_t layout_ = API_NULL_HANDLE) : layout_(layout_) {};
-                descriptor_set_layout_t& operator=(const descriptor_set_layout_t& descriptor_set_layout_t) { layout_ = descriptor_set_layout_t; return *this; };
+                descriptor_set_layout_t& operator=(const descriptor_set_layout_t& descriptor_set_layout) { this->layout_ = descriptor_set_layout; return *this; };
+                descriptor_set_layout_t& operator=(const std::shared_ptr<descriptor_set_layout_t>& descriptor_set_layout) { this->layout_ = *descriptor_set_layout; return *this; };
+                descriptor_set_layout_t& operator=(const core::api::descriptor_set_layout_t& layout_){ this->layout_ = layout_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(layout_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(layout_); };

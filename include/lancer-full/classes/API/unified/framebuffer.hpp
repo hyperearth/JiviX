@@ -10,13 +10,18 @@ namespace svt {
                 framebuffer(const framebuffer& framebuffer) : framebuffer_(framebuffer) {};
                 framebuffer(const stu::device_t& device_ = {}, const stu::framebuffer& framebuffer_ = {}) : framebuffer_(framebuffer_), device_(device_) {};
                 framebuffer(                                   const stu::framebuffer& framebuffer_ = {}) : framebuffer_(framebuffer_) {};
+
+                // TODO: add assigment by core types and shared_ptr types
                 framebuffer& operator=(const framebuffer &framebuffer) { this->framebuffer_ = framebuffer; return *this; };
 
+                // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 operator stu::framebuffer&() { return framebuffer_; };
                 operator stu::device_t&() { return device_; };
                 operator const stu::framebuffer&() const { return framebuffer_; };
                 operator const stu::device_t&() const { return device_; };
 
+                // 
                 api::factory::framebuffer_t* operator->() { return &(*this->framebuffer_); };
                 const api::factory::framebuffer_t* operator->() const { return &(*this->framebuffer_); };
                 api::factory::framebuffer_t& operator*() { return (*this->framebuffer_); };

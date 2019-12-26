@@ -15,6 +15,8 @@ namespace svt {
                 surface_t(const core::api::surface_t& surface_) : surface_(surface_) {};
                 surface_t(core::api::surface_t surface_ = API_NULL_HANDLE) : surface_(surface_) {};
                 surface_t& operator=(const surface_t& surface) { this->surface_ = surface; return *this; };
+                surface_t& operator=(const std::shared_ptr<surface_t>& surface) { this->surface_ = *surface; return *this; };
+                surface_t& operator=(const core::api::surface_t& surface_) { this->surface_ = surface_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(surface_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(surface_); };

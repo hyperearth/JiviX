@@ -16,6 +16,8 @@ namespace svt {
                 sampler_t(const sampler_t& sampler) : sampler_(sampler) {};
                 sampler_t(const core::api::sampler_t& sampler_) : sampler_(sampler_) {};
                 sampler_t& operator=(const sampler_t& sampler) { this->sampler_ = sampler; return *this; };
+                sampler_t& operator=(const std::shared_ptr<sampler_t>& sampler) { this->sampler_ = *sampler; return *this; };
+                sampler_t& operator=(const core::api::sampler_t& sampler_) { this->sampler_ = sampler_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(sampler_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(sampler_); };

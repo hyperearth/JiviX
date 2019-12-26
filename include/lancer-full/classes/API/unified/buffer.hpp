@@ -14,6 +14,7 @@ namespace svt {
                 buffer(const buffer& buffer) : allocator_(buffer.allocator_), buffer_(buffer), device_(buffer) {};
 
                 // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 operator stu::buffer&() { return buffer_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

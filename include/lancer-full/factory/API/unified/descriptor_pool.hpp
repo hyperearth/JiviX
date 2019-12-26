@@ -12,7 +12,9 @@ namespace svt {
                 descriptor_pool_t() {};
                 descriptor_pool_t(const descriptor_pool_t& descriptor_pool_t) : pool_(descriptor_pool_t) {};
                 descriptor_pool_t(core::api::descriptor_pool_t pool_ = API_NULL_HANDLE) : pool_(pool_) {};
-                descriptor_pool_t& operator=(const descriptor_pool_t& descriptor_pool_t) { pool_ = descriptor_pool_t; return *this; };
+                descriptor_pool_t& operator=(const descriptor_pool_t& descriptor_pool) { this->pool_ = descriptor_pool; return *this; };
+                descriptor_pool_t& operator=(const core::api::descriptor_pool_t& pool_){ this->pool_ = pool_; return *this; };
+                descriptor_pool_t& operator=(const std::shared_ptr<descriptor_pool_t>& descriptor_pool) { this->pool_ = *descriptor_pool; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(pool_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(pool_); };

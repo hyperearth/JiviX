@@ -15,14 +15,14 @@ namespace svt {
                 command_buffer(                              const stu::command_buffer& cmdbuf_ = {}) : cmdbuf_(cmdbuf_) {};
                 command_buffer(const stu::device_t& device_, const stu::command_buffer& cmdbuf_ = {}) : cmdbuf_(cmdbuf_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types 
                 command_buffer& operator=(const command_buffer &command_buffer) { 
                     this->cmdbuf_ = command_buffer;
                     this->device_ = command_buffer;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::command_buffer&() { return cmdbuf_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

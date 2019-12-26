@@ -15,19 +15,20 @@ namespace svt {
                 allocator(const stu::device_t& device_, const stu::allocator& allocator_ = {}) : allocator_(allocator_), device_(device_) {};
 
                 // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
+                allocator& operator=(const allocator &allocator) { 
+                    this->allocator_ = allocator;
+                    this->device_ = allocator;
+                    return *this;
+                };
+
+                // TODO: move into `.cpp` file
                 operator stu::allocator&() { return allocator_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };
                 operator const stu::allocator&() const { return allocator_; };
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
-
-                // TODO: move into `.cpp` file
-                allocator& operator=(const allocator &allocator) { 
-                    this->allocator_ = allocator;
-                    this->device_ = allocator;
-                    return *this;
-                };
 
                 // TODO: move into `.cpp` file
                 virtual buffer& create_buffer(const buffer_create_info& info, const uintptr_t& info_ptr = 0u, const buffer_modifier& modifier = buffer_modifier::t_unknown) { auto buffer_ = buffer(device_); buffer_.create(allocator_, info, info_ptr); return buffer_; };

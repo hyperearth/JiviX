@@ -17,14 +17,14 @@ namespace svt {
                 graphics_pipeline(                              const stu::graphics_pipeline& pipeline_ = {}) : pipeline_(pipeline_) {};
                 graphics_pipeline(const stu::device_t& device_, const stu::graphics_pipeline& pipeline_ = {}) : pipeline_(pipeline_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
                 graphics_pipeline& operator=(const graphics_pipeline &graphics_pipeline) { 
                     this->pipeline_ = graphics_pipeline;
                     this->device_ = graphics_pipeline;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::graphics_pipeline&() { return pipeline_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

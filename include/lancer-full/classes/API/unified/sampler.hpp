@@ -23,6 +23,7 @@ namespace svt {
                 // svt::core::handle_ref<sampler, core::api::result_t> create(const sampler_create_info& info = {});
 
                 // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 sampler& operator=(const sampler &sampler) { 
                     this->sampler_ = sampler;
                     this->device_ = sampler;

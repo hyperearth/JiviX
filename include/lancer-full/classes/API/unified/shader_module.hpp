@@ -23,6 +23,7 @@ namespace svt {
                 svt::core::handle_ref<shader_module, core::api::result_t> create(const shader_module_create_info& info = {});
 
                 // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 shader_module& operator=(const shader_module &shader_module) { 
                     this->module_ = shader_module;
                     this->device_ = shader_module;

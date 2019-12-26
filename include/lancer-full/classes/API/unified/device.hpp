@@ -12,9 +12,11 @@ namespace svt {
             class device { public: 
                 device(const device& device) : device_(device) {};
                 device(const stu::device_t& device_ = {}) : device_(device_) {};
+
+                // TODO: add assigment by core types and shared_ptr types
                 device& operator=(const device &device) { this->device_ = device; return *this; };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::physical_device&() { return device_; };
                 operator stu::device&() { return device_; };
                 operator stu::queue&() { return queue_; };

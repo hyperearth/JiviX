@@ -10,8 +10,11 @@ namespace svt {
             class queue { public: 
                 queue(const queue& queue) : queue_(queue) {};
                 queue(const stu::queue& queue_ = {}) : queue_(queue_) {};
+
+                // TODO: add assigment by core types and shared_ptr types
                 queue& operator=(const queue &queue) { this->queue_ = queue; return *this; };
 
+                // TODO: move into `.cpp` file
                 operator stu::queue&() { return queue_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };
@@ -19,6 +22,7 @@ namespace svt {
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
+                // 
                 api::factory::queue_t* operator->() { return &(*this->queue_); };
                 const api::factory::queue_t* operator->() const { return &(*this->queue_); };
                 api::factory::queue_t& operator*() { return (*this->queue_); };

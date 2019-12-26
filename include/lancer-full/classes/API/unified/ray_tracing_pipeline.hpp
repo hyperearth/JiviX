@@ -17,14 +17,14 @@ namespace svt {
                 ray_tracing_pipeline(                              const stu::ray_tracing_pipeline& pipeline_ = {}) : pipeline_(pipeline_) {};
                 ray_tracing_pipeline(const stu::device_t& device_, const stu::ray_tracing_pipeline& pipeline_ = {}) : pipeline_(pipeline_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
                 ray_tracing_pipeline& operator=(const ray_tracing_pipeline &ray_tracing_pipeline) { 
                     this->pipeline_ = ray_tracing_pipeline;
                     this->device_ = ray_tracing_pipeline;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::ray_tracing_pipeline&() { return pipeline_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

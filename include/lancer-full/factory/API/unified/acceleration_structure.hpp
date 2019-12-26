@@ -18,6 +18,8 @@ namespace svt {
                 acceleration_structure_t(const acceleration_structure_t& acceleration_structure) : structure_(acceleration_structure) {};
                 acceleration_structure_t(const core::api::acceleration_structure_t& structure_) : structure_(structure_) {};
                 acceleration_structure_t& operator=(const acceleration_structure_t& acceleration_structure) { this->structure_ = acceleration_structure; return *this; };
+                acceleration_structure_t& operator=(const std::shared_ptr<acceleration_structure_t>& acceleration_structure) { this->structure_ = *acceleration_structure; return *this; };
+                acceleration_structure_t& operator=(const core::api::acceleration_structure_t& structure_){ this_structure_ = structure_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(structure_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(structure_); };

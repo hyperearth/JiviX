@@ -23,6 +23,7 @@ namespace svt {
                 };
                 
                 // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 operator const stu::vector&() const { return vector_; };
                 operator const stu::device&() const { return device_; };
                 operator const stu::buffer_view&() const { return buffer_view_; };

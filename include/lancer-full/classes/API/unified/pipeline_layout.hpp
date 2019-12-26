@@ -15,14 +15,14 @@ namespace svt {
                 pipeline_layout(                              const stu::pipeline_layout& pipeline_layout_ = {}) : pipeline_layout_(pipeline_layout_) {};
                 pipeline_layout(const stu::device_t& device_, const stu::pipeline_layout& pipeline_layout_ = {}) : pipeline_layout_(pipeline_layout_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
                 pipeline_layout& operator=(const pipeline_layout &pipeline_layout) { 
                     this->pipeline_layout_ = pipeline_layout;
                     this->device_ = pipeline_layout;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::pipeline_layout&() { return pipeline_layout_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

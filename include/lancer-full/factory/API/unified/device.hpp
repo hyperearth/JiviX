@@ -24,7 +24,11 @@ namespace svt {
                 device_t() {};
                 device_t(const device_t& device) : device_(device) {};
                 device_t(const core::api::device_t& device_) : device_(device_) {};
+
+                // TODO: extend by types above
                 device_t& operator=(const device_t& device) { this->device_ = device; return *this; };
+                device_t& operator=(const std::shared_ptr<device_t>& device) { this->device_ = *device; return *this; };
+                device_t& operator=(const core::api::device_t& device_) { this->device_ = device_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(device_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(device_); };
@@ -46,28 +50,8 @@ namespace svt {
                 core::api::device_t& operator*() { return (this->device_); };
                 const core::api::device_t& operator*() const { return (this->device_); };
 
-                // TODO: MOVE TO `.CPP` DUE VULKAN API
-                core::api::swapchain_t create_swapchain(const swapchain_create_info& info){
-                    vk::SwapchainCreateInfoKHR vk_info = {};
-                    vk_info.flags = vk::SwapchainCreateFlagsKHR(info.flags);
-                    vk_info.surface = vk::SurfaceKHR(info.surface);
-                    vk_info.minImageCount = info.min_image_count;
-                    vk_info.imageFormat = vk::Format(info.image_format);
-                    vk_info.imageColorSpace = vk::ColorSpaceKHR(info.image_color_space);
-                    vk_info.imageExtent = vk::Extent2D(info.image_extent.x,info.image_extent.y);
-                    vk_info.imageArrayLayers = info.image_array_layers;
-                    vk_info.imageUsage = vk::ImageUsageFlags(info.image_usage_32u);
-                    vk_info.imageSharingMode = vk::SharingMode(info.image_sharing_mode);
-                    vk_info.queueFamilyIndexCount = queue_family_indices_.size();
-                    vk_info.pQueueFamilyIndices = queue_family_indices_.data();
-                    vk_info.preTransform = vk::SurfaceTransformFlagBitsKHR(info.pre_transform_32u);
-                    vk_info.compositeAlpha = vk::CompositeAlphaFlagBitsKHR(info.composite_alpha_flags_32u);
-                    vk_info.presentMode = vk::PresentModeKHR(info.present_mode);
-                    vk_info.clipped = info.clipped;
-                    vk_info.oldSwapchain = info.old_swapchain;
-                    return device_.createSwapchainKHR(vk_info);
-                };
-
+                // 
+                core::api::swapchain_t create_swapchain(const swapchain_create_info& info) const;
             };
 
         };

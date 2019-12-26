@@ -15,14 +15,14 @@ namespace svt {
                 descriptor_pool(                              const stu::descriptor_pool& descriptor_pool_ = {}) : descriptor_pool_(descriptor_pool_) {};
                 descriptor_pool(const stu::device_t& device_, const stu::descriptor_pool& descriptor_pool_ = {}) : descriptor_pool_(descriptor_pool_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
                 descriptor_pool& operator=(const descriptor_pool &descriptor_pool) { 
                     this->descriptor_pool_ = descriptor_pool;
                     this->device_ = descriptor_pool;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::descriptor_pool&() { return descriptor_pool_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

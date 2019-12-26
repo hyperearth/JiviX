@@ -10,8 +10,11 @@ namespace svt {
             class surface { public: 
                 surface(const surface& surface) : surface_(surface) {};
                 surface(const stu::surface& surface_ = {}) : surface_(surface_) {};
+
+                // TODO: add assigment by core types and shared_ptr types
                 surface& operator=(const surface &surface) { this->surface_ = surface; return *this; };
 
+                // TODO: move into `.cpp` file
                 operator stu::surface&() { return surface_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

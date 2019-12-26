@@ -15,6 +15,8 @@ namespace svt {
                 framebuffer_t(const framebuffer_t& framebuffer) : framebuffer_(framebuffer) {};
                 framebuffer_t(const core::api::framebuffer_t& framebuffer_) : framebuffer_(framebuffer_) {};
                 framebuffer_t& operator=(const framebuffer_t& framebuffer) { this->framebuffer_ = framebuffer; return *this; };
+                framebuffer_t& operator=(const std::shared_ptr<framebuffer_t>& framebuffer_) { this->framebuffer_ = *framebuffer_; return *this; };
+                framebuffer_t& operator=(const core::api::framebuffer_t& device_) { this->framebuffer_ = framebuffer_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(framebuffer_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(framebuffer_); };

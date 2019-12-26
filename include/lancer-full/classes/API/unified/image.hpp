@@ -26,6 +26,7 @@ namespace svt {
                 svt::core::handle_ref<image, core::api::result_t> create(const stu::allocator& allocator_ = {}, const image_create_info& info = {}, const uintptr_t& info_ptr = 0u, const image_layout& initial_layout = image_layout::t_undefined);
 
                 // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 image& operator=(const image &image) { 
                     this->image_ = image;
                     this->allocator_ = image.allocator_;

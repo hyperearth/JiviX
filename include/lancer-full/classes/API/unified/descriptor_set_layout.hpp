@@ -15,14 +15,14 @@ namespace svt {
                 descriptor_set_layout(                              const stu::descriptor_set_layout& descriptor_set_layout_ = {}) : descriptor_set_layout_(descriptor_set_layout_) {};
                 descriptor_set_layout(const stu::device_t& device_, const stu::descriptor_set_layout& descriptor_set_layout_ = {}) : descriptor_set_layout_(descriptor_set_layout_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
                 descriptor_set_layout& operator=(const descriptor_set_layout &descriptor_set_layout) { 
                     this->descriptor_set_layout_ = descriptor_set_layout;
                     this->device_ = descriptor_set_layout;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::descriptor_set_layout&() { return descriptor_set_layout_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

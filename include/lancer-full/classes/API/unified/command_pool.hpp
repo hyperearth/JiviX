@@ -15,14 +15,14 @@ namespace svt {
                 command_pool(                              const stu::command_pool& cmdpool_ = {}) : cmdpool_(cmdpool_) {};
                 command_pool(const stu::device_t& device_, const stu::command_pool& cmdpool_ = {}) : cmdpool_(cmdpool_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
                 command_pool& operator=(const command_pool &command_pool) { 
                     this->cmdpool_ = command_pool;
                     this->device_ = command_pool;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::command_pool&() { return cmdpool_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

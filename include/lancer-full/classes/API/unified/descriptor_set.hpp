@@ -15,7 +15,15 @@ namespace svt {
                 descriptor_set(                              const stu::descriptor_set& descriptor_set_ = {}) : descriptor_set_(descriptor_set_) {};
                 descriptor_set(const stu::device_t& device_, const stu::descriptor_set& descriptor_set_ = {}) : descriptor_set_(descriptor_set_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
+                descriptor_set& operator=(const descriptor_set &descriptor_set) { 
+                    this->descriptor_set_layout_ = descriptor_set;
+                    this->descriptor_set_ = descriptor_set;
+                    this->device_ = descriptor_set;
+                    return *this;
+                };
+
+                // TODO: move into `.cpp` file
                 operator stu::descriptor_set_layout&() { return descriptor_set_layout_; };
                 operator stu::descriptor_set&() { return descriptor_set_; };
                 operator stu::descriptor_pool&() { return descriptor_pool_; };
@@ -33,15 +41,7 @@ namespace svt {
                 api::factory::descriptor_set_t& operator*() { return (*this->descriptor_set_); };
                 const api::factory::descriptor_set_t& operator*() const { return (*this->descriptor_set_); };
 
-                // 
-                descriptor_set& operator=(const descriptor_set &descriptor_set) { 
-                    this->descriptor_set_layout_ = descriptor_set;
-                    this->descriptor_set_ = descriptor_set;
-                    this->device_ = descriptor_set;
-                    //this->heap_ = descriptor_set.heap_;
-                    //this->entries_ = descriptor_set.entries_;
-                    return *this;
-                };
+                
 
 
                 // TODO: create descriptor set method

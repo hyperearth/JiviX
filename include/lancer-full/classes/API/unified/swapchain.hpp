@@ -10,8 +10,11 @@ namespace svt {
             class swapchain { public: 
                 swapchain(const swapchain& swapchain) : swapchain_(swapchain) {};
                 swapchain(const stu::swapchain& swapchain_ = {}) : swapchain_(swapchain_) {};
+
+                // TODO: add assigment by core types and shared_ptr types
                 swapchain& operator=(const swapchain &swapchain) { this->swapchain_ = swapchain; return *this; };
 
+                // TODO: move into `.cpp` file
                 operator stu::swapchain&() { return swapchain_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };
@@ -37,6 +40,11 @@ namespace svt {
                 operator core::api::swapchain_t&() { return *swapchain_; };
                 operator const core::api::swapchain_t&() const { return *swapchain_; };
                 
+                // TODO: move into `.cpp`
+                svt::core::handle_ref<swapchain,core::api::result_t> create(const swapchain_create_info& info = {}) {
+                    swapchain_ = std::make_shared<api::factory::swapchain_t>(device_->create_swapchain(info));
+                    return {*this,core::api::result_t(0u)};
+                };
             //
             protected: friend swapchain;
                 stu::swapchain swapchain_ = {};

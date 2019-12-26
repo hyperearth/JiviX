@@ -15,6 +15,8 @@ namespace svt {
                 queue_t(const core::api::queue_t& queue_) : queue_(queue_) {};
                 queue_t(core::api::queue_t queue_ = API_NULL_HANDLE) : queue_(queue_) {};
                 queue_t& operator=(const queue_t& queue) { this->queue_ = queue; return *this; };
+                queue_t& operator=(const std::shared_ptr<queue_t>& queue) { this->queue_ = *queue; return *this; };
+                queue_t& operator=(const core::api::queue_t& queue_) { this->queue_ = queue_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(queue_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(queue_); };

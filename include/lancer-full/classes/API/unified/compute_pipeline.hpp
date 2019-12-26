@@ -17,14 +17,14 @@ namespace svt {
                 compute_pipeline(                              const stu::compute_pipeline& pipeline_ = {}) : pipeline_(pipeline_) {};
                 compute_pipeline(const stu::device_t& device_, const stu::compute_pipeline& pipeline_ = {}) : pipeline_(pipeline_), device_(device_) {};
 
-                // 
+                // TODO: add assigment by core types and shared_ptr types
                 compute_pipeline& operator=(const compute_pipeline &compute_pipeline) { 
                     this->pipeline_ = compute_pipeline;
                     this->device_ = compute_pipeline;
                     return *this;
                 };
 
-                // 
+                // TODO: move into `.cpp` file
                 operator stu::compute_pipeline&() { return pipeline_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

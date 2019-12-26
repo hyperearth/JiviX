@@ -12,7 +12,9 @@ namespace svt {
                 command_buffer_t() {};
                 command_buffer_t(const command_buffer_t& command_buffer_t) : cmdbuf_(cmdbuf_) {};
                 command_buffer_t(core::api::command_buffer_t cmdbuf_ = API_NULL_HANDLE) : cmdbuf_(cmdbuf_) {};
-                command_buffer_t& operator=(const command_buffer_t& command_buffer_t) { cmdbuf_ = command_buffer_t; return *this; };
+                command_buffer_t& operator=(const command_buffer_t& command_buffer) { this->cmdbuf_ = command_buffer; return *this; };
+                command_buffer_t& operator=(const std::shared_ptr<command_buffer_t>& command_buffer) { this->cmdbuf_ = *command_buffer; return *this; };
+                command_buffer_t& operator=(const core::api::command_buffer_t& cmdbuf_){ this->cmdbuf_ = cmdbuf_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(cmdbuf_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(cmdbuf_); };

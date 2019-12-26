@@ -15,6 +15,8 @@ namespace svt {
                 swapchain_t(const core::api::swapchain_t& swapchain_) : swapchain_(swapchain_) {};
                 swapchain_t(core::api::swapchain_t swapchain_ = API_NULL_HANDLE) : swapchain_(swapchain_) {};
                 swapchain_t& operator=(const swapchain_t& swapchain) { this->swapchain_ = swapchain; return *this; };
+                swapchain_t& operator=(const std::shared_ptr<swapchain_t>& swapchain) { this->swapchain_ = *swapchain; return *this; };
+                swapchain_t& operator=(const core::api::swapchain_t& swapchain_) { this->swapchain_ = swapchain_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(swapchain_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(swapchain_); };

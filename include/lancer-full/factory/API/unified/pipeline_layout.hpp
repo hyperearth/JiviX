@@ -10,9 +10,11 @@ namespace svt {
                 core::api::pipeline_layout_t layout_ = API_NULL_HANDLE;
 
                 pipeline_layout_t() {};
-                pipeline_layout_t(const pipeline_layout_t& pipeline_layout_t = {}) : layout_(pipeline_layout_t) {};
+                pipeline_layout_t(const pipeline_layout_t& pipeline_layout = {}) : layout_(pipeline_layout) {};
                 pipeline_layout_t(core::api::pipeline_layout_t layout_ = API_NULL_HANDLE) : layout_(layout_) {};
-                pipeline_layout_t& operator=(const pipeline_layout_t& pipeline_layout_t) { layout_ = pipeline_layout_t; return *this; };
+                pipeline_layout_t& operator=(const pipeline_layout_t& pipeline_layout) { this->layout_ = pipeline_layout; return *this; };
+                pipeline_layout_t& operator=(const std::shared_ptr<pipeline_layout_t>& pipeline_layout) { this->layout_ = *pipeline_layout; return *this; };
+                pipeline_layout_t& operator=(const core::api::pipeline_layout_t& layout_) { this->layout_ = layout_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(layout_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(layout_); };

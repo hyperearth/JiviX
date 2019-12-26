@@ -18,6 +18,8 @@ namespace svt {
                 buffer_t(const buffer_t& buffer) : buffer_(buffer_) {};
                 buffer_t(const core::api::buffer_t& buffer_) : buffer_(buffer_) {};
                 buffer_t& operator=(const buffer_t& buffer) { this->buffer_ = buffer_; return *this; };
+                buffer_t& operator=(const std::shared_ptr<buffer_t>& command_buffer) { this->buffer_ = *command_buffer; return *this; };
+                buffer_t& operator=(const core::api::buffer_t& buffer_){ buffer_ = buffer_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(buffer_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(buffer_); };

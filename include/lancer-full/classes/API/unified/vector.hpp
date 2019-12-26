@@ -19,7 +19,17 @@ namespace svt {
                 inline vector_t(                              const stu::buffer& buffer_ = {}, const stu::vector& vector_ = {}) : vector_(vector_), buffer_(buffer_) {};
                 inline vector_t(const stu::device_t& device_, const stu::buffer& buffer_ = {}, const stu::vector& vector_ = {}) : vector_(vector_), buffer_(buffer_), device_(device_) {};
 
-                // 
+                // TODO: move into `.inl` file
+                // TODO: add assigment by core types and shared_ptr types
+                template<class A = T>
+                inline vector_t& operator=(const vector<A>& vector) { 
+                    this->vector_ = vector, 
+                    this->buffer_ = vector, 
+                    this->device_ = vector; 
+                    return *this; 
+                };
+
+                // TODO: move into `.cpp` file
                 inline operator const stu::device_t&() const { return device_; };
                 inline operator const stu::vector&() const { return vector_; };
                 inline operator const stu::device&() const { return device_; };
@@ -49,15 +59,6 @@ namespace svt {
                 inline const size_t& stride() const { return this->vector_->stride(); };
                 inline const uintptr_t& offset() const { return this->vector_->offset(); };
                 inline const uintptr_t& handle() const { return this->vector_->handle(); };
-
-                // TODO: move into `.inl` file
-                template<class A = T>
-                inline vector_t& operator=(const vector<A>& vector) { 
-                    this->vector_ = vector, 
-                    this->buffer_ = vector, 
-                    this->device_ = vector; 
-                    return *this; 
-                };
 
                 // TODO: move into `.inl` file
                 inline std::pair<vector<T>&, description_handle&> write_into_description(description_handle& handle, const uint32_t& idx = 0u){

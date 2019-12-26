@@ -15,6 +15,8 @@ namespace svt {
                 render_pass_t(const render_pass_t& render_pass) : render_pass_(render_pass) {};
                 render_pass_t(const core::api::render_pass_t& render_pass_) : render_pass_(render_pass_) {};
                 render_pass_t& operator=(const render_pass_t& render_pass) { this->render_pass_ = render_pass; return *this; };
+                render_pass_t& operator=(const std::shared_ptr<render_pass_t>& render_pass) { this->render_pass_ = *render_pass; return *this; };
+                render_pass_t& operator=(const core::api::render_pass_t& render_pass_) { this->render_pass_ = render_pass_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(render_pass_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(render_pass_); };

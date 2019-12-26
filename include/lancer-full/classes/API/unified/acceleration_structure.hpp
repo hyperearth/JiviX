@@ -12,6 +12,7 @@ namespace svt {
                 acceleration_structure(const acceleration_structure& acceleration_structure) : allocator_(acceleration_structure.allocator_), scratch_(acceleration_structure.scratch_), structure_(structure_), device_(acceleration_structure) {};
 
                 // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 operator stu::acceleration_structure&() { return structure_; };
                 operator stu::device&() { return device_; };
                 operator stu::device_t&() { return device_; };

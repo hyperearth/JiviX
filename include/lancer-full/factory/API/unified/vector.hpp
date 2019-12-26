@@ -15,6 +15,8 @@ namespace svt {
                 // 
                 vector_t& operator=(const std::shared_ptr<buffer_t>& buffer_) { this->handle = (*buffer_); return *this; };
                 vector_t& operator=(const std::shared_ptr<vector_t>& vector_) { this->vector_ = (*vector_); return *this; };
+                vector_t& operator=(const buffer_t& buffer_) { this->handle = buffer_; return *this; };
+                vector_t& operator=(const vector_t& vector_) { this->vector_ = vector_; return *this; };
 
                 // 
                 virtual operator vector_structure&() { return vector_; };

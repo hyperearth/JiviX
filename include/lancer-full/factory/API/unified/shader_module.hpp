@@ -15,7 +15,10 @@ namespace svt {
                 shader_module_t() {};
                 shader_module_t(const shader_module_t& shader_module) : module_(shader_module) {};
                 shader_module_t(const core::api::shader_module_t& module_) : module_(module_) {};
-                shader_module_t& operator=(const shader_module_t& shader_module) { this->module_ = module_; return *this; };
+                shader_module_t& operator=(const shader_module_t& shader_module) { this->module_ = shader_module; return *this; };
+                shader_module_t& operator=(const std::shared_ptr<shader_module_t>& shader_module) { this->module_ = *shader_module; return *this; };
+                shader_module_t& operator=(const core::api::shader_module_t& module_) { this->module_ = module_; return *this; };
+                
 
                 operator uintptr_t&() { return (uintptr_t&)(module_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(module_); };

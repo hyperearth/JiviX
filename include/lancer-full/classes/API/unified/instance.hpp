@@ -11,6 +11,8 @@ namespace svt {
                 instance(const stu::instance_t& instance_ = {}) : instance_(instance_) {};
                 instance& operator=(const instance &instance) { this->instance_ = instance; return *this; };
 
+                // TODO: move into `.cpp` file
+                // TODO: add assigment by core types and shared_ptr types
                 operator stu::instance&() { return instance_; };
                 operator stu::instance_t&() { return instance_; };
                 operator const stu::instance&() const { return instance_; };

@@ -15,6 +15,8 @@ namespace svt {
                 instance_t(const instance_t& instance) : instance_(instance) {};
                 instance_t(const core::api::instance_t& instance_) : instance_(instance_) {};
                 instance_t& operator=(const instance_t& instance) { this->instance_ = instance; return *this; };
+                instance_t& operator=(const std::shared_ptr<instance_t>& instance) { this->instance_ = *instance; return *this; };
+                instance_t& operator=(const core::api::instance_t& instance_) { this->instance_ = instance_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(instance_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(instance_); };

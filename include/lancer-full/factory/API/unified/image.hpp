@@ -16,6 +16,8 @@ namespace svt {
                 image_t(const image_t& image) : image_(image) {};
                 image_t(const core::api::image_t& image_) : image_(image_) {};
                 image_t& operator=(const image_t& image) { this->image_ = image; return *this; };
+                image_t& operator=(const std::shared_ptr<image_t>& image) { this->image_ = *image_; return *this; };
+                image_t& operator=(const core::api::image_t& image_) { this->image_ = image_; return *this; };
 
                 operator uintptr_t&() { return (uintptr_t&)(image_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(image_); };
