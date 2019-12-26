@@ -42,10 +42,7 @@ namespace svt {
                 operator const core::api::swapchain_t&() const { return *swapchain_; };
                 
                 // TODO: move into `.cpp`
-                svt::core::handle_ref<swapchain,core::api::result_t> create(const swapchain_create_info& info = {}) {
-                    swapchain_ = std::make_shared<api::factory::swapchain_t>(device_->create_swapchain(info));
-                    return {*this,core::api::result_t(0u)};
-                };
+                svt::core::handle_ref<swapchain,core::api::result_t> create(const swapchain_create_info& info = {});
             //
             protected: friend swapchain;
                 stu::swapchain swapchain_ = {};
