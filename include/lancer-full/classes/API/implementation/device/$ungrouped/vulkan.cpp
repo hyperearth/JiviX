@@ -10,6 +10,7 @@
 #include "./classes/API/unified/compute_pipeline.hpp"
 #include "./classes/API/unified/ray_tracing_pipeline.hpp"
 #include "./classes/API/unified/render_pass.hpp"
+#include "./classes/API/unified/pipeline_layout.hpp"
 
 namespace svt {
     namespace api {
@@ -35,6 +36,9 @@ namespace svt {
             };
             render_pass device::create_render_pass(const render_pass_create_info& info) const {
                 auto render_pass_ = render_pass(device_); render_pass_.create(info); return render_pass_;
+            };
+            pipeline_layout device::create_pipeline_layout(const pipeline_layout_create_info& info) const {
+                auto pipeline_layout_ = pipeline_layout(device_); pipeline_layout_.create(info); return pipeline_layout_;
             };
 #endif
         };

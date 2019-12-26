@@ -48,6 +48,21 @@ namespace svt {
             //image_layout initial_layout = image_layout::t_undefined;
         };
 
+        // VK Comaptible 
+        struct push_constant_range { uint32_t flags = 0u;
+            uint32_t offset = 0u;
+            uint32_t size = 4u;
+        };
+
+        struct pipeline_layout_create_info { uint32_t flags = 0u;
+            std::vector<core::api::descriptor_set_layout_t> layouts_ = {};
+            std::vector<push_constant_range> push_constant_ranges_ = {};
+
+            pipeline_layout_create_info& push_binding( const core::api::descriptor_set_layout_t& layout_ = {} ) {
+                layouts_.push_back(layout_); return *this;
+            };
+        };
+
 
         // TODO: 
         struct image_view_create_info {
@@ -90,7 +105,7 @@ namespace svt {
         class vertex_attribute_desc { public: 
             uint32_t location = 0u;
             uint32_t binding = 0u;
-            format format = format::t_r32g32g32a32_sfloat;
+            format format = format::t_r32g32b32a32_sfloat;
             uint32_t offset = 0u;
         };
 

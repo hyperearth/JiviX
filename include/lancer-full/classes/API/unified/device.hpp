@@ -64,7 +64,7 @@ namespace svt {
                 compute_pipeline create_compute_pipeline(const compute_pipeline_create_info& info = {}) const;
                 ray_tracing_pipeline create_ray_tracing_pipeline(const ray_tracing_pipeline_create_info& info = {}) const;
                 render_pass create_render_pass(const render_pass_create_info& info = {}) const;
-                //TODO: pipeline_layout create_pipeline_layout(const pipeline_layout_create_info& info = {}) const;
+                pipeline_layout create_pipeline_layout(const pipeline_layout_create_info& info = {}) const;
                 //TODO: queue create_queue(const queue_create_info& info = {}) const;
                 
 

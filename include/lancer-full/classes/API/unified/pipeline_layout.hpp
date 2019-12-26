@@ -37,21 +37,15 @@ namespace svt {
                 const api::factory::pipeline_layout_t& operator*() const { return (*this->pipeline_layout_); };
 
                 // 
-                svt::core::handle_ref<pipeline_layout,core::api::result_t> create(const uint32_t& flags = 0u);
-                svt::core::handle_ref<pipeline_layout,core::api::result_t> push_binding( const description_binding& binding_ = {} ) {
-                    bindings_.push_back(binding_); return {*this, core::api::result_t(0u)};
-                };
-
+                svt::core::handle_ref<pipeline_layout,core::api::result_t> create(const pipeline_layout_create_info& info = {});
+                
                 // 
                 operator uintptr_t&() { return (*pipeline_layout_); };
                 operator const uintptr_t&() const { return (*pipeline_layout_); };
-                
                 operator core::api::pipeline_layout_t&() { return (*pipeline_layout_); };
                 operator const core::api::pipeline_layout_t&() const { return (*pipeline_layout_); };
-
                 operator core::api::device_t&() { return device_; };
                 operator const core::api::device_t&() const { return device_; };
-
                 operator core::api::physical_device_t&() { return device_; };
                 operator const core::api::physical_device_t&() const { return device_; };
 
@@ -59,9 +53,6 @@ namespace svt {
             protected: friend descriptor_set; friend pipeline_layout;
                 stu::pipeline_layout pipeline_layout_ = {};
                 stu::device_t device_ = {};
-
-                // TODO: move into constructive create_info and update_info
-                std::vector<description_binding> bindings_ = {};
             };
 
         };
