@@ -19,7 +19,7 @@ namespace svt {
                 descriptor_set& operator=(const descriptor_set &descriptor_set) { 
                     this->descriptor_set_layout_ = descriptor_set;
                     this->descriptor_set_ = descriptor_set;
-                    this->device_ = descriptor_set;
+                    this->device_ = (stu::device_t&)descriptor_set;
                     return *this;
                 };
 

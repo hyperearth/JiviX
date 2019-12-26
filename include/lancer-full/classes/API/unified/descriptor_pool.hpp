@@ -18,7 +18,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 descriptor_pool& operator=(const descriptor_pool &descriptor_pool) { 
                     this->descriptor_pool_ = descriptor_pool;
-                    this->device_ = descriptor_pool;
+                    this->device_ = (stu::device_t&)descriptor_pool;
                     return *this;
                 };
 

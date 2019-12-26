@@ -1,10 +1,10 @@
 #pragma once
 
 #include "./classes/API/types.hpp"
-#include "./factory/API/unified/device.hpp"
-#include "./factory/API/unified/queue.hpp"
-#include "./factory/API/unified/command_pool.hpp"
-#include "./factory/API/unified/descriptor_pool.hpp"
+#include "./classes/API/unified/device.hpp"
+#include "./classes/API/unified/queue.hpp"
+#include "./classes/API/unified/command_pool.hpp"
+#include "./classes/API/unified/descriptor_pool.hpp"
 
 namespace svt {
     namespace api {
@@ -15,7 +15,7 @@ namespace svt {
                 thread_set(const stu::thread_set_t& thread_) : thread_(thread_) {};
 
                 // TODO: add assigment by core types and shared_ptr types
-                thread_set& operator=(const thread_set& thread) { this->thread_ = thread; return *this; };
+                thread_set& operator=(const thread_set& thread) { this->thread_ = (stu::thread_set_t&)thread; return *this; };
                 thread_set& operator=(const stu::thread_set_t& thread_) { this->thread_ = thread_; return *this; };
 
                 // TODO: move into `.cpp` file
@@ -55,16 +55,16 @@ namespace svt {
                 operator const core::api::descriptor_pool_t&() const { return *thread_.descriptor_pool_; };
 
                 // hack with device 
-                swapchain create_swapchain(const swapchain_create_info& info = {}) const { return device(device_).create_swapchain(info); };
-                framebuffer create_framebuffer(const framebuffer_create_info& info = {}) const { return device(device_).create_framebuffer(info); };
-                descriptor_pool create_descriptor_pool(const descriptor_pool_create_info& info = {}) const { return device(device_).create_descriptor_pool(info); };
-                descriptor_set_layout create_descriptor_set_layout(const descriptor_set_layout_create_info& info = {}) const { return device(device_).create_descriptor_set_layout(info); };
-                graphics_pipeline create_graphics_pipeline(const graphics_pipeline_create_info& info = {}) const { return device(device_).create_graphics_pipeline(info); };
-                compute_pipeline create_compute_pipeline(const compute_pipeline_create_info& info = {}) const { return device(device_).create_compute_pipeline(info); };
-                ray_tracing_pipeline create_ray_tracing_pipeline(const ray_tracing_pipeline_create_info& info = {}) const { return device(device_).create_ray_tracing_pipeline(info); };
-                render_pass create_render_pass(const render_pass_create_info& info = {}) const { return device(device_).create_render_pass(info); };
-                //TODO: pipeline_layout create_pipeline_layout(const pipeline_layout_create_info& info = {}) const;
-                //TODO: queue create_queue(const queue_create_info& info = {}) const;
+                swapchain create_swapchain(const swapchain_create_info& info = {}) const;
+                framebuffer create_framebuffer(const framebuffer_create_info& info = {}) const;
+                descriptor_pool create_descriptor_pool(const descriptor_pool_create_info& info = {}) const;
+                descriptor_set_layout create_descriptor_set_layout(const descriptor_set_layout_create_info& info = {}) const;
+                graphics_pipeline create_graphics_pipeline(const graphics_pipeline_create_info& info = {}) const;
+                compute_pipeline create_compute_pipeline(const compute_pipeline_create_info& info = {}) const;
+                ray_tracing_pipeline create_ray_tracing_pipeline(const ray_tracing_pipeline_create_info& info = {}) const;
+                render_pass create_render_pass(const render_pass_create_info& info = {}) const;
+                pipeline_layout create_pipeline_layout(const pipeline_layout_create_info& info = {}) const;
+                //queue create_queue(const queue_create_info& info = {}) const;
                 
 
                 // TODO: Implement Allocator Create

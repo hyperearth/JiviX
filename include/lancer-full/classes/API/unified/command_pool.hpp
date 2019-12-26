@@ -18,7 +18,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 command_pool& operator=(const command_pool &command_pool) { 
                     this->cmdpool_ = command_pool;
-                    this->device_ = command_pool;
+                    this->device_ = (stu::device_t&)command_pool;
                     return *this;
                 };
 

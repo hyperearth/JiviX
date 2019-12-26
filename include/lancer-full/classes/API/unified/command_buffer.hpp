@@ -18,7 +18,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types 
                 command_buffer& operator=(const command_buffer &command_buffer) { 
                     this->cmdbuf_ = command_buffer;
-                    this->device_ = command_buffer;
+                    this->device_ = (stu::device_t&)command_buffer;
                     return *this;
                 };
 

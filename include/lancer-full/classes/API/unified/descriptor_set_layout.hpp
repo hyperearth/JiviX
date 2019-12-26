@@ -18,7 +18,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 descriptor_set_layout& operator=(const descriptor_set_layout &descriptor_set_layout) { 
                     this->descriptor_set_layout_ = descriptor_set_layout;
-                    this->device_ = descriptor_set_layout;
+                    this->device_ = (stu::device_t&)descriptor_set_layout;
                     return *this;
                 };
 

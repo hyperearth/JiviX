@@ -12,7 +12,7 @@ namespace svt {
                 queue(const stu::queue& queue_ = {}) : queue_(queue_) {};
 
                 // TODO: add assigment by core types and shared_ptr types
-                queue& operator=(const queue &queue) { this->queue_ = queue; return *this; };
+                queue& operator=(const queue &queue) { this->device_ = (stu::device_t&)queue; this->queue_ = queue; return *this; };
 
                 // TODO: move into `.cpp` file
                 operator stu::queue&() { return queue_; };

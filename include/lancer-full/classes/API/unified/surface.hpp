@@ -12,7 +12,7 @@ namespace svt {
                 surface(const stu::surface& surface_ = {}) : surface_(surface_) {};
 
                 // TODO: add assigment by core types and shared_ptr types
-                surface& operator=(const surface &surface) { this->surface_ = surface; return *this; };
+                surface& operator=(const surface &surface) { this->device_ = (stu::device_t&)surface; this->surface_ = surface; return *this; };
 
                 // TODO: move into `.cpp` file
                 operator stu::surface&() { return surface_; };
@@ -22,6 +22,7 @@ namespace svt {
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
+                // 
                 api::factory::surface_t* operator->() { return &(*this->surface_); };
                 const api::factory::surface_t* operator->() const { return &(*this->surface_); };
                 api::factory::surface_t& operator*() { return (*this->surface_); };

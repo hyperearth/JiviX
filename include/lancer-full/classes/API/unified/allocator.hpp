@@ -18,7 +18,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 allocator& operator=(const allocator &allocator) { 
                     this->allocator_ = allocator;
-                    this->device_ = allocator;
+                    this->device_ = (stu::device_t&)allocator;
                     return *this;
                 };
 
@@ -37,13 +37,12 @@ namespace svt {
                 // TODO: move into `.cpp` file
                 api::factory::allocator_t* operator->() { return &(*this->allocator_); };
                 const api::factory::allocator_t* operator->() const { return &(*this->allocator_); };
-
                 api::factory::allocator_t& operator*() { return (*this->allocator_); };
                 const api::factory::allocator_t& operator*() const { return (*this->allocator_); };
 
+                // 
                 operator core::api::device_t&() { return device_; };
                 operator const core::api::device_t&() const { return device_; };
-
                 operator core::api::physical_device_t&() { return device_; };
                 operator const core::api::physical_device_t&() const { return device_; };
 

@@ -25,8 +25,8 @@ namespace svt {
                 inline vector_t& operator=(const vector<A>& vector) { 
                     this->vector_ = vector, 
                     this->buffer_ = vector, 
-                    this->device_ = vector; 
-                    return *this; 
+                    this->device_ = (stu::device_t&)vector; 
+                    return *this;
                 };
 
                 // TODO: move into `.cpp` file

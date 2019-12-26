@@ -95,6 +95,10 @@ namespace svt {
                 stu::descriptor_pool descriptor_pool_ = {};
 
                 // 
+                thread_set_t() {};
+                thread_set_t(const thread_set_t& thread_) { device_ = thread_.device_, queue_ = thread_.queue_, command_pool_ = thread_.command_pool_, descriptor_pool_ = thread_.descriptor_pool_; };
+
+                // 
                 thread_set_t& operator=(const stu::thread_set_t& thread_) { this->device_ = (const stu::device_t&)(thread_), this->command_pool_ = thread_, this->descriptor_pool_ = thread_, this->queue_ = thread_; return *this; };
                 thread_set_t& operator=(const stu::physical_device& device_) { this->device_ = device_; return *this; };
                 thread_set_t& operator=(const stu::device& device_) { this->device_ = device_; return *this; };

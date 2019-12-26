@@ -20,7 +20,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 ray_tracing_pipeline& operator=(const ray_tracing_pipeline &ray_tracing_pipeline) { 
                     this->pipeline_ = ray_tracing_pipeline;
-                    this->device_ = ray_tracing_pipeline;
+                    this->device_ = (stu::device_t&)ray_tracing_pipeline;
                     return *this;
                 };
 

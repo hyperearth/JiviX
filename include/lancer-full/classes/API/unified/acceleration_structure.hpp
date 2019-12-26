@@ -32,7 +32,7 @@ namespace svt {
                 acceleration_structure& operator=(const acceleration_structure &acceleration_structure) { 
                     this->structure_ = acceleration_structure;
                     this->scratch_ = acceleration_structure.scratch_;
-                    this->device_ = acceleration_structure;
+                    this->device_ = (stu::device_t&)acceleration_structure;
                     this->allocator_ = acceleration_structure.allocator_;
                     return *this;
                 };

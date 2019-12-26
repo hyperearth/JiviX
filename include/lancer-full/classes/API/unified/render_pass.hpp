@@ -12,7 +12,7 @@ namespace svt {
                 render_pass(                                   const stu::render_pass& render_pass_ = {}) : render_pass_(render_pass_) {};
 
                 // TODO: add assigment by core types and shared_ptr types
-                render_pass& operator=(const render_pass &render_pass) { this->render_pass_ = render_pass; return *this; };
+                render_pass& operator=(const render_pass &render_pass) { this->device_ = (stu::device_t&)render_pass; this->render_pass_ = render_pass; return *this; };
 
                 // TODO: move into `.cpp` file
                 operator stu::render_pass&() { return render_pass_; };

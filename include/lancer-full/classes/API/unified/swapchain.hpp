@@ -13,7 +13,7 @@ namespace svt {
                 swapchain(const stu::device_t& device_, const stu::swapchain& swapchain_ = {}) : swapchain_(swapchain_), device_(device_) {};
 
                 // TODO: add assigment by core types and shared_ptr types
-                swapchain& operator=(const swapchain &swapchain) { this->swapchain_ = swapchain; return *this; };
+                swapchain& operator=(const swapchain &swapchain) { this->device_ = (stu::device_t&)swapchain; this->swapchain_ = swapchain; return *this; };
 
                 // TODO: move into `.cpp` file
                 operator stu::swapchain&() { return swapchain_; };

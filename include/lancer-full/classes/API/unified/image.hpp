@@ -32,7 +32,7 @@ namespace svt {
                 image& operator=(const image &image) { 
                     this->image_ = image;
                     this->allocator_ = image.allocator_;
-                    this->device_ = image;
+                    this->device_ = (stu::device_t&)image;
                     return *this;
                 };
 

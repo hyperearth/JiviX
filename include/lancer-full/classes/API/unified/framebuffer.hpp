@@ -12,7 +12,7 @@ namespace svt {
                 framebuffer(                                   const stu::framebuffer& framebuffer_ = {}) : framebuffer_(framebuffer_) {};
 
                 // TODO: add assigment by core types and shared_ptr types
-                framebuffer& operator=(const framebuffer &framebuffer) { this->framebuffer_ = framebuffer; return *this; };
+                framebuffer& operator=(const framebuffer &framebuffer) { this->device_ = (stu::device_t&)framebuffer; this->framebuffer_ = framebuffer; return *this; };
 
                 // TODO: move into `.cpp` file
                 // TODO: add assigment by core types and shared_ptr types

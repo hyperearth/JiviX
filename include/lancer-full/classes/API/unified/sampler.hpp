@@ -26,7 +26,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 sampler& operator=(const sampler &sampler) { 
                     this->sampler_ = sampler;
-                    this->device_ = sampler;
+                    this->device_ = (stu::device_t&)sampler; 
                     return *this;
                 };
 

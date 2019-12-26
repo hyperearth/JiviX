@@ -19,6 +19,7 @@ namespace svt {
                 operator const stu::physical_device&() const { return physical_device_; };
                 operator const stu::physical_device_t&() const { return physical_device_; };
 
+                // 
                 api::factory::physical_device_t* operator->() { return &(*this->physical_device_); };
                 const api::factory::physical_device_t* operator->() const { return &(*this->physical_device_); };
                 api::factory::physical_device_t& operator*() { return (*this->physical_device_); };

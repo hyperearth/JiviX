@@ -18,6 +18,7 @@ namespace svt {
                 operator const stu::instance&() const { return instance_; };
                 operator const stu::instance_t&() const { return instance_; };
 
+                // 
                 api::factory::instance_t* operator->() { return &(*this->instance_); };
                 const api::factory::instance_t* operator->() const { return &(*this->instance_); };
                 api::factory::instance_t& operator*() { return (*this->instance_); };

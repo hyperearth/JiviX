@@ -44,7 +44,7 @@ namespace svt {
                 buffer& operator=(const buffer &buffer) { 
                     this->buffer_ = buffer;
                     this->allocator_ = buffer.allocator_;
-                    this->device_ = buffer;
+                    this->device_ = (stu::device_t&)buffer;
                     return *this;
                 };
 

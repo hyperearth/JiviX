@@ -20,7 +20,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 compute_pipeline& operator=(const compute_pipeline &compute_pipeline) { 
                     this->pipeline_ = compute_pipeline;
-                    this->device_ = compute_pipeline;
+                    this->device_ = (stu::device_t&)compute_pipeline;
                     return *this;
                 };
 

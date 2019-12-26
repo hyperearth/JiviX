@@ -27,7 +27,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 image_view& operator=(const image_view &image_view) { 
                     this->image_view_ = image_view;
-                    this->device_ = image_view;
+                    this->device_ = (stu::device_t&)image_view;
                     return *this;
                 };
 

@@ -18,7 +18,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 pipeline_layout& operator=(const pipeline_layout &pipeline_layout) { 
                     this->pipeline_layout_ = pipeline_layout;
-                    this->device_ = pipeline_layout;
+                    this->device_ = (stu::device_t&)pipeline_layout;
                     return *this;
                 };
 

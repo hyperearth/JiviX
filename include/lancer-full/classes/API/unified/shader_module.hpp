@@ -26,7 +26,7 @@ namespace svt {
                 // TODO: add assigment by core types and shared_ptr types
                 shader_module& operator=(const shader_module &shader_module) { 
                     this->module_ = shader_module;
-                    this->device_ = shader_module;
+                    this->device_ = (stu::device_t&)shader_module;
                     return *this;
                 };
 
