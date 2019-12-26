@@ -45,7 +45,6 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return physical_device_; };
                 operator const uintptr_t&() const { return physical_device_; };
-                
                 operator core::api::physical_device_t&() { return physical_device_; };
                 operator const core::api::physical_device_t&() const { return physical_device_; };
 

@@ -44,7 +44,7 @@ namespace svt {
                 //operator uintptr_t&() { return thread_.device_; };
                 //operator const uintptr_t&() const { return thread_.device_; };
                 operator core::api::device_t&() { return *thread_.device_; };
-                operator const core::api::device_t&() const { return *thread_.device_; };
+                operator const core::api::device_t&() const { return *(thread_.device_); };
                 operator core::api::physical_device_t&() { return *thread_.device_; };
                 operator const core::api::physical_device_t&() const { return *thread_.device_; };
                 operator core::api::queue_t&() { return *thread_.queue_; };

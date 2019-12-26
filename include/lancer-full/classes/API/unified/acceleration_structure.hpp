@@ -51,13 +51,10 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return (uintptr_t&)(structure_->structure_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(structure_->structure_); };
-
                 operator core::api::acceleration_structure_t&() { return (*structure_); };
                 operator const core::api::acceleration_structure_t&() const { return (*structure_); };
-
                 operator core::api::device_t&() { return device_; };
                 operator const core::api::device_t&() const { return device_; };
-
                 operator core::api::physical_device_t&() { return device_; };
                 operator const core::api::physical_device_t&() const { return device_; };
 

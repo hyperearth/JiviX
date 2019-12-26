@@ -42,13 +42,10 @@ namespace svt {
                 // 
                 operator uintptr_t&() { return (*cmdpool_); };
                 operator const uintptr_t&() const { return (*cmdpool_); };
-
                 operator core::api::command_pool_t&() { return (*cmdpool_); };
                 operator const core::api::command_pool_t&() const { return (*cmdpool_); };
-
                 operator core::api::device_t&() { return device_; };
                 operator const core::api::device_t&() const { return device_; };
-                
                 operator core::api::physical_device_t&() { return device_; };
                 operator const core::api::physical_device_t&() const { return device_; };
 
