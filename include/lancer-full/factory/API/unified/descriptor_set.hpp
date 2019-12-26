@@ -10,6 +10,7 @@ namespace svt {
                 core::api::descriptor_set_t set_ = API_NULL_HANDLE;
                 core::api::descriptor_set_template_t temp_ = API_NULL_HANDLE;
 
+                // 
                 descriptor_set_t() {};
                 descriptor_set_t(const descriptor_set_t& descriptor_set_t) : set_(descriptor_set_t), temp_(descriptor_set_t) {};
                 descriptor_set_t(const core::api::descriptor_set_t& set_ = API_NULL_HANDLE, core::api::descriptor_set_template_t temp_ = API_NULL_HANDLE) : set_(set_), temp_(temp_) {};
@@ -17,6 +18,7 @@ namespace svt {
                 descriptor_set_t& operator=(const std::shared_ptr<descriptor_set_t>& descriptor_set) { set_ = *descriptor_set, temp_ = *descriptor_set; return *this; };
                 descriptor_set_t& operator=(const core::api::descriptor_set_t& set_){ this->set_ = set_; return *this; };
 
+                // 
                 operator uintptr_t&() { return (uintptr_t&)(set_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(set_); };
                 operator core::api::descriptor_set_t&() {return set_; };
@@ -24,6 +26,7 @@ namespace svt {
                 operator const core::api::descriptor_set_t&() const {return set_; };
                 operator const core::api::descriptor_set_template_t&() const {return temp_; };
 
+                // 
                 core::api::descriptor_set_t* operator->() { return &(this->set_); };
                 const core::api::descriptor_set_t* operator->() const { return &(this->set_); };
                 core::api::descriptor_set_t& operator*() { return (this->set_); };

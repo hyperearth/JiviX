@@ -35,6 +35,7 @@ namespace svt {
 
                 // Currently Aggregator
                 svt::core::handle_ref<buffer,core::api::result_t> create(const stu::allocator& allocator_ = {}, const buffer_create_info& info = {}, const uintptr_t& info_ptr = 0u, const buffer_modifier& modifier = buffer_modifier::t_unknown);
+                svt::core::handle_ref<buffer_view, core::api::result_t> create_buffer_view(const buffer_view_create_info& info = {});
 
                 // UN-safe (Debug) API, always should begin from `_`
                 svt::core::api::buffer_t _get_buffer_t();

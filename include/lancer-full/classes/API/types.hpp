@@ -38,12 +38,29 @@ namespace svt {
             using acceleration_structure = std::shared_ptr<api::factory::acceleration_structure_t>;
             using swapchain = std::shared_ptr<api::factory::swapchain_t>;
             using surface = std::shared_ptr<api::factory::surface_t>;
+            
 
             struct device_t {
                 stu::device device_ = {};
                 stu::physical_device physical_device_ = {};
-                std::vector<uint32_t> queue_family_indices_ = {};
+                //std::vector<uint32_t> queue_family_indices_ = {};
 
+                // 
+                device_t() {};
+                device_t(const stu::physical_device& physical_device_, const stu::device& device_ = {}) : device_(device_), physical_device_(physical_device_) {};
+                device_t(const stu::device& device_, const stu::physical_device& physical_device_ = {}) : device_(device_), physical_device_(physical_device_) {};
+
+                // 
+                device_t& operator=(const stu::device &device_) { this->device_ = device_; };
+                device_t& operator=(const stu::physical_device &physical_device_) { this->physical_device_ = physical_device_; };
+                device_t& operator=(const device_t &device) { 
+                    this->device_ = device.device_;
+                    this->physical_device_ = device.physical_device_;
+                    //queue_family_indices_ = device.queue_family_indices_;
+                    return *this;
+                };
+
+                // 
                 //operator std::vector<uint32_t>&() { return queue_family_indices_; };
                 //operator const std::vector<uint32_t>&() const { return queue_family_indices_; };
                 operator std::vector<uint32_t>&() { return *device_; };
@@ -53,6 +70,7 @@ namespace svt {
                 operator stu::physical_device&() { return physical_device_; };
                 operator const stu::physical_device&() const { return physical_device_; };
 
+                // 
                 api::factory::device_t& operator *() { return *device_; };
                 const api::factory::device_t& operator *() const { return *device_; };
                 api::factory::device_t* operator ->() { return &(*device_); };
@@ -60,12 +78,45 @@ namespace svt {
                 //api::factory::physical_device_t& operator *() { return *physical_device_; };
                 //const api::factory::physical_device_t& operator *() const { return *physical_device_; };
 
+                // 
                 operator uintptr_t&() { return (*device_); };
                 operator const uintptr_t&() const { return (*device_); };
                 operator core::api::device_t&() { return (*device_); };
                 operator const core::api::device_t&() const { return (*device_); };
                 operator core::api::physical_device_t&() { return (*physical_device_); };
                 operator const core::api::physical_device_t&() const { return (*physical_device_); };
+            };
+
+            // thread-constructor
+            struct thread_set_t {
+                stu::device_t device_ = {};
+                stu::queue queue_ = {};
+                stu::command_pool command_pool_ = {};
+                stu::descriptor_pool descriptor_pool_ = {};
+
+                // 
+                thread_set_t& operator=(const stu::thread_set_t& thread_) { this->device_ = (const stu::device_t&)(thread_), this->command_pool_ = thread_, this->descriptor_pool_ = thread_, this->queue_ = thread_; return *this; };
+                thread_set_t& operator=(const stu::physical_device& device_) { this->device_ = device_; return *this; };
+                thread_set_t& operator=(const stu::device& device_) { this->device_ = device_; return *this; };
+                thread_set_t& operator=(const stu::command_pool& command_pool_) { this->command_pool_ = command_pool_; return *this; };
+                thread_set_t& operator=(const stu::descriptor_pool& descriptor_pool_) { this->descriptor_pool_ = descriptor_pool_; return *this; };
+                thread_set_t& operator=(const stu::queue& queue_) { this->queue_ = queue_; return *this; };
+
+                // 
+                operator stu::physical_device&() { return device_; };
+                operator stu::device&() { return device_; };
+                operator stu::queue&() { return queue_; };
+                operator stu::command_pool&() { return command_pool_; };
+                operator stu::descriptor_pool&() { return descriptor_pool_; };
+                operator stu::device_t&() { return device_; };
+
+                // 
+                operator const stu::physical_device&() const { return device_; };
+                operator const stu::device&() const { return device_; };
+                operator const stu::queue&() const { return queue_; };
+                operator const stu::command_pool&() const { return command_pool_; };
+                operator const stu::descriptor_pool&() const { return descriptor_pool_; };
+                operator const stu::device_t&() const { return device_; };
             };
         };
 
@@ -99,6 +150,9 @@ namespace svt {
             class framebuffer;
             class surface;
             class swapchain;
+
+            // UNIQUE TYPE
+            class thread_set;
 
             template<class T = uint8_t>
             class vector;

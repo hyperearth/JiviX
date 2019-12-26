@@ -41,8 +41,9 @@ namespace svt {
 
                 // TODO: complete that versions
                 template<class T = float>
-                svt::core::handle_ref<buffer_view,core::api::result_t> create(const vector<T>& vector);
-                svt::core::handle_ref<buffer_view,core::api::result_t> create(const stu::device& device_, const stu::vector& vector_, const format& format_ = format::t_undefined);
+                svt::core::handle_ref<buffer_view, core::api::result_t> create(const vector<T>& vector);
+                svt::core::handle_ref<buffer_view, core::api::result_t> create(const stu::device& device_, const stu::vector& vector_, const format& format_ = format::t_undefined);
+                svt::core::handle_ref<buffer_view, core::api::result_t> create(const buffer_view_create_info& info = {});
 
                 // TODO: move into `.cpp` file
                 // TODO: better type for dual-version-returnement

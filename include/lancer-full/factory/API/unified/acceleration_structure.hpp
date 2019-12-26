@@ -14,6 +14,7 @@ namespace svt {
                 operator uintptr_t&() { return (uintptr_t&)(this->structure_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(this->structure_); };
 
+                // 
                 acceleration_structure_t() {};
                 acceleration_structure_t(const acceleration_structure_t& acceleration_structure) : structure_(acceleration_structure) {};
                 acceleration_structure_t(const core::api::acceleration_structure_t& structure_) : structure_(structure_) {};
@@ -21,11 +22,13 @@ namespace svt {
                 acceleration_structure_t& operator=(const std::shared_ptr<acceleration_structure_t>& acceleration_structure) { this->structure_ = *acceleration_structure; return *this; };
                 acceleration_structure_t& operator=(const core::api::acceleration_structure_t& structure_){ this_structure_ = structure_; return *this; };
 
+                // 
                 operator uintptr_t&() { return (uintptr_t&)(structure_); };
                 operator const uintptr_t&() const { return (uintptr_t&)(structure_); };
                 operator core::api::acceleration_structure_t&() { return structure_; };
                 operator const core::api::acceleration_structure_t&() const { return structure_; };
 
+                // 
                 core::api::acceleration_structure_t* operator->() { return &(this->structure_); };
                 const core::api::acceleration_structure_t* operator->() const { return &(this->structure_); };
                 core::api::acceleration_structure_t& operator*() { return (this->structure_); };

@@ -20,8 +20,8 @@ namespace svt {
                 operator const stu::device&() const { return device_; };
                 operator const stu::device_t&() const { return device_; };
 
-                // Currently Aggregator
-                //svt::core::handle_ref<image, core::api::result_t> create(const stu::allocator& allocator_ = {}, const image_create_info& info = {}, const uintptr_t& info_ptr = 0u, const image_layout& initial_layout = image_layout::t_undefined);
+                // TODO: create image view
+                svt::core::handle_ref<image_view, core::api::result_t> create(const image_view_create_info& info = {});
 
                 // TODO: move into `.cpp` file
                 // TODO: add assigment by core types and shared_ptr types

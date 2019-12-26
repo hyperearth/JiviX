@@ -48,6 +48,18 @@ namespace svt {
             //image_layout initial_layout = image_layout::t_undefined;
         };
 
+
+        // TODO: 
+        struct image_view_create_info {
+            
+        };
+
+        // TODO: 
+        struct buffer_view_create_info {
+
+        };
+
+
         // VK Comaptible 
         struct stencil_op_state {
             stencil_op fail = stencil_op::t_keep;

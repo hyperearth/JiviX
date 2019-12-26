@@ -23,7 +23,9 @@ namespace svt {
                 operator const stu::allocator&() const { return allocator_; };
 
                 // Currently Aggregator
+                // TODO: create image view
                 svt::core::handle_ref<image, core::api::result_t> create(const stu::allocator& allocator_ = {}, const image_create_info& info = {}, const uintptr_t& info_ptr = 0u, const image_layout& initial_layout = image_layout::t_undefined);
+                svt::core::handle_ref<image_view, core::api::result_t> create_image_view(const image_view_create_info& info = {});
 
                 // TODO: move into `.cpp` file
                 // TODO: add assigment by core types and shared_ptr types
