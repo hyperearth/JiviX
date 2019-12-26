@@ -26,7 +26,7 @@ namespace svt {
                 operator stu::command_pool&() { return thread_; };
                 operator stu::descriptor_pool&() { return thread_; };
                 operator stu::device_t&() { return thread_; };
-                operator const stu::thread_set_t&() { return thread_; };
+                operator const stu::thread_set_t&() const { return thread_; };
                 operator const stu::physical_device&() const { return thread_; };
                 operator const stu::device&() const { return thread_; };
                 operator const stu::queue&() const { return thread_; };
