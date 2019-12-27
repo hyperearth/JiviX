@@ -62,6 +62,8 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t            queueFamilyIndexCount   = 0u;
         const uint32_t*     pQueueFamilyIndices     = nullptr;
 
+        VkBufferCreateInfo& setQueueFamilyIndices(const std::vector<uint32_t>& V = {}) { pQueueFamilyIndices = V.data(); queueFamilyIndexCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkBufferCreateInfo)
     } VkBufferCreateInfo;
 
@@ -82,6 +84,8 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t                 queueFamilyIndexCount  = 0u;
         const uint32_t*          pQueueFamilyIndices    = nullptr;
         VkImageLayout            initialLayout          = VK_IMAGE_LAYOUT_UNDEFINED;
+
+        VkImageCreateInfo& setQueueFamilyIndices(const std::vector<uint32_t>& V = {}) { pQueueFamilyIndices = V.data(); queueFamilyIndexCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkImageCreateInfo)
     } VkImageCreateInfo;
@@ -401,6 +405,10 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const VkAttachmentReference*    pDepthStencilAttachment = nullptr;
         uint32_t                        preserveAttachmentCount = 0u;
         const uint32_t*                 pPreserveAttachments    = nullptr;
+
+        VkSubpassDescription& setColorAttachments(const std::vector<VkAttachmentReference>& V = {}) { pColorAttachments = V.data(); colorAttachmentCount = V.size(); return *this; };
+        VkSubpassDescription& setInputAttachments(const std::vector<VkAttachmentReference>& V = {}) { pInputAttachments = V.data(); inputAttachmentCount = V.size(); return *this; };
+        VkSubpassDescription& setPreserveAttachments(const std::vector<uint32_t>& V = {}) { pPreserveAttachments = V.data(); preserveAttachmentCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkSubpassDescription)
     } VkSubpassDescription;
