@@ -46,7 +46,9 @@
 
 //#include <volk/volk.h>
 //#define GLFW_INCLUDE_VULKAN
-#include <lancer/lancer.hpp>
+//#include <lancer/lancer.hpp>
+
+#include "lancer-vk/helpers.hpp"
 
 namespace vkt {
 
