@@ -118,16 +118,7 @@ namespace vkt
         };
 
 
-    public:
-        GPUFramework() {};
-
-        //InstanceMaker instance = {};
-        //DeviceMaker device = {};
-        //MemoryAllocator allocator = {};
-        //PhysicalDeviceHelper physicalHelper = {};
-        //ImageMaker depthImageMaker = {};
-
-
+    public: GPUFramework() {};
         vk::Fence fence = {};
         vk::Queue queue = {};
         vk::Device device = {};
@@ -138,6 +129,7 @@ namespace vkt
         vk::RenderPass renderPass = {};
         vk::Image depthImage = {};
         vk::ImageView depthImageView = {};
+        vk::PipelineCache = {};
         uint32_t queueFamilyIndex = 0;
         uint32_t instanceVersion = 0;
 
@@ -285,11 +277,11 @@ namespace vkt
             gFeatures.features.shaderInt16 = true;
             gFeatures.features.shaderInt64 = true;
             gFeatures.features.shaderUniformBufferArrayDynamicIndexing = true;
-            _physicalDevice.getFeatures2(&gFeatures);
+            physicalDevice.getFeatures2(&gFeatures);
 
             // get features and queue family properties
             //auto gpuFeatures = gpu.getFeatures();
-            auto gpuQueueProps = _physicalDevice.getQueueFamilyProperties();
+            auto gpuQueueProps = physicalDevice.getQueueFamilyProperties();
 
             // queue family initial
             float priority = 1.0f;
@@ -324,11 +316,20 @@ namespace vkt
             // return device with queue pointer
             const uint32_t qptr = 0;
             this->queueFamilyIndex = queueFamilyIndices[qptr];
-            this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
-            this->queue = this->_device.getQueue(queueFamilyIndex, 0); // 
-            this->fence = this->_device.createFence(vk::FenceCreateInfo().setFlags({}));
-            this->commandPool = this->_device.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
-            this->allocator = this->device->createAllocator<VMAllocator_T>()->initialize();
+            this->device = this->physicalDevice.createDevice(vkh::VkDeviceCreateInfo{
+                .queueCreateInfoCount = queueCreateInfos.size(),
+                .pQueueCreateInfos = queueCreateInfos.data(),
+                .enabledLayerCount = layers.size(),
+                .ppEnabledLayerNames = layers.data(),
+                .enabledExtensionCount = gpuExtensions.size(),
+                .ppEnabledExtensionNames = gpuExtensions.data(),
+                .pEnabledFeatures = &gFeatures.features
+            });
+            //this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
+            this->queue = this->device.getQueue(queueFamilyIndex, 0); // 
+            this->fence = this->device.createFence(vk::FenceCreateInfo().setFlags({}));
+            this->commandPool = this->device.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
+            //this->allocator = this->device->createAllocator<VMAllocator_T>()->initialize();
 
             // Manually Create Descriptor Pool
             auto dps = std::vector<vk::DescriptorPoolSize>{

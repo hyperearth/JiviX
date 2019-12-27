@@ -7,6 +7,7 @@ namespace vkh {
         operator COMP& () { return reinterpret_cast<COMP&>(*this); };\
         operator const COMP& () const { return reinterpret_cast<const COMP&>(*this); };\
         NAME& operator=(const NAME& F) { (COMP&)(*this) = (COMP&)F; return *this; };\
+        NAME& operator=(const BITS& F) { (COMP&)(*this) = (COMP&)F; return *this; };\
         NAME& operator=(const COMP& F) { (COMP&)(*this) = F; return *this; };\
         NAME operator|(const NAME& F) { auto f = COMP(F) | COMP(*this); return reinterpret_cast<NAME&>(f); };\
         NAME operator&(const NAME& F) { auto f = COMP(F) & COMP(*this); return reinterpret_cast<NAME&>(f); };\
@@ -18,6 +19,7 @@ namespace vkh {
         operator BITS() {return reinterpret_cast<BITS&>(*this);};\
         operator const BITS&() const {return reinterpret_cast<const BITS&>(*this);};
 
+    // 
     struct VkBufferCreateFlags { ::VkFlags
         eSparseBinding : 1,
         eResidency : 1,
@@ -28,6 +30,7 @@ namespace vkh {
         OPERATORS(VkBufferCreateFlags,::VkBufferCreateFlagBits,::VkFlags)
     };
 
+    // 
     struct VkBufferUsageFlags { ::VkFlags
         eTransferSrc : 1,
         eTransferDst : 1,
@@ -47,6 +50,7 @@ namespace vkh {
         OPERATORS(VkBufferUsageFlags,::VkBufferUsageFlagBits,::VkFlags)
     };
 
+    // 
     struct VkSampleCountFlags { ::VkFlags
         e1:1,
         e2:1,
@@ -59,6 +63,7 @@ namespace vkh {
         OPERATORS(VkSampleCountFlags,::VkSampleCountFlagBits,::VkFlags)
     };
 
+    // 
     struct VkImageCreateFlags { ::VkFlags
         eSparseBinding:1,
         eSparseResidency:1,
@@ -78,6 +83,7 @@ namespace vkh {
         OPERATORS(VkImageCreateFlags,::VkImageCreateFlagBits,::VkFlags);
     };
 
+    // 
     struct VkImageUsageFlags { ::VkFlags
         eTransferSrc:1,
         eTransferDst:1,
@@ -93,6 +99,7 @@ namespace vkh {
         OPERATORS(VkImageUsageFlags,::VkImageUsageFlagBits,::VkFlags);
     };
 
+    // 
     struct VkPipelineStageFlags { ::VkFlags
         eTopOfPipe:1,
         eDrawIndirect:1,
@@ -124,6 +131,7 @@ namespace vkh {
         OPERATORS(VkPipelineStageFlags,::VkPipelineStageFlagBits,::VkFlags);
     };
 
+    // 
     struct VkShaderStageFlags { ::VkFlags
         eVertex:1,
         eTessellationControl:1,
@@ -143,6 +151,7 @@ namespace vkh {
         OPERATORS(VkShaderStageFlags,::VkShaderStageFlagBits,::VkFlags);
     };
 
+    // 
     struct VkCullModeFlags { ::VkFlags
         eFront:1,
         eBack:1;
@@ -150,6 +159,7 @@ namespace vkh {
         OPERATORS(VkCullModeFlags,::VkCullModeFlagBits,::VkFlags);
     };
 
+    // 
     struct VkAccessFlags { ::VkFlags
         eIndirectCommandRead:1,
         eIndexRead:1,
@@ -183,6 +193,7 @@ namespace vkh {
         OPERATORS(VkAccessFlags,::VkAccessFlagBits,::VkFlags);
     };
 
+    // 
     struct VkFormatFeatureFlags { ::VkFlags
         eSampledImage:1,
         eStorageImage:1,
@@ -306,8 +317,16 @@ namespace vkh {
         OPERATORS(VkDescriptorSetLayoutCreateFlags,::VkDescriptorSetLayoutCreateFlagBits,::VkFlags);
     };
 
+    // 
+    struct VkDependencyFlags { ::VkFlags
+        eByRegion:1,
+        eViewLocal:1,
+        eDeviceGroup:1;
 
-
+        OPERATORS(VkDependencyFlags,::VkDependencyFlagBits,::VkFlags);
+    };
+    
+    // 
 #pragma pack(push, 1)
     struct VkGeometryInstanceFlagsNV { uint8_t
         eTriangleCullDisable:1,

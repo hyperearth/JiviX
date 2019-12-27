@@ -32,6 +32,26 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         NAME& operator =( const NAME& info ) { reinterpret_cast<::NAME&>(*this) = reinterpret_cast<const ::NAME&>(info); return *this; };
 
     // 
+    typedef struct VkDeviceCreateInfo {
+        VkStructureType                    sType                    = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        const void*                        pNext                    = nullptr;
+        VkDeviceCreateFlags                flags                    = {};
+        uint32_t                           queueCreateInfoCount     = 0u;
+        const VkDeviceQueueCreateInfo*     pQueueCreateInfos        = nullptr;
+        uint32_t                           enabledLayerCount        = 0u;
+        const char* const*                 ppEnabledLayerNames      = nullptr;
+        uint32_t                           enabledExtensionCount    = 0u;
+        const char* const*                 ppEnabledExtensionNames  = nullptr;
+        const VkPhysicalDeviceFeatures*    pEnabledFeatures         = nullptr;
+
+        VkDeviceCreateInfo& setQueueCreateInfos(const std::vector<VkDeviceQueueCreateInfo>& V = {}) { pQueueCreateInfos = V.data(); queueCreateInfoCount = V.size(); return *this; };
+        VkDeviceCreateInfo& setPEnabledExtensionNames(const std::vector<char* const*>& V = {}) { ppEnabledExtensionNames = V.data(); enabledExtensionCount = V.size(); return *this; };
+        VkDeviceCreateInfo& setPEnabledLayerNames(const std::vector<char* const*>& V = {}) { ppEnabledLayerNames = V.data(); enabledLayerCount = V.size(); return *this; };
+
+        STRUCT_OPERATORS(VkDeviceCreateInfo)
+    } VkDeviceCreateInfo;
+
+    // 
     typedef struct VkBufferCreateInfo {
         VkStructureType     sType                   = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         const void*         pNext                   = nullptr;
@@ -162,6 +182,8 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t       compareMask  = 0u;
         uint32_t       writeMask    = 0u;
         uint32_t       reference    = 0u;
+
+        STRUCT_OPERATORS(VkStencilOpState)
     } VkStencilOpState;
 
     // 
@@ -351,7 +373,51 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
         STRUCT_OPERATORS(VkDescriptorSetLayoutCreateInfo)
     } VkDescriptorSetLayoutCreateInfo;
-    
+
+    // 
+    typedef struct VkAttachmentDescription {
+        VkAttachmentDescriptionFlags    flags           = {};
+        VkFormat                        format          = VK_FORMAT_R8G8B8A8_UNORM;
+        VkSampleCountFlagBits           samples         = VK_SAMPLE_COUNT_1_BIT;
+        VkAttachmentLoadOp              loadOp          = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        VkAttachmentStoreOp             storeOp         = VK_ATTACHMENT_STORE_OP_STORE;
+        VkAttachmentLoadOp              stencilLoadOp   = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        VkAttachmentStoreOp             stencilStoreOp  = VK_ATTACHMENT_STORE_OP_STORE;
+        VkImageLayout                   initialLayout   = VK_IMAGE_LAYOUT_UNDEFINED;
+        VkImageLayout                   finalLayout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        STRUCT_OPERATORS(VkAttachmentDescription)
+    } VkAttachmentDescription;
+
+    // 
+    typedef struct VkSubpassDescription {
+        VkSubpassDescriptionFlags       flags                   = {};
+        VkPipelineBindPoint             pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        uint32_t                        inputAttachmentCount    = 0u;
+        const VkAttachmentReference*    pInputAttachments       = nullptr;
+        uint32_t                        colorAttachmentCount    = 0u;
+        const VkAttachmentReference*    pColorAttachments       = nullptr;
+        const VkAttachmentReference*    pResolveAttachments     = nullptr;
+        const VkAttachmentReference*    pDepthStencilAttachment = nullptr;
+        uint32_t                        preserveAttachmentCount = 0u;
+        const uint32_t*                 pPreserveAttachments    = nullptr;
+
+        STRUCT_OPERATORS(VkSubpassDescription)
+    } VkSubpassDescription;
+
+    // 
+    typedef struct VkSubpassDependency {
+        uint32_t                srcSubpass      = 0u;
+        uint32_t                dstSubpass      = 0u;
+        VkPipelineStageFlags    srcStageMask    = {};
+        VkPipelineStageFlags    dstStageMask    = {};
+        VkAccessFlags           srcAccessMask   = {};
+        VkAccessFlags           dstAccessMask   = {};
+        VkDependencyFlags       dependencyFlags = {};
+
+        STRUCT_OPERATORS(VkSubpassDependency)
+    } VkSubpassDependency;
+
     // 
     typedef struct VkRenderPassCreateInfo {
         VkStructureType                   sType             = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
