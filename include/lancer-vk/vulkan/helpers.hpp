@@ -5,7 +5,7 @@
 #include "./structures.hpp"
 
 namespace vkh {
-    
+
     // TODO: Some Vookoo-like aggregators and helpers
     // 1. [W] Ray Tracing Pipeline and SBT helper
     // 2. [W] Descriptor Set Layout aggregator
@@ -15,6 +15,7 @@ namespace vkh {
     // 6. [ ] Buffer and VMA based vectors
     // W - Work in Progress, V - Verified, D - deprecated...
 
+    // 
     class VsRayTracingPipelineCreateInfoHelper { protected: 
         VkRayTracingPipelineCreateInfoNV vk_info = {};
         VkRayTracingShaderGroupCreateInfoNV raygen_shader_group = {};
@@ -81,6 +82,12 @@ namespace vkh {
             return *this;
         };
 
+        // 
+        operator const ::VkRayTracingPipelineCreateInfoNV&() const { return (const VkRayTracingPipelineCreateInfoNV&)*this; };
+        operator const VkRayTracingPipelineCreateInfoNV&() { return vk_info; };
+
+        // 
+        operator ::VkRayTracingPipelineCreateInfoNV&() { return (VkRayTracingPipelineCreateInfoNV&)*this; };
         operator VkRayTracingPipelineCreateInfoNV&() {
             auto& groups = compileGroups();
             vk_info.pGroups = groups.data();
@@ -91,6 +98,7 @@ namespace vkh {
         };
     };
 
+    // 
     struct VsDescriptorHandle { using T = uint8_t;
         VkDescriptorUpdateTemplateEntry* entry_t = nullptr;
         void* field_t = nullptr;
@@ -106,6 +114,7 @@ namespace vkh {
         inline VsDescriptorHandle& operator=(const T& d) { *(T*)field_t = d; return *this; };
     };
 
+    // 
     class VsDescriptorSetCreateInfoHelper { public: uint32_t flags = 0u; using T = uintptr_t; // 
         VsDescriptorSetCreateInfoHelper(const VkDescriptorSetLayout& layout = {}, const VkDescriptorPool& pool = {}){
             template_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO;
@@ -150,6 +159,12 @@ namespace vkh {
         };
 
         // 
+        operator ::VkDescriptorSetAllocateInfo&() { return (VkDescriptorSetAllocateInfo&)*this; };
+        operator ::VkDescriptorUpdateTemplateCreateInfo&() { return (VkDescriptorUpdateTemplateCreateInfo&)*this; };
+        operator const ::VkDescriptorSetAllocateInfo&() const { return (const VkDescriptorSetAllocateInfo&)*this; };
+        operator const ::VkDescriptorUpdateTemplateCreateInfo&() const { return (const VkDescriptorUpdateTemplateCreateInfo&)*this; };
+
+        // 
         operator const VkDescriptorSetAllocateInfo&() const { return allocate_info; };
         operator const VkDescriptorUpdateTemplateCreateInfo&() const { return template_info; };
 
@@ -188,6 +203,11 @@ namespace vkh {
         };
 
         // 
+        operator const ::VkDescriptorSetLayoutCreateInfo&() const { return (const VkDescriptorSetLayoutCreateInfo&)*this; };
+        operator ::VkDescriptorSetLayoutCreateInfo&() { return (VkDescriptorSetLayoutCreateInfo&)*this; };
+
+        // 
+        operator const VkDescriptorSetLayoutCreateInfo&() const { return vk_info; };
         operator VkDescriptorSetLayoutCreateInfo&() {
             vk_info.pBindings = bindings.data();
             vk_info.bindingCount = bindings.size();
@@ -195,9 +215,6 @@ namespace vkh {
             flags_info.bindingCount = binding_flags.size();
             return vk_info;
         };
-
-        // 
-        operator const VkDescriptorSetLayoutCreateInfo&() const { return vk_info; };
 
     protected: // 
         std::vector<VkDescriptorSetLayoutBinding> bindings = {};
@@ -212,6 +229,10 @@ namespace vkh {
         VsRenderPassCreateInfoHelper(const VkRenderPassCreateInfo& info) : vk_info(info){
             
         };
+
+        // 
+        operator ::VkRenderPassCreateInfo&() { return (VkRenderPassCreateInfo&)*this; };
+        operator const ::VkRenderPassCreateInfo&() const { return (const VkRenderPassCreateInfo&)*this; };
 
         // 
         operator const VkRenderPassCreateInfo&() const { return vk_info; };
@@ -278,6 +299,5 @@ namespace vkh {
         std::vector<VkAttachmentReference> depth_stencil_attachment {};
         VkRenderPassCreateInfo vk_info = {};
     };
-
 
 };
