@@ -14,6 +14,7 @@ namespace vkh {
     using VkOffset2D = glm::ivec2;
 //#endif
 
+    #pragma pack(push, 1)
     #define STRUCT_OPERATORS(NAME)\
         operator ::NAME&() { return reinterpret_cast<::NAME&>(*this); };\
         operator const ::NAME&() const { return reinterpret_cast<const ::NAME&>(*this); };\
@@ -21,13 +22,14 @@ namespace vkh {
         NAME& operator =( const NAME& info ) { reinterpret_cast<::NAME&>(*this) = reinterpret_cast<const ::NAME&>(info); return *this; };
 
     // 
+
     typedef struct VkBufferCreateInfo {
         VkStructureType     sType                   = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         const void*         pNext                   = nullptr;
         VkBufferCreateFlags flags                   = {};
         VkDeviceSize        size                    = 4u;
         VkBufferUsageFlags  usage                   = {};
-        VkSharingMode       sharingMode;            = VK_SHARING_MODE_EXCLUSIVE;
+        VkSharingMode       sharingMode             = VK_SHARING_MODE_EXCLUSIVE;
         uint32_t            queueFamilyIndexCount   = 0u;
         const uint32_t*     pQueueFamilyIndices     = nullptr;
 
@@ -269,5 +271,67 @@ namespace vkh {
         int32_t                                       basePipelineIndex     = 0;
         STRUCT_OPERATORS(VkRayTracingPipelineCreateInfoNV)
     } VkRayTracingPipelineCreateInfoNV;
+
+    // 
+    typedef struct VkDescriptorSetLayoutBindingFlagsCreateInfoEXT {
+        VkStructureType                       sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+        const void*                           pNext         = nullptr;
+        uint32_t                              bindingCount  = 0u;
+        const VkDescriptorBindingFlagsEXT*    pBindingFlags = {};
+        STRUCT_OPERATORS(VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
+    } VkDescriptorSetLayoutBindingFlagsCreateInfoEXT;
+
+    // 
+    typedef struct VkDescriptorUpdateTemplateEntry {
+        uint32_t            dstBinding      = 0u;
+        uint32_t            dstArrayElement = 0u;
+        uint32_t            descriptorCount = 1u;
+        VkDescriptorType    descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLER;
+        size_t              offset          = 0u;
+        size_t              stride          = 8u;
+        STRUCT_OPERATORS(VkDescriptorUpdateTemplateEntry)
+    } VkDescriptorUpdateTemplateEntry;
+
+    // 
+    typedef struct VkDescriptorUpdateTemplateCreateInfo {
+        VkStructureType                           sType                         = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO;
+        const void*                               pNext                         = nullptr;
+        VkDescriptorUpdateTemplateCreateFlags     flags                         = {};
+        uint32_t                                  descriptorUpdateEntryCount    = 0u;
+        const VkDescriptorUpdateTemplateEntry*    pDescriptorUpdateEntries      = nullptr;
+        VkDescriptorUpdateTemplateType            templateType                  = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET;
+        VkDescriptorSetLayout                     descriptorSetLayout           = VK_NULL_HANDLE;
+        VkPipelineBindPoint                       pipelineBindPoint             = VK_PIPELINE_BIND_POINT_COMPUTE;
+        VkPipelineLayout                          pipelineLayout                = VK_NULL_HANDLE;
+        uint32_t                                  set                           = 0u;
+        STRUCT_OPERATORS(VkDescriptorUpdateTemplateCreateInfo)
+    } VkDescriptorUpdateTemplateCreateInfo;
+
+    // 
+    typedef struct VkDescriptorSetLayoutCreateInfo {
+        VkStructureType                        sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        const void*                            pNext        = nullptr;
+        VkDescriptorSetLayoutCreateFlags       flags        = {};
+        uint32_t                               bindingCount = 0u;
+        const VkDescriptorSetLayoutBinding*    pBindings    = nullptr;
+        STRUCT_OPERATORS(VkDescriptorSetLayoutCreateInfo)
+    } VkDescriptorSetLayoutCreateInfo;
+    
+    // 
+    typedef struct VkRenderPassCreateInfo {
+        VkStructureType                   sType             = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        const void*                       pNext             = nullptr;
+        VkRenderPassCreateFlags           flags             = {};
+        uint32_t                          attachmentCount   = 0u;
+        const VkAttachmentDescription*    pAttachments      = nullptr;
+        uint32_t                          subpassCount      = 0u;
+        const VkSubpassDescription*       pSubpasses        = nullptr;
+        uint32_t                          dependencyCount   = 0u;
+        const VkSubpassDependency*        pDependencies     = nullptr;
+        STRUCT_OPERATORS(VkRenderPassCreateInfo)
+    } VkRenderPassCreateInfo;
+    
+
+    #pragma pack(pop)
 
 };

@@ -116,7 +116,7 @@ namespace vkh {
         eTaskShader:1,
         eMeshShader:1,
         eRayTracing:1,
-        eShadingRateImage;1,
+        eShadingRateImage:1,
         eFragmentDensityProcess:1,
         eTransformFeedback:1,
         eAccelerationStructureBuild:1;
@@ -213,6 +213,7 @@ namespace vkh {
         OPERATORS(VkFormatFeatureFlags,::VkFormatFeatureFlagBits,::VkFlags);
     };
 
+    // 
     struct VkColorComponentFlags { ::VkFlags
         eR:1,
         eG:1,
@@ -222,15 +223,17 @@ namespace vkh {
         OPERATORS(VkColorComponentFlags,::VkColorComponentFlagBits,::VkFlags);
     };
 
-    struct VkDescriptorBindingFlags { ::VkFlags
+    // 
+    struct VkDescriptorBindingFlagsEXT { ::VkFlags
         eUpdateAfterBind:1,
         eUpdateUnusedWhilePending:1,
         ePartiallyBound:1,
         eVariableDescriptorCount:1;
         
-        OPERATORS(VkDescriptorBindingFlags,::VkDescriptorBindingFlagBits,::VkFlags);
+        OPERATORS(VkDescriptorBindingFlagsEXT,::VkDescriptorBindingFlagBitsEXT,::VkFlags);
     };
 
+    // 
     struct VkBuildAccelerationStructureFlagsNV { ::VkFlags
         eAllowUpdate:1,
         eAllowCompaction:1,
@@ -241,6 +244,7 @@ namespace vkh {
         OPERATORS(VkBuildAccelerationStructureFlagsNV,::VkBuildAccelerationStructureFlagBitsNV,::VkFlags);
     };
 
+    // 
     struct VkGeometryFlagsNV { ::VkFlags
         eOpaque:1,
         eNoDuplicateAnyHitInvocation:1;
@@ -248,6 +252,7 @@ namespace vkh {
         OPERATORS(VkGeometryFlagsNV,::VkGeometryFlagBitsNV,::VkFlags);
     };
 
+    // 
     struct VkQueueFlags { ::VkFlags
         eGraphics:1,
         eCompute:1,
@@ -258,6 +263,7 @@ namespace vkh {
         OPERATORS(VkQueueFlags,::VkQueueFlagBits,::VkFlags);
     };
 
+    // 
     struct VkSurfaceTransformFlagsKHR { ::VkFlags
         eIdentity:1,
         eRotate90:1,
@@ -272,6 +278,7 @@ namespace vkh {
         OPERATORS(VkSurfaceTransformFlagsKHR,::VkSurfaceTransformFlagBitsKHR,::VkFlags);
     };
 
+    // 
     struct VkCompositeAlphaFlagsKHR { ::VkFlags
         eOpaque: 1,
         ePreMultiplied:1,
@@ -281,7 +288,24 @@ namespace vkh {
         OPERATORS(VkCompositeAlphaFlagsKHR,::VkCompositeAlphaFlagBitsKHR,::VkFlags);
     };
 
-    
+    // 
+    struct VkDescriptorBindingFlagsEXT { ::VkFlags
+        eUpdateAfterBind:1,
+        eUnusedWhilePending:1,
+        ePartiallyBound:1,
+        eVariableDescriptorCount:1;
+
+        OPERATORS(VkDescriptorBindingFlagsEXT,::VkDescriptorBindingFlagBitsEXT,::VkFlags);
+    };
+
+    // 
+    struct VkDescriptorSetLayoutCreateFlags { ::VkFlags
+        ePushDescriptor:1,
+        eUpdateAfterBindPool:1;
+        
+        OPERATORS(VkDescriptorSetLayoutCreateFlags,::VkDescriptorSetLayoutCreateFlagBits,::VkFlags);
+    };
+
 
 
 #pragma pack(push, 1)
