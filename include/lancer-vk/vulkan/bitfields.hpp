@@ -111,7 +111,7 @@ namespace vkh {
         eFragmentShader:1,
         eEarlyFragmentTests:1,
         eLateFragmentTests:1,
-        eColorAttachment:1,
+        eColorAttachmentOutput:1,
         eComputeShader:1,
         eTransfer:1,
         eBottomOfPipe:1,

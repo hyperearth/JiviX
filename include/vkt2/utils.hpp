@@ -48,7 +48,8 @@
 //#define GLFW_INCLUDE_VULKAN
 //#include <lancer/lancer.hpp>
 
-#include "lancer-vk/helpers.hpp"
+#include <vulkan/vulkan.hpp>
+#include "./lancer-vk/vulkan/helpers.hpp"
 
 namespace vkt {
 

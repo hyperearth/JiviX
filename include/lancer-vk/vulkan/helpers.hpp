@@ -226,7 +226,7 @@ namespace vkh {
 
 
     class VsRenderPassCreateInfoHelper { public: 
-        VsRenderPassCreateInfoHelper(const VkRenderPassCreateInfo& info) : vk_info(info){
+        VsRenderPassCreateInfoHelper(const VkRenderPassCreateInfo& info = {}) : vk_info(info) {
             
         };
 

@@ -128,7 +128,7 @@ namespace vkt
         vk::RenderPass renderPass = {};
         vk::Image depthImage = {};
         vk::ImageView depthImageView = {};
-        vk::PipelineCache = {};
+        vk::PipelineCache pipelineCache = {};
         uint32_t queueFamilyIndex = 0;
         uint32_t instanceVersion = 0;
 
@@ -136,12 +136,12 @@ namespace vkt
         std::vector<uint32_t> queueFamilyIndices = {};
 
         //vk::Device createDevice(bool isComputePrior = true, std::string shaderPath = "./", bool enableAdvancedAcceleration = true);
-        const vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { _physicalDevice = physicalDevices[gpuID]; return _physicalDevice; };
-        const vk::PhysicalDevice& getPhysicalDevice() const { return _physicalDevice; };
-        const vk::Device& getDevice() const { return _device; };
+        const vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { physicalDevice = physicalDevices[gpuID]; return physicalDevice; };
+        const vk::PhysicalDevice& getPhysicalDevice() const { return physicalDevice; };
+        const vk::Device& getDevice() const { return device; };
         const vk::Queue& getQueue() const { return queue; };
         const vk::Fence& getFence() const { return fence; };
-        const vk::Instance& getInstance() const { return _instance; };
+        const vk::Instance& getInstance() const { return instance; };
         const vk::CommandPool& getCommandPool() const { return commandPool; };
 
         void submitCommandWithSync(const vk::CommandBuffer & cmdBuf) {
@@ -153,9 +153,9 @@ namespace vkt
             // submit commands
             auto fence = getFence(); {
                 getQueue().submit(sbmi, fence);
-                _device.waitForFences({ fence }, true, INT32_MAX);
+                device.waitForFences({ fence }, true, INT32_MAX);
             };
-            _device.resetFences({ 1, &fence });
+            device.resetFences({ 1, &fence });
         }
 
         struct SurfaceWindow {
@@ -166,7 +166,7 @@ namespace vkt
         } applicationWindow = {};
 
     public:
-        InstanceMaker& createInstance() {
+        vk::Instance& createInstance() {
 
 
 #ifdef VOLK_H_
@@ -228,21 +228,21 @@ namespace vkt
             cinstanceinfo.ppEnabledLayerNames = layers.data();
 
             // 
-            instance = std::make_shared<Instance_T>(cinstanceinfo, &_instance)->create();
+            instance = vk::createInstance(cinstanceinfo);
 
             // get physical device for application
-            physicalDevices = _instance.enumeratePhysicalDevices();
+            physicalDevices = instance.enumeratePhysicalDevices();
 
             // 
             return instance;
         };
 
         // TODO: REMAKE MAKING
-        DeviceMaker createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
+        vk::Device createDevice(bool isComputePrior, std::string shaderPath, bool enableAdvancedAcceleration) {
 
             // use extensions
             auto deviceExtensions = std::vector<const char*>();
-            auto gpuExtensions = _physicalDevice.enumerateDeviceExtensionProperties();
+            auto gpuExtensions = physicalDevice.enumerateDeviceExtensionProperties();
             for (auto w : wantedDeviceExtensions) {
                 for (auto i : gpuExtensions) {
                     if (std::string(i.extensionName).compare(w) == 0) {
@@ -254,7 +254,7 @@ namespace vkt
             // use layers
             auto layers = std::vector<const char*>();
             auto deviceValidationLayers = std::vector<const char*>();
-            auto gpuLayers = _physicalDevice.enumerateDeviceLayerProperties();
+            auto gpuLayers = physicalDevice.enumerateDeviceLayerProperties();
             for (auto w : wantedLayers) {
                 for (auto i : gpuLayers) {
                     if (std::string(i.layerName).compare(w) == 0) {
@@ -290,7 +290,7 @@ namespace vkt
             // compute/graphics queue family
             for (auto queuefamily : gpuQueueProps) {
                 graphicsFamilyIndex++;
-                if (queuefamily.queueFlags & (vk::QueueFlagBits::eCompute) && queuefamily.queueFlags & (vk::QueueFlagBits::eGraphics) && _physicalDevice.getSurfaceSupportKHR(graphicsFamilyIndex, surface())) {
+                if (queuefamily.queueFlags & (vk::QueueFlagBits::eCompute) && queuefamily.queueFlags & (vk::QueueFlagBits::eGraphics) && physicalDevice.getSurfaceSupportKHR(graphicsFamilyIndex, surface())) {
                     queueCreateInfos.push_back(vk::DeviceQueueCreateInfo(vk::DeviceQueueCreateFlags()).setQueueFamilyIndex(graphicsFamilyIndex).setQueueCount(1).setPQueuePriorities(&priority));
                     queueFamilyIndices.push_back(graphicsFamilyIndex);
                     break;
@@ -298,14 +298,13 @@ namespace vkt
             };
 
             // if have supported queue family, then use this device
-            if (queueCreateInfos.size() > 0) {
-                this->physicalHelper = std::make_shared<PhysicalDevice_T>(instance, this->_physicalDevice);
-                this->device = std::make_shared<Device_T>(this->physicalHelper, vk::DeviceCreateInfo().setFlags(vk::DeviceCreateFlags())
-                    .setPNext(&gFeatures) //.setPEnabledFeatures(&gpuFeatures)
-                    .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
-                    .setPpEnabledExtensionNames(deviceExtensions.data()).setEnabledExtensionCount(deviceExtensions.size())
-                    .setPpEnabledLayerNames(deviceValidationLayers.data()).setEnabledLayerCount(deviceValidationLayers.size()), &_device); // already created device now!
-            };
+            //if (queueCreateInfos.size() > 0) {
+            //    this->device = physicalDevice.createDevice(vk::DeviceCreateInfo()
+            //        .setPNext(&gFeatures)
+            //        .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
+            //        .setPpEnabledExtensionNames(deviceExtensions.data()).setEnabledExtensionCount(deviceExtensions.size())
+            //        .setPpEnabledLayerNames(deviceValidationLayers.data()).setEnabledLayerCount(deviceValidationLayers.size()); // already created device now!
+            //};
 
 
             //vk::PipelineCacheCreateInfo cacheInfo = {};
@@ -314,16 +313,18 @@ namespace vkt
 
             // return device with queue pointer
             const uint32_t qptr = 0;
-            this->queueFamilyIndex = queueFamilyIndices[qptr];
-            this->device = this->physicalDevice.createDevice(vkh::VkDeviceCreateInfo{
-                .queueCreateInfoCount = queueCreateInfos.size(),
-                .pQueueCreateInfos = queueCreateInfos.data(),
-                .enabledLayerCount = layers.size(),
-                .ppEnabledLayerNames = layers.data(),
-                .enabledExtensionCount = gpuExtensions.size(),
-                .ppEnabledExtensionNames = gpuExtensions.data(),
-                .pEnabledFeatures = &gFeatures.features
-            });
+            if (queueCreateInfos.size() > 0) {
+                this->queueFamilyIndex = queueFamilyIndices[qptr];
+                this->device = this->physicalDevice.createDevice((::VkDeviceCreateInfo&)vkh::VkDeviceCreateInfo{
+                    .queueCreateInfoCount = queueCreateInfos.size(),
+                    .pQueueCreateInfos = reinterpret_cast<::VkDeviceQueueCreateInfo*>(queueCreateInfos.data()),
+                    .enabledLayerCount = layers.size(),
+                    .ppEnabledLayerNames = layers.data(),
+                    .enabledExtensionCount = gpuExtensions.size(),
+                    .ppEnabledExtensionNames = (char* const*)gpuExtensions.data(),
+                    .pEnabledFeatures = reinterpret_cast<VkPhysicalDeviceFeatures*>(&gFeatures.features)
+                    });
+            };
             //this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
             this->queue = this->device.getQueue(queueFamilyIndex, 0); // 
             this->fence = this->device.createFence(vk::FenceCreateInfo().setFlags({}));
@@ -342,15 +343,16 @@ namespace vkt
                 vk::DescriptorPoolSize().setType(vk::DescriptorType::eUniformTexelBuffer).setDescriptorCount(256u),
             };
 
-            // Un-Deviced
-            return this->device->linkDescriptorPool(&(this->_descriptorPool = this->device->least().createDescriptorPool(vk::DescriptorPoolCreateInfo().setMaxSets(256u).setPPoolSizes(dps.data()).setPoolSizeCount(dps.size()))));
+            this->descriptorPool = device.createDescriptorPool(vk::DescriptorPoolCreateInfo().setMaxSets(256).setPPoolSizes(dps.data()).setPoolSizeCount(dps.size()));
+
+            return device;
         };
 
         // create window and surface for this application (multi-window not supported)
         inline SurfaceWindow& createWindowSurface(GLFWwindow * window, uint32_t WIDTH, uint32_t HEIGHT, std::string title = "TestApp") {
             applicationWindow.window = window;
             applicationWindow.surfaceSize = vk::Extent2D{ WIDTH, HEIGHT };
-            auto result = glfwCreateWindowSurface((VkInstance&)(_instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
+            auto result = glfwCreateWindowSurface((VkInstance&)(instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
             if (result != VK_SUCCESS) { glfwTerminate(); exit(result); };
             return applicationWindow;
         }
@@ -359,7 +361,7 @@ namespace vkt
         inline SurfaceWindow& createWindowSurface(uint32_t WIDTH, uint32_t HEIGHT, std::string title = "TestApp") {
             applicationWindow.window = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), nullptr, nullptr);
             applicationWindow.surfaceSize = vk::Extent2D{ WIDTH, HEIGHT };
-            auto result = glfwCreateWindowSurface((VkInstance&)(_instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
+            auto result = glfwCreateWindowSurface((VkInstance&)(instance), applicationWindow.window, nullptr, (VkSurfaceKHR*)& applicationWindow.surface);
             if (result != VK_SUCCESS) { glfwTerminate(); exit(result); };
             return applicationWindow;
         }
@@ -438,51 +440,47 @@ namespace vkt
         inline vk::RenderPass& createRenderPass()
         { // TODO: REMAKE_RENDER_PASS
             auto formats = applicationWindow.surfaceFormat;
-            auto rps = device->createRenderPassMaker({}, &renderPass);
+            auto render_pass_helper = vkh::VsRenderPassCreateInfoHelper();
 
-            // 
-            rps->addAttachment(formats.colorFormat)->getAttachmentDescription()
-                .setSamples(vk::SampleCountFlagBits::e1)
-                .setLoadOp(vk::AttachmentLoadOp::eLoad)
-                .setStoreOp(vk::AttachmentStoreOp::eStore)
-                .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-                .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-                .setInitialLayout(vk::ImageLayout::eUndefined)
-                .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
+            render_pass_helper.addColorAttachment(vkh::VkAttachmentDescription{
+                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+            });
 
-            // 
-            rps->addAttachment(formats.depthFormat)->getAttachmentDescription()
-                .setSamples(vk::SampleCountFlagBits::e1)
-                .setLoadOp(vk::AttachmentLoadOp::eClear)
-                .setStoreOp(vk::AttachmentStoreOp::eDontCare)
-                .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-                .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-                .setInitialLayout(vk::ImageLayout::eUndefined)
-                .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+            render_pass_helper.setDepthStencilAttachment(vkh::VkAttachmentDescription{
+                .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR
+            });
 
-            // 
-            rps->addSubpass(vk::PipelineBindPoint::eGraphics)->getSubpassDescription();
-            rps->subpassColorAttachment(0u, vk::ImageLayout::eColorAttachmentOptimal);
-            rps->subpassDepthStencilAttachment(1u, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+            render_pass_helper.addSubpassDependency(vkh::VkSubpassDependency{
+                .srcSubpass = VK_SUBPASS_EXTERNAL,
+                .dstSubpass = 0u,
+                .srcStageMask = {.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1, },
+                .dstStageMask = {.eColorAttachmentOutput = 1, },
+                .srcAccessMask = {.eColorAttachmentWrite = 1 },
+                .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1 },
+                .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
+            });
 
-            // 
-            rps->addDependency(VK_SUBPASS_EXTERNAL, 0u)->getSubpassDependency()
-                .setDependencyFlags(vk::DependencyFlagBits::eByRegion)
-                .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eBottomOfPipe | vk::PipelineStageFlagBits::eTransfer)
-                .setSrcAccessMask(vk::AccessFlagBits::eColorAttachmentWrite)
-                .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
-                .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+            render_pass_helper.addSubpassDependency(vkh::VkSubpassDependency{
+                .srcSubpass = 0u,
+                .dstSubpass = VK_SUBPASS_EXTERNAL,
+                .srcStageMask = {.eColorAttachmentOutput = 1 },
+                .dstStageMask = {.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1 },
+                .srcAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1 },
+                .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1 },
+                .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
+            });
 
-            // 
-            rps->addDependency(0u, VK_SUBPASS_EXTERNAL)->getSubpassDependency()
-                .setDependencyFlags(vk::DependencyFlagBits::eByRegion)
-                .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
-                .setSrcAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite)
-                .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eTopOfPipe | vk::PipelineStageFlagBits::eTransfer)
-                .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
-
-            // create renderpass finally
-            return rps->create()->getRenderPass();
+            return (renderPass = device.createRenderPass(reinterpret_cast<VkRenderPassCreateInfo&>(render_pass_helper)));
         }
 
         // update swapchain framebuffer
@@ -490,7 +488,7 @@ namespace vkt
         {
             // The swapchain handles allocating frame images.
             auto formats = applicationWindow.surfaceFormat;
-            auto gpuMemoryProps = _physicalDevice.getMemoryProperties();
+            auto gpuMemoryProps = physicalDevice.getMemoryProperties();
 
             // 
             auto imageInfoVK = vk::ImageCreateInfo{};
@@ -507,7 +505,7 @@ namespace vkt
             imageInfoVK.tiling = vk::ImageTiling::eOptimal;
             imageInfoVK.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment|vk::ImageUsageFlagBits::eTransferSrc;
 
-            // 
+            // TODO: Add VMA Support
             VmaAllocationCreateInfo allocCreateInfo = {};
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
@@ -521,14 +519,14 @@ namespace vkt
                 ->allocate((uintptr_t)(&allocCreateInfo));
 
             // 
-            auto swapchainImages = _device.getSwapchainImagesKHR(swapchain);
+            auto swapchainImages = device.getSwapchainImagesKHR(swapchain);
             swapchainBuffers.resize(swapchainImages.size());
             for (int i = 0; i < swapchainImages.size(); i++)
             { // create framebuffers
                 std::array<vk::ImageView, 2> views = {}; // predeclare views
-                views[0] = _device.createImageView(vk::ImageViewCreateInfo{ {}, swapchainImages[i], vk::ImageViewType::e2D, formats.colorFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
+                views[0] = device.createImageView(vk::ImageViewCreateInfo{ {}, swapchainImages[i], vk::ImageViewType::e2D, formats.colorFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
                 views[1] = depthImageView; // depth view
-                swapchainBuffers[i].frameBuffer = _device.createFramebuffer(vk::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u });
+                swapchainBuffers[i].frameBuffer = device.createFramebuffer(vk::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u });
             };
         }
 
@@ -538,8 +536,8 @@ namespace vkt
             updateSwapchainFramebuffer(swapchainBuffers, swapchain, renderpass);
             for (int i = 0; i < swapchainBuffers.size(); i++)
             { // create semaphore
-                swapchainBuffers[i].semaphore = device->least().createSemaphore(vk::SemaphoreCreateInfo());
-                swapchainBuffers[i].waitFence = device->least().createFence(vk::FenceCreateInfo().setFlags(vk::FenceCreateFlagBits::eSignaled));
+                swapchainBuffers[i].semaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
+                swapchainBuffers[i].waitFence = device.createFence(vk::FenceCreateInfo().setFlags(vk::FenceCreateFlagBits::eSignaled));
             };
             return swapchainBuffers;
         }
@@ -550,8 +548,8 @@ namespace vkt
             vk::SurfaceKHR surface = applicationWindow.surface;
             SurfaceFormat& formats = applicationWindow.surfaceFormat;
 
-            auto surfaceCapabilities = _physicalDevice.getSurfaceCapabilitiesKHR(surface);
-            auto surfacePresentModes = _physicalDevice.getSurfacePresentModesKHR(surface);
+            auto surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
+            auto surfacePresentModes = physicalDevice.getSurfacePresentModesKHR(surface);
 
             // check the surface width/height.
             if (!(surfaceCapabilities.currentExtent.width == -1 ||
@@ -586,7 +584,7 @@ namespace vkt
             swapchainCreateInfo.clipped = true;
 
             // create swapchain
-            return device->least().createSwapchainKHR(swapchainCreateInfo, nullptr);
+            return device.createSwapchainKHR(swapchainCreateInfo, nullptr);
         }
     };
 

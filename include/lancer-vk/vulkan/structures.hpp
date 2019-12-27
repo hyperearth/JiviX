@@ -2,8 +2,8 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
-#include "./vulkan/enums.hpp"
-#include "./vulkan/bitfields.hpp"
+#include "./enums.hpp"
+#include "./bitfields.hpp"
 
 namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
                 // TODO: WIP FULL C++20 SUPPORT
