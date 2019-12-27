@@ -5,7 +5,11 @@
 #include "./vulkan/enums.hpp"
 #include "./vulkan/bitfields.hpp"
 
-namespace vkh {
+namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
+                // TODO: WIP FULL C++20 SUPPORT
+
+    // Structures should be packed accurately as Vulkan.H and Vulkan.HPP
+    #pragma pack(push, 1)
 
 //#ifdef USE_GLM
     using VkExtent3D = glm::uvec3;
@@ -14,7 +18,13 @@ namespace vkh {
     using VkOffset2D = glm::ivec2;
 //#endif
 
-    #pragma pack(push, 1)
+    // 
+    typedef struct VkRect2D {
+        VkOffset2D offset = {0,0};
+        VkExtent2D extent = {1,1};
+    } VkRect2D;
+
+    // 
     #define STRUCT_OPERATORS(NAME)\
         operator ::NAME&() { return reinterpret_cast<::NAME&>(*this); };\
         operator const ::NAME&() const { return reinterpret_cast<const ::NAME&>(*this); };\
@@ -22,7 +32,6 @@ namespace vkh {
         NAME& operator =( const NAME& info ) { reinterpret_cast<::NAME&>(*this) = reinterpret_cast<const ::NAME&>(info); return *this; };
 
     // 
-
     typedef struct VkBufferCreateInfo {
         VkStructureType     sType                   = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         const void*         pNext                   = nullptr;
@@ -78,6 +87,9 @@ namespace vkh {
         uint32_t                                        vertexAttributeDescriptionCount = 0u;
         const VkVertexInputAttributeDescription*        pVertexAttributeDescriptions    = nullptr;
 
+        VkPipelineVertexInputStateCreateInfo& setVertexBindingDescriptions(const std::vector<VkVertexInputBindingDescription>& V = {}) { pVertexBindingDescriptions = V.data(); vertexBindingDescriptionCount = V.size(); return *this; };
+        VkPipelineVertexInputStateCreateInfo& setVertexAttributeDescriptions(const std::vector<VkVertexInputAttributeDescription>& V = {}) { pVertexAttributeDescriptions = V.data(); vertexAttributeDescriptionCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkPipelineVertexInputStateCreateInfo)
     } VkPipelineVertexInputStateCreateInfo;
 
@@ -100,6 +112,9 @@ namespace vkh {
         const VkViewport*                     pViewports    = nullptr;
         uint32_t                              scissorCount  = 1u;
         const VkRect2D*                       pScissors     = nullptr;
+
+        VkPipelineViewportStateCreateInfo& setViewports(const std::vector<VkViewport>& V = {}) { pViewports = V.data(); viewportCount = V.size(); return *this; };
+        VkPipelineViewportStateCreateInfo& setScissors(const std::vector<VkRect2D>& V = {}) { pScissors = V.data(); scissorCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkPipelineViewportStateCreateInfo)
     } VkPipelineViewportStateCreateInfo;
@@ -179,6 +194,8 @@ namespace vkh {
         glm::vec4                                     blendConstants   = {1.f,1.f,1.f,1.f};
         //float                                         blendConstants[4];
 
+        VkPipelineColorBlendStateCreateInfo& setAttachments(const std::vector<VkPipelineColorBlendAttachmentState>& V = {}) { pAttachments = V.data(); attachmentCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkPipelineColorBlendStateCreateInfo)
     } VkPipelineColorBlendStateCreateInfo;
 
@@ -189,6 +206,8 @@ namespace vkh {
         VkPipelineDynamicStateCreateFlags    flags              = {};
         uint32_t                             dynamicStateCount  = 0u;
         const VkDynamicState*                pDynamicStates     = nullptr;
+
+        VkPipelineDynamicStateCreateInfo& setDynamicStates(const std::vector<VkDynamicState>& V = {}) { pDynamicStates = V.data(); dynamicStateCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkPipelineDynamicStateCreateInfo)
     } VkPipelineDynamicStateCreateInfo;
@@ -227,6 +246,8 @@ namespace vkh {
         uint32_t                                         subpass                = 0u;
         VkPipeline                                       basePipelineHandle     = VK_NULL_HANDLE;
         int32_t                                          basePipelineIndex      = 0;
+
+        VkGraphicsPipelineCreateInfo& setStages(const std::vector<VkPipelineShaderStageCreateInfo>& V = {}) { pStages = V.data(); stageCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkGraphicsPipelineCreateInfo)
     } VkGraphicsPipelineCreateInfo;
@@ -269,6 +290,10 @@ namespace vkh {
         VkPipelineLayout                              layout                = VK_NULL_HANDLE;
         VkPipeline                                    basePipelineHandle    = VK_NULL_HANDLE;
         int32_t                                       basePipelineIndex     = 0;
+
+        VkRayTracingPipelineCreateInfoNV& setStages(const std::vector<VkPipelineShaderStageCreateInfo>& V = {}) { pStages = V.data(); stageCount = V.size(); return *this; };
+        VkRayTracingPipelineCreateInfoNV& setGroups(const std::vector<VkRayTracingShaderGroupCreateInfoNV>& V = {}) { pGroups = V.data(); groupCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkRayTracingPipelineCreateInfoNV)
     } VkRayTracingPipelineCreateInfoNV;
 
@@ -278,6 +303,9 @@ namespace vkh {
         const void*                           pNext         = nullptr;
         uint32_t                              bindingCount  = 0u;
         const VkDescriptorBindingFlagsEXT*    pBindingFlags = {};
+
+        VkDescriptorSetLayoutBindingFlagsCreateInfoEXT& setBindingFlags(const std::vector<VkDescriptorBindingFlagsEXT>& V = {}) { pBindingFlags = V.data(); bindingCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkDescriptorSetLayoutBindingFlagsCreateInfoEXT)
     } VkDescriptorSetLayoutBindingFlagsCreateInfoEXT;
 
@@ -289,6 +317,7 @@ namespace vkh {
         VkDescriptorType    descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLER;
         size_t              offset          = 0u;
         size_t              stride          = 8u;
+
         STRUCT_OPERATORS(VkDescriptorUpdateTemplateEntry)
     } VkDescriptorUpdateTemplateEntry;
 
@@ -304,6 +333,9 @@ namespace vkh {
         VkPipelineBindPoint                       pipelineBindPoint             = VK_PIPELINE_BIND_POINT_COMPUTE;
         VkPipelineLayout                          pipelineLayout                = VK_NULL_HANDLE;
         uint32_t                                  set                           = 0u;
+
+        VkDescriptorUpdateTemplateCreateInfo& setDescriptorUpdateEntries(const std::vector<VkDescriptorUpdateTemplateEntry>& V = {}) { pDescriptorUpdateEntries = V.data(); descriptorUpdateEntryCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkDescriptorUpdateTemplateCreateInfo)
     } VkDescriptorUpdateTemplateCreateInfo;
 
@@ -314,6 +346,9 @@ namespace vkh {
         VkDescriptorSetLayoutCreateFlags       flags        = {};
         uint32_t                               bindingCount = 0u;
         const VkDescriptorSetLayoutBinding*    pBindings    = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo& setBindings(const std::vector<VkDescriptorSetLayoutBinding>& V = {}) { pBindings = V.data(); bindingCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkDescriptorSetLayoutCreateInfo)
     } VkDescriptorSetLayoutCreateInfo;
     
@@ -328,6 +363,11 @@ namespace vkh {
         const VkSubpassDescription*       pSubpasses        = nullptr;
         uint32_t                          dependencyCount   = 0u;
         const VkSubpassDependency*        pDependencies     = nullptr;
+
+        VkRenderPassCreateInfo& setAttachments(const std::vector<VkAttachmentDescription>& V = {}) { pAttachments = V.data(); attachmentCount = V.size(); return *this; };
+        VkRenderPassCreateInfo& setSubpasses(const std::vector<VkSubpassDescription>& V = {}) { pSubpasses = V.data(); subpassCount = V.size(); return *this; };
+        VkRenderPassCreateInfo& setDependencies(const std::vector<VkSubpassDependency>& V = {}) { pDependencies = V.data(); dependencyCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkRenderPassCreateInfo)
     } VkRenderPassCreateInfo;
     
