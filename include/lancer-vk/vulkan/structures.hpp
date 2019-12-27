@@ -137,6 +137,17 @@ namespace vkh {
     } VkPipelineMultisampleStateCreateInfo;
 
     // 
+    typedef struct VkStencilOpState {
+        VkStencilOp    failOp       = VK_STENCIL_OP_ZERO;
+        VkStencilOp    passOp       = VK_STENCIL_OP_KEEP;
+        VkStencilOp    depthFailOp  = VK_STENCIL_OP_ZERO;
+        VkCompareOp    compareOp    = VK_COMPARE_OP_ALWAYS;
+        uint32_t       compareMask  = 0u;
+        uint32_t       writeMask    = 0u;
+        uint32_t       reference    = 0u;
+    } VkStencilOpState;
+
+    // 
     typedef struct VkPipelineDepthStencilStateCreateInfo {
         VkStructureType                           sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         const void*                               pNext                 = nullptr;
@@ -146,8 +157,8 @@ namespace vkh {
         VkCompareOp                               depthCompareOp        = VK_COMPARE_OP_LESS_OR_EQUAL;
         VkBool32                                  depthBoundsTestEnable = false;
         VkBool32                                  stencilTestEnable     = false;
-        VkStencilOpState                          front                 = VK_STENCIL_OP_KEEP;
-        VkStencilOpState                          back                  = VK_STENCIL_OP_KEEP;
+        VkStencilOpState                          front                 = {};
+        VkStencilOpState                          back                  = {};
         float                                     minDepthBounds        = 0.f;
         float                                     maxDepthBounds        = 1.f;
 
@@ -203,7 +214,7 @@ namespace vkh {
         const VkPipelineVertexInputStateCreateInfo*      pVertexInputState      = nullptr;
         const VkPipelineInputAssemblyStateCreateInfo*    pInputAssemblyState    = nullptr;
         const VkPipelineTessellationStateCreateInfo*     pTessellationState     = nullptr;
-        const VkPipelineViewportStateCreateInfo*         pViewportState         = nullptr 
+        const VkPipelineViewportStateCreateInfo*         pViewportState         = nullptr;
         const VkPipelineRasterizationStateCreateInfo*    pRasterizationState    = nullptr;
         const VkPipelineMultisampleStateCreateInfo*      pMultisampleState      = nullptr;
         const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState     = nullptr;
@@ -230,5 +241,33 @@ namespace vkh {
 
         STRUCT_OPERATORS(VkComputePipelineCreateInfo)
     } VkComputePipelineCreateInfo;
+
+    // 
+    typedef struct VkRayTracingShaderGroupCreateInfoNV {
+        VkStructureType                  sType              = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_NV;
+        const void*                      pNext              = nullptr;
+        VkRayTracingShaderGroupTypeNV    type               = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_NV;
+        uint32_t                         generalShader      = VK_SHADER_UNUSED_NV;
+        uint32_t                         closestHitShader   = VK_SHADER_UNUSED_NV;
+        uint32_t                         anyHitShader       = VK_SHADER_UNUSED_NV;
+        uint32_t                         intersectionShader = VK_SHADER_UNUSED_NV;
+        STRUCT_OPERATORS(VkRayTracingShaderGroupCreateInfoNV)
+    } VkRayTracingShaderGroupCreateInfoNV;
+
+    //
+    typedef struct VkRayTracingPipelineCreateInfoNV {
+        VkStructureType                               sType                 = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_NV;
+        const void*                                   pNext                 = nullptr;
+        VkPipelineCreateFlags                         flags                 = {};
+        uint32_t                                      stageCount            = 1u;
+        const VkPipelineShaderStageCreateInfo*        pStages               = nullptr;
+        uint32_t                                      groupCount            = 1u;
+        const VkRayTracingShaderGroupCreateInfoNV*    pGroups               = nullptr;
+        uint32_t                                      maxRecursionDepth     = 1u;
+        VkPipelineLayout                              layout                = VK_NULL_HANDLE;
+        VkPipeline                                    basePipelineHandle    = VK_NULL_HANDLE;
+        int32_t                                       basePipelineIndex     = 0;
+        STRUCT_OPERATORS(VkRayTracingPipelineCreateInfoNV)
+    } VkRayTracingPipelineCreateInfoNV;
 
 };

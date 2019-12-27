@@ -281,6 +281,9 @@ namespace vkh {
         OPERATORS(VkCompositeAlphaFlagsKHR,::VkCompositeAlphaFlagBitsKHR,::VkFlags);
     };
 
+    
+
+
 #pragma pack(push, 1)
     struct VkGeometryInstanceFlagsNV { uint8_t
         eTriangleCullDisable:1,
