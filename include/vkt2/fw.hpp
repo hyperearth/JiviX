@@ -28,7 +28,6 @@ namespace vkt
     class GPUFramework {
     protected:
 
-
         // instance extensions
         std::vector<const char*> wantedExtensions = {
             "VK_KHR_get_physical_device_properties2",
