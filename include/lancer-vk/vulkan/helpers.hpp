@@ -148,7 +148,7 @@ namespace vkh {
 
         // 
         inline operator std::vector<VkDescriptorUpdateTemplateEntry>& () { return entries; };
-        //inline operator ::VkDescriptorSetAllocateInfo& () { return (VkDescriptorSetAllocateInfo&)*this; };
+        inline operator ::VkDescriptorSetAllocateInfo& () { return (VkDescriptorSetAllocateInfo&)*this; };
         inline operator ::VkDescriptorUpdateTemplateCreateInfo& () { return (VkDescriptorUpdateTemplateCreateInfo&)*this; };
         inline operator VkDescriptorSetAllocateInfo&() { return allocate_info; };
         inline operator VkDescriptorUpdateTemplateCreateInfo&() {
@@ -159,7 +159,7 @@ namespace vkh {
 
         // 
         inline operator const std::vector<VkDescriptorUpdateTemplateEntry>& () const { return entries; };
-        //inline operator const ::VkDescriptorSetAllocateInfo& () const { return (const VkDescriptorSetAllocateInfo&)*this; };
+        inline operator const ::VkDescriptorSetAllocateInfo& () const { return (const VkDescriptorSetAllocateInfo&)*this; };
         inline operator const ::VkDescriptorUpdateTemplateCreateInfo& () const { return (const VkDescriptorUpdateTemplateCreateInfo&)*this; };
         inline operator const VkDescriptorSetAllocateInfo& () const { return allocate_info; };
         inline operator const VkDescriptorUpdateTemplateCreateInfo& () const { return template_info; };
@@ -215,8 +215,6 @@ namespace vkh {
         std::vector<VkDescriptorSetLayoutBinding> bindings = {};
         std::vector<VkDescriptorBindingFlagsEXT> binding_flags = {};
     };
-
-
 
     class VsRenderPassCreateInfoHelper { public: 
         VsRenderPassCreateInfoHelper(const VkRenderPassCreateInfo& info = {}) : vk_info(info) {
@@ -291,6 +289,44 @@ namespace vkh {
         std::vector<std::vector<VkAttachmentReference>> color_attachments = {};
         std::vector<std::vector<VkAttachmentReference>> input_attachments = {};
         std::vector<VkAttachmentReference> depth_stencil_attachment {};
+    };
+
+    // constructive helper for graphics pipeline
+    // also, sub-member can be accessed too
+    class VsGraphicsPipelineCreateInfoConstruction { public: 
+        VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {};
+        std::vector<VkPipelineShaderStageCreateInfo> stages = {};
+        VkPipelineVertexInputStateCreateInfo vertexInputState = {};
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
+        VkPipelineTessellationStateCreateInfo tessellationState = {};
+        VkPipelineViewportStateCreateInfo viewportState = {};
+        VkPipelineRasterizationStateCreateInfo rasterizationState = {};
+        VkPipelineMultisampleStateCreateInfo multisampleState = {};
+        VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
+        VkPipelineColorBlendStateCreateInfo colorBlendState = {};
+        VkPipelineDynamicStateCreateInfo dynamicState = {};
+
+        // constructive structure
+        inline operator VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
+        inline operator const VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
+        inline VsGraphicsPipelineCreateInfoConstruction& operator=(const VkGraphicsPipelineCreateInfo& info) { graphicsPipelineCreateInfo = info; construct(); return *this; };
+        inline VsGraphicsPipelineCreateInfoConstruction& construct() {
+            graphicsPipelineCreateInfo.setStages(stages);
+            graphicsPipelineCreateInfo.pVertexInputState = &vertexInputState;
+            graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+            graphicsPipelineCreateInfo.pTessellationState = &tessellationState;
+            graphicsPipelineCreateInfo.pViewportState = &viewportState;
+            graphicsPipelineCreateInfo.pRasterizationState = &rasterizationState;
+            graphicsPipelineCreateInfo.pMultisampleState = &multisampleState;
+            graphicsPipelineCreateInfo.pDepthStencilState = &depthStencilState;
+            graphicsPipelineCreateInfo.pColorBlendState = &colorBlendState;
+            graphicsPipelineCreateInfo.pDynamicState = &dynamicState;
+            return *this;
+        };
+
+        // direct access operator
+        inline VkGraphicsPipelineCreateInfo* operator->() { construct(); return &graphicsPipelineCreateInfo; };
+        inline const VkGraphicsPipelineCreateInfo* operator->() const { return &graphicsPipelineCreateInfo; };
     };
 
 };

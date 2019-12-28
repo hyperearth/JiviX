@@ -22,7 +22,6 @@ int main() {
 	fw.createWindowSurface(800u, 600u);
 	auto physicalDevice = fw.getPhysicalDevice(0u);
 	fw.createDevice(true,"./",false);
-	//auto surfaceFormat = fw.getSurfaceFormat();
 	fw.createSwapchain();
 
     return 0;
