@@ -305,15 +305,15 @@ namespace vkt
             const uint32_t qptr = 0;
             if (queueCreateInfos.size() > 0) {
                 this->queueFamilyIndex = queueFamilyIndices[qptr];
-                this->device = this->physicalDevice.createDevice((::VkDeviceCreateInfo&)vkh::VkDeviceCreateInfo{
-                    .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+                this->device = this->physicalDevice.createDevice(static_cast<vk::DeviceCreateInfo>(vkh::VkDeviceCreateInfo{
+                    .queueCreateInfoCount = uint32_t(queueCreateInfos.size()),
                     .pQueueCreateInfos = reinterpret_cast<::VkDeviceQueueCreateInfo*>(queueCreateInfos.data()),
-                    .enabledLayerCount = static_cast<uint32_t>(layers.size()),
+                    .enabledLayerCount = uint32_t(layers.size()),
                     .ppEnabledLayerNames = layers.data(),
-                    .enabledExtensionCount = static_cast<uint32_t>(gpuExtensions.size()),
-                    .ppEnabledExtensionNames = (char* const*)gpuExtensions.data(),
+                    .enabledExtensionCount = uint32_t(deviceExtensions.size()),
+                    .ppEnabledExtensionNames = deviceExtensions.data(),
                     .pEnabledFeatures = reinterpret_cast<VkPhysicalDeviceFeatures*>(&gFeatures.features)
-                });
+                }));
                 this->pipelineCache = this->device.createPipelineCache(vk::PipelineCacheCreateInfo());
             };
             //this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
@@ -328,6 +328,7 @@ namespace vkt
             vmaCreateAllocator(&vma_info, &this->allocator);
 
             // Manually Create Descriptor Pool
+            // TODO: better format of...
             auto dps = std::vector<vk::DescriptorPoolSize>{
                 vk::DescriptorPoolSize().setType(vk::DescriptorType::eCombinedImageSampler).setDescriptorCount(256u),
                 vk::DescriptorPoolSize().setType(vk::DescriptorType::eSampledImage).setDescriptorCount(1024u),
@@ -371,9 +372,8 @@ namespace vkt
         // setters
         void format(SurfaceFormat format) { applicationWindow.surfaceFormat = format; }
         void size(const vk::Extent2D & size) { applicationWindow.surfaceSize = size; }
-
         // 
-        inline SurfaceFormat getSurfaceFormat(vk::PhysicalDevice gpu)
+        inline SurfaceFormat& getSurfaceFormat(vk::PhysicalDevice gpu)
         {
             auto surfaceFormats = gpu.getSurfaceFormatsKHR(applicationWindow.surface);
 
@@ -422,7 +422,7 @@ namespace vkt
                 if (depthFormatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) {
                     surfaceDepthFormat = format; break;
                 }
-            }
+            };
 
             // return format result
             SurfaceFormat sfd = {};
@@ -430,7 +430,7 @@ namespace vkt
             sfd.colorFormat = surfaceColorFormat;
             sfd.depthFormat = surfaceDepthFormat;
             sfd.colorFormatProperties = formatProperties; // get properties about format
-            return sfd;
+            return (applicationWindow.surfaceFormat = sfd);
         }
 
         inline vk::RenderPass& createRenderPass()
@@ -476,7 +476,7 @@ namespace vkt
                 .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
             });
 
-            return (renderPass = device.createRenderPass(reinterpret_cast<VkRenderPassCreateInfo&>(render_pass_helper)));
+            return (renderPass = device.createRenderPass(static_cast<vk::RenderPassCreateInfo>(render_pass_helper)));
         }
 
         // update swapchain framebuffer
@@ -542,8 +542,10 @@ namespace vkt
         // create swapchain template
         inline vk::SwapchainKHR createSwapchain()
         {
+            auto surfaceFormats = getSurfaceFormat(this->physicalDevice);
+
             vk::SurfaceKHR surface = applicationWindow.surface;
-            SurfaceFormat& formats = applicationWindow.surfaceFormat;
+            SurfaceFormat& formats = getSurfaceFormat(this->physicalDevice);
 
             auto surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
             auto surfacePresentModes = physicalDevice.getSurfacePresentModesKHR(surface);

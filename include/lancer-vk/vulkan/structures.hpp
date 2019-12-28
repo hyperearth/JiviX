@@ -9,7 +9,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
                 // TODO: WIP FULL C++20 SUPPORT
 
     // Structures should be packed accurately as Vulkan.H and Vulkan.HPP
-    #pragma pack(push, 1)
+    #pragma pack(push, 8) // BUT Vulkan Should PACK ONLY BY ONE BYTE
 
 //#ifdef USE_GLM
     using VkExtent3D = glm::uvec3;
@@ -132,6 +132,19 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
         STRUCT_OPERATORS(VkPipelineInputAssemblyStateCreateInfo)
     } VkPipelineInputAssemblyStateCreateInfo;
+
+    //
+    typedef struct VkDescriptorSetAllocateInfo {
+        VkStructureType                 sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        const void*                     pNext              = nullptr;
+        VkDescriptorPool                descriptorPool     = VK_NULL_HANDLE;
+        uint32_t                        descriptorSetCount = 0u;
+        const VkDescriptorSetLayout*    pSetLayouts        = nullptr;
+
+        VkDescriptorSetAllocateInfo& setVertexBindingDescriptions(const std::vector<VkDescriptorSetLayout>& V = {}) { pSetLayouts = V.data(); descriptorSetCount = V.size(); return *this; };
+
+        STRUCT_OPERATORS(VkDescriptorSetAllocateInfo)
+    } VkDescriptorSetAllocateInfo;
 
     // 
     typedef struct VkPipelineVertexInputStateCreateInfo {
