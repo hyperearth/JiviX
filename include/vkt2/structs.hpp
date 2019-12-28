@@ -3,24 +3,23 @@
 #include "./utils.hpp"
 
 namespace vkt {
-    using namespace lancer;
 
     // application surface format information structure
     //struct SurfaceFormat : public std::enable_shared_from_this<SurfaceFormat> {
     struct SurfaceFormat {
-        api::Format colorFormat = {};
-        api::Format depthFormat = {};
-        api::Format stencilFormat = {};
-        api::ColorSpaceKHR colorSpace = {};
-        api::FormatProperties colorFormatProperties = {};
+        vk::Format colorFormat = {};
+        vk::Format depthFormat = {};
+        vk::Format stencilFormat = {};
+        vk::ColorSpaceKHR colorSpace = {};
+        vk::FormatProperties colorFormatProperties = {};
     };
 
     // framebuffer with command buffer and fence
     struct Framebuffer : public std::enable_shared_from_this<Framebuffer> {
-        api::Framebuffer frameBuffer = {};
-        api::CommandBuffer commandBuffer = {}; // terminal command (barrier)
-        api::Fence waitFence = {};
-        api::Semaphore semaphore = {};
+        vk::Framebuffer frameBuffer = {};
+        vk::CommandBuffer commandBuffer = {}; // terminal command (barrier)
+        vk::Fence waitFence = {};
+        vk::Semaphore semaphore = {};
     };
 
 #pragma pack(push, 1)

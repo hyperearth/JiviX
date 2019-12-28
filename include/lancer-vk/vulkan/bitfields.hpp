@@ -3,6 +3,7 @@
 
 namespace vkh {
 
+    // 
     #define OPERATORS(NAME,BITS,COMP) \
         operator COMP& () { return reinterpret_cast<COMP&>(*this); };\
         operator const COMP& () const { return reinterpret_cast<const COMP&>(*this); };\
@@ -314,16 +315,6 @@ namespace vkh {
         eInherit:1;
 
         OPERATORS(VkCompositeAlphaFlagsKHR,::VkCompositeAlphaFlagBitsKHR,::VkFlags);
-    };
-
-    // 
-    struct VkDescriptorBindingFlagsEXT { ::VkFlags
-        eUpdateAfterBind:1,
-        eUnusedWhilePending:1,
-        ePartiallyBound:1,
-        eVariableDescriptorCount:1;
-
-        OPERATORS(VkDescriptorBindingFlagsEXT,::VkDescriptorBindingFlagBitsEXT,::VkFlags);
     };
 
     // 

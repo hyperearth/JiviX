@@ -1,6 +1,6 @@
 #include "fw.hpp"
 
-GPUFramework fw = {};
+vkt::GPUFramework fw = {};
 
 int main(){
     

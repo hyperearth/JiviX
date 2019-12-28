@@ -45,8 +45,8 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const VkPhysicalDeviceFeatures*    pEnabledFeatures         = nullptr;
 
         VkDeviceCreateInfo& setQueueCreateInfos(const std::vector<VkDeviceQueueCreateInfo>& V = {}) { pQueueCreateInfos = V.data(); queueCreateInfoCount = V.size(); return *this; };
-        VkDeviceCreateInfo& setPEnabledExtensionNames(const std::vector<char* const*>& V = {}) { ppEnabledExtensionNames = V.data(); enabledExtensionCount = V.size(); return *this; };
-        VkDeviceCreateInfo& setPEnabledLayerNames(const std::vector<char* const*>& V = {}) { ppEnabledLayerNames = V.data(); enabledLayerCount = V.size(); return *this; };
+        VkDeviceCreateInfo& setPEnabledExtensionNames(const std::vector<const char*>& V = {}) { ppEnabledExtensionNames = V.data(); enabledExtensionCount = V.size(); return *this; };
+        VkDeviceCreateInfo& setPEnabledLayerNames(const std::vector<const char* >& V = {}) { ppEnabledLayerNames = V.data(); enabledLayerCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkDeviceCreateInfo)
     } VkDeviceCreateInfo;
@@ -97,6 +97,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t              levelCount = 1u;
         uint32_t              baseArrayLayer = 0u;
         uint32_t              layerCount = 1u;
+        STRUCT_OPERATORS(VkImageSubresourceRange)
     } VkImageSubresourceRange;
 
     // 
@@ -105,6 +106,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkComponentSwizzle g = VK_COMPONENT_SWIZZLE_G;
         VkComponentSwizzle b = VK_COMPONENT_SWIZZLE_B;
         VkComponentSwizzle a = VK_COMPONENT_SWIZZLE_A;
+        STRUCT_OPERATORS(VkComponentMapping)
     } VkComponentMapping;
 
     // 
@@ -117,6 +119,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkFormat                   format           = VK_FORMAT_R8G8B8A8_UNORM;
         VkComponentMapping         components       = {};
         VkImageSubresourceRange    subresourceRange = {};
+        STRUCT_OPERATORS(VkImageViewCreateInfo)
     } VkImageViewCreateInfo;
 
     // 

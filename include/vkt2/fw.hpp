@@ -306,11 +306,11 @@ namespace vkt
             if (queueCreateInfos.size() > 0) {
                 this->queueFamilyIndex = queueFamilyIndices[qptr];
                 this->device = this->physicalDevice.createDevice((::VkDeviceCreateInfo&)vkh::VkDeviceCreateInfo{
-                    .queueCreateInfoCount = queueCreateInfos.size(),
+                    .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
                     .pQueueCreateInfos = reinterpret_cast<::VkDeviceQueueCreateInfo*>(queueCreateInfos.data()),
-                    .enabledLayerCount = layers.size(),
+                    .enabledLayerCount = static_cast<uint32_t>(layers.size()),
                     .ppEnabledLayerNames = layers.data(),
-                    .enabledExtensionCount = gpuExtensions.size(),
+                    .enabledExtensionCount = static_cast<uint32_t>(gpuExtensions.size()),
                     .ppEnabledExtensionNames = (char* const*)gpuExtensions.data(),
                     .pEnabledFeatures = reinterpret_cast<VkPhysicalDeviceFeatures*>(&gFeatures.features)
                 });
@@ -505,15 +505,14 @@ namespace vkt
             VmaAllocationCreateInfo allocCreateInfo = {};
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-            // 
-            vmaCreateImage(this->allocator, &vkh::VkImageCreateInfo{
+            // TODO: shorter function create
+            auto image_info = vkh::VkImageCreateInfo{
                 .imageType = VK_IMAGE_TYPE_2D,
-                .format = formats.depthFormat,
+                .format = VkFormat(formats.depthFormat),
                 .extent = {applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u},
                 .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-            }, &allocCreateInfo, &reinterpret_cast<VkImage&>(depthImage), &vmaDepthImageAllocation, &vmaDepthImageAllocationInfo);
-
-            // 
+            };
+            vmaCreateImage(this->allocator, &reinterpret_cast<const VkImageCreateInfo&>(image_info), &allocCreateInfo, &reinterpret_cast<VkImage&>(depthImage), &vmaDepthImageAllocation, &vmaDepthImageAllocationInfo);
             depthImageView = device.createImageView(vk::ImageViewCreateInfo{{}, depthImage, vk::ImageViewType::e2D, formats.depthFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1} });
 
             // 
