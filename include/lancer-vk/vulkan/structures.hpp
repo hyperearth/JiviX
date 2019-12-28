@@ -538,7 +538,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     typedef struct VkGeometryNV {
         VkStructureType      sType        = VK_STRUCTURE_TYPE_GEOMETRY_NV;
         const void*          pNext        = nullptr;
-        VkGeometryTypeNV     geometryType = VK_GEOMETRY_TYPE_TRIANGLES_NV
+        VkGeometryTypeNV     geometryType = VK_GEOMETRY_TYPE_TRIANGLES_NV;
         VkGeometryDataNV     geometry     = {};
         VkGeometryFlagsNV    flags        = {};
         STRUCT_OPERATORS(VkGeometryNV)
@@ -554,7 +554,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t                               geometryCount = 0u;
         const VkGeometryNV*                    pGeometries   = nullptr;
 
-        VkSubpassDescription& setGeometries(const std::vector<VkGeometryNV>& V = {}) { pGeometries = V.data(); geometryCount = V.size(); return *this; };
+        VkAccelerationStructureInfoNV& setGeometries(const std::vector<VkGeometryNV>& V = {}) { pGeometries = V.data(); geometryCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkAccelerationStructureInfoNV)
     } VkAccelerationStructureInfoNV;
@@ -568,8 +568,23 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         STRUCT_OPERATORS(VkAccelerationStructureCreateInfoNV)
     } VkAccelerationStructureCreateInfoNV;
 
+    #pragma pack(pop)
 
 
+    // CODING EXTRAS...
+    #pragma pack(push, 1)
+        struct VsGeometryInstance {
+            glm::mat3x4 transform = {
+                glm::vec4(1.0f,0.0f,0.0f,0.0f),
+                glm::vec4(0.0f,1.0f,0.0f,0.0f),
+                glm::vec4(0.0f,0.0f,1.0f,0.0f)
+            };
+            uint32_t instanceId : 24;
+            uint32_t mask : 8;
+            uint32_t instanceOffset : 24;
+            union { uint32_t flags_8u : 8; VkGeometryInstanceFlagsNV flags = {}; };
+            uint64_t accelerationStructureHandle = 0ull;
+        };
     #pragma pack(pop)
 
 };
