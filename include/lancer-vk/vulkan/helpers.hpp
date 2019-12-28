@@ -183,11 +183,11 @@ namespace vkh {
             return handles_.back();
         };
 
+        VkDescriptorSetAllocateInfo allocate_info = {};
+        VkDescriptorUpdateTemplateCreateInfo template_info = {};
         std::vector<uint8_t> heap = {};
         std::vector<VkDescriptorUpdateTemplateEntry> entries = {};
         std::vector<VsDescriptorHandle> handles = {};
-        VkDescriptorSetAllocateInfo allocate_info = {};
-        VkDescriptorUpdateTemplateCreateInfo template_info = {};
     };
 
     class VsDescriptorSetLayoutCreateInfoHelper { public: 
@@ -217,10 +217,10 @@ namespace vkh {
         };
 
     protected: // 
+        VkDescriptorSetLayoutCreateInfo vk_info = {};
+        VkDescriptorSetLayoutBindingFlagsCreateInfoEXT flags_info = {};
         std::vector<VkDescriptorSetLayoutBinding> bindings = {};
         std::vector<VkDescriptorBindingFlagsEXT> binding_flags = {};
-        VkDescriptorSetLayoutBindingFlagsCreateInfoEXT flags_info = {};
-        VkDescriptorSetLayoutCreateInfo vk_info = {};
     };
 
 
@@ -291,13 +291,13 @@ namespace vkh {
         };
 
     protected: // 
+        VkRenderPassCreateInfo vk_info = {};
         std::vector<VkAttachmentDescription> attachments = {};
         std::vector<VkSubpassDescription> subpasses = {};
         std::vector<VkSubpassDependency> dependencies = {};
         std::vector<std::vector<VkAttachmentReference>> color_attachments = {};
         std::vector<std::vector<VkAttachmentReference>> input_attachments = {};
         std::vector<VkAttachmentReference> depth_stencil_attachment {};
-        VkRenderPassCreateInfo vk_info = {};
     };
 
 };
