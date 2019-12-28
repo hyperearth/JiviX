@@ -22,8 +22,9 @@ int main() {
 	fw.createWindowSurface(800u, 600u);
 	auto physicalDevice = fw.getPhysicalDevice(0u);
 	fw.createDevice(true,"./",false);
-	fw.createSwapchain();
+	auto swapchain = fw.createSwapchain();
 	auto renderpass = fw.createRenderPass();
+	auto framebuffers = fw.createSwapchainFramebuffer(swapchain, renderpass);
 
     return 0;
 };

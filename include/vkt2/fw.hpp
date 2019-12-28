@@ -372,6 +372,7 @@ namespace vkt
         // setters
         void format(SurfaceFormat format) { applicationWindow.surfaceFormat = format; }
         void size(const vk::Extent2D & size) { applicationWindow.surfaceSize = size; }
+
         // 
         inline SurfaceFormat& getSurfaceFormat(vk::PhysicalDevice gpu)
         {
@@ -425,12 +426,12 @@ namespace vkt
             };
 
             // return format result
-            SurfaceFormat sfd = {};
+            auto& sfd = applicationWindow.surfaceFormat;
             sfd.colorSpace = surfaceColorSpace;
             sfd.colorFormat = surfaceColorFormat;
             sfd.depthFormat = surfaceDepthFormat;
             sfd.colorFormatProperties = formatProperties; // get properties about format
-            return (applicationWindow.surfaceFormat = sfd);
+            return sfd;
         }
 
         inline vk::RenderPass& createRenderPass()
@@ -439,6 +440,7 @@ namespace vkt
             auto render_pass_helper = vkh::VsRenderPassCreateInfoHelper();
 
             render_pass_helper.addColorAttachment(vkh::VkAttachmentDescription{
+                .format = VkFormat(formats.colorFormat),
                 .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -448,6 +450,7 @@ namespace vkt
             });
 
             render_pass_helper.setDepthStencilAttachment(vkh::VkAttachmentDescription{
+                .format = VkFormat(formats.depthFormat),
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -483,8 +486,8 @@ namespace vkt
         inline void updateSwapchainFramebuffer(std::vector<Framebuffer> & swapchainBuffers, vk::SwapchainKHR & swapchain, vk::RenderPass & renderpass)
         {
             // The swapchain handles allocating frame images.
-            auto formats = applicationWindow.surfaceFormat;
-            auto gpuMemoryProps = physicalDevice.getMemoryProperties();
+            auto& surfaceFormats = getSurfaceFormat(this->physicalDevice);
+            auto  gpuMemoryProps = physicalDevice.getMemoryProperties();
 
             // 
             auto imageInfoVK = vk::ImageCreateInfo{};
@@ -494,7 +497,7 @@ namespace vkt
             imageInfoVK.pNext = nullptr;
             imageInfoVK.arrayLayers = 1;
             imageInfoVK.extent = vk::Extent3D{ applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u };
-            imageInfoVK.format = { formats.depthFormat };
+            imageInfoVK.format = { surfaceFormats.depthFormat };
             imageInfoVK.imageType = vk::ImageType::e2D;
             imageInfoVK.mipLevels = 1;
             imageInfoVK.samples = vk::SampleCountFlagBits::e1;
@@ -506,14 +509,14 @@ namespace vkt
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
             // TODO: shorter function create
-            auto image_info = vkh::VkImageCreateInfo{
+            auto image_info = static_cast<VkImageCreateInfo>(vkh::VkImageCreateInfo{
                 .imageType = VK_IMAGE_TYPE_2D,
-                .format = VkFormat(formats.depthFormat),
+                .format = VkFormat(surfaceFormats.depthFormat),
                 .extent = {applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u},
-                .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-            };
-            vmaCreateImage(this->allocator, &reinterpret_cast<const VkImageCreateInfo&>(image_info), &allocCreateInfo, &reinterpret_cast<VkImage&>(depthImage), &vmaDepthImageAllocation, &vmaDepthImageAllocationInfo);
-            depthImageView = device.createImageView(vk::ImageViewCreateInfo{{}, depthImage, vk::ImageViewType::e2D, formats.depthFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1} });
+                .usage = { .eDepthStencilAttachment = 1 }
+            });
+            vmaCreateImage(this->allocator, &image_info, &allocCreateInfo, &reinterpret_cast<VkImage&>(depthImage), &vmaDepthImageAllocation, &vmaDepthImageAllocationInfo);
+            depthImageView = device.createImageView(vk::ImageViewCreateInfo{{}, depthImage, vk::ImageViewType::e2D, surfaceFormats.depthFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1} });
 
             // 
             auto swapchainImages = device.getSwapchainImagesKHR(swapchain);
@@ -521,7 +524,7 @@ namespace vkt
             for (int i = 0; i < swapchainImages.size(); i++)
             { // create framebuffers
                 std::array<vk::ImageView, 2> views = {}; // predeclare views
-                views[0] = device.createImageView(vk::ImageViewCreateInfo{ {}, swapchainImages[i], vk::ImageViewType::e2D, formats.colorFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
+                views[0] = device.createImageView(vk::ImageViewCreateInfo{ {}, swapchainImages[i], vk::ImageViewType::e2D, surfaceFormats.colorFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1} }); // color view
                 views[1] = depthImageView; // depth view
                 swapchainBuffers[i].frameBuffer = device.createFramebuffer(vk::FramebufferCreateInfo{ {}, renderpass, uint32_t(views.size()), views.data(), applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u });
             };
@@ -542,11 +545,8 @@ namespace vkt
         // create swapchain template
         inline vk::SwapchainKHR createSwapchain()
         {
-            auto surfaceFormats = getSurfaceFormat(this->physicalDevice);
-
-            vk::SurfaceKHR surface = applicationWindow.surface;
-            SurfaceFormat& formats = getSurfaceFormat(this->physicalDevice);
-
+            auto& formats = getSurfaceFormat(this->physicalDevice);
+            auto& surface = applicationWindow.surface;
             auto surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(surface);
             auto surfacePresentModes = physicalDevice.getSurfacePresentModesKHR(surface);
 
