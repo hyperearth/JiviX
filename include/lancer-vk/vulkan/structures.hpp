@@ -91,6 +91,35 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     } VkImageCreateInfo;
 
     // 
+    typedef struct VkImageSubresourceRange {
+        VkImageAspectFlags    aspectMask = { .eColor = 1 };
+        uint32_t              baseMipLevel = 0u;
+        uint32_t              levelCount = 1u;
+        uint32_t              baseArrayLayer = 0u;
+        uint32_t              layerCount = 1u;
+    } VkImageSubresourceRange;
+
+    // 
+    typedef struct VkComponentMapping {
+        VkComponentSwizzle r = VK_COMPONENT_SWIZZLE_R;
+        VkComponentSwizzle g = VK_COMPONENT_SWIZZLE_G;
+        VkComponentSwizzle b = VK_COMPONENT_SWIZZLE_B;
+        VkComponentSwizzle a = VK_COMPONENT_SWIZZLE_A;
+    } VkComponentMapping;
+
+    // 
+    typedef struct VkImageViewCreateInfo {
+        VkStructureType            sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        const void*                pNext            = nullptr;
+        VkImageViewCreateFlags     flags            = {};
+        VkImage                    image            = VK_NULL_HANDLE;
+        VkImageViewType            viewType         = VK_IMAGE_VIEW_TYPE_2D;
+        VkFormat                   format           = VK_FORMAT_R8G8B8A8_UNORM;
+        VkComponentMapping         components       = {};
+        VkImageSubresourceRange    subresourceRange = {};
+    } VkImageViewCreateInfo;
+
+    // 
     typedef struct VkPipelineInputAssemblyStateCreateInfo {
         VkStructureType                                 sType                   = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         const void*                                     pNext                   = nullptr;

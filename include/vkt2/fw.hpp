@@ -129,8 +129,12 @@ namespace vkt
         vk::Image depthImage = {};
         vk::ImageView depthImageView = {};
         vk::PipelineCache pipelineCache = {};
+        VmaAllocator allocator = {};
         uint32_t queueFamilyIndex = 0;
         uint32_t instanceVersion = 0;
+
+        VmaAllocation vmaDepthImageAllocation = {};
+        VmaAllocationInfo vmaDepthImageAllocationInfo = {};
 
         std::vector<vk::PhysicalDevice> physicalDevices = {};
         std::vector<uint32_t> queueFamilyIndices = {};
@@ -297,20 +301,6 @@ namespace vkt
                 };
             };
 
-            // if have supported queue family, then use this device
-            //if (queueCreateInfos.size() > 0) {
-            //    this->device = physicalDevice.createDevice(vk::DeviceCreateInfo()
-            //        .setPNext(&gFeatures)
-            //        .setPQueueCreateInfos(queueCreateInfos.data()).setQueueCreateInfoCount(queueCreateInfos.size())
-            //        .setPpEnabledExtensionNames(deviceExtensions.data()).setEnabledExtensionCount(deviceExtensions.size())
-            //        .setPpEnabledLayerNames(deviceValidationLayers.data()).setEnabledLayerCount(deviceValidationLayers.size()); // already created device now!
-            //};
-
-
-            //vk::PipelineCacheCreateInfo cacheInfo = {};
-            //cacheInfo.initialDataSize = 32768u;
-            //auto cache = _device.createPipelineCache(cacheInfo);
-
             // return device with queue pointer
             const uint32_t qptr = 0;
             if (queueCreateInfos.size() > 0) {
@@ -323,13 +313,19 @@ namespace vkt
                     .enabledExtensionCount = gpuExtensions.size(),
                     .ppEnabledExtensionNames = (char* const*)gpuExtensions.data(),
                     .pEnabledFeatures = reinterpret_cast<VkPhysicalDeviceFeatures*>(&gFeatures.features)
-                    });
+                });
+                this->pipelineCache = this->device.createPipelineCache(vk::PipelineCacheCreateInfo());
             };
             //this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
             this->queue = this->device.getQueue(queueFamilyIndex, 0); // 
             this->fence = this->device.createFence(vk::FenceCreateInfo().setFlags({}));
             this->commandPool = this->device.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
-            //this->allocator = this->device->createAllocator<VMAllocator_T>()->initialize();
+
+            VmaAllocatorCreateInfo vma_info = {};
+            vma_info.device = this->device;
+            vma_info.instance = this->instance;
+            vma_info.physicalDevice = this->physicalDevice;
+            vmaCreateAllocator(&vma_info, &this->allocator);
 
             // Manually Create Descriptor Pool
             auto dps = std::vector<vk::DescriptorPoolSize>{
@@ -505,18 +501,20 @@ namespace vkt
             imageInfoVK.tiling = vk::ImageTiling::eOptimal;
             imageInfoVK.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment|vk::ImageUsageFlagBits::eTransferSrc;
 
-            // TODO: Add VMA Support
+            // 
             VmaAllocationCreateInfo allocCreateInfo = {};
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-            // next-gen create image
-            // TODO: REMAKE MAKING
-            if (depthImageMaker) { depthImageMaker->free(); }; // use smart free 
-            depthImageMaker = device->createImageMaker(imageInfoVK, &depthImage)
-                ->setImageSubresourceRange(vk::ImageSubresourceRange{ vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil, 0, 1, 0, 1 })
-                ->create2D(formats.depthFormat, applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height)->allocate(allocator, (uintptr_t)&allocCreateInfo)
-                ->createImageView(&depthImageView,vk::ImageViewType::e2D,formats.depthFormat )
-                ->allocate((uintptr_t)(&allocCreateInfo));
+            // 
+            vmaCreateImage(this->allocator, &vkh::VkImageCreateInfo{
+                .imageType = VK_IMAGE_TYPE_2D,
+                .format = formats.depthFormat,
+                .extent = {applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u},
+                .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+            }, &allocCreateInfo, &reinterpret_cast<VkImage&>(depthImage), &vmaDepthImageAllocation, &vmaDepthImageAllocationInfo);
+
+            // 
+            depthImageView = device.createImageView(vk::ImageViewCreateInfo{{}, depthImage, vk::ImageViewType::e2D, formats.depthFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1} });
 
             // 
             auto swapchainImages = device.getSwapchainImagesKHR(swapchain);

@@ -51,16 +51,33 @@ namespace vkh {
     };
 
     // 
-    struct VkSampleCountFlags { ::VkFlags
-        e1:1,
-        e2:1,
-        e4:1,
-        e8:1,
-        e16:1,
-        e32:1,
-        e64:1;
-        
-        OPERATORS(VkSampleCountFlags,::VkSampleCountFlagBits,::VkFlags)
+    struct VkImageAspectFlags { ::VkFlags
+        eColor : 1,
+        eDepth : 1,
+        eStencil : 1,
+        eMetaData : 1,
+        ePlane0 : 1,
+        ePlane1 : 1,
+        ePlane2 : 1,
+        eMemoryPlane0 : 1,
+        eMemoryPlane1 : 1,
+        eMemoryPlane2 : 1;
+
+        OPERATORS(VkImageAspectFlags,::VkImageAspectFlagBits,::VkFlags)
+    };
+
+    // 
+    struct VkSampleCountFlags {
+        ::VkFlags
+            e1 : 1,
+            e2 : 1,
+            e4 : 1,
+            e8 : 1,
+            e16 : 1,
+            e32 : 1,
+            e64 : 1;
+
+        OPERATORS(VkSampleCountFlags, ::VkSampleCountFlagBits, ::VkFlags)
     };
 
     // 

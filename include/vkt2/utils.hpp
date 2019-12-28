@@ -49,6 +49,7 @@
 //#include <lancer/lancer.hpp>
 
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vk_mem_alloc.h>
 #include "./lancer-vk/vulkan/helpers.hpp"
 
 namespace vkt {
