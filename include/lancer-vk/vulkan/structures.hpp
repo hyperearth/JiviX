@@ -489,7 +489,86 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
         STRUCT_OPERATORS(VkRenderPassCreateInfo)
     } VkRenderPassCreateInfo;
-    
+
+    // 
+    typedef struct VkAccelerationStructureMemoryRequirementsInfoNV {
+        VkStructureType                                    sType                    = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_NV;
+        const void*                                        pNext                    = nullptr;
+        VkAccelerationStructureMemoryRequirementsTypeNV    type                     = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV;
+        VkAccelerationStructureNV                          accelerationStructure    = VK_NULL_HANDLE;
+        STRUCT_OPERATORS(VkAccelerationStructureMemoryRequirementsInfoNV)
+    } VkAccelerationStructureMemoryRequirementsInfoNV;
+
+    // 
+    typedef struct VkGeometryAABBNV {
+        VkStructureType    sType    = VK_STRUCTURE_TYPE_GEOMETRY_AABB_NV;
+        const void*        pNext    = nullptr;
+        VkBuffer           aabbData = VK_NULL_HANDLE;
+        uint32_t           numAABBs = 0u;
+        uint32_t           stride   = 24u;
+        VkDeviceSize       offset   = 0u;
+        STRUCT_OPERATORS(VkGeometryAABBNV)
+    } VkGeometryAABBNV;
+
+    // 
+    typedef struct VkGeometryTrianglesNV {
+        VkStructureType    sType            = VK_STRUCTURE_TYPE_GEOMETRY_TRIANGLES_NV;
+        const void*        pNext            = nullptr;
+        VkBuffer           vertexData       = VK_NULL_HANDLE;
+        VkDeviceSize       vertexOffset     = 0u;
+        uint32_t           vertexCount      = 1u;
+        VkDeviceSize       vertexStride     = 16u;
+        VkFormat           vertexFormat     = VK_FORMAT_R32G32B32_SFLOAT;
+        VkBuffer           indexData        = VK_NULL_HANDLE;
+        VkDeviceSize       indexOffset      = 0u;
+        uint32_t           indexCount       = 0u;
+        VkIndexType        indexType        = VK_INDEX_TYPE_NONE_NV;
+        VkBuffer           transformData    = VK_NULL_HANDLE;
+        VkDeviceSize       transformOffset  = 0u;
+        STRUCT_OPERATORS(VkGeometryTrianglesNV)
+    } VkGeometryTrianglesNV;
+
+    // 
+    typedef struct VkGeometryDataNV {
+        VkGeometryTrianglesNV    triangles = {};
+        VkGeometryAABBNV         aabbs     = {};
+    } VkGeometryDataNV;
+
+    // 
+    typedef struct VkGeometryNV {
+        VkStructureType      sType        = VK_STRUCTURE_TYPE_GEOMETRY_NV;
+        const void*          pNext        = nullptr;
+        VkGeometryTypeNV     geometryType = VK_GEOMETRY_TYPE_TRIANGLES_NV
+        VkGeometryDataNV     geometry     = {};
+        VkGeometryFlagsNV    flags        = {};
+        STRUCT_OPERATORS(VkGeometryNV)
+    } VkGeometryNV;
+
+    // 
+    typedef struct VkAccelerationStructureInfoNV {
+        VkStructureType                        sType         = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_INFO_NV;
+        const void*                            pNext         = nullptr;
+        VkAccelerationStructureTypeNV          type          = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_NV;
+        VkBuildAccelerationStructureFlagsNV    flags         = {};
+        uint32_t                               instanceCount = 0u;
+        uint32_t                               geometryCount = 0u;
+        const VkGeometryNV*                    pGeometries   = nullptr;
+
+        VkSubpassDescription& setGeometries(const std::vector<VkGeometryNV>& V = {}) { pGeometries = V.data(); geometryCount = V.size(); return *this; };
+
+        STRUCT_OPERATORS(VkAccelerationStructureInfoNV)
+    } VkAccelerationStructureInfoNV;
+
+    // 
+    typedef struct VkAccelerationStructureCreateInfoNV {
+        VkStructureType                  sType           = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_NV;
+        const void*                      pNext           = nullptr;
+        VkDeviceSize                     compactedSize   = 0u;
+        VkAccelerationStructureInfoNV    info            = {};
+        STRUCT_OPERATORS(VkAccelerationStructureCreateInfoNV)
+    } VkAccelerationStructureCreateInfoNV;
+
+
 
     #pragma pack(pop)
 
