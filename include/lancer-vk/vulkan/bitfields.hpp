@@ -3,6 +3,8 @@
 
 namespace vkh {
 
+    #pragma pack(push, 4) // Mostly, should be uint32_t
+
     // 
     #define OPERATORS(NAME,BITS,COMP) \
         NAME& operator=(const NAME& F) { (COMP&)(*this) = (COMP&)F; return *this; };\
@@ -333,8 +335,9 @@ namespace vkh {
 
         OPERATORS(VkDependencyFlags,::VkDependencyFlagBits,::VkFlags);
     };
+#pragma pack(pop)
     
-    // 
+    // Extras
 #pragma pack(push, 1)
     struct VkGeometryInstanceFlagsNV { uint8_t
         eTriangleCullDisable:1,
