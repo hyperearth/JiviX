@@ -444,7 +444,7 @@ namespace vkt
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+                .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL//VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
             });
 
             render_pass_helper.setDepthStencilAttachment(vkh::VkAttachmentDescription{
@@ -453,7 +453,7 @@ namespace vkt
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR
+                .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             });
 
             render_pass_helper.addSubpassDependency(vkh::VkSubpassDependency{

@@ -434,7 +434,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkAttachmentLoadOp              stencilLoadOp   = VK_ATTACHMENT_LOAD_OP_CLEAR;
         VkAttachmentStoreOp             stencilStoreOp  = VK_ATTACHMENT_STORE_OP_STORE;
         VkImageLayout                   initialLayout   = VK_IMAGE_LAYOUT_UNDEFINED;
-        VkImageLayout                   finalLayout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        VkImageLayout                   finalLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
 
         STRUCT_OPERATORS(VkAttachmentDescription)
     } VkAttachmentDescription;

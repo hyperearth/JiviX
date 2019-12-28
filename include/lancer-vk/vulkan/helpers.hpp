@@ -15,7 +15,7 @@ namespace vkh {
     // 6. [ ] Buffer and VMA based vectors
     // W - Work in Progress, V - Verified, D - deprecated...
 
-    // 
+    // TODO: REMOVE CODE TAFTOLOGY
     class VsRayTracingPipelineCreateInfoHelper { protected: 
         VkRayTracingPipelineCreateInfoNV vk_info = {};
         VkRayTracingShaderGroupCreateInfoNV raygen_shader_group = {};
@@ -33,7 +33,7 @@ namespace vkh {
         VsRayTracingPipelineCreateInfoHelper(const VkRayTracingPipelineCreateInfoNV& info = {}) : vk_info(info) {};
 
         // result groups
-        std::vector<VkRayTracingShaderGroupCreateInfoNV>& compileGroups() {
+        inline std::vector<VkRayTracingShaderGroupCreateInfoNV>& compileGroups() {
             compiled_shader_groups = { raygen_shader_group };
             for (auto& group : miss_shader_groups) { compiled_shader_groups.push_back(group); };
             for (auto& group : hit_shader_groups) { compiled_shader_groups.push_back(group); };
@@ -41,7 +41,7 @@ namespace vkh {
         };
 
         // WARNING: Only One Hit Group Supported At Once
-        VsRayTracingPipelineCreateInfoHelper& addShaderStages(const std::vector<VkPipelineShaderStageCreateInfo>& stages_in = {}, const VkRayTracingShaderGroupTypeNV& prior_group_type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_NV) {
+        inline VsRayTracingPipelineCreateInfoHelper& addShaderStages(const std::vector<VkPipelineShaderStageCreateInfo>& stages_in = {}, const VkRayTracingShaderGroupTypeNV& prior_group_type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_NV) {
             for (auto& stage : stages_in) {
                 if (stage.stage == VK_SHADER_STAGE_RAYGEN_BIT_NV) {
                     const uintptr_t last_idx = stages.size(); stages.push_back(stage);
@@ -83,12 +83,21 @@ namespace vkh {
         };
 
         // 
-        operator const ::VkRayTracingPipelineCreateInfoNV&() const { return (const VkRayTracingPipelineCreateInfoNV&)*this; };
-        operator const VkRayTracingPipelineCreateInfoNV&() { return vk_info; };
+        inline operator const ::VkRayTracingPipelineCreateInfoNV&() const { return vk_info; };
+        inline operator const VkRayTracingPipelineCreateInfoNV&() { return vk_info; };
 
         // 
-        operator ::VkRayTracingPipelineCreateInfoNV&() { return (VkRayTracingPipelineCreateInfoNV&)*this; };
-        operator VkRayTracingPipelineCreateInfoNV&() {
+        inline operator ::VkRayTracingPipelineCreateInfoNV&() {
+            auto& groups = compileGroups();
+            vk_info.pGroups = groups.data();
+            vk_info.pStages = stages.data();
+            vk_info.stageCount = stages.size();
+            vk_info.groupCount = groups.size();
+            return reinterpret_cast<::VkRayTracingPipelineCreateInfoNV&>(vk_info);
+        };
+
+        // 
+        inline operator VkRayTracingPipelineCreateInfoNV&() {
             auto& groups = compileGroups();
             vk_info.pGroups = groups.data();
             vk_info.pStages = stages.data();
@@ -114,7 +123,7 @@ namespace vkh {
         inline VsDescriptorHandle& operator=(const T& d) { *reinterpret_cast<T*>(field_t) = d; return *this; };
     };
 
-    // 
+    // TODO: REMOVE CODE TAFTOLOGY
     class VsDescriptorSetCreateInfoHelper { public: uint32_t flags = 0u; using T = uintptr_t; // 
         VsDescriptorSetCreateInfoHelper(const VkDescriptorSetLayout& layout = {}, const VkDescriptorPool& pool = {}){
             template_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO;
@@ -148,8 +157,12 @@ namespace vkh {
 
         // 
         inline operator std::vector<VkDescriptorUpdateTemplateEntry>& () { return entries; };
-        inline operator ::VkDescriptorSetAllocateInfo& () { return (VkDescriptorSetAllocateInfo&)*this; };
-        inline operator ::VkDescriptorUpdateTemplateCreateInfo& () { return (VkDescriptorUpdateTemplateCreateInfo&)*this; };
+        inline operator ::VkDescriptorSetAllocateInfo& () { return *this; };
+        inline operator ::VkDescriptorUpdateTemplateCreateInfo& () {
+            template_info.pDescriptorUpdateEntries = entries.data();
+            template_info.descriptorUpdateEntryCount = entries.size();
+            return reinterpret_cast<::VkDescriptorUpdateTemplateCreateInfo&>(template_info);
+        };
         inline operator VkDescriptorSetAllocateInfo&() { return allocate_info; };
         inline operator VkDescriptorUpdateTemplateCreateInfo&() {
             template_info.pDescriptorUpdateEntries = entries.data();
@@ -159,8 +172,8 @@ namespace vkh {
 
         // 
         inline operator const std::vector<VkDescriptorUpdateTemplateEntry>& () const { return entries; };
-        inline operator const ::VkDescriptorSetAllocateInfo& () const { return (const VkDescriptorSetAllocateInfo&)*this; };
-        inline operator const ::VkDescriptorUpdateTemplateCreateInfo& () const { return (const VkDescriptorUpdateTemplateCreateInfo&)*this; };
+        inline operator const ::VkDescriptorSetAllocateInfo& () const { return reinterpret_cast<const ::VkDescriptorSetAllocateInfo&>(allocate_info); };
+        inline operator const ::VkDescriptorUpdateTemplateCreateInfo& () const { return reinterpret_cast<const ::VkDescriptorUpdateTemplateCreateInfo&>(template_info); };
         inline operator const VkDescriptorSetAllocateInfo& () const { return allocate_info; };
         inline operator const VkDescriptorUpdateTemplateCreateInfo& () const { return template_info; };
         
@@ -183,6 +196,8 @@ namespace vkh {
         std::vector<VsDescriptorHandle> handles = {};
     };
 
+
+    // TODO: REMOVE CODE TAFTOLOGY
     class VsDescriptorSetLayoutCreateInfoHelper { public: 
         VsDescriptorSetLayoutCreateInfoHelper(const VkDescriptorSetLayoutCreateInfo& info) : vk_info(info) {
             vk_info.pNext = &flags_info;
@@ -196,8 +211,14 @@ namespace vkh {
         };
 
         // 
-        inline operator const ::VkDescriptorSetLayoutCreateInfo&() const { return (const VkDescriptorSetLayoutCreateInfo&)*this; };
-        inline operator ::VkDescriptorSetLayoutCreateInfo&() { return (VkDescriptorSetLayoutCreateInfo&)*this; };
+        inline operator const ::VkDescriptorSetLayoutCreateInfo& () const { return reinterpret_cast<const ::VkDescriptorSetLayoutCreateInfo&>(vk_info); };
+        inline operator ::VkDescriptorSetLayoutCreateInfo& () {
+            vk_info.pBindings = bindings.data();
+            vk_info.bindingCount = bindings.size();
+            flags_info.pBindingFlags = binding_flags.data();
+            flags_info.bindingCount = binding_flags.size();
+            return reinterpret_cast<::VkDescriptorSetLayoutCreateInfo&>(vk_info);
+        };
 
         // 
         inline operator const VkDescriptorSetLayoutCreateInfo&() const { return vk_info; };
@@ -216,14 +237,30 @@ namespace vkh {
         std::vector<VkDescriptorBindingFlagsEXT> binding_flags = {};
     };
 
+    // TODO: REMOVE CODE TAFTOLOGY
     class VsRenderPassCreateInfoHelper { public: 
         VsRenderPassCreateInfoHelper(const VkRenderPassCreateInfo& info = {}) : vk_info(info) {
-            
+
         };
 
         // 
-        inline operator ::VkRenderPassCreateInfo&() { return (VkRenderPassCreateInfo&)*this; };
-        inline operator const ::VkRenderPassCreateInfo&() const { return (const VkRenderPassCreateInfo&)*this; };
+        inline operator ::VkRenderPassCreateInfo&() {
+            vk_info.pAttachments = attachments.data();
+            vk_info.attachmentCount = attachments.size();
+            vk_info.pDependencies = dependencies.data();
+            vk_info.dependencyCount = dependencies.size();
+            vk_info.pSubpasses = subpasses.data();
+            vk_info.subpassCount = subpasses.size();
+            for (uint32_t i = 0; i < color_attachments.size(); i++) {
+                subpasses[i].pColorAttachments = color_attachments[i].data();
+                subpasses[i].colorAttachmentCount = color_attachments[i].size();
+                subpasses[i].pDepthStencilAttachment = &depth_stencil_attachment[i];
+                subpasses[i].pInputAttachments = input_attachments[i].data();
+                subpasses[i].inputAttachmentCount = input_attachments[i].size();
+            };
+            return reinterpret_cast<::VkRenderPassCreateInfo&>(vk_info); 
+        };
+        inline operator const ::VkRenderPassCreateInfo&() const { return reinterpret_cast<const ::VkRenderPassCreateInfo&>(vk_info); };
 
         // 
         inline operator const VkRenderPassCreateInfo&() const { return vk_info; };
@@ -262,11 +299,11 @@ namespace vkh {
         };
 
         //
-        inline VsRenderPassCreateInfoHelper& beginSubpass() { subpasses.push_back({}); color_attachments.push_back({}); depth_stencil_attachment.push_back({}); return *this; };
+        inline VsRenderPassCreateInfoHelper& beginSubpass() { subpasses.push_back({}); color_attachments.push_back({}); input_attachments.push_back({}); depth_stencil_attachment.push_back({}); return *this; };
         inline VsRenderPassCreateInfoHelper& addSubpassDependency(const VkSubpassDependency& dependency = {}) { dependencies.push_back(dependency); return *this; };
         inline VsRenderPassCreateInfoHelper& addColorAttachment(const VkAttachmentDescription& attachment = {}) {
             uintptr_t ptr = attachments.size(); attachments.push_back(attachment); auto& layout = attachments.back().finalLayout;
-            if (layout == VK_IMAGE_LAYOUT_UNDEFINED) { attachments.back().finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; };
+            if (layout == VK_IMAGE_LAYOUT_UNDEFINED) { layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; };
             if (subpasses.size() < 1u) { beginSubpass(); };
             color_attachments.back().push_back({ .attachment = static_cast<uint32_t>(ptr), .layout = layout });
             return *this;
@@ -275,7 +312,7 @@ namespace vkh {
         // 
         inline VsRenderPassCreateInfoHelper& setDepthStencilAttachment(const VkAttachmentDescription& attachment = {}) {
             uintptr_t ptr = attachments.size(); attachments.push_back(attachment); auto& layout = attachments.back().finalLayout;
-            if (layout == VK_IMAGE_LAYOUT_UNDEFINED) { attachments.back().finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; };
+            if (layout == VK_IMAGE_LAYOUT_UNDEFINED) { layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; };
             if (subpasses.size() < 1u) { beginSubpass(); };
             depth_stencil_attachment.back() = { .attachment = static_cast<uint32_t>(ptr), .layout = layout };
             return *this;
