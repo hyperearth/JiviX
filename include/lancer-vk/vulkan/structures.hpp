@@ -11,25 +11,26 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     // Structures should be packed accurately as Vulkan.H and Vulkan.HPP
     #pragma pack(push, 8) // BUT Vulkan Should PACK ONLY BY ONE BYTE
 
-//#ifdef USE_GLM
-    using VkExtent3D = glm::uvec3;
-    using VkExtent2D = glm::uvec2;
-    using VkOffset3D = glm::ivec3;
-    using VkOffset2D = glm::ivec2;
-//#endif
-
-    // 
-    typedef struct VkRect2D {
-        VkOffset2D offset = {0,0};
-        VkExtent2D extent = {1,1};
-    } VkRect2D;
-
     // 
     #define STRUCT_OPERATORS(NAME)\
         operator ::NAME&() { return reinterpret_cast<::NAME&>(*this); };\
         operator const ::NAME&() const { return reinterpret_cast<const ::NAME&>(*this); };\
         NAME& operator =( const ::NAME& info ) { reinterpret_cast<::NAME&>(*this) = info; return *this; };\
         NAME& operator =( const NAME& info ) { reinterpret_cast<::NAME&>(*this) = reinterpret_cast<const ::NAME&>(info); return *this; };
+
+    //#ifdef USE_GLM
+    using VkExtent3D = glm::uvec3;
+    using VkExtent2D = glm::uvec2;
+    using VkOffset3D = glm::ivec3;
+    using VkOffset2D = glm::ivec2;
+    //#endif
+
+    // 
+    typedef struct VkRect2D {
+        VkOffset2D offset = { 0,0 };
+        VkExtent2D extent = { 1,1 };
+        STRUCT_OPERATORS(VkRect2D)
+    } VkRect2D;
 
     // 
     typedef struct VkDeviceCreateInfo {
@@ -573,18 +574,19 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
     // CODING EXTRAS...
     #pragma pack(push, 1)
-        struct VsGeometryInstance {
-            glm::mat3x4 transform = {
-                glm::vec4(1.0f,0.0f,0.0f,0.0f),
-                glm::vec4(0.0f,1.0f,0.0f,0.0f),
-                glm::vec4(0.0f,0.0f,1.0f,0.0f)
-            };
-            uint32_t instanceId : 24;
-            uint32_t mask : 8;
-            uint32_t instanceOffset : 24;
-            union { uint32_t flags_8u : 8; VkGeometryInstanceFlagsNV flags = {}; };
-            uint64_t accelerationStructureHandle = 0ull;
+    struct VsGeometryInstance {
+        glm::mat3x4 transform = {
+            glm::vec4(1.0f,0.0f,0.0f,0.0f),
+            glm::vec4(0.0f,1.0f,0.0f,0.0f),
+            glm::vec4(0.0f,0.0f,1.0f,0.0f)
         };
+        uint32_t instanceId : 24;
+        uint32_t mask : 8;
+        uint32_t instanceOffset : 24;
+        union { uint32_t flags_8u : 8; VkGeometryInstanceFlagsNV flags = {}; };
+        uint64_t accelerationStructureHandle = 0ull;
+        //STRUCT_OPERATORS(VsGeometryInstance) // NO NATIVE TYPE
+    };
     #pragma pack(pop)
 
 };
