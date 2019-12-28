@@ -5,8 +5,6 @@ namespace vkh {
 
     // 
     #define OPERATORS(NAME,BITS,COMP) \
-        operator COMP& () { return reinterpret_cast<COMP&>(*this); };\
-        operator const COMP& () const { return reinterpret_cast<const COMP&>(*this); };\
         NAME& operator=(const NAME& F) { (COMP&)(*this) = (COMP&)F; return *this; };\
         NAME& operator=(const BITS& F) { (COMP&)(*this) = (COMP&)F; return *this; };\
         NAME& operator=(const COMP& F) { (COMP&)(*this) = F; return *this; };\
@@ -17,8 +15,10 @@ namespace vkh {
         NAME operator&(const BITS& F) { auto f = COMP(F) & COMP(*this); return reinterpret_cast<NAME&>(f); };\
         NAME operator^(const BITS& F) { auto f = COMP(F) ^ COMP(*this); return reinterpret_cast<NAME&>(f); };\
         NAME operator~() { auto f = ~COMP(*this); return reinterpret_cast<NAME&>(f); };\
-        operator BITS() {return reinterpret_cast<BITS&>(*this);};\
-        operator const BITS&() const {return reinterpret_cast<const BITS&>(*this);};
+        operator BITS&() {return reinterpret_cast<BITS&>(*this);};\
+        operator const BITS&() const {return reinterpret_cast<const BITS&>(*this);};\
+        operator COMP& () { return reinterpret_cast<COMP&>(*this); };\
+        operator const COMP& () const { return reinterpret_cast<const COMP&>(*this); };
 
     // 
     struct VkBufferCreateFlags { ::VkFlags
