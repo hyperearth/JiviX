@@ -1,5 +1,35 @@
 #pragma once
 
+// 
+#ifdef USE_CIMG
+#include "tinyexr.h"
+#define cimg_plugin "CImg/tinyexr_plugin.hpp"
+//#define cimg_use_png
+//#define cimg_use_jpeg
+#include "CImg.h"
+#endif
+
+// 
+#ifndef NSM
+#define NSM api
+#endif
+
+// Currently Windows Only Supported
+#if (defined(_WIN32) || defined(__MINGW32__) || defined(_MSC_VER_) || defined(__MINGW64__)) 
+#include <windows.h> // Fix HMODULE Type Error
+#endif
+
+// Default Backend
+#if !defined(USE_D3D12) && !defined(USE_VULKAN)
+#define USE_VULKAN
+#endif
+
+// 
+#include <vulkan/vulkan.hpp>
+#include <vulkan/vk_mem_alloc.h>
+#include <lancer-vk/vulkan/helpers.hpp>
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -29,36 +59,6 @@
 #include <vector>
 #include <thread>
 #include <atomic>
-
-// 
-#ifdef USE_CIMG
-#include "tinyexr.h"
-#define cimg_plugin "CImg/tinyexr_plugin.hpp"
-//#define cimg_use_png
-//#define cimg_use_jpeg
-#include "CImg.h"
-#endif
-
-// 
-#ifndef NSM
-#define NSM api
-#endif
-
-// Currently Windows Only Supported
-#if (defined(_WIN32) || defined(__MINGW32__) || defined(_MSC_VER_) || defined(__MINGW64__)) 
-#include <windows.h> // Fix HMODULE Type Error
-#endif
-
-// Default Backend
-#if !defined(USE_D3D12) && !defined(USE_VULKAN)
-#define USE_VULKAN
-#endif
-
-// 
-#include <vulkan/vulkan.hpp>
-#include <vulkan/vk_mem_alloc.h>
-#include "./lancer-vk/vulkan/helpers.hpp"
-
 
 namespace vkt {
 //#ifdef USE_VULKAN
