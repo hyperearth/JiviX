@@ -18,6 +18,7 @@
 //#define GLFW_INCLUDE_VULKAN
 #include "utils.hpp"
 #include "structs.hpp"
+#include "vector.hpp"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
