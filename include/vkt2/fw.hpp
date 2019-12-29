@@ -445,7 +445,7 @@ namespace vkt
         }
 
         inline vk::RenderPass& createRenderPass()
-        { // TODO: REMAKE_RENDER_PASS
+        { // TODO: Render Pass V2
             auto formats = applicationWindow.surfaceFormat;
             auto render_pass_helper = vkh::VsRenderPassCreateInfoHelper();
 
@@ -518,7 +518,7 @@ namespace vkt
             VmaAllocationCreateInfo allocCreateInfo = {};
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-            // TODO: shorter function create
+            // 
             auto image_info = static_cast<VkImageCreateInfo>(vkh::VkImageCreateInfo{
                 .imageType = VK_IMAGE_TYPE_2D,
                 .format = VkFormat(surfaceFormats.depthFormat),
@@ -571,11 +571,11 @@ namespace vkt
             auto presentMode = vk::PresentModeKHR::eImmediate;
             std::vector<vk::PresentModeKHR> priorityModes = { vk::PresentModeKHR::eImmediate, vk::PresentModeKHR::eMailbox, vk::PresentModeKHR::eFifoRelaxed, vk::PresentModeKHR::eFifo };
 
-            bool found = false;
+            bool found = false; // 
             for (auto pm : priorityModes) {
                 if (found) break;
                 for (auto sfm : surfacePresentModes) { if (pm == sfm) { presentMode = pm; found = true; break; } }
-            }
+            };
 
             // swapchain info
             auto swapchainCreateInfo = vk::SwapchainCreateInfoKHR();
