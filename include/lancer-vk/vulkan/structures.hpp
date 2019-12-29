@@ -35,6 +35,17 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         STRUCT_OPERATORS(VkRect2D)
     } VkRect2D;
 
+    // 
+    typedef struct VkViewport {
+        float    x          = -1.f;
+        float    y          = -1.f;
+        float    width      =  2.f;
+        float    height     =  2.f;
+        float    minDepth   =  0.f;
+        float    maxDepth   =  1.f;
+        STRUCT_OPERATORS(VkViewport)
+    } VkViewport;
+
     //
     typedef struct VkDescriptorPoolSize {
         VkDescriptorType    type            = VK_DESCRIPTOR_TYPE_SAMPLER;

@@ -38,8 +38,8 @@ int main() {
     vk::PipelineLayout finalPipelineLayout = device.createPipelineLayout(VkPipelineLayoutCreateInfo(pipelineLayoutInfo.setSetLayouts(layouts)));
 
     // 
-    auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight));
-    auto viewport = vk::Viewport(0.0f, 0.0f, renderArea.extent.width, renderArea.extent.height, 0, 1.0f);
+    auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
+    auto viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
     // 
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
@@ -50,8 +50,8 @@ int main() {
     pipelineInfo.graphicsPipelineCreateInfo.layout = finalPipelineLayout;
     pipelineInfo.graphicsPipelineCreateInfo.renderPass = renderPass;
     pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    pipelineInfo.viewportState.pViewports = (VkViewport*)&viewport;
-    pipelineInfo.viewportState.pScissors = (vkh::VkRect2D*)&renderArea;
+    pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
+    pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
 
     // 
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
@@ -91,8 +91,8 @@ int main() {
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(device, commandPool, false, false); // do reference of cmd buffer
                 commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
-                commandBuffer.setViewport(0, std::vector<vk::Viewport> { viewport });
-                commandBuffer.setScissor(0, std::vector<vk::Rect2D> { renderArea });
+                commandBuffer.setViewport(0, { viewport });
+                commandBuffer.setScissor(0, { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalPipeline);
                 commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, finalPipelineLayout, 0, descriptorSet, nullptr);
                 commandBuffer.draw(4, 1, 0, 0);
