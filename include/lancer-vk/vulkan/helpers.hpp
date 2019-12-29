@@ -107,6 +107,10 @@ namespace vkh {
         // 
         inline operator ::VkRayTracingPipelineCreateInfoNV&() { return format(); };
         inline operator VkRayTracingPipelineCreateInfoNV&() { return format(); };
+
+        // Vulkan-HPP
+        inline operator const vk::RayTracingPipelineCreateInfoNV& () const { return vk_info; };
+        inline operator vk::RayTracingPipelineCreateInfoNV& () { return format(); };
     };
 
     // 
@@ -190,6 +194,14 @@ namespace vkh {
         inline operator const VkDescriptorSetAllocateInfo& () const { return allocate_info; };
         inline operator const VkDescriptorUpdateTemplateCreateInfo& () const { return template_info; };
 
+        // Vulkan-HPP
+        inline operator vk::DescriptorSetAllocateInfo& () { return allocate_info; };
+        inline operator vk::DescriptorUpdateTemplateCreateInfo& () { return format(); };
+
+        // Vulkan-HPP
+        inline operator const vk::DescriptorSetAllocateInfo& () const { return allocate_info; };
+        inline operator const vk::DescriptorUpdateTemplateCreateInfo& () const { return template_info; };
+
 
     protected: template<class T = T> // 
         inline VsDescriptorHandle& _push_description( const VkDescriptorUpdateTemplateEntry& entry ) { // Un-Safe API again
@@ -208,7 +220,7 @@ namespace vkh {
         std::vector<VkDescriptorUpdateTemplateEntry> entries = {};
         std::vector<VsDescriptorHandle> handles = {};
     };
-
+ 
 
     // TODO: REMOVE CODE TAFTOLOGY
     class VsDescriptorSetLayoutCreateInfoHelper { public: 
@@ -234,6 +246,10 @@ namespace vkh {
         // 
         inline operator const ::VkDescriptorSetLayoutCreateInfo& () const { return vk_info; };
         inline operator ::VkDescriptorSetLayoutCreateInfo& () { return format(); };
+
+        // Vulkan-HPP
+        inline operator const vk::DescriptorSetLayoutCreateInfo& () const { return vk_info; };
+        inline operator vk::DescriptorSetLayoutCreateInfo& () { return format(); };
 
         // 
         inline operator const VkDescriptorSetLayoutCreateInfo&() const { return vk_info; };
@@ -293,6 +309,10 @@ namespace vkh {
         inline operator VkRenderPassCreateInfo& () { return format(); };
         inline operator const ::VkRenderPassCreateInfo& () const { return vk_info; };
         inline operator ::VkRenderPassCreateInfo& () { return format(); };
+
+        // Vulkan-HPP
+        inline operator const vk::RenderPassCreateInfo& () const { return vk_info; };
+        inline operator vk::RenderPassCreateInfo& () { return format(); };
 
         // 
         inline operator const std::vector<VkAttachmentDescription>&() const { return attachments; };
@@ -355,6 +375,11 @@ namespace vkh {
         inline operator VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
         inline operator const VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
 
+        // Vulkan-HPP
+        inline operator vk::GraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
+        inline operator const vk::GraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
+
+        //
         inline operator ::VkGraphicsPipelineCreateInfo* () { construct(); return graphicsPipelineCreateInfo; };
         inline operator const ::VkGraphicsPipelineCreateInfo* () const { return graphicsPipelineCreateInfo; };
         inline operator VkGraphicsPipelineCreateInfo* () { construct(); return &graphicsPipelineCreateInfo; };

@@ -306,7 +306,7 @@ namespace vkt
             const uint32_t qptr = 0;
             if (queueCreateInfos.size() > 0) {
                 this->queueFamilyIndex = queueFamilyIndices[qptr];
-                this->device = this->physicalDevice.createDevice(static_cast<vk::DeviceCreateInfo>(vkh::VkDeviceCreateInfo{
+                this->device = this->physicalDevice.createDevice(vkh::VkDeviceCreateInfo{
                     .queueCreateInfoCount = uint32_t(queueCreateInfos.size()),
                     .pQueueCreateInfos = reinterpret_cast<::VkDeviceQueueCreateInfo*>(queueCreateInfos.data()),
                     .enabledLayerCount = uint32_t(layers.size()),
@@ -314,7 +314,7 @@ namespace vkt
                     .enabledExtensionCount = uint32_t(deviceExtensions.size()),
                     .ppEnabledExtensionNames = deviceExtensions.data(),
                     .pEnabledFeatures = reinterpret_cast<VkPhysicalDeviceFeatures*>(&gFeatures.features)
-                }));
+                });
                 this->pipelineCache = this->device.createPipelineCache(vk::PipelineCacheCreateInfo());
             };
             //this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
@@ -340,9 +340,9 @@ namespace vkt
                 vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, .descriptorCount = 256u}
             };
 
-            this->descriptorPool = device.createDescriptorPool(static_cast<vk::DescriptorPoolCreateInfo>(vkh::VkDescriptorPoolCreateInfo{
+            this->descriptorPool = device.createDescriptorPool(vkh::VkDescriptorPoolCreateInfo{
                 .maxSets = 256u, .poolSizeCount = static_cast<uint32_t>(dps.size()), .pPoolSizes = dps.data()
-            }));
+            });
 
             return device;
         };
@@ -489,7 +489,7 @@ namespace vkt
                 .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT,
             });
 
-            return (renderPass = device.createRenderPass(static_cast<vk::RenderPassCreateInfo>(render_pass_helper)));
+            return (renderPass = device.createRenderPass(render_pass_helper));
         }
 
         // update swapchain framebuffer
@@ -519,13 +519,13 @@ namespace vkt
             allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
             // 
-            auto image_info = static_cast<VkImageCreateInfo>(vkh::VkImageCreateInfo{
+            auto image_info = vkh::VkImageCreateInfo{
                 .imageType = VK_IMAGE_TYPE_2D,
                 .format = VkFormat(surfaceFormats.depthFormat),
                 .extent = {applicationWindow.surfaceSize.width, applicationWindow.surfaceSize.height, 1u},
                 .usage = { .eDepthStencilAttachment = 1 }
-            });
-            vmaCreateImage(this->allocator, &image_info, &allocCreateInfo, &reinterpret_cast<VkImage&>(depthImage), &vmaDepthImageAllocation, &vmaDepthImageAllocationInfo);
+            };
+            vmaCreateImage(this->allocator, (VkImageCreateInfo*)&image_info, &allocCreateInfo, &reinterpret_cast<VkImage&>(depthImage), &vmaDepthImageAllocation, &vmaDepthImageAllocationInfo);
             depthImageView = device.createImageView(vk::ImageViewCreateInfo{{}, depthImage, vk::ImageViewType::e2D, surfaceFormats.depthFormat, vk::ComponentMapping(), vk::ImageSubresourceRange{vk::ImageAspectFlagBits::eDepth, 0, 1, 0, 1} });
 
             // 

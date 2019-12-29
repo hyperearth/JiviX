@@ -29,13 +29,13 @@ int main() {
 
     // Vookoo-styled Create Graphics
     vkh::VsDescriptorSetLayoutCreateInfoHelper descriptorSetLayoutInfo = {};
-    descriptorSetLayoutInfo.pushBinding(vkh::VkDescriptorBindingFlagsEXT{  },vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
+    descriptorSetLayoutInfo.pushBinding({  }, { .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
     vk::DescriptorSetLayout descriptorSetLayout = device.createDescriptorSetLayout(VkDescriptorSetLayoutCreateInfo(descriptorSetLayoutInfo));
 
     // 
     vkh::VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     std::vector<VkDescriptorSetLayout> layouts{ descriptorSetLayout };
-    vk::PipelineLayout finalPipelineLayout = device.createPipelineLayout(VkPipelineLayoutCreateInfo(pipelineLayoutInfo.setSetLayouts(layouts)));
+    vk::PipelineLayout finalPipelineLayout = device.createPipelineLayout(pipelineLayoutInfo.setSetLayouts(layouts));
 
     // 
     auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
@@ -43,7 +43,7 @@ int main() {
 
     // 
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo>(std::vector<VkPipelineShaderStageCreateInfo>{
+    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
         vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
         vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
     });
@@ -56,13 +56,13 @@ int main() {
     // 
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
     pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
-    auto finalPipeline = device.createGraphicsPipeline(fw.getPipelineCache(),VkGraphicsPipelineCreateInfo(pipelineInfo));
+    auto finalPipeline = device.createGraphicsPipeline(fw.getPipelineCache(), pipelineInfo);
 
     //
-    auto descriptorSet = device.allocateDescriptorSets(static_cast<vk::DescriptorSetAllocateInfo>(vkh::VkDescriptorSetAllocateInfo{
+    auto descriptorSet = device.allocateDescriptorSets(vkh::VkDescriptorSetAllocateInfo{
         .descriptorPool = fw.getDescriptorPool(),
         .pSetLayouts = &reinterpret_cast<const VkDescriptorSetLayout&>(descriptorSetLayout)
-    }));
+    });
 
 	// 
 	int currSemaphore = -1;
@@ -107,9 +107,9 @@ int main() {
 
             // Submit command once
             vkt::submitCmd(device, queue, { commandBuffer }, vk::SubmitInfo()
-                    .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
-                    .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
-                    .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));
+                .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
+                .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
+                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));
 
         };
 
