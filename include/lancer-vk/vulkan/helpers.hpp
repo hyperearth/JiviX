@@ -83,21 +83,7 @@ namespace vkh {
         };
 
         // 
-        inline operator const ::VkRayTracingPipelineCreateInfoNV&() const { return vk_info; };
-        inline operator const VkRayTracingPipelineCreateInfoNV&() { return vk_info; };
-
-        // 
-        inline operator ::VkRayTracingPipelineCreateInfoNV&() {
-            auto& groups = compileGroups();
-            vk_info.pGroups = groups.data();
-            vk_info.pStages = stages.data();
-            vk_info.stageCount = stages.size();
-            vk_info.groupCount = groups.size();
-            return reinterpret_cast<::VkRayTracingPipelineCreateInfoNV&>(vk_info);
-        };
-
-        // 
-        inline operator VkRayTracingPipelineCreateInfoNV&() {
+        inline VkRayTracingPipelineCreateInfoNV& format() {
             auto& groups = compileGroups();
             vk_info.pGroups = groups.data();
             vk_info.pStages = stages.data();
@@ -105,6 +91,22 @@ namespace vkh {
             vk_info.groupCount = groups.size();
             return vk_info;
         };
+
+        // 
+        inline operator const ::VkRayTracingPipelineCreateInfoNV* () const { return vk_info; };
+        inline operator const VkRayTracingPipelineCreateInfoNV* () { return &vk_info; };
+
+        // 
+        inline operator ::VkRayTracingPipelineCreateInfoNV* () { return format(); };
+        inline operator VkRayTracingPipelineCreateInfoNV* () { return &format(); };
+
+        // 
+        inline operator const ::VkRayTracingPipelineCreateInfoNV&() const { return vk_info; };
+        inline operator const VkRayTracingPipelineCreateInfoNV&() { return vk_info; };
+
+        // 
+        inline operator ::VkRayTracingPipelineCreateInfoNV&() { return format(); };
+        inline operator VkRayTracingPipelineCreateInfoNV&() { return format(); };
     };
 
     // 
@@ -156,27 +158,38 @@ namespace vkh {
         };
 
         // 
-        inline operator std::vector<VkDescriptorUpdateTemplateEntry>& () { return entries; };
-        inline operator ::VkDescriptorSetAllocateInfo& () { return *this; };
-        inline operator ::VkDescriptorUpdateTemplateCreateInfo& () {
-            template_info.pDescriptorUpdateEntries = entries.data();
-            template_info.descriptorUpdateEntryCount = entries.size();
-            return reinterpret_cast<::VkDescriptorUpdateTemplateCreateInfo&>(template_info);
-        };
-        inline operator VkDescriptorSetAllocateInfo&() { return allocate_info; };
-        inline operator VkDescriptorUpdateTemplateCreateInfo&() {
+        inline VkDescriptorUpdateTemplateCreateInfo& format() {
             template_info.pDescriptorUpdateEntries = entries.data();
             template_info.descriptorUpdateEntryCount = entries.size();
             return template_info;
         };
 
         // 
+        inline operator std::vector<VkDescriptorUpdateTemplateEntry>& () { return entries; };
+        inline operator ::VkDescriptorSetAllocateInfo& () { return allocate_info; };
+        inline operator ::VkDescriptorUpdateTemplateCreateInfo& () { return format(); };
+        inline operator VkDescriptorSetAllocateInfo&() { return allocate_info; };
+        inline operator VkDescriptorUpdateTemplateCreateInfo& () { return format(); };
+
+        // 
+        inline operator ::VkDescriptorSetAllocateInfo* () { return allocate_info; };
+        inline operator ::VkDescriptorUpdateTemplateCreateInfo* () { return format(); };
+        inline operator VkDescriptorSetAllocateInfo* () { return &allocate_info; };
+        inline operator VkDescriptorUpdateTemplateCreateInfo* () { return &format(); };
+
+        // 
+        inline operator const ::VkDescriptorSetAllocateInfo* () const { return allocate_info; };
+        inline operator const ::VkDescriptorUpdateTemplateCreateInfo* () const { return template_info; };
+        inline operator const VkDescriptorSetAllocateInfo* () const { return &allocate_info; };
+        inline operator const VkDescriptorUpdateTemplateCreateInfo* () const { return &template_info; };
+
+        // 
         inline operator const std::vector<VkDescriptorUpdateTemplateEntry>& () const { return entries; };
-        inline operator const ::VkDescriptorSetAllocateInfo& () const { return reinterpret_cast<const ::VkDescriptorSetAllocateInfo&>(allocate_info); };
-        inline operator const ::VkDescriptorUpdateTemplateCreateInfo& () const { return reinterpret_cast<const ::VkDescriptorUpdateTemplateCreateInfo&>(template_info); };
+        inline operator const ::VkDescriptorSetAllocateInfo& () const { return allocate_info; };
+        inline operator const ::VkDescriptorUpdateTemplateCreateInfo& () const { return template_info; };
         inline operator const VkDescriptorSetAllocateInfo& () const { return allocate_info; };
         inline operator const VkDescriptorUpdateTemplateCreateInfo& () const { return template_info; };
-        
+
 
     protected: template<class T = T> // 
         inline VsDescriptorHandle& _push_description( const VkDescriptorUpdateTemplateEntry& entry ) { // Un-Safe API again
@@ -210,25 +223,29 @@ namespace vkh {
             return *this;
         };
 
-        // 
-        inline operator const ::VkDescriptorSetLayoutCreateInfo& () const { return reinterpret_cast<const ::VkDescriptorSetLayoutCreateInfo&>(vk_info); };
-        inline operator ::VkDescriptorSetLayoutCreateInfo& () {
-            vk_info.pBindings = bindings.data();
-            vk_info.bindingCount = bindings.size();
-            flags_info.pBindingFlags = binding_flags.data();
-            flags_info.bindingCount = binding_flags.size();
-            return reinterpret_cast<::VkDescriptorSetLayoutCreateInfo&>(vk_info);
-        };
-
-        // 
-        inline operator const VkDescriptorSetLayoutCreateInfo&() const { return vk_info; };
-        inline operator VkDescriptorSetLayoutCreateInfo&() {
+        inline VkDescriptorSetLayoutCreateInfo& format() {
             vk_info.pBindings = bindings.data();
             vk_info.bindingCount = bindings.size();
             flags_info.pBindingFlags = binding_flags.data();
             flags_info.bindingCount = binding_flags.size();
             return vk_info;
         };
+
+        // 
+        inline operator const ::VkDescriptorSetLayoutCreateInfo& () const { return vk_info; };
+        inline operator ::VkDescriptorSetLayoutCreateInfo& () { return format(); };
+
+        // 
+        inline operator const VkDescriptorSetLayoutCreateInfo&() const { return vk_info; };
+        inline operator VkDescriptorSetLayoutCreateInfo&() { return format(); };
+
+        // 
+        inline operator const ::VkDescriptorSetLayoutCreateInfo* () const { return vk_info; };
+        inline operator ::VkDescriptorSetLayoutCreateInfo* () { return format(); };
+
+        // 
+        inline operator const VkDescriptorSetLayoutCreateInfo* () const { return &vk_info; };
+        inline operator VkDescriptorSetLayoutCreateInfo* () { return &format(); };
 
     protected: // 
         VkDescriptorSetLayoutCreateInfo vk_info = {};
@@ -244,51 +261,8 @@ namespace vkh {
         };
 
         // 
-        inline operator ::VkRenderPassCreateInfo&() {
-            vk_info.pAttachments = attachments.data();
-            vk_info.attachmentCount = attachments.size();
-            vk_info.pDependencies = dependencies.data();
-            vk_info.dependencyCount = dependencies.size();
-            vk_info.pSubpasses = subpasses.data();
-            vk_info.subpassCount = subpasses.size();
+        inline std::vector<VkSubpassDescription>& subpassFormat() {
             for (uint32_t i = 0; i < color_attachments.size(); i++) {
-                subpasses[i].pColorAttachments = color_attachments[i].data();
-                subpasses[i].colorAttachmentCount = color_attachments[i].size();
-                subpasses[i].pDepthStencilAttachment = &depth_stencil_attachment[i];
-                subpasses[i].pInputAttachments = input_attachments[i].data();
-                subpasses[i].inputAttachmentCount = input_attachments[i].size();
-            };
-            return reinterpret_cast<::VkRenderPassCreateInfo&>(vk_info); 
-        };
-        inline operator const ::VkRenderPassCreateInfo&() const { return reinterpret_cast<const ::VkRenderPassCreateInfo&>(vk_info); };
-
-        // 
-        inline operator const VkRenderPassCreateInfo&() const { return vk_info; };
-        inline operator VkRenderPassCreateInfo&() {
-            vk_info.pAttachments = attachments.data();
-            vk_info.attachmentCount = attachments.size();
-            vk_info.pDependencies = dependencies.data();
-            vk_info.dependencyCount = dependencies.size();
-            vk_info.pSubpasses = subpasses.data();
-            vk_info.subpassCount = subpasses.size();
-            for (uint32_t i=0;i<color_attachments.size();i++) {
-                subpasses[i].pColorAttachments = color_attachments[i].data();
-                subpasses[i].colorAttachmentCount = color_attachments[i].size();
-                subpasses[i].pDepthStencilAttachment = &depth_stencil_attachment[i];
-                subpasses[i].pInputAttachments = input_attachments[i].data();
-                subpasses[i].inputAttachmentCount = input_attachments[i].size();
-            };
-            return vk_info;
-        };
-
-        // 
-        inline operator const std::vector<VkAttachmentDescription>&() const { return attachments; };
-        inline operator const std::vector<VkSubpassDependency>&() const { return dependencies; };
-        inline operator const std::vector<VkSubpassDescription>&() const { return subpasses; };
-        inline operator std::vector<VkAttachmentDescription>&() { return attachments; };
-        inline operator std::vector<VkSubpassDependency>&() { return dependencies; };
-        inline operator std::vector<VkSubpassDescription>&() {
-            for (uint32_t i=0;i<color_attachments.size();i++) {
                 subpasses[i].pColorAttachments = color_attachments[i].data();
                 subpasses[i].colorAttachmentCount = color_attachments[i].size();
                 subpasses[i].pDepthStencilAttachment = &depth_stencil_attachment[i];
@@ -297,6 +271,36 @@ namespace vkh {
             };
             return subpasses;
         };
+
+        // 
+        inline VkRenderPassCreateInfo& format() {
+            vk_info.pAttachments = attachments.data();
+            vk_info.attachmentCount = attachments.size();
+            vk_info.pDependencies = dependencies.data();
+            vk_info.dependencyCount = dependencies.size();
+            vk_info.setSubpasses(subpassFormat());
+            return vk_info;
+        };
+
+        // 
+        inline operator const VkRenderPassCreateInfo* () const { return &vk_info; };
+        inline operator VkRenderPassCreateInfo* () { return &format(); };
+        inline operator const ::VkRenderPassCreateInfo* () const { return vk_info; };
+        inline operator ::VkRenderPassCreateInfo* () { return format(); };
+
+        // 
+        inline operator const VkRenderPassCreateInfo& () const { return vk_info; };
+        inline operator VkRenderPassCreateInfo& () { return format(); };
+        inline operator const ::VkRenderPassCreateInfo& () const { return vk_info; };
+        inline operator ::VkRenderPassCreateInfo& () { return format(); };
+
+        // 
+        inline operator const std::vector<VkAttachmentDescription>&() const { return attachments; };
+        inline operator const std::vector<VkSubpassDependency>&() const { return dependencies; };
+        inline operator const std::vector<VkSubpassDescription>&() const { return subpasses; };
+        inline operator std::vector<VkAttachmentDescription>&() { return attachments; };
+        inline operator std::vector<VkSubpassDependency>&() { return dependencies; };
+        inline operator std::vector<VkSubpassDescription>& () { return subpassFormat(); };
 
         //
         inline VsRenderPassCreateInfoHelper& beginSubpass() { subpasses.push_back({}); color_attachments.push_back({}); input_attachments.push_back({}); depth_stencil_attachment.push_back({}); return *this; };
@@ -348,6 +352,12 @@ namespace vkh {
         inline operator const ::VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
         inline operator VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
         inline operator const VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
+
+        inline operator ::VkGraphicsPipelineCreateInfo* () { construct(); return graphicsPipelineCreateInfo; };
+        inline operator const ::VkGraphicsPipelineCreateInfo* () const { return graphicsPipelineCreateInfo; };
+        inline operator VkGraphicsPipelineCreateInfo* () { construct(); return &graphicsPipelineCreateInfo; };
+        inline operator const VkGraphicsPipelineCreateInfo* () const { return &graphicsPipelineCreateInfo; };
+
         inline VsGraphicsPipelineCreateInfoConstruction& operator=(const VkGraphicsPipelineCreateInfo& info) { graphicsPipelineCreateInfo = info; construct(); return *this; };
         inline VsGraphicsPipelineCreateInfoConstruction& construct() {
             graphicsPipelineCreateInfo.setStages(stages);

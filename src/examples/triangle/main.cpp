@@ -67,7 +67,7 @@ int main() {
     //
     auto descriptorSet = device.allocateDescriptorSets(static_cast<vk::DescriptorSetAllocateInfo>(vkh::VkDescriptorSetAllocateInfo{
         .descriptorPool = fw.getDescriptorPool(),
-        .pSetLayouts = reinterpret_cast<const VkDescriptorSetLayout*>(&descriptorSetLayout)
+        .pSetLayouts = &reinterpret_cast<const VkDescriptorSetLayout&>(descriptorSetLayout)
     }));
 
 	// 
