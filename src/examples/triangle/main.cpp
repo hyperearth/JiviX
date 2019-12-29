@@ -32,7 +32,6 @@ int main() {
     descriptorSetLayoutInfo.pushBinding(vkh::VkDescriptorBindingFlagsEXT{  },vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
     vk::DescriptorSetLayout descriptorSetLayout = device.createDescriptorSetLayout(VkDescriptorSetLayoutCreateInfo(descriptorSetLayoutInfo));
 
-
     // 
     vkh::VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     std::vector<VkDescriptorSetLayout> layouts{ descriptorSetLayout };
