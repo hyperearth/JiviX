@@ -53,15 +53,9 @@ int main() {
     pipelineInfo.viewportState.pViewports = (VkViewport*)&viewport;
     pipelineInfo.viewportState.pScissors = (vkh::VkRect2D*)&renderArea;
 
-    // Blending
-    std::vector<vkh::VkPipelineColorBlendAttachmentState> blendState = {
-        vkh::VkPipelineColorBlendAttachmentState{}
-    };
-
     // 
-    auto dynamicStates = vkt::vector_cast<VkDynamicState>(std::vector<vk::DynamicState>{vk::DynamicState::eScissor, vk::DynamicState::eViewport});
-    pipelineInfo.dynamicState.setDynamicStates(dynamicStates);
-    pipelineInfo.colorBlendState.setAttachments(blendState);
+    pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
+    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
     auto finalPipeline = device.createGraphicsPipeline(fw.getPipelineCache(),VkGraphicsPipelineCreateInfo(pipelineInfo));
 
     //

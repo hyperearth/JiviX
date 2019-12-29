@@ -337,6 +337,8 @@ namespace vkh {
     class VsGraphicsPipelineCreateInfoConstruction { public: 
         VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {};
         std::vector<VkPipelineShaderStageCreateInfo> stages = {};
+        std::vector<VkDynamicState> dynamicStates = {};
+        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachmentStates = {};
         VkPipelineVertexInputStateCreateInfo vertexInputState = {};
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
         VkPipelineTessellationStateCreateInfo tessellationState = {};
@@ -370,6 +372,8 @@ namespace vkh {
             graphicsPipelineCreateInfo.pDepthStencilState = &depthStencilState;
             graphicsPipelineCreateInfo.pColorBlendState = &colorBlendState;
             graphicsPipelineCreateInfo.pDynamicState = &dynamicState;
+            dynamicState.setDynamicStates(dynamicStates);
+            colorBlendState.setAttachments(colorBlendAttachmentStates);
             return *this;
         };
 
