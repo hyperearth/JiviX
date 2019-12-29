@@ -24,10 +24,11 @@ namespace vkt {
         };
 
         // Get mapped memory
-        void* map() { return allocationInfo.pMappedData; };
+        void* map() { void* ptr = nullptr; vmaMapMemory(allocator, allocation, &ptr); return ptr; };
+        void* mapped() { if (!allocationInfo.pMappedData) { vmaMapMemory(allocator, allocation, &allocationInfo.pMappedData); }; return allocationInfo.pMappedData; };
 
         // GPU unmap memory
-        void unmap() { /*vmaUnmapMemory(allocator, allocation);*/ };
+        void unmap() { vmaUnmapMemory(allocator, allocation); allocationInfo.pMappedData = nullptr; };
 
         // vk::Device caster
         //operator vk::Buffer&() { return buffer; };
@@ -73,10 +74,11 @@ namespace vkt {
         };
 
         // Get mapped memory
-        void* map() { return allocationInfo.pMappedData; };
+        void* map() { void* ptr = nullptr; vmaMapMemory(allocator, allocation, &ptr); return ptr; };
+        void* mapped() { if (!allocationInfo.pMappedData) { vmaMapMemory(allocator, allocation, &allocationInfo.pMappedData); }; return allocationInfo.pMappedData; };
 
         // GPU unmap memory
-        void unmap() { /*vmaUnmapMemory(allocator, allocation);*/ };
+        void unmap() { vmaUnmapMemory(allocator, allocation); allocationInfo.pMappedData = nullptr; };
 
         // vk::Device caster
         //operator vk::Buffer&() { return buffer; };
@@ -116,7 +118,7 @@ namespace vkt {
         T* const& map() { mapped = (T*)((uint8_t*)buffer->map() + bufInfo.offset); return mapped; };
         void unmap() { buffer->unmap(); };
 
-        T* const& data() { this->map(); return mapped; };
+        T* const& data() { this->mapped(); return mapped; };
         const T*& data() const { return mapped; };
 
         size_t size() const { return size_t(bufInfo.range / sizeof(T)); };
