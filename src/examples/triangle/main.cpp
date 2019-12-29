@@ -30,12 +30,12 @@ int main() {
     // Vookoo-styled Create Graphics
     vkh::VsDescriptorSetLayoutCreateInfoHelper descriptorSetLayoutInfo = {};
     descriptorSetLayoutInfo.pushBinding({  }, { .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
-    vk::DescriptorSetLayout descriptorSetLayout = device.createDescriptorSetLayout(VkDescriptorSetLayoutCreateInfo(descriptorSetLayoutInfo));
+    auto descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
 
     // 
     vkh::VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     std::vector<VkDescriptorSetLayout> layouts{ descriptorSetLayout };
-    vk::PipelineLayout finalPipelineLayout = device.createPipelineLayout(pipelineLayoutInfo.setSetLayouts(layouts));
+    auto finalPipelineLayout = device.createPipelineLayout(pipelineLayoutInfo.setSetLayouts(layouts));
 
     // 
     auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
