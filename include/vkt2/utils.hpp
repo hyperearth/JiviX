@@ -76,7 +76,7 @@
 
 
 namespace vkt {
-#ifdef USE_VULKAN
+//#ifdef USE_VULKAN
     template <typename T>
     static inline auto sgn(const T& val) { return (T(0) < val) - (val < T(0)); }
 
@@ -145,14 +145,15 @@ namespace vkt {
         vk::PipelineShaderStageCreateInfo spi = {};
         vk::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT sgmp = {};
 
+        // 
         operator vk::PipelineShaderStageCreateInfo& () { return spi; };
-        operator const vk::PipelineShaderStageCreateInfo& () const { return spi; };
         operator vk::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT& () { return sgmp; };
+        operator const vk::PipelineShaderStageCreateInfo& () const { return spi; };
         operator const vk::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT& () const { return sgmp; };
     };
 
     // create shader module
-    static inline auto makePipelineStageInfo(const vk::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", vk::ShaderStageFlagBits stage = vk::ShaderStageFlagBits::eCompute) {
+    static inline auto makePipelineStageInfo(const vk::Device& device, const std::vector<uint32_t>& code, vk::ShaderStageFlagBits stage = vk::ShaderStageFlagBits::eCompute, const char * entry = "main") {
         vk::PipelineShaderStageCreateInfo spi = {};
         createShaderModuleIntrusive(device, code, spi.module);
         spi.pName = entry;
@@ -164,18 +165,12 @@ namespace vkt {
     // create shader module
     static inline auto makeComputePipelineStageInfo(const vk::Device& device, const std::vector<uint32_t>& code, const char * entry = "main", const uint32_t& subgroupSize = 0u) {
         auto f = FixConstruction{};
-
-        f.spi = vk::PipelineShaderStageCreateInfo{};;
+        f.spi = makePipelineStageInfo(device,code,vk::ShaderStageFlagBits::eCompute,entry);
         f.spi.flags = vk::PipelineShaderStageCreateFlagBits::eRequireFullSubgroupsEXT;
         createShaderModuleIntrusive(device, code, f.spi.module);
-        f.spi.pName = entry;
-        f.spi.stage = vk::ShaderStageFlagBits::eCompute;
-        f.spi.pSpecializationInfo = {};
-
         f.sgmp = vk::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT{};
         f.sgmp.requiredSubgroupSize = subgroupSize;
         if (subgroupSize) f.spi.pNext = &f.sgmp;
-
         return std::move(f);
     };
 
@@ -358,7 +353,7 @@ namespace vkt {
         const auto  srcStageMask = vk::PipelineStageFlags{ vk::PipelineStageFlagBits::eBottomOfPipe };
         const auto  dstStageMask = vk::PipelineStageFlags{ vk::PipelineStageFlagBits::eTopOfPipe };
         const auto  dependencyFlags = vk::DependencyFlags{};
-                auto  srcMask = vk::AccessFlags{}, dstMask = vk::AccessFlags{};
+              auto  srcMask = vk::AccessFlags{}, dstMask = vk::AccessFlags{};
 
         typedef vk::ImageLayout il;
         typedef vk::AccessFlagBits afb;
@@ -399,5 +394,10 @@ namespace vkt {
         return result;
     };
 
-#endif
+    template<class T,class Ty = T>
+    std::vector<T> vector_cast(const std::vector<Ty>& Vy){
+        std::vector<T> V{}; for (auto& v : Vy) {V.push_back(reinterpret_cast<const T&>(v));}; return std::move(V);
+    };
+
+//#endif
 };

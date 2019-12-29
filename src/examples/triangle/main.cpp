@@ -4,15 +4,14 @@
 vkt::GPUFramework fw = {};
 
 int main() {
-
     glfwInit();
 
+    // 
 	if (GLFW_FALSE == glfwVulkanSupported()) {
-		// not supported
-		glfwTerminate();
-		return -1;
-	}
+		glfwTerminate(); return -1;
+	};
 
+    // 
 	uint32_t canvasWidth = 800, canvasHeight = 600;
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -28,14 +27,57 @@ int main() {
 	auto queue = fw.getQueue();
 	auto commandPool = fw.getCommandPool();
 
+    // Vookoo-styled Create Graphics
+    vkh::VsDescriptorSetLayoutCreateInfoHelper descriptorSetLayoutInfo = {};
+    descriptorSetLayoutInfo.pushBinding(vkh::VkDescriptorBindingFlagsEXT{  },vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
+    vk::DescriptorSetLayout descriptorSetLayout = device.createDescriptorSetLayout(VkDescriptorSetLayoutCreateInfo(descriptorSetLayoutInfo));
+
+
+    // 
+    vkh::VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+    std::vector<VkDescriptorSetLayout> layouts{ descriptorSetLayout };
+    vk::PipelineLayout finalPipelineLayout = device.createPipelineLayout(VkPipelineLayoutCreateInfo(pipelineLayoutInfo.setSetLayouts(layouts)));
+
+    // 
+    auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight));
+    auto viewport = vk::Viewport(0.0f, 0.0f, renderArea.extent.width, renderArea.extent.height, 0, 1.0f);
+
+    // 
+    vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
+    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo>(std::vector<VkPipelineShaderStageCreateInfo>{
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+    });
+    pipelineInfo.graphicsPipelineCreateInfo.layout = finalPipelineLayout;
+    pipelineInfo.graphicsPipelineCreateInfo.renderPass = renderPass;
+    pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    pipelineInfo.viewportState.pViewports = (VkViewport*)&viewport;
+    pipelineInfo.viewportState.pScissors = (vkh::VkRect2D*)&renderArea;
+
+    // Blending
+    std::vector<vkh::VkPipelineColorBlendAttachmentState> blendState = {
+        vkh::VkPipelineColorBlendAttachmentState{}
+    };
+
+    // 
+    auto dynamicStates = vkt::vector_cast<VkDynamicState>(std::vector<vk::DynamicState>{vk::DynamicState::eScissor, vk::DynamicState::eViewport});
+    pipelineInfo.dynamicState.setDynamicStates(dynamicStates);
+    pipelineInfo.colorBlendState.setAttachments(blendState);
+    auto finalPipeline = device.createGraphicsPipeline(fw.getPipelineCache(),VkGraphicsPipelineCreateInfo(pipelineInfo));
+
+    //
+    auto descriptorSet = device.allocateDescriptorSets(static_cast<vk::DescriptorSetAllocateInfo>(vkh::VkDescriptorSetAllocateInfo{
+        .descriptorPool = fw.getDescriptorPool(),
+        .pSetLayouts = reinterpret_cast<const VkDescriptorSetLayout*>(&descriptorSetLayout)
+    }));
+
 	// 
 	int currSemaphore = -1;
 	uint32_t currentBuffer = 0u;
 
-	// TODO: create graphics pipeline, descriptor set and pipeline layout
+	// 
 	while (!glfwWindowShouldClose(manager.window)) {
         glfwPollEvents();
-
 
         // 
         auto n_semaphore = currSemaphore;
@@ -46,13 +88,12 @@ int main() {
         n_semaphore = (n_semaphore >= 0 ? n_semaphore : (framebuffers.size() - 1));
         device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
 
-        { // Submit rendering (and wait presentation in device)
+        { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
-            auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight));
-            auto viewport = vk::Viewport(0.0f, 0.0f, renderArea.extent.width, renderArea.extent.height, 0, 1.0f);
+            //auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight));
+            //auto viewport = vk::Viewport(0.0f, 0.0f, renderArea.extent.width, renderArea.extent.height, 0, 1.0f);
 
-            // CSreate command buffer (with rewrite)
-			// TODO: finalize test application
+            // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(device, commandPool, false, false); // do reference of cmd buffer
@@ -88,8 +129,8 @@ int main() {
 
 	};
 
+    // 
 	glfwDestroyWindow(manager.window);
 	glfwTerminate();
-
     return 0;
 };

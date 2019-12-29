@@ -199,7 +199,7 @@ namespace vkh {
 
     // TODO: REMOVE CODE TAFTOLOGY
     class VsDescriptorSetLayoutCreateInfoHelper { public: 
-        VsDescriptorSetLayoutCreateInfoHelper(const VkDescriptorSetLayoutCreateInfo& info) : vk_info(info) {
+        VsDescriptorSetLayoutCreateInfoHelper(const VkDescriptorSetLayoutCreateInfo& info = {}) : vk_info(info) {
             vk_info.pNext = &flags_info;
         };
 
@@ -344,6 +344,8 @@ namespace vkh {
         VkPipelineDynamicStateCreateInfo dynamicState = {};
 
         // constructive structure
+        inline operator ::VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
+        inline operator const ::VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
         inline operator VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
         inline operator const VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
         inline VsGraphicsPipelineCreateInfoConstruction& operator=(const VkGraphicsPipelineCreateInfo& info) { graphicsPipelineCreateInfo = info; construct(); return *this; };

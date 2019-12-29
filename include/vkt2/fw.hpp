@@ -328,19 +328,20 @@ namespace vkt
             vmaCreateAllocator(&vma_info, &this->allocator);
 
             // Manually Create Descriptor Pool
-            // TODO: better format of...
-            auto dps = std::vector<vk::DescriptorPoolSize>{
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eCombinedImageSampler).setDescriptorCount(256u),
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eSampledImage).setDescriptorCount(1024u),
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eSampler).setDescriptorCount(1024u),
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eAccelerationStructureNV).setDescriptorCount(256u),
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eStorageBuffer).setDescriptorCount(1024u),
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eUniformBuffer).setDescriptorCount(256u),
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eStorageTexelBuffer).setDescriptorCount(256u),
-                vk::DescriptorPoolSize().setType(vk::DescriptorType::eUniformTexelBuffer).setDescriptorCount(256u),
+            auto dps = std::vector<vkh::VkDescriptorPoolSize>{
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 256u},
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, .descriptorCount = 1024u},
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_SAMPLER, .descriptorCount = 1024u},
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV, .descriptorCount = 256u},
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1024u},
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 256u},
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 256u},
+                vkh::VkDescriptorPoolSize{.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, .descriptorCount = 256u}
             };
 
-            this->descriptorPool = device.createDescriptorPool(vk::DescriptorPoolCreateInfo().setMaxSets(256).setPPoolSizes(dps.data()).setPoolSizeCount(dps.size()));
+            this->descriptorPool = device.createDescriptorPool(static_cast<vk::DescriptorPoolCreateInfo>(vkh::VkDescriptorPoolCreateInfo{
+                .maxSets = 256u, .poolSizeCount = static_cast<uint32_t>(dps.size()), .pPoolSizes = dps.data()
+            }));
 
             return device;
         };
@@ -372,6 +373,14 @@ namespace vkt
         // setters
         void format(SurfaceFormat format) { applicationWindow.surfaceFormat = format; }
         void size(const vk::Extent2D & size) { applicationWindow.surfaceSize = size; }
+
+        // 
+        inline const vk::PipelineCache& getPipelineCache() const { return pipelineCache; };
+        inline vk::PipelineCache& getPipelineCache() { return pipelineCache; };
+
+        // 
+        inline const vk::DescriptorPool& getDescriptorPool() const { return descriptorPool; };
+        inline vk::DescriptorPool& getDescriptorPool() { return descriptorPool; };
 
         // 
         inline SurfaceFormat& getSurfaceFormat(vk::PhysicalDevice gpu)
@@ -446,7 +455,7 @@ namespace vkt
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL//VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
             });
 
             render_pass_helper.setDepthStencilAttachment(vkh::VkAttachmentDescription{

@@ -32,6 +32,24 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         STRUCT_OPERATORS(VkRect2D)
     } VkRect2D;
 
+    //
+    typedef struct VkDescriptorPoolSize {
+        VkDescriptorType    type            = VK_DESCRIPTOR_TYPE_SAMPLER;
+        uint32_t            descriptorCount = 1u;
+        STRUCT_OPERATORS(VkDescriptorPoolSize)
+    } VkDescriptorPoolSize;
+
+    // 
+    typedef struct VkDescriptorPoolCreateInfo {
+        VkStructureType                sType            = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        const void*                    pNext            = nullptr;
+        VkDescriptorPoolCreateFlags    flags            = {};
+        uint32_t                       maxSets          = 256u;
+        uint32_t                       poolSizeCount    = 0u;
+        const VkDescriptorPoolSize*    pPoolSizes       = nullptr;
+        STRUCT_OPERATORS(VkDescriptorPoolCreateInfo)
+    } VkDescriptorPoolCreateInfo;
+
     // 
     typedef struct VkDeviceCreateInfo {
         VkStructureType                    sType                    = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -139,10 +157,10 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkStructureType                 sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         const void*                     pNext              = nullptr;
         VkDescriptorPool                descriptorPool     = VK_NULL_HANDLE;
-        uint32_t                        descriptorSetCount = 0u;
+        uint32_t                        descriptorSetCount = 1u;
         const VkDescriptorSetLayout*    pSetLayouts        = nullptr;
 
-        VkDescriptorSetAllocateInfo& setVertexBindingDescriptions(const std::vector<VkDescriptorSetLayout>& V = {}) { pSetLayouts = V.data(); descriptorSetCount = V.size(); return *this; };
+        VkDescriptorSetAllocateInfo& setSetLayouts(const std::vector<VkDescriptorSetLayout>& V = {}) { pSetLayouts = V.data(); descriptorSetCount = V.size(); return *this; };
 
         STRUCT_OPERATORS(VkDescriptorSetAllocateInfo)
     } VkDescriptorSetAllocateInfo;
@@ -195,7 +213,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const void*                                pNext                    = nullptr;
         VkPipelineRasterizationStateCreateFlags    flags                    = {};
         VkBool32                                   depthClampEnable         = false;
-        VkBool32                                   rasterizerDiscardEnable  = true;
+        VkBool32                                   rasterizerDiscardEnable  = false;
         VkPolygonMode                              polygonMode              = VK_POLYGON_MODE_FILL;
         VkCullModeFlags                            cullMode                 = {};
         VkFrontFace                                frontFace                = VK_FRONT_FACE_COUNTER_CLOCKWISE ;
@@ -225,9 +243,9 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
     // 
     typedef struct VkStencilOpState {
-        VkStencilOp    failOp       = VK_STENCIL_OP_ZERO;
+        VkStencilOp    failOp       = VK_STENCIL_OP_KEEP;
         VkStencilOp    passOp       = VK_STENCIL_OP_KEEP;
-        VkStencilOp    depthFailOp  = VK_STENCIL_OP_ZERO;
+        VkStencilOp    depthFailOp  = VK_STENCIL_OP_KEEP;
         VkCompareOp    compareOp    = VK_COMPARE_OP_ALWAYS;
         uint32_t       compareMask  = 0u;
         uint32_t       writeMask    = 0u;
@@ -253,6 +271,19 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
         STRUCT_OPERATORS(VkPipelineDepthStencilStateCreateInfo)
     } VkPipelineDepthStencilStateCreateInfo;
+
+    // 
+    typedef struct VkPipelineColorBlendAttachmentState {
+        VkBool32                 blendEnable         = false;
+        VkBlendFactor            srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+        VkBlendFactor            dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+        VkBlendOp                colorBlendOp        = VK_BLEND_OP_ADD;
+        VkBlendFactor            srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        VkBlendFactor            dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        VkBlendOp                alphaBlendOp        = VK_BLEND_OP_ADD;
+        VkColorComponentFlags    colorWriteMask      = {.eR = 1, .eG = 1, .eB = 1, .eA = 1};
+        STRUCT_OPERATORS(VkPipelineColorBlendAttachmentState)
+    } VkPipelineColorBlendAttachmentState;
 
     // 
     typedef struct VkPipelineColorBlendStateCreateInfo {
@@ -291,7 +322,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkPipelineShaderStageCreateFlags    flags               = {};
         VkShaderStageFlagBits               stage               = VK_SHADER_STAGE_COMPUTE_BIT;
         VkShaderModule                      module              = VK_NULL_HANDLE;
-        const char*                         pName               = nullptr;
+        const char*                         pName               = "main";
         const VkSpecializationInfo*         pSpecializationInfo = nullptr;
 
         STRUCT_OPERATORS(VkPipelineShaderStageCreateInfo)
@@ -368,6 +399,30 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
         STRUCT_OPERATORS(VkRayTracingPipelineCreateInfoNV)
     } VkRayTracingPipelineCreateInfoNV;
+
+    //
+    typedef struct VkDescriptorSetLayoutBinding {
+        uint32_t              binding               = 0u;
+        VkDescriptorType      descriptorType        = VK_DESCRIPTOR_TYPE_SAMPLER;
+        uint32_t              descriptorCount       = 1u;
+        VkShaderStageFlags    stageFlags            = { .eCompute = 1 };
+        const VkSampler*      pImmutableSamplers    = nullptr;
+        STRUCT_OPERATORS(VkDescriptorSetLayoutBinding)
+    } VkDescriptorSetLayoutBinding;
+
+    // 
+    typedef struct VkPipelineLayoutCreateInfo {
+        VkStructureType                 sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        const void*                     pNext                   = nullptr;
+        VkPipelineLayoutCreateFlags     flags                   = {};
+        uint32_t                        setLayoutCount          = 0u;
+        const VkDescriptorSetLayout*    pSetLayouts             = nullptr;
+        uint32_t                        pushConstantRangeCount  = 0u;
+        const VkPushConstantRange*      pPushConstantRanges     = nullptr;
+        VkPipelineLayoutCreateInfo& setSetLayouts(const std::vector<VkDescriptorSetLayout>& V = {}) { pSetLayouts = V.data(); setLayoutCount = V.size(); return *this; };
+        VkPipelineLayoutCreateInfo& setPushConstantRanges(const std::vector<VkPushConstantRange>& V = {}) { pPushConstantRanges = V.data(); pushConstantRangeCount = V.size(); return *this; };
+        STRUCT_OPERATORS(VkPipelineLayoutCreateInfo)
+    } VkPipelineLayoutCreateInfo;
 
     // 
     typedef struct VkDescriptorSetLayoutBindingFlagsCreateInfoEXT {

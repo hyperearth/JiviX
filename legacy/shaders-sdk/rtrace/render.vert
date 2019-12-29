@@ -4,7 +4,7 @@
 #extension GL_EXT_shader_realtime_clock : require
 precision highp float;
 precision highp int;
-#include "./index.glsl"
+//#include "./index.glsl"
 
 // 
 const vec2 cpositions[4] = { vec2(-1.f, 1.f), vec2(1.f, 1.f), vec2(-1.f, -1.f), vec2(1.f, -1.f) };
