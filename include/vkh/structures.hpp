@@ -161,6 +161,19 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     } VkDeviceCreateInfo;
 
     // 
+    typedef struct VkBufferViewCreateInfo {
+        VkStructureType            sType    = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+        const void*                pNext    = nullptr;
+        VkBufferViewCreateFlags    flags    = {};
+        VkBuffer                   buffer   = VK_NULL_HANDLE;
+        VkFormat                   format   = VK_FORMAT_R32G32B32A32_SFLOAT;
+        VkDeviceSize               offset   = 0u;
+        VkDeviceSize               range    = 16u;
+        STRUCT_OPERATORS(VkBufferViewCreateInfo)
+        VK_HPP_STRUCT_OPERATORS(VkBufferViewCreateInfo,vk::BufferViewCreateInfo)
+    } VkBufferViewCreateInfo;
+
+    // 
     typedef struct VkBufferCreateInfo {
         VkStructureType     sType                   = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         const void*         pNext                   = nullptr;
