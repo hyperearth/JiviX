@@ -236,7 +236,7 @@ namespace vkh {
         };
 
         // Export By Operator
-        operator std::vector<VkWriteDescriptorSet>&() {return mapWriteDescriptorSet(); };
+        operator std::vector<VkWriteDescriptorSet>&() { return mapWriteDescriptorSet(); };
         operator const std::vector<VkWriteDescriptorSet>&() const { return writes; };
 
 
