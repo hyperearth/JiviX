@@ -131,7 +131,10 @@ namespace vkh {
 
     // TODO: REMOVE CODE TAFTOLOGY
     class VsDescriptorSetCreateInfoHelper { public: uint32_t flags = 0u; using T = uintptr_t; // 
-        VsDescriptorSetCreateInfoHelper(const VkDescriptorSetLayout& layout = {}, const VkDescriptorPool& pool = {}){
+
+         VsDescriptorSetCreateInfoHelper& reset() { heap.clear(); entries.clear(); handles.clear(); writes.clear(); writes_acs.clear(); format(); return *this; };
+        ~VsDescriptorSetCreateInfoHelper() { reset(); };
+         VsDescriptorSetCreateInfoHelper(const VkDescriptorSetLayout& layout = {}, const VkDescriptorPool& pool = {}) {
             template_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO;
             template_info.pNext = nullptr;
             template_info.flags = flags;
