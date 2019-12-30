@@ -75,12 +75,20 @@ namespace vkt {
 
     // 
     template<class T>
-    class BufferRegion {
+    class BufferRegion : public std::enable_shared_from_this<BufferRegion<T>> {
     public: //using T = uint32_t;
+        
+        template<class Tm = T> BufferRegion(const std::shared_ptr<BufferRegion<Tm>>& region = {}) : buffer(*region), offset(region->offset()), range(region->range()) {};
+        BufferRegion(){};
         BufferRegion(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
             bufInfo.buffer = (vk::Buffer&)(*buffer);
             bufInfo.offset = offset;
             bufInfo.range = size * sizeof(T);
+        };
+
+        // re-assign buffer region (with another)
+        template<class Tm = T> BufferRegion<Tm>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { 
+            this->buffer = *region, this->offset = region->offset(), this->range = region->range(); return *this; 
         };
 
         // 
@@ -97,11 +105,11 @@ namespace vkt {
         const T* data() const { return mapped(); };
 
         // 
-        size_t size() const { return size_t(bufInfo.range / sizeof(T)); };
+        vk::DeviceSize size() const { return bufInfo.range / sizeof(T); };
 
         // at function 
-        const T& at(const uintptr_t& i) const { return *mapped(i); };
-        T& at(const uintptr_t& i) { return *mapped(i); };
+        const T& at(const uintptr_t& i = 0u) const { return *mapped(i); };
+        T& at(const uintptr_t& i = 0u) { return *mapped(i); };
 
         // array operator 
         const T& operator [] (const uintptr_t& i) const { return at(i); };
@@ -127,7 +135,7 @@ namespace vkt {
         const vk::DeviceSize& offset() const { return bufInfo.offset; };
         const vk::DeviceSize& range() const { return bufInfo.range; };
 
-    protected: // 
+    protected: friend BufferRegion<T>; // 
         vk::DescriptorBufferInfo bufInfo = {};
         std::shared_ptr<VmaAllocatedBuffer> buffer = {};
     };
@@ -140,6 +148,10 @@ namespace vkt {
         Vector(const std::shared_ptr<BufferRegion<T>>& region) : region(region) {};
         Vector(const Vector<T>& vector) : region(vector.region) {};
 
+        // 
+        template<class Tm = T> Vector<T>& operator=(const Vector<Tm>& V) { this->region = V.region; return *this; };
+        template<class Tm = T> Vector<T>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { this->region = region; return *this; };
+
         // map through
         T* const map() { return region->map(); };
         void unmap() { return region->unmap(); };
@@ -147,7 +159,7 @@ namespace vkt {
         // 
         T* const data() { return region->data(); };
         const T* data() const { return region->data(); };
-        size_t size() const { return region->size(); };
+        vk::DeviceSize size() const { return region->size(); };
 
         // at function 
         const T& at(const uintptr_t& i) const { return region->at(i); };
@@ -176,10 +188,12 @@ namespace vkt {
         // 
         BufferRegion<T>* operator->() { return &(*region); };
         BufferRegion<T>& operator*() { return *region; };
+
+        // 
         const BufferRegion<T>* operator->() const { return &(*region); };
         const BufferRegion<T>& operator*() const { return *region; };
 
-    protected: // 
+    protected: friend Vector<T>; // 
         std::shared_ptr<BufferRegion<T>> region = {};
     };
 
