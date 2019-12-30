@@ -87,9 +87,8 @@ namespace vkt {
         };
 
         // re-assign buffer region (with another)
-        template<class Tm = T> BufferRegion<Tm>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { 
-            this->buffer = *region, this->offset = region->offset(), this->range = region->range(); return *this; 
-        };
+        template<class Tm = T> BufferRegion<T>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { this->buffer = *region, this->offset = region->offset(), this->range = region->range(); return *this; };
+        template<class Tm = T> BufferRegion<T>& operator=(const BufferRegion<Tm>& region) { this->buffer = region, this->offset = region.offset(), this->range = region.range(); return *this; };
 
         // 
         void unmap() { buffer->unmap(); };
