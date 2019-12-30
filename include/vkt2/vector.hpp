@@ -13,7 +13,7 @@ namespace vkt {
         ) {
             VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
             if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
-            vmaCreateBuffer(this->allocator = allocator, (VkBufferCreateInfo*)&createInfo, &vmaInfo, (VkBuffer*)&buffer, &allocation, &allocationInfo);
+            vmaCreateBuffer(this->allocator = allocator, createInfo, &vmaInfo, (VkBuffer*)&buffer, &allocation, &allocationInfo);
         };
 
         // Get mapped memory
@@ -50,7 +50,7 @@ namespace vkt {
         ) {
             VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
             if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
-            vmaCreateImage(this->allocator = allocator, (VkImageCreateInfo*)&createInfo, &vmaInfo, (VkImage*)&image, &allocation, &allocationInfo);
+            vmaCreateImage(this->allocator = allocator, createInfo, &vmaInfo, (VkImage*)&image, &allocation, &allocationInfo);
         };
 
         // Get mapped memory
