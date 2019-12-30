@@ -33,6 +33,7 @@ set (SOURCES_LIST
     "./include/radx/*"
     "./include/vulkan/*"
     "./include/vma/*"
+    "./include/vkh/*"
     "./include/vkt2/*"
     "./include/vkt/*"
     "./include/volk/*"
