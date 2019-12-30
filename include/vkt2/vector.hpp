@@ -18,6 +18,7 @@ namespace vkt {
         };
         VmaBufferAllocation(const VmaBufferAllocation& allocation) : buffer(allocation.buffer), allocation(allocation.allocation), allocationInfo(allocation.allocationInfo), allocator(allocation.allocator) {};
         VmaBufferAllocation& operator=(const VmaBufferAllocation& allocation) {
+            vmaDestroyBuffer(allocator, *this, allocation); // don't assign into already allocated
             this->buffer = allocation.buffer;
             this->allocation = allocation.allocation;
             this->allocationInfo = allocation.allocationInfo;
@@ -68,6 +69,7 @@ namespace vkt {
         };
         VmaImageAllocation(const VmaImageAllocation& allocation) : image(allocation.image), allocation(allocation.allocation), allocationInfo(allocation.allocationInfo), allocator(allocation.allocator) {};
         VmaImageAllocation& operator=(const VmaImageAllocation& allocation) {
+            vmaDestroyImage(allocator, *this, allocation); // don't assign into already allocated
             this->image = allocation.image;
             this->allocation = allocation.allocation;
             this->allocationInfo = allocation.allocationInfo;
