@@ -6,7 +6,7 @@ namespace vkt {
     // 
     class VmaBufferAllocation : public std::enable_shared_from_this<VmaBufferAllocation> { public:
         ~VmaBufferAllocation() { vmaDestroyBuffer(allocator, *this, allocation); };
-         VmaBufferAllocation();
+         VmaBufferAllocation() {};
          VmaBufferAllocation(
             const VmaAllocator& allocator,
             const vkh::VkBufferCreateInfo& createInfo = {},
@@ -57,7 +57,7 @@ namespace vkt {
     // 
     class VmaImageAllocation : public std::enable_shared_from_this<VmaImageAllocation> { public:
         ~VmaImageAllocation() { vmaDestroyImage(allocator, *this, allocation); };
-         VmaImageAllocation();
+         VmaImageAllocation() {};
          VmaImageAllocation(
             const VmaAllocator& allocator,
             const vkh::VkImageCreateInfo& createInfo = {},
