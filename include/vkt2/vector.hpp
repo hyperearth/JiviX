@@ -4,102 +4,70 @@
 namespace vkt {
 
     class VmaAllocatedBuffer : public std::enable_shared_from_this<VmaAllocatedBuffer> { public:
-        VmaAllocatedBuffer();
-        VmaAllocatedBuffer(
-            const VmaAllocator& allocator = {},
+        ~VmaAllocatedBuffer() { vmaDestroyBuffer(allocator, *this, allocation); };
+         VmaAllocatedBuffer();
+         VmaAllocatedBuffer(
+            const VmaAllocator& allocator,
             const vkh::VkBufferCreateInfo& createInfo = {},
             VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY
         ) {
-            VmaAllocationCreateInfo vmaInfo = {};
-            vmaInfo.usage = vmaUsage;
-            if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) {
-                vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-            };
-
-            vmaCreateBuffer(this->allocator = allocator, (VkBufferCreateInfo*)&createInfo, &vmaInfo, (VkBuffer*)&bufInfo.buffer, &allocation, &allocationInfo);
-        };
-
-        ~VmaAllocatedBuffer() {
-            vmaDestroyBuffer(allocator, *this, allocation);
+            VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
+            if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
+            vmaCreateBuffer(this->allocator = allocator, (VkBufferCreateInfo*)&createInfo, &vmaInfo, (VkBuffer*)&buffer, &allocation, &allocationInfo);
         };
 
         // Get mapped memory
         void* map() { void* ptr = nullptr; vmaMapMemory(allocator, allocation, &ptr); return ptr; };
         void* mapped() { if (!allocationInfo.pMappedData) { vmaMapMemory(allocator, allocation, &allocationInfo.pMappedData); }; return allocationInfo.pMappedData; };
-
-        // GPU unmap memory
         void unmap() { vmaUnmapMemory(allocator, allocation); allocationInfo.pMappedData = nullptr; };
 
-        // vk::Device caster
-        //operator vk::Buffer&() { return buffer; };
-        operator const vk::Buffer& () const { return bufInfo.buffer; };
-        operator const VkBuffer& () const { return (VkBuffer&)bufInfo.buffer; };
-
-        // Allocation
-        //operator VmaAllocation&() { return allocation; };
-        operator const VmaAllocation& () const { return allocation; };
-
-        // AllocationInfo
-        //operator VmaAllocationInfo&() { return allocationInfo; };
-        operator const VmaAllocationInfo& () const { return allocationInfo; };
+        // 
+        operator vk::Buffer& () { return buffer; };
+        operator VkBuffer& () { return (VkBuffer&)buffer; };
 
         // 
-        operator const vk::DescriptorBufferInfo& () const { return bufInfo; };
+        operator const vk::Buffer& () const { return buffer; };
+        operator const VkBuffer& () const { return (VkBuffer&)buffer; };
 
-    protected:
-        vk::DescriptorBufferInfo bufInfo = {};
+        // Allocation
+        operator const VmaAllocation& () const { return allocation; };
+        operator const VmaAllocationInfo& () const { return allocationInfo; };
+
+    protected: // 
+        vk::Buffer buffer = {};
         VmaAllocation allocation = {};
         VmaAllocationInfo allocationInfo;
         VmaAllocator allocator = {};
     };
 
     class VmaAllocatedImage : public std::enable_shared_from_this<VmaAllocatedImage> { public:
-        VmaAllocatedImage();
-        VmaAllocatedImage(
-            const VmaAllocator& allocator = {},
+        ~VmaAllocatedImage() { vmaDestroyImage(allocator, *this, allocation); };
+         VmaAllocatedImage();
+         VmaAllocatedImage(
+            const VmaAllocator& allocator,
             const vkh::VkImageCreateInfo& createInfo = {},
             VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY
         ) {
-            VmaAllocationCreateInfo vmaInfo = {};
-            vmaInfo.usage = vmaUsage;
-            if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) {
-                vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-            };
-
+            VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
+            if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
             vmaCreateImage(this->allocator = allocator, (VkImageCreateInfo*)&createInfo, &vmaInfo, (VkImage*)&image, &allocation, &allocationInfo);
-        };
-
-        ~VmaAllocatedImage() {
-            vmaDestroyImage(allocator, *this, allocation);
         };
 
         // Get mapped memory
         void* map() { void* ptr = nullptr; vmaMapMemory(allocator, allocation, &ptr); return ptr; };
         void* mapped() { if (!allocationInfo.pMappedData) { vmaMapMemory(allocator, allocation, &allocationInfo.pMappedData); }; return allocationInfo.pMappedData; };
-
-        // GPU unmap memory
         void unmap() { vmaUnmapMemory(allocator, allocation); allocationInfo.pMappedData = nullptr; };
 
-        // vk::Device caster
-        //operator vk::Buffer&() { return buffer; };
+        // 
         operator const vk::Image& () const { return image; };
         operator const VkImage& () const { return (VkImage&)image; };
 
         // Allocation
-        //operator VmaAllocation&() { return allocation; };
         operator const VmaAllocation& () const { return allocation; };
-
-        // AllocationInfo
-        //operator VmaAllocationInfo&() { return allocationInfo; };
         operator const VmaAllocationInfo& () const { return allocationInfo; };
 
-        // 
-        operator const vk::ImageView& () const { return imageDesc.imageView; };
-        operator const vk::DescriptorImageInfo() const { return imageDesc; };
-
-    protected:
+    protected: // 
         vk::Image image = {};
-        vk::DescriptorImageInfo imageDesc = {};
         VmaAllocation allocation = {};
         VmaAllocationInfo allocationInfo = {};
         VmaAllocator allocator = {};
@@ -108,46 +76,60 @@ namespace vkt {
     // 
     template<class T>
     class BufferRegion {
-    public:
+    public: //using T = uint32_t;
         BufferRegion(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
             bufInfo.buffer = (vk::Buffer) * buffer;
             bufInfo.offset = offset;
             bufInfo.range = size * sizeof(T);
         };
 
-        T* const& map() { mapped = (T*)((uint8_t*)buffer->map() + bufInfo.offset); return mapped; };
+        // 
         void unmap() { buffer->unmap(); };
+        const T* map() const { return (T*)((uint8_t*)buffer->map()+offset()); };
+        T* const map() { return (T*)((uint8_t*)buffer->map()+offset()); };
 
-        T* const& data() { this->mapped(); return mapped; };
-        const T*& data() const { return mapped; };
+        // 
+        const T* mapped(const uintptr_t& i = 0u) const { return &((T*)((uint8_t*)buffer->mapped()+offset()))[i]; };
+        T* const mapped(const uintptr_t& i = 0u) { return &((T*)((uint8_t*)buffer->mapped()+offset()))[i]; };
 
+        // 
+        T* const data() { return mapped(); };
+        const T* data() const { return mapped(); };
+
+        // 
         size_t size() const { return size_t(bufInfo.range / sizeof(T)); };
-        const vk::DeviceSize& range() const { return bufInfo.range; };
 
         // at function 
-        const T& at(const uintptr_t& i) const { return mapped[i]; };
-        T& at(const uintptr_t& i) { return mapped[i]; };
+        const T& at(const uintptr_t& i) const { return *mapped(i); };
+        T& at(const uintptr_t& i) { return *mapped(i); };
 
         // array operator 
         const T& operator [] (const uintptr_t& i) const { return at(i); };
         T& operator [] (const uintptr_t& i) { return at(i); };
 
         // begin ptr
-        const T*& begin() const { return data(); };
-        T* const& begin() { return data(); };
+        const T* begin() const { return data(); };
+        T* const begin() { return data(); };
 
         // end ptr
-        const T*& end() const { return &at(size() - 1ul); };
-        T* end() { return &at(size() - 1ul); };
+        const T* end() const { return &at(size() - 1ul); };
+        T* const end() { return &at(size() - 1ul); };
 
+        // 
+        operator vk::DescriptorBufferInfo& () { bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*buffer); return bufInfo; };
+        operator vk::Buffer& () { return (bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*buffer)); };
+
+        // 
         operator const vk::DescriptorBufferInfo& () const { return bufInfo; };
         operator const vk::Buffer& () const { return *buffer; };
-        const vk::DeviceSize& offset() const { return bufInfo.offset; };
 
-    protected:
-        T* mapped = {};
-        std::shared_ptr<VmaAllocatedBuffer> buffer = {};
+        // 
+        const vk::DeviceSize& offset() const { return bufInfo.offset; };
+        const vk::DeviceSize& range() const { return bufInfo.range; };
+
+    protected: // 
         vk::DescriptorBufferInfo bufInfo = {};
+        std::shared_ptr<VmaAllocatedBuffer> buffer = {};
     };
 
     template<class T>
@@ -159,15 +141,13 @@ namespace vkt {
         Vector(const Vector<T>& vector) : region(vector.region) {};
 
         // map through
-        T* const& map() { return region->map(); };
+        T* const map() { return region->map(); };
         void unmap() { return region->unmap(); };
 
-        T* const& data() { return region->data(); };
-        const T*& data() const { return region->data(); };
-
-        // sizing 
+        // 
+        T* const data() { return region->data(); };
+        const T* data() const { return region->data(); };
         size_t size() const { return region->size(); };
-        const vk::DeviceSize& range() const { return region->range(); };
 
         // at function 
         const T& at(const uintptr_t& i) const { return region->at(i); };
@@ -178,16 +158,19 @@ namespace vkt {
         T& operator [] (const uintptr_t& i) { return at(i); };
 
         // begin ptr
-        const T*& begin() const { region->begin(); };
-        T* const& begin() { return region->begin(); };
+        const T* begin() const { region->begin(); };
+        T* const begin() { return region->begin(); };
 
         // end ptr
         const T* end() const { return region->end(); };
-        T* end() { return region->end(); };
+        T* const end() { return region->end(); };
 
         // 
         operator const vk::DescriptorBufferInfo& () const { return *region; };
         operator const vk::Buffer& () const { return *region; };
+
+        // 
+        const vk::DeviceSize& range() const { return region->range(); };
         const vk::DeviceSize& offset() const { return region->offset(); };
 
         // 
@@ -196,7 +179,7 @@ namespace vkt {
         const BufferRegion<T>* operator->() const { return &(*region); };
         const BufferRegion<T>& operator*() const { return *region; };
 
-    protected:
+    protected: // 
         std::shared_ptr<BufferRegion<T>> region = {};
     };
 
