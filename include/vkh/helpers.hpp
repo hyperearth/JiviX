@@ -212,6 +212,30 @@ namespace vkh {
         inline operator const vk::DescriptorSetAllocateInfo& () const { return allocate_info; };
         inline operator const vk::DescriptorUpdateTemplateCreateInfo& () const { return template_info; };
 
+        // 
+        inline std::vector<VkWriteDescriptorSet>& mapWriteDescriptorSet() {
+            uint32_t I=0; for (auto& entry : entries) { const uint32_t i = I++;
+                const uintptr_t& pt0 = entry.offset;
+                if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER || entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) { // Map Buffers
+                    writes[i].pBufferInfo = (VkDescriptorBufferInfo*)(heap.data()+pt0);
+                } else 
+                if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER || entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER) { // Map Buffer Views
+                    writes[i].pTexelBufferView = (VkBufferView*)(heap.data()+pt0);
+                } else 
+                if (entry.descriptorType == VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV) { // Map Accelerator Structures (NV CUSTOM MAP)
+                    writes_acs[i].pAccelerationStructures = (VkAccelerationStructureNV*)(heap.data()+pt0);
+                    writes[i].pNext = &writes_acs[i];
+                } else { // Map Images, Samplers, Combinations...
+                    writes[i].pImageInfo = (VkDescriptorImageInfo*)(heap.data()+pt0);
+                };
+            };
+            return writes;
+        };
+
+        // Export By Operator
+        operator std::vector<VkWriteDescriptorSet>&() {return mapWriteDescriptorSet(); };
+        operator const std::vector<VkWriteDescriptorSet>&() const { return writes; };
+
 
     protected: template<class T = T> // 
         inline VsDescriptorHandle& _push_description( const VkDescriptorUpdateTemplateEntry& entry ) { // Un-Safe API again
@@ -220,16 +244,31 @@ namespace vkh {
             entries.push_back(entry);
             entries.back().offset = pt0;
             entries.back().stride = sizeof(T);
-            handles.push_back({ &entries.back(), &heap.back() }); 
+            handles.push_back({ &entries.back(), &heap.back() });
+            writes.push_back({
+                .dstBinding = entry.dstBinding,
+                .dstArrayElement = entry.dstArrayElement,
+                .descriptorCount = entry.descriptorCount,
+                .descriptorType = entry.descriptorType,
+            });
+            writes_acs.push_back(VkWriteDescriptorSetAccelerationStructureNV{
+                .accelerationStructureCount = entry.descriptorType == VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV ? entry.descriptorCount : 0u
+            });
             return handles.back();
         };
 
         // 
         VkDescriptorSetAllocateInfo allocate_info = {};
         VkDescriptorUpdateTemplateCreateInfo template_info = {};
+
+        // 
         std::vector<uint8_t> heap = {};
         std::vector<VkDescriptorUpdateTemplateEntry> entries = {};
         std::vector<VsDescriptorHandle> handles = {};
+
+        // regular version
+        std::vector<VkWriteDescriptorSetAccelerationStructureNV> writes_acs = {};
+        std::vector<VkWriteDescriptorSet> writes = {};
     };
  
 

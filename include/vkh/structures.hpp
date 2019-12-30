@@ -84,6 +84,50 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     } VkDescriptorPoolSize;
 
     // 
+    typedef struct VkDescriptorBufferInfo {
+        VkBuffer        buffer  = VK_NULL_HANDLE;
+        VkDeviceSize    offset  = 0u;
+        VkDeviceSize    range   = 16u;
+        STRUCT_OPERATORS(VkDescriptorBufferInfo)
+        VK_HPP_STRUCT_OPERATORS(VkDescriptorBufferInfo,vk::DescriptorBufferInfo)
+    } VkDescriptorBufferInfo;
+
+    // 
+    typedef struct VkDescriptorImageInfo {
+        VkSampler        sampler     = VK_NULL_HANDLE;
+        VkImageView      imageView   = VK_NULL_HANDLE;
+        VkImageLayout    imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        STRUCT_OPERATORS(VkDescriptorImageInfo)
+        VK_HPP_STRUCT_OPERATORS(VkDescriptorImageInfo,vk::DescriptorImageInfo)
+    } VkDescriptorImageInfo;
+
+    // 
+    typedef struct VkWriteDescriptorSet {
+        VkStructureType                  sType              = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        const void*                      pNext              = nullptr;
+        VkDescriptorSet                  dstSet             = 0u;
+        uint32_t                         dstBinding         = 0u;
+        uint32_t                         dstArrayElement    = 0u;
+        uint32_t                         descriptorCount    = 1u;
+        VkDescriptorType                 descriptorType     = VK_DESCRIPTOR_TYPE_SAMPLER;
+        const VkDescriptorImageInfo*     pImageInfo         = nullptr;
+        const VkDescriptorBufferInfo*    pBufferInfo        = nullptr;
+        const VkBufferView*              pTexelBufferView   = nullptr;
+        STRUCT_OPERATORS(VkWriteDescriptorSet)
+        VK_HPP_STRUCT_OPERATORS(VkWriteDescriptorSet,vk::WriteDescriptorSet)
+    } VkWriteDescriptorSet;
+
+    // 
+    typedef struct VkWriteDescriptorSetAccelerationStructureNV {
+        VkStructureType                     sType                       = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_NV;
+        const void*                         pNext                       = nullptr;
+        uint32_t                            accelerationStructureCount  = 1u;
+        const VkAccelerationStructureNV*    pAccelerationStructures     = nullptr;
+        STRUCT_OPERATORS(VkWriteDescriptorSetAccelerationStructureNV)
+        VK_HPP_STRUCT_OPERATORS(VkWriteDescriptorSetAccelerationStructureNV,vk::WriteDescriptorSetAccelerationStructureNV)
+    } VkWriteDescriptorSetAccelerationStructureNV;
+
+    // 
     typedef struct VkDescriptorPoolCreateInfo {
         VkStructureType                sType            = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         const void*                    pNext            = nullptr;
