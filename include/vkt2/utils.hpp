@@ -214,7 +214,7 @@ namespace vkt {
     };
 
     // add dispatch in command buffer (with default pipeline barrier)
-    static inline vk::Result cmdDispatch(const vk::CommandBuffer& cmd, const vk::Pipeline& pipeline, uint32_t x = 1, uint32_t y = 1, uint32_t z = 1, bool barrier = true) {
+    static inline auto cmdDispatch(const vk::CommandBuffer& cmd, const vk::Pipeline& pipeline, uint32_t x = 1, uint32_t y = 1, uint32_t z = 1, bool barrier = true) {
         cmd.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline);
         cmd.dispatch(x, y, z);
         if (barrier) {
@@ -224,7 +224,7 @@ namespace vkt {
     };
 
     // low level copy command between (prefer for host and device)
-    static inline vk::Result cmdCopyBufferL(const vk::CommandBuffer& cmd, const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const std::vector<vk::BufferCopy>& regions, std::function<void(vk::CommandBuffer)> barrierFn = commandBarrier) {
+    static inline auto cmdCopyBufferL(const vk::CommandBuffer& cmd, const vk::Buffer& srcBuffer, const vk::Buffer& dstBuffer, const std::vector<vk::BufferCopy>& regions, std::function<void(vk::CommandBuffer)> barrierFn = commandBarrier) {
         if (srcBuffer && dstBuffer && regions.size() > 0) {
             vk::CommandBuffer(cmd).copyBuffer(srcBuffer, dstBuffer, regions); barrierFn(cmd); // put copy barrier
         };
@@ -234,7 +234,7 @@ namespace vkt {
 
     // short data set with command buffer (alike push constant)
     template<class T>
-    static inline vk::Result cmdUpdateBuffer(const vk::CommandBuffer& cmd, const vk::Buffer& dstBuffer, const vk::DeviceSize& offset, const std::vector<T>& data) {
+    static inline auto cmdUpdateBuffer(const vk::CommandBuffer& cmd, const vk::Buffer& dstBuffer, const vk::DeviceSize& offset, const std::vector<T>& data) {
         vk::CommandBuffer(cmd).updateBuffer(dstBuffer, offset, data);
         //updateCommandBarrier(cmd);
         return vk::Result::eSuccess;
@@ -242,7 +242,7 @@ namespace vkt {
 
     // short data set with command buffer (alike push constant)
     template<class T>
-    static inline vk::Result cmdUpdateBuffer(const vk::CommandBuffer& cmd, const vk::Buffer& dstBuffer, const vk::DeviceSize& offset, const vk::DeviceSize& size, const T* data = nullptr) {
+    static inline auto cmdUpdateBuffer(const vk::CommandBuffer& cmd, const vk::Buffer& dstBuffer, const vk::DeviceSize& offset, const vk::DeviceSize& size, const T* data = nullptr) {
         vk::CommandBuffer(cmd).updateBuffer(dstBuffer, offset, size, data);
         //updateCommandBarrier(cmd);
         return vk::Result::eSuccess;
@@ -252,7 +252,7 @@ namespace vkt {
     // template function for fill buffer by constant value
     // use for create repeat variant
     template<uint32_t Rv>
-    static inline vk::Result cmdFillBuffer(const vk::CommandBuffer& cmd, const vk::Buffer& dstBuffer, const vk::DeviceSize& size = 0xFFFFFFFF, const vk::DeviceSize& offset = 0) {
+    static inline auto cmdFillBuffer(const vk::CommandBuffer& cmd, const vk::Buffer& dstBuffer, const vk::DeviceSize& size = 0xFFFFFFFF, const vk::DeviceSize& offset = 0) {
         vk::CommandBuffer(cmd).fillBuffer(vk::Buffer(dstBuffer), offset, size, Rv);
         //updateCommandBarrier(cmd);
         return vk::Result::eSuccess;
@@ -261,7 +261,7 @@ namespace vkt {
 
     // submit command (with async wait)
     // TODO: return vk::Result 
-    static inline void submitCmd(const vk::Device& device, const vk::Queue& queue, const std::vector<vk::CommandBuffer>& cmds, vk::SubmitInfo smbi = {}) {
+    static inline auto submitCmd(const vk::Device& device, const vk::Queue& queue, const std::vector<vk::CommandBuffer>& cmds, vk::SubmitInfo smbi = {}) {
         // no commands 
         if (cmds.size() <= 0) return;
         smbi.commandBufferCount = cmds.size();
@@ -272,16 +272,18 @@ namespace vkt {
         queue.submit(smbi, fence);
         device.waitForFences(1, &fence, true, INT64_MAX);
         device.destroyFence(fence, nullptr);
+
+        return;
     };
 
     // once submit command buffer
-    static inline void submitOnce(const vk::Device& device, const vk::Queue& queue, const vk::CommandPool& cmdPool, const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
+    static inline auto submitOnce(const vk::Device& device, const vk::Queue& queue, const vk::CommandPool& cmdPool, const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
         auto cmdBuf = createCommandBuffer(device, cmdPool, false); cmdFn(cmdBuf); cmdBuf.end();
         submitCmd(device, queue, { cmdBuf }); device.freeCommandBuffers(cmdPool, 1, &cmdBuf); // free that command buffer
     };
 
     // submit command (with async wait)
-    static inline void submitCmdAsync(const vk::Device& device, const vk::Queue& queue, const std::vector<vk::CommandBuffer>& cmds, const std::function<void()>& asyncCallback = {}, vk::SubmitInfo smbi = {}) {
+    static inline auto submitCmdAsync(const vk::Device& device, const vk::Queue& queue, const std::vector<vk::CommandBuffer>& cmds, const std::function<void()>& asyncCallback = {}, vk::SubmitInfo smbi = {}) {
         // no commands 
         if (cmds.size() <= 0) return;
         smbi.commandBufferCount = cmds.size();
@@ -296,7 +298,7 @@ namespace vkt {
     };
 
     // once submit command buffer
-    static inline void submitOnceAsync(const vk::Device& device, const vk::Queue& queue, const vk::CommandPool& cmdPool, const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const std::function<void(vk::CommandBuffer)>& asyncCallback = {}, const vk::SubmitInfo& smbi = {}) {
+    static inline auto submitOnceAsync(const vk::Device& device, const vk::Queue& queue, const vk::CommandPool& cmdPool, const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const std::function<void(vk::CommandBuffer)>& asyncCallback = {}, const vk::SubmitInfo& smbi = {}) {
         auto cmdBuf = createCommandBuffer(device, cmdPool, false); cmdFn(cmdBuf); cmdBuf.end();
         submitCmdAsync(device, queue, { cmdBuf }, [&]() {
             asyncCallback(cmdBuf); // call async callback
@@ -307,7 +309,7 @@ namespace vkt {
     template <class T> static inline auto makeVector(const T * ptr, const size_t& size = 1) { std::vector<T>v(size); memcpy(v.data(), ptr, strided<T>(size)); return v; };
 
     // create fence function
-    static inline vk::Fence createFence(const vk::Device& device, const bool& signaled = true) {
+    static inline auto createFence(const vk::Device& device, const bool& signaled = true) {
         vk::FenceCreateInfo info = {};
         if (signaled) info.setFlags(vk::FenceCreateFlagBits::eSignaled);
         return vk::Device(device).createFence(info);
@@ -322,7 +324,7 @@ namespace vkt {
     };
 
     // 
-    vk::Result imageBarrier(const vk::CommandBuffer& cmd = {}, const ImageBarrierInfo& info = {}) {
+    static inline auto imageBarrier(const vk::CommandBuffer& cmd = {}, const ImageBarrierInfo& info = {}) {
         vk::Result result = vk::Result::eSuccess; // planned to complete
         if (info.originLayout == info.targetLayout) return result; // no need transfering more
 

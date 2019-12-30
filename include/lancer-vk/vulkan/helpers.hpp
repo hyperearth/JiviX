@@ -356,9 +356,6 @@ namespace vkh {
     // also, sub-member can be accessed too
     class VsGraphicsPipelineCreateInfoConstruction { public: 
         VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {};
-        std::vector<VkPipelineShaderStageCreateInfo> stages = {};
-        std::vector<VkDynamicState> dynamicStates = {};
-        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachmentStates = {};
         VkPipelineVertexInputStateCreateInfo vertexInputState = {};
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
         VkPipelineTessellationStateCreateInfo tessellationState = {};
@@ -368,6 +365,13 @@ namespace vkh {
         VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
         VkPipelineColorBlendStateCreateInfo colorBlendState = {};
         VkPipelineDynamicStateCreateInfo dynamicState = {};
+
+        // 
+        std::vector<VkDynamicState> dynamicStates = {};
+        std::vector<VkPipelineShaderStageCreateInfo> stages = {};
+        std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachmentStates = {};
+        std::vector<VkVertexInputBindingDescription> vertexInputBindingDescriptions = {};
+        std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
         // constructive structure
         inline operator ::VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
@@ -399,6 +403,8 @@ namespace vkh {
             graphicsPipelineCreateInfo.pDynamicState = &dynamicState;
             dynamicState.setDynamicStates(dynamicStates);
             colorBlendState.setAttachments(colorBlendAttachmentStates);
+            vertexInputState.setVertexAttributeDescriptions(vertexInputAttributeDescriptions);
+            vertexInputState.setVertexBindingDescriptions(vertexInputBindingDescriptions);
             return *this;
         };
 

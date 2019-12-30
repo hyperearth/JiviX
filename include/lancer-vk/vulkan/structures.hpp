@@ -56,6 +56,25 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VK_HPP_STRUCT_OPERATORS(VkViewport,vk::Viewport)
     } VkViewport;
 
+    // 
+    typedef struct VkVertexInputBindingDescription {
+        uint32_t             binding    = 0u;
+        uint32_t             stride     = 16u;
+        VkVertexInputRate    inputRate  = VK_VERTEX_INPUT_RATE_VERTEX;
+        STRUCT_OPERATORS(VkVertexInputBindingDescription)
+        VK_HPP_STRUCT_OPERATORS(VkVertexInputBindingDescription,vk::VertexInputBindingDescription)
+    } VkVertexInputBindingDescription;
+
+    // 
+    typedef struct VkVertexInputAttributeDescription {
+        uint32_t    location = 0u;
+        uint32_t    binding  = 0u;
+        VkFormat    format   = VK_FORMAT_R32G32B32_SFLOAT;
+        uint32_t    offset   = 0u;
+        STRUCT_OPERATORS(VkVertexInputAttributeDescription)
+        VK_HPP_STRUCT_OPERATORS(VkVertexInputAttributeDescription,vk::VertexInputAttributeDescription)
+    } VkVertexInputAttributeDescription;
+
     //
     typedef struct VkDescriptorPoolSize {
         VkDescriptorType    type            = VK_DESCRIPTOR_TYPE_SAMPLER;
