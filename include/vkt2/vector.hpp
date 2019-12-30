@@ -78,7 +78,7 @@ namespace vkt {
     class BufferRegion {
     public: //using T = uint32_t;
         BufferRegion(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
-            bufInfo.buffer = (vk::Buffer) * buffer;
+            bufInfo.buffer = (vk::Buffer&)(*buffer);
             bufInfo.offset = offset;
             bufInfo.range = size * sizeof(T);
         };
