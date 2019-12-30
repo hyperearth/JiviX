@@ -4,10 +4,10 @@
 namespace vkt {
 
     // 
-    class VmaAllocatedBuffer : public std::enable_shared_from_this<VmaAllocatedBuffer> { public:
-        ~VmaAllocatedBuffer() { vmaDestroyBuffer(allocator, *this, allocation); };
-         VmaAllocatedBuffer();
-         VmaAllocatedBuffer(
+    class VmaBufferAllocation : public std::enable_shared_from_this<VmaBufferAllocation> { public:
+        ~VmaBufferAllocation() { vmaDestroyBuffer(allocator, *this, allocation); };
+         VmaBufferAllocation();
+         VmaBufferAllocation(
             const VmaAllocator& allocator,
             const vkh::VkBufferCreateInfo& createInfo = {},
             VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY
@@ -15,6 +15,14 @@ namespace vkt {
             VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
             if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
             vmaCreateBuffer(this->allocator = allocator, createInfo, &vmaInfo, (VkBuffer*)&buffer, &allocation, &allocationInfo);
+        };
+        VmaBufferAllocation(const VmaBufferAllocation& allocation) : buffer(allocation.buffer), allocation(allocation.allocation), allocationInfo(allocation.allocationInfo), allocator(allocation.allocator) {};
+        VmaBufferAllocation& operator=(const VmaBufferAllocation& allocation) {
+            this->buffer = allocation.buffer;
+            this->allocation = allocation.allocation;
+            this->allocationInfo = allocation.allocationInfo;
+            this->allocator = allocation.allocator;
+            return *this;
         };
 
         // Get mapped memory
@@ -38,18 +46,18 @@ namespace vkt {
         operator const VmaAllocation& () const { return allocation; };
         operator const VmaAllocationInfo& () const { return allocationInfo; };
 
-    protected: // 
+    protected: friend VmaBufferAllocation; // 
         vk::Buffer buffer = {};
         VmaAllocation allocation = {};
-        VmaAllocationInfo allocationInfo;
+        VmaAllocationInfo allocationInfo = {};
         VmaAllocator allocator = {};
     };
 
     // 
-    class VmaAllocatedImage : public std::enable_shared_from_this<VmaAllocatedImage> { public:
-        ~VmaAllocatedImage() { vmaDestroyImage(allocator, *this, allocation); };
-         VmaAllocatedImage();
-         VmaAllocatedImage(
+    class VmaImageAllocation : public std::enable_shared_from_this<VmaImageAllocation> { public:
+        ~VmaImageAllocation() { vmaDestroyImage(allocator, *this, allocation); };
+         VmaImageAllocation();
+         VmaImageAllocation(
             const VmaAllocator& allocator,
             const vkh::VkImageCreateInfo& createInfo = {},
             VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY
@@ -57,6 +65,14 @@ namespace vkt {
             VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
             if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
             vmaCreateImage(this->allocator = allocator, createInfo, &vmaInfo, (VkImage*)&image, &allocation, &allocationInfo);
+        };
+        VmaImageAllocation(const VmaImageAllocation& allocation) : image(allocation.image), allocation(allocation.allocation), allocationInfo(allocation.allocationInfo), allocator(allocation.allocator) {};
+        VmaImageAllocation& operator=(const VmaImageAllocation& allocation) {
+            this->image = allocation.image;
+            this->allocation = allocation.allocation;
+            this->allocationInfo = allocation.allocationInfo;
+            this->allocator = allocation.allocator;
+            return *this;
         };
 
         // Get mapped memory
@@ -76,7 +92,7 @@ namespace vkt {
         operator const VmaAllocation& () const { return allocation; };
         operator const VmaAllocationInfo& () const { return allocationInfo; };
 
-    protected: // 
+    protected: friend VmaImageAllocation; // 
         vk::Image image = {};
         VmaAllocation allocation = {};
         VmaAllocationInfo allocationInfo = {};
@@ -90,7 +106,7 @@ namespace vkt {
         
         template<class Tm = T> BufferRegion(const std::shared_ptr<BufferRegion<Tm>>& region = {}) : buffer(*region), offset(region->offset()), range(region->range()) {};
         BufferRegion(){};
-        BufferRegion(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
+        BufferRegion(const std::shared_ptr<VmaBufferAllocation>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
             bufInfo.buffer = (const vk::Buffer&)(*buffer);
             bufInfo.offset = offset;
             bufInfo.range = size * sizeof(T);
@@ -148,15 +164,15 @@ namespace vkt {
 
     protected: friend BufferRegion<T>; // 
         vk::DescriptorBufferInfo bufInfo = {};
-        std::shared_ptr<VmaAllocatedBuffer> buffer = {};
+        std::shared_ptr<VmaBufferAllocation> buffer = {};
     };
 
     // 
     template<class T = uint8_t>
-    class Vector {
+    class Vector { // direct wrapper for indirect pointer `std::shared_ptr<BufferRegion<T>>`
     public:
-        Vector() {}
-        Vector(const std::shared_ptr<VmaAllocatedBuffer>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) { region = std::make_shared<BufferRegion<T>>(buffer, size, offset); };
+        Vector() {};
+        Vector(const std::shared_ptr<VmaBufferAllocation>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) { region = std::make_shared<BufferRegion<T>>(buffer, size, offset); };
         Vector(const std::shared_ptr<BufferRegion<T>>& region) : region(region) {};
         Vector(const Vector<T>& vector) : region(vector.region) {};
 
@@ -212,8 +228,8 @@ namespace vkt {
             info.buffer = *region;
             info.offset = region->offset();
             info.range = region->range();
-            info.format = region->format();
-            return ((const vk::Device&)(*region).createBufferView(info));
+            info.format = format; // TODO: AUTO-FORMAT
+            return (view = (const vk::Device&)(*region).createBufferView(info));
         };
 
     protected: friend Vector<T>; // 
