@@ -170,27 +170,37 @@ namespace vkh {
 
         // 
         inline operator std::vector<VkDescriptorUpdateTemplateEntry>& () { return entries; };
+        inline operator const std::vector<VkDescriptorUpdateTemplateEntry>& () const { return entries; };
+
+        // 
         inline operator ::VkDescriptorSetAllocateInfo& () { return allocate_info; };
         inline operator ::VkDescriptorUpdateTemplateCreateInfo& () { return format(); };
+
+        // 
         inline operator VkDescriptorSetAllocateInfo&() { return allocate_info; };
         inline operator VkDescriptorUpdateTemplateCreateInfo& () { return format(); };
 
         // 
         inline operator ::VkDescriptorSetAllocateInfo* () { return allocate_info; };
         inline operator ::VkDescriptorUpdateTemplateCreateInfo* () { return format(); };
+
+        // 
         inline operator VkDescriptorSetAllocateInfo* () { return &allocate_info; };
         inline operator VkDescriptorUpdateTemplateCreateInfo* () { return &format(); };
 
         // 
         inline operator const ::VkDescriptorSetAllocateInfo* () const { return allocate_info; };
         inline operator const ::VkDescriptorUpdateTemplateCreateInfo* () const { return template_info; };
+
+        // 
         inline operator const VkDescriptorSetAllocateInfo* () const { return &allocate_info; };
         inline operator const VkDescriptorUpdateTemplateCreateInfo* () const { return &template_info; };
 
         // 
-        inline operator const std::vector<VkDescriptorUpdateTemplateEntry>& () const { return entries; };
         inline operator const ::VkDescriptorSetAllocateInfo& () const { return allocate_info; };
         inline operator const ::VkDescriptorUpdateTemplateCreateInfo& () const { return template_info; };
+
+        // 
         inline operator const VkDescriptorSetAllocateInfo& () const { return allocate_info; };
         inline operator const VkDescriptorUpdateTemplateCreateInfo& () const { return template_info; };
 
@@ -214,6 +224,7 @@ namespace vkh {
             return handles.back();
         };
 
+        // 
         VkDescriptorSetAllocateInfo allocate_info = {};
         VkDescriptorUpdateTemplateCreateInfo template_info = {};
         std::vector<uint8_t> heap = {};
@@ -301,12 +312,16 @@ namespace vkh {
         // 
         inline operator const VkRenderPassCreateInfo* () const { return &vk_info; };
         inline operator VkRenderPassCreateInfo* () { return &format(); };
+
+        // 
         inline operator const ::VkRenderPassCreateInfo* () const { return vk_info; };
         inline operator ::VkRenderPassCreateInfo* () { return format(); };
 
         // 
         inline operator const VkRenderPassCreateInfo& () const { return vk_info; };
         inline operator VkRenderPassCreateInfo& () { return format(); };
+
+        // 
         inline operator const ::VkRenderPassCreateInfo& () const { return vk_info; };
         inline operator ::VkRenderPassCreateInfo& () { return format(); };
 
@@ -376,6 +391,8 @@ namespace vkh {
         // constructive structure
         inline operator ::VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
         inline operator const ::VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
+
+        // 
         inline operator VkGraphicsPipelineCreateInfo& () { construct(); return graphicsPipelineCreateInfo; };
         inline operator const VkGraphicsPipelineCreateInfo& () const { return graphicsPipelineCreateInfo; };
 
@@ -386,9 +403,12 @@ namespace vkh {
         //
         inline operator ::VkGraphicsPipelineCreateInfo* () { construct(); return graphicsPipelineCreateInfo; };
         inline operator const ::VkGraphicsPipelineCreateInfo* () const { return graphicsPipelineCreateInfo; };
+
+        // 
         inline operator VkGraphicsPipelineCreateInfo* () { construct(); return &graphicsPipelineCreateInfo; };
         inline operator const VkGraphicsPipelineCreateInfo* () const { return &graphicsPipelineCreateInfo; };
 
+        // 
         inline VsGraphicsPipelineCreateInfoConstruction& operator=(const VkGraphicsPipelineCreateInfo& info) { graphicsPipelineCreateInfo = info; construct(); return *this; };
         inline VsGraphicsPipelineCreateInfoConstruction& construct() {
             graphicsPipelineCreateInfo.setStages(stages);
