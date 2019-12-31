@@ -28,13 +28,48 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         operator const VKNAME*() const { return reinterpret_cast<const VKNAME*>(this); };\
         NAME& operator =( const VKNAME& info ) { reinterpret_cast<VKNAME&>(*this) = info; return *this; };
 
+    #define STRUCT_TYPE_COMPATIBLE(NAME,T)\
+        NAME& operator=(const T& V) { memcpy(this, &V, sizeof(T)); return *this; };\
+        operator T&() { return reinterpret_cast<T&>(*this); };\
+        operator const T&() const { return reinterpret_cast<const T&>(*this); };
 
-    //#ifdef USE_GLM
-    using VkExtent3D = glm::uvec3;
-    using VkExtent2D = glm::uvec2;
-    using VkOffset3D = glm::ivec3;
-    using VkOffset2D = glm::ivec2;
-    //#endif
+    // GLM-Compatible
+    typedef struct VkOffset3D {
+        int32_t    x = 0;
+        int32_t    y = 0;
+        int32_t    z = 0;
+        STRUCT_OPERATORS(VkOffset3D)
+        VK_HPP_STRUCT_OPERATORS(VkOffset3D,vk::Offset3D)
+        STRUCT_TYPE_COMPATIBLE(VkOffset3D,glm::ivec3)
+    } VkOffset3D;
+
+    // GLM-Compatible
+    typedef struct VkOffset2D {
+        int32_t    x = 0;
+        int32_t    y = 0;
+        STRUCT_OPERATORS(VkOffset2D)
+        VK_HPP_STRUCT_OPERATORS(VkOffset2D,vk::Offset2D)
+        STRUCT_TYPE_COMPATIBLE(VkOffset2D,glm::ivec2)
+    } VkOffset2D;
+
+    // GLM-Compatible
+    typedef struct VkExtent2D {
+        uint32_t    width  = 1u;
+        uint32_t    height = 1u;
+        STRUCT_OPERATORS(VkExtent2D)
+        VK_HPP_STRUCT_OPERATORS(VkExtent2D,vk::Extent2D)
+        STRUCT_TYPE_COMPATIBLE(VkExtent2D,glm::uvec2)
+    } VkExtent2D;
+
+    // GLM-Compatible
+    typedef struct VkExtent3D {
+        uint32_t    width  = 1u;
+        uint32_t    height = 1u;
+        uint32_t    depth  = 1u;
+        STRUCT_OPERATORS(VkExtent3D)
+        VK_HPP_STRUCT_OPERATORS(VkExtent3D,vk::Extent3D)
+        STRUCT_TYPE_COMPATIBLE(VkExtent3D,glm::uvec3)
+    } VkExtent3D;
 
     // 
     typedef struct VkRect2D {
