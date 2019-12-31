@@ -108,17 +108,17 @@ namespace vkt {
     class BufferRegion : public std::enable_shared_from_this<BufferRegion<T>> {
     public: //using T = uint32_t;
         
-        template<class Tm = T> BufferRegion(const std::shared_ptr<BufferRegion<Tm>>& region = {}) : buffer(*region), offset(region->offset()), range(region->range()) {};
+        template<class Tm = T> BufferRegion(const std::shared_ptr<BufferRegion<Tm>>& region = {}) : allocation(*region), bufInfo({*region,region->offset(),region->range()}) {};
         BufferRegion(){};
-        BufferRegion(const std::shared_ptr<VmaBufferAllocation>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : allocation(allocation) {
+        BufferRegion(const std::shared_ptr<VmaBufferAllocation>& allocation, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : allocation(allocation) {
             bufInfo.buffer = (const vk::Buffer&)(*allocation);
             bufInfo.offset = offset;
             bufInfo.range = size * sizeof(T);
         };
 
         // re-assign buffer region (with another)
-        template<class Tm = T> BufferRegion<T>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { this->allocation = region->allocation; this->bufInfo = *region; return *this; };
-        template<class Tm = T> BufferRegion<T>& operator=(const BufferRegion<Tm>& region) { this->allocation = region->allocation; this->bufInfo = *region; return *this; };
+        template<class Tm = T> BufferRegion<T>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { this->allocation = *region; this->bufInfo = *region; return *this; };
+        template<class Tm = T> BufferRegion<T>& operator=(const BufferRegion<Tm>& region) { this->allocation = *region; this->bufInfo = *region; return *this; };
 
         // 
         void unmap() { allocation->unmap(); };
