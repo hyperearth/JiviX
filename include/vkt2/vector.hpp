@@ -47,6 +47,7 @@ namespace vkt {
         operator const VmaAllocation& () const { return allocation; };
         operator const VmaAllocationInfo& () const { return allocationInfo; };
 
+    // 
     protected: friend VmaBufferAllocation; // 
         vk::Buffer buffer = {};
         VmaAllocation allocation = {};
@@ -94,6 +95,7 @@ namespace vkt {
         operator const VmaAllocation& () const { return allocation; };
         operator const VmaAllocationInfo& () const { return allocationInfo; };
 
+    // 
     protected: friend VmaImageAllocation; // 
         vk::Image image = {};
         VmaAllocation allocation = {};
@@ -108,24 +110,24 @@ namespace vkt {
         
         template<class Tm = T> BufferRegion(const std::shared_ptr<BufferRegion<Tm>>& region = {}) : buffer(*region), offset(region->offset()), range(region->range()) {};
         BufferRegion(){};
-        BufferRegion(const std::shared_ptr<VmaBufferAllocation>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : buffer(buffer) {
-            bufInfo.buffer = (const vk::Buffer&)(*buffer);
+        BufferRegion(const std::shared_ptr<VmaBufferAllocation>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : allocation(allocation) {
+            bufInfo.buffer = (const vk::Buffer&)(*allocation);
             bufInfo.offset = offset;
             bufInfo.range = size * sizeof(T);
         };
 
         // re-assign buffer region (with another)
-        template<class Tm = T> BufferRegion<T>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { this->buffer = *region, this->offset = region->offset(), this->range = region->range(); return *this; };
-        template<class Tm = T> BufferRegion<T>& operator=(const BufferRegion<Tm>& region) { this->buffer = region, this->offset = region.offset(), this->range = region.range(); return *this; };
+        template<class Tm = T> BufferRegion<T>& operator=(const std::shared_ptr<BufferRegion<Tm>>& region) { this->allocation = region->allocation; this->bufInfo = *region; return *this; };
+        template<class Tm = T> BufferRegion<T>& operator=(const BufferRegion<Tm>& region) { this->allocation = region->allocation; this->bufInfo = *region; return *this; };
 
         // 
-        void unmap() { buffer->unmap(); };
-        const T* map() const { return (T*)((uint8_t*)buffer->map()+offset()); };
-        T* const map() { return (T*)((uint8_t*)buffer->map()+offset()); };
+        void unmap() { allocation->unmap(); };
+        const T* map() const { return (T*)((uint8_t*)allocation->map()+offset()); };
+        T* const map() { return (T*)((uint8_t*)allocation->map()+offset()); };
 
         // 
-        const T* mapped(const uintptr_t& i = 0u) const { return &((T*)((uint8_t*)buffer->mapped()+offset()))[i]; };
-        T* const mapped(const uintptr_t& i = 0u) { return &((T*)((uint8_t*)buffer->mapped()+offset()))[i]; };
+        const T* mapped(const uintptr_t& i = 0u) const { return &((T*)((uint8_t*)allocation->mapped()+offset()))[i]; };
+        T* const mapped(const uintptr_t& i = 0u) { return &((T*)((uint8_t*)allocation->mapped()+offset()))[i]; };
 
         // 
         T* const data() { return mapped(); };
@@ -151,14 +153,16 @@ namespace vkt {
         T* const end() { return &at(size() - 1ul); };
 
         // 
-        operator vk::DescriptorBufferInfo& () { bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*buffer); return bufInfo; };
-        operator vk::Buffer& () { return (bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*buffer)); };
-        //operator vk::Device& () { return *buffer; };
+        operator std::shared_ptr<VmaBufferAllocation>& () { return allocation; };
+        operator vk::DescriptorBufferInfo& () { bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*allocation); return bufInfo; };
+        operator vk::Buffer& () { return (bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*allocation)); };
+        operator vk::Device& () { return *allocation; };
 
         // 
+        operator const std::shared_ptr<VmaBufferAllocation>& () const { return allocation; };
         operator const vk::DescriptorBufferInfo& () const { return bufInfo; };
-        operator const vk::Buffer& () const { return *buffer; };
-        operator const vk::Device& () const { return *buffer; };
+        operator const vk::Buffer& () const { return *allocation; };
+        operator const vk::Device& () const { return *allocation; };
 
         // 
         const vk::DeviceSize& offset() const { return bufInfo.offset; };
@@ -166,7 +170,7 @@ namespace vkt {
 
     protected: friend BufferRegion<T>; // 
         vk::DescriptorBufferInfo bufInfo = {};
-        std::shared_ptr<VmaBufferAllocation> buffer = {};
+        std::shared_ptr<VmaBufferAllocation> allocation = {};
     };
 
     // 
@@ -174,7 +178,7 @@ namespace vkt {
     class Vector { // direct wrapper for indirect pointer `std::shared_ptr<BufferRegion<T>>`
     public:
         Vector() {};
-        Vector(const std::shared_ptr<VmaBufferAllocation>& buffer, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) { region = std::make_shared<BufferRegion<T>>(buffer, size, offset); };
+        Vector(const std::shared_ptr<VmaBufferAllocation>& allocation, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) { region = std::make_shared<BufferRegion<T>>(allocation, size, offset); };
         Vector(const std::shared_ptr<BufferRegion<T>>& region) : region(region) {};
         Vector(const Vector<T>& vector) : region(vector.region) {};
 
@@ -211,6 +215,7 @@ namespace vkt {
         operator const vk::DescriptorBufferInfo& () const { return *region; };
         operator const vk::Buffer& () const { return *region; };
         operator const vk::Device& () const { return *region; };
+        operator const vk::BufferView& () const { return view; };
 
         // 
         const vk::DeviceSize& range() const { return region->range(); };
