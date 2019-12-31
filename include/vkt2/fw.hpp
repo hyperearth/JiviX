@@ -384,6 +384,10 @@ namespace vkt
         inline vk::DescriptorPool& getDescriptorPool() { return descriptorPool; };
 
         // 
+        inline const VmaAllocator& getAllocator() const { return allocator; };
+        inline VmaAllocator& getAllocator() { return allocator; };
+
+        // 
         inline SurfaceFormat& getSurfaceFormat(vk::PhysicalDevice gpu)
         {
             auto surfaceFormats = gpu.getSurfaceFormatsKHR(applicationWindow.surface);

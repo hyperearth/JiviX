@@ -64,6 +64,29 @@ int main() {
         .pSetLayouts = &reinterpret_cast<const VkDescriptorSetLayout&>(descriptorSetLayout)
     });
 
+    // added for LOC testing
+    auto hostBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+        .size = 16u * 3u,
+        .usage = {.eTransferSrc = 1, .eStorageBuffer = 1 },
+    }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+
+    // triangle data
+    hostBuffer[0] = glm::vec4( 1.f, -1.f, 0.f, 1.f);
+    hostBuffer[1] = glm::vec4(-1.f, -1.f, 0.f, 1.f);
+    hostBuffer[2] = glm::vec4( 0.f,  1.f, 0.f, 1.f);
+
+    // 
+    auto gpuBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+        .size = 16u * 3u,
+        .usage = {.eTransferDst = 1, .eStorageBuffer = 1 },
+    }, VMA_MEMORY_USAGE_GPU_ONLY));
+
+    // 
+    vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+        cmd.copyBuffer(hostBuffer, gpuBuffer, { vkh::VkBufferCopy{.size = 16u * 3u} });
+    });
+    // Buffer LOC test end
+
 	// 
 	int currSemaphore = -1;
 	uint32_t currentBuffer = 0u;

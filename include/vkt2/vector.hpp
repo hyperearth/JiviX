@@ -5,7 +5,7 @@ namespace vkt {
 
     // 
     class VmaBufferAllocation : public std::enable_shared_from_this<VmaBufferAllocation> { public:
-        ~VmaBufferAllocation() { vmaDestroyBuffer(allocator, *this, allocation); };
+        //~VmaBufferAllocation() { vmaDestroyBuffer(allocator, *this, allocation); };
          VmaBufferAllocation() {};
          VmaBufferAllocation(
             const VmaAllocator& allocator,
@@ -14,7 +14,7 @@ namespace vkt {
         ) {
             VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
             if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
-            vmaCreateBuffer(this->allocator = allocator, createInfo, &vmaInfo, (VkBuffer*)&buffer, &allocation, &allocationInfo);
+            assert(vmaCreateBuffer(this->allocator = allocator, createInfo, &vmaInfo, &(VkBuffer&)buffer, &allocation, &allocationInfo) == VK_SUCCESS);
         };
         VmaBufferAllocation(const VmaBufferAllocation& allocation) : buffer(allocation.buffer), allocation(allocation.allocation), allocationInfo(allocation.allocationInfo), allocator(allocation.allocator) {};
         VmaBufferAllocation& operator=(const VmaBufferAllocation& allocation) {
@@ -40,7 +40,7 @@ namespace vkt {
         operator const VkBuffer& () const { return (VkBuffer&)buffer; };
 
         // VMA HACK FOR EXTRACT DEVICE
-        operator const vk::Device& () const { return reinterpret_cast<vk::Device&>(allocator->m_hDevice); };
+        operator const vk::Device& () const { return (vk::Device&)(allocator->m_hDevice); };
         operator const VkDevice& () const { return allocator->m_hDevice; };
 
         // Allocation
@@ -57,7 +57,7 @@ namespace vkt {
 
     // 
     class VmaImageAllocation : public std::enable_shared_from_this<VmaImageAllocation> { public:
-        ~VmaImageAllocation() { vmaDestroyImage(allocator, *this, allocation); };
+        //~VmaImageAllocation() { vmaDestroyImage(allocator, *this, allocation); };
          VmaImageAllocation() {};
          VmaImageAllocation(
             const VmaAllocator& allocator,
@@ -66,7 +66,7 @@ namespace vkt {
         ) {
             VmaAllocationCreateInfo vmaInfo = {}; vmaInfo.usage = vmaUsage;
             if (vmaUsage == VMA_MEMORY_USAGE_CPU_TO_GPU || vmaUsage == VMA_MEMORY_USAGE_GPU_TO_CPU) { vmaInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT; };
-            vmaCreateImage(this->allocator = allocator, createInfo, &vmaInfo, (VkImage*)&image, &allocation, &allocationInfo);
+            assert(vmaCreateImage(this->allocator = allocator, createInfo, &vmaInfo, &(VkImage&)image, &allocation, &allocationInfo) == VK_SUCCESS);
         };
         VmaImageAllocation(const VmaImageAllocation& allocation) : image(allocation.image), allocation(allocation.allocation), allocationInfo(allocation.allocationInfo), allocator(allocation.allocator) {};
         VmaImageAllocation& operator=(const VmaImageAllocation& allocation) {
@@ -88,7 +88,7 @@ namespace vkt {
         operator const VkImage& () const { return (VkImage&)image; };
 
         // VMA HACK FOR EXTRACT DEVICE
-        operator const vk::Device& () const { return reinterpret_cast<vk::Device&>(allocator->m_hDevice); };
+        operator const vk::Device& () const { return(vk::Device&)(allocator->m_hDevice); };
         operator const VkDevice& () const { return allocator->m_hDevice; };
 
         // Allocation
@@ -110,7 +110,7 @@ namespace vkt {
         
         template<class Tm = T> BufferRegion(const std::shared_ptr<BufferRegion<Tm>>& region = {}) : allocation(*region), bufInfo({*region,region->offset(),region->range()}) {};
         BufferRegion(){};
-        BufferRegion(const std::shared_ptr<VmaBufferAllocation>& allocation, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) : allocation(allocation) {
+        BufferRegion(const std::shared_ptr<VmaBufferAllocation>& allocation, vk::DeviceSize offset = 0u, vk::DeviceSize size = VK_WHOLE_SIZE) : allocation(allocation) {
             bufInfo.buffer = (const vk::Buffer&)(*allocation);
             bufInfo.offset = offset;
             bufInfo.range = size * sizeof(T);
@@ -154,8 +154,8 @@ namespace vkt {
 
         // 
         operator std::shared_ptr<VmaBufferAllocation>& () { return allocation; };
-        operator vk::DescriptorBufferInfo& () { bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*allocation); return bufInfo; };
-        operator vk::Buffer& () { return (bufInfo.buffer = reinterpret_cast<vk::Buffer&>(*allocation)); };
+        operator vk::DescriptorBufferInfo& () { bufInfo.buffer = (vk::Buffer&)(*allocation); return bufInfo; };
+        operator vk::Buffer& () { return (bufInfo.buffer = (vk::Buffer&)*allocation); };
         operator vk::Device& () { return *allocation; };
 
         // 
@@ -168,6 +168,7 @@ namespace vkt {
         const vk::DeviceSize& offset() const { return bufInfo.offset; };
         const vk::DeviceSize& range() const { return bufInfo.range; };
 
+    // 
     protected: friend BufferRegion<T>; // 
         vk::DescriptorBufferInfo bufInfo = {};
         std::shared_ptr<VmaBufferAllocation> allocation = {};
@@ -178,7 +179,7 @@ namespace vkt {
     class Vector { // direct wrapper for indirect pointer `std::shared_ptr<BufferRegion<T>>`
     public:
         Vector() {};
-        Vector(const std::shared_ptr<VmaBufferAllocation>& allocation, vk::DeviceSize size = 0ull, vk::DeviceSize offset = 0u) { region = std::make_shared<BufferRegion<T>>(allocation, size, offset); };
+        Vector(const std::shared_ptr<VmaBufferAllocation>& allocation, vk::DeviceSize offset = 0u, vk::DeviceSize size = VK_WHOLE_SIZE) { region = std::make_shared<BufferRegion<T>>(allocation, offset, size); };
         Vector(const std::shared_ptr<BufferRegion<T>>& region) : region(region) {};
         Vector(const Vector<T>& vector) : region(vector.region) {};
 

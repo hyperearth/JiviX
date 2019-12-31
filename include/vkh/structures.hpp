@@ -102,6 +102,15 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     } VkDescriptorImageInfo;
 
     // 
+    typedef struct VkBufferCopy {
+        VkDeviceSize  srcOffset = 0u;
+        VkDeviceSize  dstOffset = 0u;
+        VkDeviceSize  size      = 16u;
+        STRUCT_OPERATORS(VkBufferCopy)
+        VK_HPP_STRUCT_OPERATORS(VkBufferCopy, vk::BufferCopy)
+    } VkBufferCopy;
+
+    // 
     typedef struct VkWriteDescriptorSet {
         VkStructureType                  sType              = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         const void*                      pNext              = nullptr;
