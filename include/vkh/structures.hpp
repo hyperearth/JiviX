@@ -239,8 +239,8 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkStructureType          sType                  = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         const void*              pNext                  = nullptr;
         VkImageCreateFlags       flags                  = {};
-        VkImageType              imageType              = VK_IMAGE_TYPE_1D;
-        VkFormat                 format                 = VK_FORMAT_R8G8_UNORM;
+        VkImageType              imageType              = VK_IMAGE_TYPE_2D;
+        VkFormat                 format                 = VK_FORMAT_R8G8B8A8_UNORM;
         VkExtent3D               extent                 = {1u,1u,1u};
         uint32_t                 mipLevels              = 1u;
         uint32_t                 arrayLayers            = 1u;
@@ -289,9 +289,57 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkFormat                   format           = VK_FORMAT_R8G8B8A8_UNORM;
         VkComponentMapping         components       = {};
         VkImageSubresourceRange    subresourceRange = {};
+
         STRUCT_OPERATORS(VkImageViewCreateInfo)
         VK_HPP_STRUCT_OPERATORS(VkImageViewCreateInfo,vk::ImageViewCreateInfo)
     } VkImageViewCreateInfo;
+
+    // 
+    typedef struct VkImageViewCreateInfo {
+        VkStructureType            sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        const void*                pNext            = nullptr;
+        VkImageViewCreateFlags     flags            = {};
+        VkImage                    image            = VK_NULL_HANDLE;
+        VkImageViewType            viewType         = VK_IMAGE_VIEW_TYPE_2D;
+        VkFormat                   format           = VK_FORMAT_R8G8B8A8_UNORM;
+        VkComponentMapping         components       = {};
+        VkImageSubresourceRange    subresourceRange = {};
+        STRUCT_OPERATORS(VkImageViewCreateInfo)
+        VK_HPP_STRUCT_OPERATORS(VkImageViewCreateInfo,vk::ImageViewCreateInfo)
+    } VkImageViewCreateInfo;
+
+    // 
+    typedef struct VkImageSubresourceLayers {
+        VkImageAspectFlags    aspectMask     = {};
+        uint32_t              mipLevel       = 0u;
+        uint32_t              baseArrayLayer = 0u;
+        uint32_t              layerCount     = 1u;
+        STRUCT_OPERATORS(VkImageSubresourceLayers)
+        VK_HPP_STRUCT_OPERATORS(VkImageSubresourceLayers,vk::ImageSubresourceLayers)
+    } VkImageSubresourceLayers;
+
+    // 
+    typedef struct VkBufferImageCopy {
+        VkDeviceSize                bufferOffset        = 0u;
+        uint32_t                    bufferRowLength     = 1u;
+        uint32_t                    bufferImageHeight   = 1u;
+        VkImageSubresourceLayers    imageSubresource    = {};
+        VkOffset3D                  imageOffset         = {};
+        VkExtent3D                  imageExtent         = {};
+        STRUCT_OPERATORS(VkBufferImageCopy)
+        VK_HPP_STRUCT_OPERATORS(VkBufferImageCopy,vk::BufferImageCopy)
+    } VkBufferImageCopy;
+
+    // 
+    typedef struct VkImageCopy {
+        VkImageSubresourceLayers    srcSubresource  = {};
+        VkOffset3D                  srcOffset       = {};
+        VkImageSubresourceLayers    dstSubresource  = {};
+        VkOffset3D                  dstOffset       = {};
+        VkExtent3D                  extent          = {};
+        STRUCT_OPERATORS(VkImageCopy)
+        VK_HPP_STRUCT_OPERATORS(VkImageCopy,vk::ImageCopy)
+    } VkImageCopy;
 
     // 
     typedef struct VkPipelineInputAssemblyStateCreateInfo {
