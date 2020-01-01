@@ -7,7 +7,6 @@ namespace lancer {
         Renderer() {};
 
     protected: // 
-        std::shared_ptr<Driver> gpuDriver = {};
         vk::CommandBuffer deferredCommand = {};
         vk::Pipeline rayTracingStage = {};
         vk::Pipeline resamplingStage = {};
@@ -19,7 +18,7 @@ namespace lancer {
         std::shared_ptr<Instance> instances = {}; // instances
 
         // 
-        std::shared_ptr<vkt::GPUFramework> driver = {};
+        std::shared_ptr<Driver> driver = {};
     };
 
 };

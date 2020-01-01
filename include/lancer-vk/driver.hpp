@@ -11,4 +11,6 @@ namespace lancer {
     //    vk::Device device = {};
     //};
 
+    using Driver = vkt::GPUFramework;
+
 };

@@ -476,4 +476,8 @@ namespace vkh {
         inline const VkGraphicsPipelineCreateInfo* operator->() const { return &graphicsPipelineCreateInfo; };
     };
 
+
+    // TODO: IMAGE VIEW REGION IN MIP LEVEL
+    // WILL USED FOR SIMPLER COPYING
+
 };

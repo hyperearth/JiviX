@@ -262,7 +262,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
     // 
     typedef struct VkImageSubresourceRange {
-        VkImageAspectFlags    aspectMask = { .eColor = 1 };
+        VkImageAspectFlags    aspectMask = {};
         uint32_t              baseMipLevel = 0u;
         uint32_t              levelCount = 1u;
         uint32_t              baseArrayLayer = 0u;
@@ -863,7 +863,13 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t instanceOffset : 24;
         union { uint32_t flags_8u : 8; VkGeometryInstanceFlagsNV flags = {}; };
         uint64_t accelerationStructureHandle = 0ull;
-        //STRUCT_OPERATORS(VsGeometryInstance) // NO NATIVE TYPE
+
+        // Few Operators
+        operator VsGeometryInstance* () { return this; };
+        operator VsGeometryInstance& () { return *this; };
+        operator const VsGeometryInstance* () const { return this; };
+        operator const VsGeometryInstance& () const { return *this; };
+        VsGeometryInstance& operator =(const VsGeometryInstance& info) { memcpy(this,&info,sizeof(VsGeometryInstance)); return *this; };
     };
     #pragma pack(pop)
 

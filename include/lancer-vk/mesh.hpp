@@ -84,15 +84,17 @@ namespace lancer {
             std::vector<vk::DeviceSize> offsets = {};
             for (auto& B : bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
             // TODO: Command Buffer
-            //rasterizeCommand = vkt::createCommandBuffer(*thread, *thread, false, false); // do reference of cmd buffer
-            //rasterizeCommand.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
-            //rasterizeCommand.setViewport(0, { viewport });
-            //rasterizeCommand.setScissor(0, { renderArea });
+            //secondaryCommand = vkt::createCommandBuffer(*thread, *thread, false, false); // do reference of cmd buffer
+            //secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            //secondaryCommand.setViewport(0, { viewport });
+            //secondaryCommand.setScissor(0, { renderArea });
         if (indexType != vk::IndexType::eNoneNV)
             secondaryCommand.bindIndexBuffer(indexData, indexData.offset(), indexType);
             secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, rasterizationState);
             secondaryCommand.bindVertexBuffers(0u, buffers, offsets);
             secondaryCommand.drawIndexed(indexCount, 1u, 0u, 0u, 0u);
+            //secondaryCommand.endRenderPass();
+            //secondaryCommand.end();
             return shared_from_this();
         };
 
@@ -119,18 +121,16 @@ namespace lancer {
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
         vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
         vkh::VkGeometryNV geometry = {};
-        //std::vector<vkh::VkGeometryNV> geometries = {};
 
         // 
         vk::CommandBuffer secondaryCommand = {};
-        //vk::DescriptorSet descriptorSet = {};
-          vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
+        vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
         vk::AccelerationStructureNV accelerationStructure = {};
         vk::Buffer scratchBuffer = {};
 
         // 
-        //std::shared_ptr<Driver> driver = {};
-        std::shared_ptr<vkt::GPUFramework> driver = {};
+        std::shared_ptr<Driver> driver = {};
+        std::shared_ptr<Thread> thread = {};
     };
 
 };
