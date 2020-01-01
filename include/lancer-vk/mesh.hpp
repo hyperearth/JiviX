@@ -3,12 +3,13 @@
 #include "./driver.hpp"
 
 namespace lancer {
-    
+
     // WIP Mesh Object
+    // Sub-Instances Can Be Supported
     class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Instance;
         Mesh() {
-            this->accelerationStructureInfo.geometryCount = 1;
-            this->accelerationStructureInfo.pGeometries = geometry;
+            this->accelerationStructureInfo.geometryCount = instanceCount;
+            this->accelerationStructureInfo.pGeometries = &geometryTemplate;
         };
 
         // 
@@ -29,11 +30,12 @@ namespace lancer {
             // 
             if (isVertex) { // TODO: fix from vec4 into vec3
                 const auto& binding = this->pipelineInfo.vertexInputBindingDescriptions.back();
-                this->geometry.geometry.triangles.vertexOffset = attribute.offset + this->bindings.back().offset();
-                this->geometry.geometry.triangles.vertexFormat = attribute.format;
-                this->geometry.geometry.triangles.vertexStride = binding.stride;
-                this->geometry.geometry.triangles.vertexCount = this->bindings.back().size() / binding.stride;
-                this->geometry.geometry.triangles.vertexData = this->bindings.back();
+                this->vertexCount = this->bindings.back().size() / binding.stride;
+                this->geometryTemplate.geometry.triangles.vertexOffset = attribute.offset + this->bindings.back().offset();
+                this->geometryTemplate.geometry.triangles.vertexFormat = attribute.format;
+                this->geometryTemplate.geometry.triangles.vertexStride = binding.stride;
+                this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount;
+                this->geometryTemplate.geometry.triangles.vertexData = this->bindings.back();
             };
             return shared_from_this();
         };
@@ -43,10 +45,10 @@ namespace lancer {
             this->indexData = indices;
             this->indexType = vk::IndexType::eUint32;
             this->indexCount = indices.size();
-            this->geometry.geometry.triangles.indexOffset = indices.offset();
-            this->geometry.geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometry.geometry.triangles.indexCount = indices.size();
-            this->geometry.geometry.triangles.indexData = indices;
+            this->geometryTemplate.geometry.triangles.indexOffset = indices.offset();
+            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
+            this->geometryTemplate.geometry.triangles.indexCount = indices.size();
+            this->geometryTemplate.geometry.triangles.indexData = indices;
             return shared_from_this();
         };
 
@@ -55,10 +57,45 @@ namespace lancer {
             this->indexData = indices;
             this->indexType = vk::IndexType::eUint16;
             this->indexCount = indices.size();
-            this->geometry.geometry.triangles.indexOffset = indices.offset();
-            this->geometry.geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometry.geometry.triangles.indexCount = indices.size();
-            this->geometry.geometry.triangles.indexData = indices;
+            this->geometryTemplate.geometry.triangles.indexOffset = indices.offset();
+            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
+            this->geometryTemplate.geometry.triangles.indexCount = indices.size();
+            this->geometryTemplate.geometry.triangles.indexData = indices;
+            return shared_from_this();
+        };
+
+        // Uint8_T version
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t>& indices = {}){
+            this->indexData = indices;
+            this->indexType = vk::IndexType::eUint8EXT;
+            this->indexCount = indices.size();
+            this->geometryTemplate.geometry.triangles.indexOffset = indices.offset();
+            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
+            this->geometryTemplate.geometry.triangles.indexCount = indices.size();
+            this->geometryTemplate.geometry.triangles.indexData = indices;
+            return shared_from_this();
+        };
+
+        // Reset Indices
+        std::shared_ptr<Mesh> resetIndexData(){
+            this->indexData = {};
+            this->indexType = vk::IndexType::eNoneNV;
+            this->indexCount = 0u;
+            this->geometryTemplate.geometry.triangles.indexOffset = 0u;
+            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
+            this->geometryTemplate.geometry.triangles.indexCount = 0u;
+            this->geometryTemplate.geometry.triangles.indexData = {};
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t>& indices, vk::IndexType type){
+            switch(type) {
+                case vk::IndexType::eUint32: return this->setIndexData(vkt::Vector<uint32_t>(indices)); break; // uint32_t version 
+                case vk::IndexType::eUint16: return this->setIndexData(vkt::Vector<uint16_t>(indices)); break; // uint16_t version
+                case vk::IndexType::eUint8EXT: return this->setIndexData(vkt::Vector<uint8_t>(indices)); break; // uint8_t version
+                default: return resetIndexData();
+            };
             return shared_from_this();
         };
 
@@ -69,10 +106,16 @@ namespace lancer {
         };
 
         // 
+        std::shared_ptr<Mesh> setInstanceCount(const uint32_t& instanceCount = 1u) {
+            this->instanceCount = instanceCount;
+            return shared_from_this();
+        };
+
+        // 
         std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}) {
-            this->geometry.geometry.triangles.transformOffset = transformData.offset();
-            this->geometry.geometry.triangles.transformData = transformData;
-            this->transformData = transformData;
+            this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset();
+            this->geometryTemplate.geometry.triangles.transformData = transformData;
+            this->gpuTransformData = transformData;
             return shared_from_this();
         };
 
@@ -88,11 +131,18 @@ namespace lancer {
             //secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             //secondaryCommand.setViewport(0, { viewport });
             //secondaryCommand.setScissor(0, { renderArea });
-        if (indexType != vk::IndexType::eNoneNV)
-            secondaryCommand.bindIndexBuffer(indexData, indexData.offset(), indexType);
+
             secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, rasterizationState);
             secondaryCommand.bindVertexBuffers(0u, buffers, offsets);
-            secondaryCommand.drawIndexed(indexCount, 1u, 0u, 0u, 0u);
+
+            // Make Draw Instanced 
+            if (indexType != vk::IndexType::eNoneNV) { // PLC Mode
+                secondaryCommand.bindIndexBuffer(indexData, indexData.offset(), indexType);
+                secondaryCommand.drawIndexed(indexCount, instanceCount, 0u, 0u, 0u);
+            } else { // VAL Mode
+                secondaryCommand.draw(vertexCount, instanceCount, 0u, 0u);
+            };
+            
             //secondaryCommand.endRenderPass();
             //secondaryCommand.end();
             return shared_from_this();
@@ -100,6 +150,22 @@ namespace lancer {
 
         // Create Or Result Acceleration Structure
         std::shared_ptr<Mesh> createAccelerationStructure(){
+
+            // Pre-Initialize Geometries
+            // Use Same Geometry for Sub-Instances
+            geometries.resize(instanceCount);
+            for (uint32_t i = 0u; i < instanceCount; i++) {
+                geometries[i] = geometryTemplate;
+                geometries[i].geometry.triangles.transformData = gpuTransformData;
+                geometries[i].geometry.triangles.transformOffset = sizeof(glm::mat3x4) * i + gpuTransformData.offset(); // Should To Be Different's
+            };
+
+            // Re-assign instance count
+            this->accelerationStructureInfo.geometryCount = geometries.size();
+            this->accelerationStructureInfo.pGeometries = geometries.data();
+
+            // 
+
             return shared_from_this();
         };
 
@@ -108,10 +174,14 @@ namespace lancer {
         vkt::Vector<uint8_t> indexData = {}; 
         vk::IndexType indexType = vk::IndexType::eNoneNV; 
         vk::DeviceSize indexCount = 0u;
+        vk::DeviceSize vertexCount = 0u;
+        uint32_t instanceCount = 1u;
 
         // 
         std::vector<vkt::Vector<uint8_t>> bindings = {};
-        vkt::Vector<glm::mat3x4> transformData = {};
+
+        // Accumulated by "Instance" for instanced rendering
+        vkt::Vector<glm::mat3x4> gpuTransformData = {};
 
         // construct bindings and attributes
         uint32_t locationCounter = 0u;
@@ -120,9 +190,10 @@ namespace lancer {
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
         vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
-        vkh::VkGeometryNV geometry = {};
+        std::vector<vkh::VkGeometryNV> geometries = {};
 
         // 
+        vkh::VkGeometryNV geometryTemplate = {};
         vk::CommandBuffer secondaryCommand = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
         vk::AccelerationStructureNV accelerationStructure = {};

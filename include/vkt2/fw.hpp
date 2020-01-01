@@ -141,14 +141,53 @@ namespace vkt
         std::vector<uint32_t> queueFamilyIndices = {};
 
         //vk::Device createDevice(bool isComputePrior = true, std::string shaderPath = "./", bool enableAdvancedAcceleration = true);
-        const vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { physicalDevice = physicalDevices[gpuID]; return physicalDevice; };
-        const vk::PhysicalDevice& getPhysicalDevice() const { return physicalDevice; };
-        const vk::Device& getDevice() const { return device; };
-        const vk::Queue& getQueue() const { return queue; };
-        const vk::Fence& getFence() const { return fence; };
-        const vk::Instance& getInstance() const { return instance; };
-        const vk::CommandPool& getCommandPool() const { return commandPool; };
+        inline vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { physicalDevice = physicalDevices[gpuID]; return physicalDevice; };
 
+        // 
+        inline vk::PhysicalDevice& getPhysicalDevice() { return physicalDevice; };
+        inline vk::Device& getDevice() { return device; };
+        inline vk::Queue& getQueue() { return queue; };
+        inline vk::Fence& getFence() { return fence; };
+        inline vk::Instance& getInstance() { return instance; };
+        inline vk::CommandPool& getCommandPool() { return commandPool; };
+        inline vk::PipelineCache& getPipelineCache() { return pipelineCache; };
+        inline vk::DescriptorPool& getDescriptorPool() { return descriptorPool; };
+        inline VmaAllocator& getAllocator() { return allocator; };
+
+        // 
+        inline const vk::PhysicalDevice& getPhysicalDevice() const { return physicalDevice; };
+        inline const vk::Device& getDevice() const { return device; };
+        inline const vk::Queue& getQueue() const { return queue; };
+        inline const vk::Fence& getFence() const { return fence; };
+        inline const vk::Instance& getInstance() const { return instance; };
+        inline const vk::CommandPool& getCommandPool() const { return commandPool; };
+        inline const vk::PipelineCache& getPipelineCache() const { return pipelineCache; };
+        inline const vk::DescriptorPool& getDescriptorPool() const { return descriptorPool; };
+        inline const VmaAllocator& getAllocator() const { return allocator; };
+
+        //
+        inline operator vk::PhysicalDevice&() { return physicalDevice; };
+        inline operator vk::Device&() { return device; };
+        inline operator vk::Queue&() { return queue; };
+        inline operator vk::Fence&() { return fence; };
+        inline operator vk::Instance&() { return instance; };
+        inline operator vk::CommandPool&() { return commandPool; };
+        inline operator vk::PipelineCache&() { return pipelineCache; };
+        inline operator vk::DescriptorPool&() { return descriptorPool; };
+        inline operator VmaAllocator&() { return allocator; };
+
+        //
+        inline operator const vk::PhysicalDevice&() const { return physicalDevice; };
+        inline operator const vk::Device&() const { return device; };
+        inline operator const vk::Queue&() const { return queue; };
+        inline operator const vk::Fence&() const { return fence; };
+        inline operator const vk::Instance&() const { return instance; };
+        inline operator const vk::CommandPool&() const { return commandPool; };
+        inline operator const vk::PipelineCache&() const { return pipelineCache; };
+        inline operator const vk::DescriptorPool&() const { return descriptorPool; };
+        inline operator const VmaAllocator&() const { return allocator; };
+
+        // 
         void submitCommandWithSync(const vk::CommandBuffer & cmdBuf) {
             // submit command
             vk::SubmitInfo sbmi = {};
@@ -374,18 +413,6 @@ namespace vkt
         // setters
         void format(SurfaceFormat format) { applicationWindow.surfaceFormat = format; }
         void size(const vk::Extent2D & size) { applicationWindow.surfaceSize = size; }
-
-        // 
-        inline const vk::PipelineCache& getPipelineCache() const { return pipelineCache; };
-        inline vk::PipelineCache& getPipelineCache() { return pipelineCache; };
-
-        // 
-        inline const vk::DescriptorPool& getDescriptorPool() const { return descriptorPool; };
-        inline vk::DescriptorPool& getDescriptorPool() { return descriptorPool; };
-
-        // 
-        inline const VmaAllocator& getAllocator() const { return allocator; };
-        inline VmaAllocator& getAllocator() { return allocator; };
 
         // 
         inline SurfaceFormat& getSurfaceFormat(vk::PhysicalDevice gpu)

@@ -6,6 +6,18 @@ namespace lancer {
 
     class Thread : public std::enable_shared_from_this<Thread> { public: 
         Thread() {};
+        Thread(const std::shared_ptr<Driver>& driver) { // derrivate from driver framework
+            this->driver = driver;
+            this->queue = *driver;
+            this->commandPool = *driver;
+            this->descriptorPool = *driver;
+        };
+
+        // TODO: create dedicated thread pool
+        std::shared_ptr<Thread> createThreadPool() {
+            
+            return shared_from_this();
+        };
 
         // 
         std::shared_ptr<Thread> setDriver(const std::shared_ptr<Driver>& driver) {
@@ -31,6 +43,20 @@ namespace lancer {
             return shared_from_this();
         };
 
+        // Getter Operators
+        operator vk::CommandPool&() { return commandPool; };
+        operator vk::DescriptorPool&() { return descriptorPool; };
+        operator vk::Queue&() { return queue; };
+        operator vk::Device&() { return driver->getDevice(); };
+        operator std::shared_ptr<Driver>&() { return driver; };
+
+        // 
+        operator const vk::CommandPool&() const { return commandPool; };
+        operator const vk::DescriptorPool&() const { return descriptorPool; };
+        operator const vk::Queue&() const { return queue; };
+        operator const vk::Device&() const { return driver->getDevice(); };
+        operator const std::shared_ptr<Driver>&() const { return driver; };
+
         // casting access
         operator Driver&() { return *driver; };
         operator const Driver&() const { return *driver; };
@@ -43,6 +69,7 @@ namespace lancer {
         const Driver& operator*() const { return *driver; };
         const Driver* operator->() const { return &(*driver); };
 
+    // 
     protected: friend Thread; friend Driver; // 
         vk::Queue queue = {};
         vk::CommandPool commandPool = {};
