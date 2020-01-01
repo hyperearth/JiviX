@@ -282,12 +282,13 @@ namespace vkh {
         };
 
         // 
-        inline VsDescriptorSetLayoutCreateInfoHelper& pushBinding(const VkDescriptorBindingFlagsEXT& flags = {}, const VkDescriptorSetLayoutBinding& binding = {}){
+        inline VsDescriptorSetLayoutCreateInfoHelper& pushBinding(const VkDescriptorSetLayoutBinding& binding = {}, const VkDescriptorBindingFlagsEXT& flags = {}){
             binding_flags.push_back(flags);
             bindings.push_back(binding);
             return *this;
         };
 
+        // 
         inline VkDescriptorSetLayoutCreateInfo& format() {
             vk_info.pBindings = bindings.data();
             vk_info.bindingCount = bindings.size();

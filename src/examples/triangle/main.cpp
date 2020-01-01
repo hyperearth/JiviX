@@ -29,7 +29,7 @@ int main() {
 
     // Vookoo-styled Create Graphics
     vkh::VsDescriptorSetLayoutCreateInfoHelper descriptorSetLayoutInfo = {};
-    descriptorSetLayoutInfo.pushBinding({  }, { .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
+    descriptorSetLayoutInfo.pushBinding({ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
     auto descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
 
     // 
