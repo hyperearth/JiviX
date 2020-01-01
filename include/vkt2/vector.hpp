@@ -47,6 +47,10 @@ namespace vkt {
         operator const VmaAllocation& () const { return allocation; };
         operator const VmaAllocationInfo& () const { return allocationInfo; };
 
+        // 
+        vk::DeviceSize& range() { return allocationInfo.size; };
+        const vk::DeviceSize& range() const { return allocationInfo.size; };
+
     // 
     protected: friend VmaBufferAllocation; // 
         vk::Buffer buffer = {};
@@ -133,8 +137,10 @@ namespace vkt {
         T* const data() { return mapped(); };
         const T* data() const { return mapped(); };
 
-        // 
-        vk::DeviceSize size() const { return bufInfo.range / sizeof(T); };
+        // return corrected size
+        vk::DeviceSize size() const {
+            return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range() - bufInfo.offset) : (allocation->range() - bufInfo.offset)) / sizeof(T);
+        };
 
         // at function 
         const T& at(const uintptr_t& i = 0u) const { return *mapped(i); };

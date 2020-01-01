@@ -6,10 +6,11 @@ namespace lancer {
 
     // WIP Mesh Object
     // Sub-Instances Can Be Supported
-    class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Instance;
+    class Mesh : public std::enable_shared_from_this<Mesh> { public: //friend Instance;
         Mesh() {
             this->accelerationStructureInfo.geometryCount = instanceCount;
             this->accelerationStructureInfo.pGeometries = &geometryTemplate;
+            this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_NV;
         };
 
         // 
@@ -30,7 +31,7 @@ namespace lancer {
             // 
             if (isVertex) { // TODO: fix from vec4 into vec3
                 const auto& binding = this->pipelineInfo.vertexInputBindingDescriptions.back();
-                this->vertexCount = this->bindings.back().size() / binding.stride;
+                this->vertexCount = this->bindings.back().range() / binding.stride;
                 this->geometryTemplate.geometry.triangles.vertexOffset = attribute.offset + this->bindings.back().offset();
                 this->geometryTemplate.geometry.triangles.vertexFormat = attribute.format;
                 this->geometryTemplate.geometry.triangles.vertexStride = binding.stride;
@@ -41,7 +42,7 @@ namespace lancer {
         };
 
         // Uint32_T version
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint32_t>& indices = {}){
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint32_t>& indices){
             this->indexData = indices;
             this->indexType = vk::IndexType::eUint32;
             this->indexCount = indices.size();
@@ -53,7 +54,7 @@ namespace lancer {
         };
 
         // Uint16_T version
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint16_t>& indices = {}){
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint16_t>& indices){
             this->indexData = indices;
             this->indexType = vk::IndexType::eUint16;
             this->indexCount = indices.size();
@@ -65,7 +66,7 @@ namespace lancer {
         };
 
         // Uint8_T version
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t>& indices = {}){
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t>& indices){
             this->indexData = indices;
             this->indexType = vk::IndexType::eUint8EXT;
             this->indexCount = indices.size();
@@ -77,7 +78,7 @@ namespace lancer {
         };
 
         // Reset Indices
-        std::shared_ptr<Mesh> resetIndexData(){
+        std::shared_ptr<Mesh> setIndexData(){
             this->indexData = {};
             this->indexType = vk::IndexType::eNoneNV;
             this->indexCount = 0u;
@@ -89,12 +90,13 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t>& indices, vk::IndexType type){
+        template<class T = uint8_t> // Use Unified and Dynamic Version
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& indices, const vk::IndexType& type){
             switch(type) {
                 case vk::IndexType::eUint32: return this->setIndexData(vkt::Vector<uint32_t>(indices)); break; // uint32_t version 
                 case vk::IndexType::eUint16: return this->setIndexData(vkt::Vector<uint16_t>(indices)); break; // uint16_t version
                 case vk::IndexType::eUint8EXT: return this->setIndexData(vkt::Vector<uint8_t>(indices)); break; // uint8_t version
-                default: return resetIndexData();
+                default: return setIndexData();
             };
             return shared_from_this();
         };
@@ -119,6 +121,16 @@ namespace lancer {
             return shared_from_this();
         };
 
+        // 
+        std::shared_ptr<Mesh> createPipeline() {
+            driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), pipelineInfo);
+            return shared_from_this();
+        };
+
+        // 
+        //vkh::VsGraphicsPipelineCreateInfoConstruction& refPipelineCreateInfo() { return pipelineInfo; };
+        //const vkh::VsGraphicsPipelineCreateInfoConstruction& refPipelineCreateInfo() const { return pipelineInfo; };
+
         // TODO: Rasterization and Ray-Tracing Stages
         // TODO: Instancing Support
         // Create Command With Pipeline
@@ -127,28 +139,29 @@ namespace lancer {
             std::vector<vk::DeviceSize> offsets = {};
             for (auto& B : bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
             // TODO: Command Buffer
-            //secondaryCommand = vkt::createCommandBuffer(*thread, *thread, false, false); // do reference of cmd buffer
-            //secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
-            //secondaryCommand.setViewport(0, { viewport });
-            //secondaryCommand.setScissor(0, { renderArea });
+            //this->secondaryCommand = vkt::createCommandBuffer(*thread, *thread, false, false); // do reference of cmd buffer
+            //this->secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            //this->secondaryCommand.setViewport(0, { viewport });
+            //this->secondaryCommand.setScissor(0, { renderArea });
 
-            secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, rasterizationState);
-            secondaryCommand.bindVertexBuffers(0u, buffers, offsets);
+            // Bind pipeline
+            this->secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, rasterizationState);
+            this->secondaryCommand.bindVertexBuffers(0u, buffers, offsets);
 
             // Make Draw Instanced 
             if (indexType != vk::IndexType::eNoneNV) { // PLC Mode
-                secondaryCommand.bindIndexBuffer(indexData, indexData.offset(), indexType);
-                secondaryCommand.drawIndexed(indexCount, instanceCount, 0u, 0u, 0u);
+                this->secondaryCommand.bindIndexBuffer(indexData, indexData.offset(), indexType);
+                this->secondaryCommand.drawIndexed(indexCount, instanceCount, 0u, 0u, 0u);
             } else { // VAL Mode
-                secondaryCommand.draw(vertexCount, instanceCount, 0u, 0u);
+                this->secondaryCommand.draw(vertexCount, instanceCount, 0u, 0u);
             };
-            
-            //secondaryCommand.endRenderPass();
-            //secondaryCommand.end();
+
+            //this->secondaryCommand.endRenderPass();
+            //this->secondaryCommand.end();
             return shared_from_this();
         };
 
-        // Create Or Result Acceleration Structure
+        // Create Or Rebuild Acceleration Structure
         std::shared_ptr<Mesh> createAccelerationStructure(){
 
             // Pre-Initialize Geometries
@@ -156,8 +169,8 @@ namespace lancer {
             geometries.resize(instanceCount);
             for (uint32_t i = 0u; i < instanceCount; i++) {
                 geometries[i] = geometryTemplate;
-                geometries[i].geometry.triangles.transformData = gpuTransformData;
                 geometries[i].geometry.triangles.transformOffset = sizeof(glm::mat3x4) * i + gpuTransformData.offset(); // Should To Be Different's
+                //geometries[i].geometry.triangles.transformData = gpuTransformData;
             };
 
             // Re-assign instance count
@@ -165,17 +178,37 @@ namespace lancer {
             this->accelerationStructureInfo.pGeometries = geometries.data();
 
             // 
+            if (!this->accelerationStructure) { // create acceleration structure fastly...
+                this->accelerationStructure = driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
+                    .info = this->accelerationStructureInfo
+                });
+                auto requirements = driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
+                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
+                    .accelerationStructure = this->accelerationStructure
+                });
 
+                // 
+                VmaAllocationCreateInfo allocInfo = {};
+                allocInfo.memoryTypeBits |= requirements.memoryRequirements.memoryTypeBits;
+                vmaAllocateMemory(driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&allocation,&allocationInfo);
+
+                // 
+                driver->getDevice().bindAccelerationStructureMemoryNV({vkh::VkBindAccelerationStructureMemoryInfoNV{
+                    .accelerationStructure = this->accelerationStructure,
+                    .memory = allocationInfo.deviceMemory,
+                    .memoryOffset = allocationInfo.offset
+                }});
+            };
+
+            // 
             return shared_from_this();
         };
 
 
-    protected: // GPU Vertex and Attribute Data
+    protected: friend Mesh; friend Instance; friend Renderer; // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indexData = {}; 
-        vk::IndexType indexType = vk::IndexType::eNoneNV; 
-        vk::DeviceSize indexCount = 0u;
-        vk::DeviceSize vertexCount = 0u;
-        uint32_t instanceCount = 1u;
+        vk::IndexType indexType = vk::IndexType::eNoneNV;
+        uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 1u;
 
         // 
         std::vector<vkt::Vector<uint8_t>> bindings = {};
@@ -184,8 +217,7 @@ namespace lancer {
         vkt::Vector<glm::mat3x4> gpuTransformData = {};
 
         // construct bindings and attributes
-        uint32_t locationCounter = 0u;
-        uint32_t lastBindID = 0u;
+        uint32_t lastBindID = 0u, locationCounter = 0u;
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
@@ -196,8 +228,14 @@ namespace lancer {
         vkh::VkGeometryNV geometryTemplate = {};
         vk::CommandBuffer secondaryCommand = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
-        vk::AccelerationStructureNV accelerationStructure = {};
+
+        // 
         vk::Buffer scratchBuffer = {};
+
+        // 
+        vk::AccelerationStructureNV accelerationStructure = {};
+        VmaAllocationInfo allocationInfo = {};
+        VmaAllocation allocation = {};
 
         // 
         std::shared_ptr<Driver> driver = {};

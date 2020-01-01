@@ -847,6 +847,33 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VK_HPP_STRUCT_OPERATORS(VkAccelerationStructureCreateInfoNV,vk::AccelerationStructureCreateInfoNV)
     } VkAccelerationStructureCreateInfoNV;
 
+    // 
+    typedef struct VkAccelerationStructureMemoryRequirementsInfoNV {
+        VkStructureType                                    sType                  = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_INFO_NV;
+        const void*                                        pNext                  = nullptr;
+        VkAccelerationStructureMemoryRequirementsTypeNV    type                   = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV;
+        VkAccelerationStructureNV                          accelerationStructure  = VK_NULL_HANDLE;
+        STRUCT_OPERATORS(VkAccelerationStructureMemoryRequirementsInfoNV)
+        VK_HPP_STRUCT_OPERATORS(VkAccelerationStructureMemoryRequirementsInfoNV,vk::AccelerationStructureMemoryRequirementsInfoNV)
+    } VkAccelerationStructureMemoryRequirementsInfoNV;
+
+    // 
+    typedef struct VkBindAccelerationStructureMemoryInfoNV {
+        VkStructureType              sType                  = VK_STRUCTURE_TYPE_BIND_ACCELERATION_STRUCTURE_MEMORY_INFO_NV;
+        const void*                  pNext                  = nullptr;
+        VkAccelerationStructureNV    accelerationStructure  = VK_NULL_HANDLE;
+        VkDeviceMemory               memory                 = VK_NULL_HANDLE;
+        VkDeviceSize                 memoryOffset           = 0ull;
+        uint32_t                     deviceIndexCount       = 0u;
+        const uint32_t*              pDeviceIndices         = nullptr;
+
+        VkBindAccelerationStructureMemoryInfoNV& setDeviceIndices(const std::vector<uint32_t>& V = {}) { pDeviceIndices = V.data(); deviceIndexCount = V.size(); return *this; };
+
+        STRUCT_OPERATORS(VkBindAccelerationStructureMemoryInfoNV)
+        VK_HPP_STRUCT_OPERATORS(VkBindAccelerationStructureMemoryInfoNV,vk::BindAccelerationStructureMemoryInfoNV)
+    } VkBindAccelerationStructureMemoryInfoNV;
+
+
     #pragma pack(pop)
 
 
