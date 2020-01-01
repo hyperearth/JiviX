@@ -40,6 +40,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         int32_t    x = 0;
         int32_t    y = 0;
         int32_t    z = 0;
+
         STRUCT_OPERATORS(VkOffset3D)
         VK_HPP_STRUCT_OPERATORS(VkOffset3D,vk::Offset3D)
         STRUCT_TYPE_COMPATIBLE(VkOffset3D,glm::ivec3)
@@ -49,6 +50,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     typedef struct VkOffset2D {
         int32_t    x = 0;
         int32_t    y = 0;
+
         STRUCT_OPERATORS(VkOffset2D)
         VK_HPP_STRUCT_OPERATORS(VkOffset2D,vk::Offset2D)
         STRUCT_TYPE_COMPATIBLE(VkOffset2D,glm::ivec2)
@@ -68,6 +70,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t    width  = 1u;
         uint32_t    height = 1u;
         uint32_t    depth  = 1u;
+
         STRUCT_OPERATORS(VkExtent3D)
         VK_HPP_STRUCT_OPERATORS(VkExtent3D,vk::Extent3D)
         STRUCT_TYPE_COMPATIBLE(VkExtent3D,glm::uvec3)
@@ -77,6 +80,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     typedef struct VkRect2D {
         VkOffset2D offset = { 0,0 };
         VkExtent2D extent = { 1,1 };
+
         STRUCT_OPERATORS(VkRect2D)
         VK_HPP_STRUCT_OPERATORS(VkRect2D,vk::Rect2D)
     } VkRect2D;
@@ -89,6 +93,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         float    height     =  2.f;
         float    minDepth   =  0.f;
         float    maxDepth   =  1.f;
+
         STRUCT_OPERATORS(VkViewport)
         VK_HPP_STRUCT_OPERATORS(VkViewport,vk::Viewport)
     } VkViewport;
@@ -98,6 +103,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t             binding    = 0u;
         uint32_t             stride     = 16u;
         VkVertexInputRate    inputRate  = VK_VERTEX_INPUT_RATE_VERTEX;
+
         STRUCT_OPERATORS(VkVertexInputBindingDescription)
         VK_HPP_STRUCT_OPERATORS(VkVertexInputBindingDescription,vk::VertexInputBindingDescription)
     } VkVertexInputBindingDescription;
@@ -108,6 +114,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t    binding  = 0u;
         VkFormat    format   = VK_FORMAT_R32G32B32_SFLOAT;
         uint32_t    offset   = 0u;
+
         STRUCT_OPERATORS(VkVertexInputAttributeDescription)
         VK_HPP_STRUCT_OPERATORS(VkVertexInputAttributeDescription,vk::VertexInputAttributeDescription)
     } VkVertexInputAttributeDescription;
@@ -116,6 +123,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     typedef struct VkDescriptorPoolSize {
         VkDescriptorType    type            = VK_DESCRIPTOR_TYPE_SAMPLER;
         uint32_t            descriptorCount = 1u;
+
         STRUCT_OPERATORS(VkDescriptorPoolSize)
         VK_HPP_STRUCT_OPERATORS(VkDescriptorPoolSize,vk::DescriptorPoolSize)
     } VkDescriptorPoolSize;
@@ -125,6 +133,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkBuffer        buffer  = VK_NULL_HANDLE;
         VkDeviceSize    offset  = 0u;
         VkDeviceSize    range   = 16u;
+
         STRUCT_OPERATORS(VkDescriptorBufferInfo)
         VK_HPP_STRUCT_OPERATORS(VkDescriptorBufferInfo,vk::DescriptorBufferInfo)
     } VkDescriptorBufferInfo;
@@ -134,6 +143,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkSampler        sampler     = VK_NULL_HANDLE;
         VkImageView      imageView   = VK_NULL_HANDLE;
         VkImageLayout    imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
         STRUCT_OPERATORS(VkDescriptorImageInfo)
         VK_HPP_STRUCT_OPERATORS(VkDescriptorImageInfo,vk::DescriptorImageInfo)
     } VkDescriptorImageInfo;
@@ -143,6 +153,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkDeviceSize  srcOffset = 0u;
         VkDeviceSize  dstOffset = 0u;
         VkDeviceSize  size      = 16u;
+
         STRUCT_OPERATORS(VkBufferCopy)
         VK_HPP_STRUCT_OPERATORS(VkBufferCopy, vk::BufferCopy)
     } VkBufferCopy;
@@ -159,6 +170,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const VkDescriptorImageInfo*     pImageInfo         = nullptr;
         const VkDescriptorBufferInfo*    pBufferInfo        = nullptr;
         const VkBufferView*              pTexelBufferView   = nullptr;
+
         STRUCT_OPERATORS(VkWriteDescriptorSet)
         VK_HPP_STRUCT_OPERATORS(VkWriteDescriptorSet,vk::WriteDescriptorSet)
     } VkWriteDescriptorSet;
@@ -169,6 +181,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const void*                         pNext                       = nullptr;
         uint32_t                            accelerationStructureCount  = 1u;
         const VkAccelerationStructureNV*    pAccelerationStructures     = nullptr;
+        
         STRUCT_OPERATORS(VkWriteDescriptorSetAccelerationStructureNV)
         VK_HPP_STRUCT_OPERATORS(VkWriteDescriptorSetAccelerationStructureNV,vk::WriteDescriptorSetAccelerationStructureNV)
     } VkWriteDescriptorSetAccelerationStructureNV;
@@ -181,6 +194,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t                       maxSets          = 256u;
         uint32_t                       poolSizeCount    = 0u;
         const VkDescriptorPoolSize*    pPoolSizes       = nullptr;
+
         STRUCT_OPERATORS(VkDescriptorPoolCreateInfo)
         VK_HPP_STRUCT_OPERATORS(VkDescriptorPoolCreateInfo,vk::DescriptorPoolCreateInfo)
     } VkDescriptorPoolCreateInfo;
@@ -215,6 +229,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkFormat                   format   = VK_FORMAT_R32G32B32A32_SFLOAT;
         VkDeviceSize               offset   = 0u;
         VkDeviceSize               range    = 16u;
+
         STRUCT_OPERATORS(VkBufferViewCreateInfo)
         VK_HPP_STRUCT_OPERATORS(VkBufferViewCreateInfo,vk::BufferViewCreateInfo)
     } VkBufferViewCreateInfo;
@@ -267,6 +282,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t              levelCount = 1u;
         uint32_t              baseArrayLayer = 0u;
         uint32_t              layerCount = 1u;
+        
         STRUCT_OPERATORS(VkImageSubresourceRange)
         VK_HPP_STRUCT_OPERATORS(VkImageSubresourceRange,vk::ImageSubresourceRange)
     } VkImageSubresourceRange;
@@ -277,6 +293,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkComponentSwizzle g = VK_COMPONENT_SWIZZLE_G;
         VkComponentSwizzle b = VK_COMPONENT_SWIZZLE_B;
         VkComponentSwizzle a = VK_COMPONENT_SWIZZLE_A;
+        
         STRUCT_OPERATORS(VkComponentMapping)
         VK_HPP_STRUCT_OPERATORS(VkComponentMapping,vk::ComponentMapping)
     } VkComponentMapping;
@@ -302,6 +319,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t              mipLevel       = 0u;
         uint32_t              baseArrayLayer = 0u;
         uint32_t              layerCount     = 1u;
+        
         STRUCT_OPERATORS(VkImageSubresourceLayers)
         VK_HPP_STRUCT_OPERATORS(VkImageSubresourceLayers,vk::ImageSubresourceLayers)
     } VkImageSubresourceLayers;
@@ -314,6 +332,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkImageSubresourceLayers    imageSubresource    = {};
         VkOffset3D                  imageOffset         = {};
         VkExtent3D                  imageExtent         = {};
+        
         STRUCT_OPERATORS(VkBufferImageCopy)
         VK_HPP_STRUCT_OPERATORS(VkBufferImageCopy,vk::BufferImageCopy)
     } VkBufferImageCopy;
@@ -325,6 +344,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkImageSubresourceLayers    dstSubresource  = {};
         VkOffset3D                  dstOffset       = {};
         VkExtent3D                  extent          = {};
+        
         STRUCT_OPERATORS(VkImageCopy)
         VK_HPP_STRUCT_OPERATORS(VkImageCopy,vk::ImageCopy)
     } VkImageCopy;
@@ -380,6 +400,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t                                  patchControlPoints    = 0u;
 
         STRUCT_OPERATORS(VkPipelineTessellationStateCreateInfo)
+        VK_HPP_STRUCT_OPERATORS(VkPipelineTessellationStateCreateInfo,vk::PipelineTessellationStateCreateInfo)
     } VkPipelineTessellationStateCreateInfo;
 
     // 
@@ -478,6 +499,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkBlendFactor            dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
         VkBlendOp                alphaBlendOp        = VK_BLEND_OP_ADD;
         VkColorComponentFlags    colorWriteMask      = {.eR = 1, .eG = 1, .eB = 1, .eA = 1};
+
         STRUCT_OPERATORS(VkPipelineColorBlendAttachmentState)
         VK_HPP_STRUCT_OPERATORS(VkPipelineColorBlendAttachmentState,vk::PipelineColorBlendAttachmentState)
     } VkPipelineColorBlendAttachmentState;
@@ -579,6 +601,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t                         closestHitShader   = VK_SHADER_UNUSED_NV;
         uint32_t                         anyHitShader       = VK_SHADER_UNUSED_NV;
         uint32_t                         intersectionShader = VK_SHADER_UNUSED_NV;
+
         STRUCT_OPERATORS(VkRayTracingShaderGroupCreateInfoNV)
         VK_HPP_STRUCT_OPERATORS(VkRayTracingShaderGroupCreateInfoNV,vk::RayTracingShaderGroupCreateInfoNV)
     } VkRayTracingShaderGroupCreateInfoNV;
@@ -611,6 +634,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t              descriptorCount       = 1u;
         VkShaderStageFlags    stageFlags            = { .eCompute = 1 };
         const VkSampler*      pImmutableSamplers    = nullptr;
+
         STRUCT_OPERATORS(VkDescriptorSetLayoutBinding)
         VK_HPP_STRUCT_OPERATORS(VkDescriptorSetLayoutBinding,vk::DescriptorSetLayoutBinding)
     } VkDescriptorSetLayoutBinding;
@@ -626,6 +650,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const VkPushConstantRange*      pPushConstantRanges     = nullptr;
         VkPipelineLayoutCreateInfo& setSetLayouts(const std::vector<VkDescriptorSetLayout>& V = {}) { pSetLayouts = V.data(); setLayoutCount = V.size(); return *this; };
         VkPipelineLayoutCreateInfo& setPushConstantRanges(const std::vector<VkPushConstantRange>& V = {}) { pPushConstantRanges = V.data(); pushConstantRangeCount = V.size(); return *this; };
+
         STRUCT_OPERATORS(VkPipelineLayoutCreateInfo)
         VK_HPP_STRUCT_OPERATORS(VkPipelineLayoutCreateInfo,vk::PipelineLayoutCreateInfo)
     } VkPipelineLayoutCreateInfo;
@@ -766,6 +791,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const void*                                        pNext                    = nullptr;
         VkAccelerationStructureMemoryRequirementsTypeNV    type                     = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV;
         VkAccelerationStructureNV                          accelerationStructure    = VK_NULL_HANDLE;
+
         STRUCT_OPERATORS(VkAccelerationStructureMemoryRequirementsInfoNV)
         VK_HPP_STRUCT_OPERATORS(VkAccelerationStructureMemoryRequirementsInfoNV,vk::AccelerationStructureMemoryRequirementsInfoNV)
     } VkAccelerationStructureMemoryRequirementsInfoNV;
@@ -778,6 +804,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t           numAABBs = 0u;
         uint32_t           stride   = 24u;
         VkDeviceSize       offset   = 0u;
+
         STRUCT_OPERATORS(VkGeometryAABBNV)
         VK_HPP_STRUCT_OPERATORS(VkGeometryAABBNV,vk::GeometryAABBNV)
     } VkGeometryAABBNV;
@@ -797,6 +824,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkIndexType        indexType        = VK_INDEX_TYPE_NONE_NV;
         VkBuffer           transformData    = VK_NULL_HANDLE;
         VkDeviceSize       transformOffset  = 0u;
+
         STRUCT_OPERATORS(VkGeometryTrianglesNV)
         VK_HPP_STRUCT_OPERATORS(VkGeometryTrianglesNV,vk::GeometryTrianglesNV)
     } VkGeometryTrianglesNV;
@@ -805,6 +833,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     typedef struct VkGeometryDataNV {
         VkGeometryTrianglesNV    triangles = {};
         VkGeometryAABBNV         aabbs     = {};
+
         STRUCT_OPERATORS(VkGeometryDataNV)
         VK_HPP_STRUCT_OPERATORS(VkGeometryDataNV,vk::GeometryDataNV)
     } VkGeometryDataNV;
@@ -816,6 +845,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkGeometryTypeNV     geometryType = VK_GEOMETRY_TYPE_TRIANGLES_NV;
         VkGeometryDataNV     geometry     = {};
         VkGeometryFlagsNV    flags        = {};
+
         STRUCT_OPERATORS(VkGeometryNV)
         VK_HPP_STRUCT_OPERATORS(VkGeometryNV,vk::GeometryNV)
     } VkGeometryNV;
@@ -853,6 +883,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         const void*                                        pNext                  = nullptr;
         VkAccelerationStructureMemoryRequirementsTypeNV    type                   = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV;
         VkAccelerationStructureNV                          accelerationStructure  = VK_NULL_HANDLE;
+
         STRUCT_OPERATORS(VkAccelerationStructureMemoryRequirementsInfoNV)
         VK_HPP_STRUCT_OPERATORS(VkAccelerationStructureMemoryRequirementsInfoNV,vk::AccelerationStructureMemoryRequirementsInfoNV)
     } VkAccelerationStructureMemoryRequirementsInfoNV;
