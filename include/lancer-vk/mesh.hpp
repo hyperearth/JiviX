@@ -1,25 +1,17 @@
 #pragma once
 #include "./config.hpp"
+#include "./driver.hpp"
 
 namespace lancer {
     
     // WIP Mesh Object
     class Mesh : public std::enable_shared_from_this<Mesh> { public: 
+        Mesh() {};
         
-        
-    protected: // Raw and GPU Data
-
-        // GPU Vertex and Attribute Data
+    protected: // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indiceData = {};
-        vkt::Vector<uint8_t> vertexData = {};
-
-        // 
-        vkt::Vector<uint8_t>     rawData = {};
+        std::vector<vkt::Vector<uint8_t>> bindings = {};
         vkt::Vector<glm::mat3x4> transformData = {};
-
-        // 
-        std::shared_ptr<vkt::VmaBufferAllocation> gpuRawData = {};
-        std::shared_ptr<vkt::VmaBufferAllocation> gpuTransformData = {};
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
