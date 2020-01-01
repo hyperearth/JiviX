@@ -8,5 +8,6 @@ namespace lancer {
     class Mesh;
     class Renderer;
     class Material;
+    class Instance;
 
 };

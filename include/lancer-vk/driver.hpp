@@ -3,12 +3,12 @@
 
 namespace lancer {
 
-    class Driver : public std::enable_shared_from_this<Driver> { public: {
-        Driver() {};
+    //class Driver : public std::enable_shared_from_this<Driver> { public: 
+    //    Driver() {};
 
-    protected: // Driver Pack For Renderer
-        vk::PhysicalDevice gpu = {};
-        vk::Device device = {};
-    };
+    //protected: // Driver Pack For Renderer
+    //    vk::PhysicalDevice gpu = {};
+    //    vk::Device device = {};
+    //};
 
 };

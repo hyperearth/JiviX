@@ -21,6 +21,7 @@ set (SOURCES_LIST
     "./include/*.h"
     "./include/*.hpp"
 
+    "./include/lancer-vk/*.hpp"
     "./include/lancer-vk/*/*.hpp"
     "./include/lancer-vk/*/vulkan.*"
     "./include/lancer-vk/*/*/*.hpp"

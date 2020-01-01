@@ -14,6 +14,8 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
 
     // 
     #define STRUCT_OPERATORS(NAME)\
+        operator NAME*() { return this; };\
+        operator const NAME*() const { return this; };\
         operator ::NAME&() { return reinterpret_cast<::NAME&>(*this); };\
         operator const ::NAME&() const { return reinterpret_cast<const ::NAME&>(*this); };\
         operator ::NAME*() { return reinterpret_cast<::NAME*>(this); };\
@@ -290,20 +292,6 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkComponentMapping         components       = {};
         VkImageSubresourceRange    subresourceRange = {};
 
-        STRUCT_OPERATORS(VkImageViewCreateInfo)
-        VK_HPP_STRUCT_OPERATORS(VkImageViewCreateInfo,vk::ImageViewCreateInfo)
-    } VkImageViewCreateInfo;
-
-    // 
-    typedef struct VkImageViewCreateInfo {
-        VkStructureType            sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        const void*                pNext            = nullptr;
-        VkImageViewCreateFlags     flags            = {};
-        VkImage                    image            = VK_NULL_HANDLE;
-        VkImageViewType            viewType         = VK_IMAGE_VIEW_TYPE_2D;
-        VkFormat                   format           = VK_FORMAT_R8G8B8A8_UNORM;
-        VkComponentMapping         components       = {};
-        VkImageSubresourceRange    subresourceRange = {};
         STRUCT_OPERATORS(VkImageViewCreateInfo)
         VK_HPP_STRUCT_OPERATORS(VkImageViewCreateInfo,vk::ImageViewCreateInfo)
     } VkImageViewCreateInfo;
