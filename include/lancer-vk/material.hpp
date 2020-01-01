@@ -4,7 +4,7 @@
 namespace lancer {
 
     // WIP Materials
-    class Materials : public std::enable_shared_from_this<Materials> { public: 
+    class Material : public std::enable_shared_from_this<Material> { public: 
         
         
     protected: // 

@@ -3,4 +3,10 @@
 
 namespace lancer {
 
+    class Driver;
+    class Thread;
+    class Mesh;
+    class Renderer;
+    class Material;
+
 };
