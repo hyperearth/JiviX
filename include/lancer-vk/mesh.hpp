@@ -1,6 +1,8 @@
 #pragma once
 #include "./config.hpp"
 #include "./driver.hpp"
+#include "./thread.hpp"
+#include "./context.hpp"
 
 namespace lancer {
 
@@ -96,7 +98,7 @@ namespace lancer {
                 case vk::IndexType::eUint32: return this->setIndexData(vkt::Vector<uint32_t>(indices)); break; // uint32_t version 
                 case vk::IndexType::eUint16: return this->setIndexData(vkt::Vector<uint16_t>(indices)); break; // uint16_t version
                 case vk::IndexType::eUint8EXT: return this->setIndexData(vkt::Vector<uint8_t>(indices)); break; // uint8_t version
-                default: return setIndexData();
+                default: return this->setIndexData();
             };
             return shared_from_this();
         };
@@ -121,9 +123,11 @@ namespace lancer {
             return shared_from_this();
         };
 
-        // 
+        // TOOD: Context Object
         std::shared_ptr<Mesh> createPipeline() {
-            driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), pipelineInfo);
+            this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
+            this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->refViewport;
+            this->driver->getDevice().createGraphicsPipeline(this->driver->getPipelineCache(), this->pipelineInfo);
             return shared_from_this();
         };
 
@@ -137,27 +141,35 @@ namespace lancer {
         std::shared_ptr<Mesh> createRasterizeCommand() { // UNIT ONLY!
             std::vector<vk::Buffer> buffers = {};
             std::vector<vk::DeviceSize> offsets = {};
-            for (auto& B : bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
-            // TODO: Command Buffer
-            //this->secondaryCommand = vkt::createCommandBuffer(*thread, *thread, false, false); // do reference of cmd buffer
-            //this->secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
-            //this->secondaryCommand.setViewport(0, { viewport });
-            //this->secondaryCommand.setScissor(0, { renderArea });
+            for (auto& B : this->bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
 
-            // Bind pipeline
-            this->secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, rasterizationState);
+            // 
+            const auto& renderArea = this->context->refScissor();
+            const auto& viewport = this->context->refViewport();
+
+            // TODO: Fix Clear Values
+            const auto  clearValues = std::vector<vk::ClearValue>{ vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
+
+            // 
+            this->secondaryCommand = vkt::createCommandBuffer(*thread, *thread, false, false); // do reference of cmd buffer
+            this->secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->refFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            this->secondaryCommand.setViewport(0, { viewport });
+            this->secondaryCommand.setScissor(0, { renderArea });
+            this->secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
             this->secondaryCommand.bindVertexBuffers(0u, buffers, offsets);
 
             // Make Draw Instanced 
             if (indexType != vk::IndexType::eNoneNV) { // PLC Mode
-                this->secondaryCommand.bindIndexBuffer(indexData, indexData.offset(), indexType);
-                this->secondaryCommand.drawIndexed(indexCount, instanceCount, 0u, 0u, 0u);
+                this->secondaryCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                this->secondaryCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
             } else { // VAL Mode
-                this->secondaryCommand.draw(vertexCount, instanceCount, 0u, 0u);
+                this->secondaryCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
 
-            //this->secondaryCommand.endRenderPass();
-            //this->secondaryCommand.end();
+            // 
+            this->secondaryCommand.endRenderPass();
+            this->secondaryCommand.end();
+
             return shared_from_this();
         };
 
@@ -166,23 +178,23 @@ namespace lancer {
 
             // Pre-Initialize Geometries
             // Use Same Geometry for Sub-Instances
-            geometries.resize(instanceCount);
+            this->geometries.resize(instanceCount);
             for (uint32_t i = 0u; i < instanceCount; i++) {
-                geometries[i] = geometryTemplate;
-                geometries[i].geometry.triangles.transformOffset = sizeof(glm::mat3x4) * i + gpuTransformData.offset(); // Should To Be Different's
+                this->geometries[i] = this->geometryTemplate;
+                this->geometries[i].geometry.triangles.transformOffset = sizeof(glm::mat3x4) * i + this->gpuTransformData.offset(); // Should To Be Different's
                 //geometries[i].geometry.triangles.transformData = gpuTransformData;
             };
 
             // Re-assign instance count
-            this->accelerationStructureInfo.geometryCount = geometries.size();
-            this->accelerationStructureInfo.pGeometries = geometries.data();
+            this->accelerationStructureInfo.geometryCount = this->geometries.size();
+            this->accelerationStructureInfo.pGeometries = this->geometries.data();
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
-                this->accelerationStructure = driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
+                this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
                     .info = this->accelerationStructureInfo
                 });
-                auto requirements = driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
+                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
                     .accelerationStructure = this->accelerationStructure
                 });
@@ -190,13 +202,13 @@ namespace lancer {
                 // 
                 VmaAllocationCreateInfo allocInfo = {};
                 allocInfo.memoryTypeBits |= requirements.memoryRequirements.memoryTypeBits;
-                vmaAllocateMemory(driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&allocation,&allocationInfo);
+                vmaAllocateMemory(this->driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&this->allocation,&this->allocationInfo);
 
                 // 
-                driver->getDevice().bindAccelerationStructureMemoryNV({vkh::VkBindAccelerationStructureMemoryInfoNV{
+                this->driver->getDevice().bindAccelerationStructureMemoryNV({vkh::VkBindAccelerationStructureMemoryInfoNV{
                     .accelerationStructure = this->accelerationStructure,
-                    .memory = allocationInfo.deviceMemory,
-                    .memoryOffset = allocationInfo.offset
+                    .memory = this->allocationInfo.deviceMemory,
+                    .memoryOffset = this->allocationInfo.offset
                 }});
             };
 
@@ -240,6 +252,8 @@ namespace lancer {
         // 
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
+        std::shared_ptr<Context> context = {};
+        //std::shared_ptr<Renderer> renderer = {};
     };
 
 };

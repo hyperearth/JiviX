@@ -14,7 +14,7 @@ namespace lancer {
         Material() {};
 
         // 
-        std::shared_ptr<Material> setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const uint32_t& materialCounter = 0u) {
+        std::shared_ptr<Material> setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
             this->rawMaterials = rawMaterials; this->materialCounter = materialCounter;
             return shared_from_this();
         };
@@ -37,11 +37,10 @@ namespace lancer {
         // 
         vkt::Vector<MaterialUnit> rawMaterials = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...
         vkt::Vector<MaterialUnit> gpuMaterials = {};
-        uint32_t materialCounter = 0u;
+        vk::DeviceSize materialCounter = 0u;
 
         // 
         vkh::VsDescriptorSetCreateInfoHelper descriptorSetInfo = {};
-        vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
 
         // 
         vk::DescriptorSet descriptorSet = {};
