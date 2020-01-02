@@ -20,6 +20,8 @@ namespace lancer {
         const vk::RenderPass& refRenderPass() const { return renderPass; };
         const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
 
+        // 
+        
 
     protected: // 
         vk::Rect2D scissor = {};

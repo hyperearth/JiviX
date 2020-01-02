@@ -18,6 +18,7 @@ namespace lancer {
         std::shared_ptr<Instance> instances = {}; // instances
 
         // 
+        std::shared_ptr<Context> context = {};
         std::shared_ptr<Driver> driver = {};
     };
 

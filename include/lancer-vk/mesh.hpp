@@ -170,6 +170,7 @@ namespace lancer {
             this->secondaryCommand.endRenderPass();
             this->secondaryCommand.end();
 
+            // 
             return shared_from_this();
         };
 
@@ -194,6 +195,8 @@ namespace lancer {
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
                     .info = this->accelerationStructureInfo
                 });
+                
+                //
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
                     .accelerationStructure = this->accelerationStructure

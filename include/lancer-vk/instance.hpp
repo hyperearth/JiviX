@@ -28,14 +28,34 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> pushMesh(const std::shared_ptr<Mesh>& mesh = {}) {
+        uintptr_t pushMesh(const std::shared_ptr<Mesh>& mesh = {}) {
+            const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(mesh);
+            return ptr;
+        };
+
+        // 
+        std::shared_ptr<Instance> describeMeshBindings() {
+            // Polyfill Geometry Bindings
+            // TODO: Attributes Support
+
+            const uint32_t bindingCount = 4u;
+            for (uint32_t i=0;i<bindingCount;i++) {
+                auto& handle = handles.push_back(descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = i,
+                    .dstArrayElement = 1u,
+                    .descriptorCount = meshes.size(),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }));
+                for (uint32_t i=0;i<meshes.size();i++) {
+                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].bindings[j];
+                };
+            };
+
             return shared_from_this();
         };
 
-        // TODO: Build Acceleration Structure 
-
-
+               // TODO: Build Acceleration Structure 
     protected: // TODO: Attribute and Binding Data Buffers
         std::vector<std::shared_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
 
