@@ -160,6 +160,7 @@ namespace vkt {
 
         // 
         operator std::shared_ptr<VmaBufferAllocation>& () { return allocation; };
+        operator vkh::VkDescriptorBufferInfo& () { bufInfo.buffer = (vk::Buffer&)(*allocation); return bufInfo; };
         operator vk::DescriptorBufferInfo& () { bufInfo.buffer = (vk::Buffer&)(*allocation); return bufInfo; };
         operator vk::Buffer& () { return (bufInfo.buffer = (vk::Buffer&)*allocation); };
         operator vk::Device& () { return *allocation; };
@@ -171,6 +172,7 @@ namespace vkt {
 
         // 
         operator const std::shared_ptr<VmaBufferAllocation>& () const { return allocation; };
+        operator const vkh::VkDescriptorBufferInfo& () const { return bufInfo; };
         operator const vk::DescriptorBufferInfo& () const { return bufInfo; };
         operator const vk::Buffer& () const { return *allocation; };
         operator const vk::Device& () const { return *allocation; };
@@ -189,7 +191,7 @@ namespace vkt {
 
     // 
     protected: friend BufferRegion<T>; // 
-        vk::DescriptorBufferInfo bufInfo = {};
+        vkh::VkDescriptorBufferInfo bufInfo = {};
         std::shared_ptr<VmaBufferAllocation> allocation = {};
     };
 
@@ -243,6 +245,10 @@ namespace vkt {
         operator const vk::Buffer& () const { return *region; };
         operator const vk::Device& () const { return *region; };
         operator const vk::BufferView& () const { return view; };
+
+        // 
+        operator vkh::VkDescriptorBufferInfo& () { return *region; };
+        operator const vkh::VkDescriptorBufferInfo& () const { return *region; };
 
         // 
         operator VkDescriptorBufferInfo& () { return *region; };

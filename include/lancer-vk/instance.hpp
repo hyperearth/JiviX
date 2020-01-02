@@ -44,7 +44,7 @@ namespace lancer {
         std::shared_ptr<Instance> pushInstance(const vkh::VsGeometryInstance& instance = {}, const uintptr_t meshID = 0ull) {
             const auto instanceID = this->instanceCounter++;
             this->rawInstances[instanceID] = instance;
-            this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID].accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle);
+            this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle);
             return shared_from_this();
         };
 
@@ -64,20 +64,20 @@ namespace lancer {
                     .descriptorCount = meshes.size(),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 });
-                for (uint32_t i=0;i<meshes.size();i++) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].bindings[j];
+                for (uint32_t j=0;j<meshes.size();j++) {
+                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->bindings[j];
                 };
             };
 
             // plush bindings
-            auto bindingSet = bindingDescriptorSet.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            auto bindingSet = descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 0u,
                 .descriptorCount = meshes.size(),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             });
 
             // plush attributes
-            auto attributeSet = bindingDescriptorSet.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            auto attributeSet = descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 1u,
                 .descriptorCount = meshes.size(),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -85,8 +85,8 @@ namespace lancer {
 
             // plush into descriptor sets
             for (uint32_t i=0;i<meshes.size();i++) {
-                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuBindings;
-                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuAttributes;
+                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuBindings;
+                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuAttributes;
             };
 
             // 
@@ -96,7 +96,7 @@ namespace lancer {
         // 
         std::shared_ptr<Instance> buildAccelerationStructure() {
             this->buildCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
-            this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vk::BufferCopy{ this->rawInstances.offset(), this->gpuInstances.offset(), this->gpuInstances.range() } });
+            this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(this->buildCommand);
             this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
             this->buildCommand.end();
@@ -171,6 +171,8 @@ namespace lancer {
         vk::DescriptorSet bindingDescriptorSet = {};
         vk::AccelerationStructureNV accelerationStructure = {};
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
+        VmaAllocationInfo allocationInfo = {};
+        VmaAllocation allocation = {};
 
         // 
         std::shared_ptr<Driver> driver = {};
