@@ -40,10 +40,11 @@ namespace lancer {
 
         // 
         vk::PipelineLayout unifiedPipelineLayout = {};
-        vk::DescriptorSetLayout materialDescriptorSetLayout = {};
-        vk::DescriptorSetLayout rayTraceDescriptorSetLayout = {};
-        vk::DescriptorSetLayout meshDataDescriptorSetLayout = {};
-        vk::DescriptorSetLayout samplingDescriptorSetLayout = {};
+        vk::DescriptorSetLayout materialDescriptorSetLayout = {}; // Material Descriptions
+        vk::DescriptorSetLayout rayTraceDescriptorSetLayout = {}; // Ray-Traced Data
+        vk::DescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
+        vk::DescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples
+        vk::DescriptorSetLayout bindingsDescriptorSetLayout = {}; // Bindings, Attributes Descriptions
 
         // 
         std::shared_ptr<Driver> driver = {};
