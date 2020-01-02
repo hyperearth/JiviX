@@ -1,15 +1,31 @@
 #pragma once
 #include "./config.hpp"
 #include "./driver.hpp"
+#include "./thread.hpp"
+#include "./mesh.hpp"
 
 namespace lancer {
 
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Instance : public std::enable_shared_from_this<Instance> { public: 
-        Instance() {
+        Instance(const std::shared_ptr<Driver>& driver) {
+            this->driver = driver;
+            this->thread = std::make_shared<Thread>(this->driver);
+
+            // 
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;
             this->accelerationStructureInfo.instanceCount = 1u;
+
+            // 
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+        };
+
+        // 
+        std::shared_ptr<Instance> setThread(const std::shared_ptr<Thread>& thread) {
+            this->thread = thread;
+            return shared_from_this();
         };
 
         // 
@@ -69,18 +85,20 @@ namespace lancer {
 
             // plush into descriptor sets
             for (uint32_t i=0;i<meshes.size();i++) {
-                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuBindingBuffer;
-                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuAttributeBuffer;
+                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuBindings;
+                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuAttributes;
             };
 
             // 
             return shared_from_this();
         };
 
-        //  
+        // 
         std::shared_ptr<Instance> buildAccelerationStructure() {
-            this->buildCommand = vkt::createCommandBuffer(*thread, *thread, false, false);
-            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            this->buildCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
+            this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vk::BufferCopy{ this->rawInstances.offset(), this->gpuInstances.offset(), this->gpuInstances.range() } });
+            vkt::commandBarrier(this->buildCommand);
+            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
             this->buildCommand.end();
             return shared_from_this();
         };

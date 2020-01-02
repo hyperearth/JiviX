@@ -1,12 +1,21 @@
 #pragma once
 #include "./config.hpp"
 #include "./driver.hpp"
-
+#include "./thread.hpp"
 namespace lancer {
 
     // TODO: Full Context Support
     class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend Instance; friend Driver;
-        Context(){};
+        Context(const std::shared_ptr<Driver>& driver){
+            this->driver = driver;
+            this->thread = std::make_shared<Thread>(this->driver);
+        };
+
+        // 
+        std::shared_ptr<Context> setThread(const std::shared_ptr<Thread>& thread) {
+            this->thread = thread;
+            return shared_from_this();
+        };
 
         // 
         vk::Rect2D& refScissor() { return scissor; };

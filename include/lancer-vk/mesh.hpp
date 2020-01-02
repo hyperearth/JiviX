@@ -9,28 +9,45 @@ namespace lancer {
     // WIP Mesh Object
     // Sub-Instances Can Be Supported
     class Mesh : public std::enable_shared_from_this<Mesh> { public: //friend Instance;
-        Mesh() {
-            this->accelerationStructureInfo.geometryCount = instanceCount;
-            this->accelerationStructureInfo.pGeometries = &geometryTemplate;
+        Mesh(const std::shared_ptr<Driver>& driver) {
+            this->driver = driver;
+            this->thread = std::make_shared<Thread>(this->driver);
+
+            // 
+            this->accelerationStructureInfo.geometryCount = this->instanceCount;
+            this->accelerationStructureInfo.pGeometries = &this->geometryTemplate;
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_NV;
+
+            // create required buffers
+            this->rawBindings = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuBindings = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawAttributes = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuAttributes = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_GPU_ONLY));
+        };
+
+        // 
+        std::shared_ptr<Mesh> setThread(const std::shared_ptr<Thread>& thread) {
+            this->thread = thread;
+            return shared_from_this();
         };
 
         // 
         std::shared_ptr<Mesh> addBinding(const vkt::Vector<uint8_t>& vector, const vkh::VkVertexInputBindingDescription& binding = {}) {
             this->lastBindID = pipelineInfo.vertexInputBindingDescriptions.size();
             this->pipelineInfo.vertexInputBindingDescriptions.push_back(binding);
-            this->pipelineInfo.vertexInputBindingDescriptions.back().binding = lastBindID;
+            this->pipelineInfo.vertexInputBindingDescriptions.back().binding = this->lastBindID;
+            this->rawBindings[this->lastBindID] = this->pipelineInfo.vertexInputBindingDescriptions.back();
             this->bindings.push_back(vector);
             return shared_from_this();
         };
 
         // 
         std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& isVertex = false) {
+            const uintptr_t locationID = this->locationCounter++;
             this->pipelineInfo.vertexInputAttributeDescriptions.push_back(attribute);
-            this->pipelineInfo.vertexInputAttributeDescriptions.back().binding = lastBindID;
-            this->pipelineInfo.vertexInputAttributeDescriptions.back().location = locationCounter++;
-
-            // 
+            this->pipelineInfo.vertexInputAttributeDescriptions.back().binding = this->lastBindID;
+            this->pipelineInfo.vertexInputAttributeDescriptions.back().location = locationID;
+            this->rawAttributes[locationID] = this->pipelineInfo.vertexInputAttributeDescriptions.back();
             if (isVertex) { // TODO: fix from vec4 into vec3
                 const auto& binding = this->pipelineInfo.vertexInputBindingDescriptions.back();
                 this->vertexCount = this->bindings.back().range() / binding.stride;
@@ -131,11 +148,6 @@ namespace lancer {
             return shared_from_this();
         };
 
-        // 
-        //vkh::VsGraphicsPipelineCreateInfoConstruction& refPipelineCreateInfo() { return pipelineInfo; };
-        //const vkh::VsGraphicsPipelineCreateInfoConstruction& refPipelineCreateInfo() const { return pipelineInfo; };
-
-
         // Create Secondary Command With Pipeline
         std::shared_ptr<Mesh> createRasterizeCommand() { // UNIT ONLY!
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -174,8 +186,11 @@ namespace lancer {
 
         // 
         std::shared_ptr<Mesh> buildAccelerationStructure() {
-            this->buildCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
-            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,{},0ull,needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            this->buildCommand = vkt::createCommandBuffer(*this->thread, *this->thread, true, false);
+            this->buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
+            this->buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
+            vkt::commandBarrier(this->buildCommand);
+            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
             this->buildCommand.end();
             return shared_from_this();
         };
@@ -187,9 +202,9 @@ namespace lancer {
             // Use Same Geometry for Sub-Instances
             this->geometries.resize(instanceCount);
             for (uint32_t i = 0u; i < instanceCount; i++) {
-                this->geometries[i] = this->geometryTemplate;
-                this->geometries[i].geometry.triangles.transformOffset = sizeof(glm::mat3x4) * i + this->gpuTransformData.offset(); // Should To Be Different's
-                //geometries[i].geometry.triangles.transformData = gpuTransformData;
+                  this->geometries[i] = this->geometryTemplate;
+                  this->geometries[i].geometry.triangles.transformOffset = sizeof(glm::mat3x4) * i + this->gpuTransformData.offset(); // Should To Be Different's
+                //this->geometries[i].geometry.triangles.transformData = gpuTransformData;
             };
 
             // Re-assign instance count
@@ -222,14 +237,14 @@ namespace lancer {
             };
 
             // 
-            if (!gpuScratchBuffer.has()) { // 
+            if (!this->gpuScratchBuffer.has()) { // 
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_NV,
                     .accelerationStructure = this->accelerationStructure
                 });
 
                 // 
-                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
                 }, VMA_MEMORY_USAGE_GPU_ONLY));
@@ -267,8 +282,10 @@ namespace lancer {
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
 
         // WIP buffer bindings
-        vkt::Vector<VkVertexInputAttributeDescription> gpuAttributeBuffer = {};
-        vkt::Vector<VkVertexInputBindingDescription> gpuBindingBuffer = {};
+        vkt::Vector<VkVertexInputAttributeDescription> rawAttributes = {};
+        vkt::Vector<VkVertexInputAttributeDescription> gpuAttributes = {};
+        vkt::Vector<VkVertexInputBindingDescription> rawBindings = {};
+        vkt::Vector<VkVertexInputBindingDescription> gpuBindings = {};
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
 
         // 

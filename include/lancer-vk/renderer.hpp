@@ -1,10 +1,16 @@
 #pragma once
 #include "./config.hpp"
 #include "./driver.hpp"
+#include "./thread.hpp"
+#include "./context.hpp"
 
 namespace lancer {
     class Renderer : public std::enable_shared_from_this<Renderer> { public: 
-        Renderer() {};
+        Renderer(const std::shared_ptr<Driver>& driver) {
+            this->driver = driver;
+            this->thread = std::make_shared<Thread>(this->driver);
+            this->context = std::make_shared<Context>();
+        };
 
     protected: // 
         vk::CommandBuffer deferredCommand = {};
@@ -20,6 +26,7 @@ namespace lancer {
         // 
         std::shared_ptr<Context> context = {};
         std::shared_ptr<Driver> driver = {};
+        std::shared_ptr<Thread> thread = {};
     };
 
 };
