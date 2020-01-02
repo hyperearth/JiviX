@@ -7,7 +7,10 @@ namespace lancer {
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Instance : public std::enable_shared_from_this<Instance> { public: 
-        Instance() {};
+        Instance() {
+            this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;
+            this->accelerationStructureInfo.instanceCount = 1u;
+        };
 
         // 
         std::shared_ptr<Instance> setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
@@ -64,15 +67,57 @@ namespace lancer {
 
             // plush into descriptor sets
             for (uint32_t i=0;i<meshes.size();i++) {
-                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].bindingBuffer;
-                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].attributeBuffer;
+                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuBindingBuffer;
+                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].gpuAttributeBuffer;
             };
 
             // 
             return shared_from_this();
         };
 
-    protected: // TODO: Build Acceleration Structure 
+        // TODO: 
+        std::shared_ptr<Instance> buildAccelerationStructure() {
+            
+            // 
+            return shared_from_this();
+        };
+
+        // Create Or Rebuild Acceleration Structure
+        std::shared_ptr<Instance> createAccelerationStructure() {
+
+            // Re-assign instance count
+            this->accelerationStructureInfo.instanceCount = instanceCounter;
+
+            // 
+            if (!this->accelerationStructure) { // create acceleration structure fastly...
+                this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
+                    .info = this->accelerationStructureInfo
+                });
+
+                //
+                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
+                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
+                    .accelerationStructure = this->accelerationStructure
+                });
+
+                // 
+                VmaAllocationCreateInfo allocInfo = {};
+                allocInfo.memoryTypeBits |= requirements.memoryRequirements.memoryTypeBits;
+                vmaAllocateMemory(this->driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&this->allocation,&this->allocationInfo);
+
+                // 
+                this->driver->getDevice().bindAccelerationStructureMemoryNV({vkh::VkBindAccelerationStructureMemoryInfoNV{
+                    .accelerationStructure = this->accelerationStructure,
+                    .memory = this->allocationInfo.deviceMemory,
+                    .memoryOffset = this->allocationInfo.offset
+                }});
+            };
+
+            // 
+            return shared_from_this();
+        };
+
+    protected: // 
         std::vector<std::shared_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
 
         // 
@@ -85,11 +130,11 @@ namespace lancer {
         vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
 
         // 
-        vk::CommandBuffer drawCommand = {};
+        vk::CommandBuffer buildCommand = {};
         vk::DescriptorSet descriptorSet = {};
         vk::DescriptorSet bindingDescriptorSet = {};
         vk::AccelerationStructureNV accelerationStructure = {};
-        vk::Buffer scratchBuffer = {};
+        vkt::Vector<uint8_t> gpuScratchBuffer = {};
 
         // 
         std::shared_ptr<Driver> driver = {};

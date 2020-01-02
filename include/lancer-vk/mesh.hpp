@@ -135,9 +135,8 @@ namespace lancer {
         //vkh::VsGraphicsPipelineCreateInfoConstruction& refPipelineCreateInfo() { return pipelineInfo; };
         //const vkh::VsGraphicsPipelineCreateInfoConstruction& refPipelineCreateInfo() const { return pipelineInfo; };
 
-        // TODO: Rasterization and Ray-Tracing Stages
-        // TODO: Instancing Support
-        // Create Command With Pipeline
+
+        // Create Secondary Command With Pipeline
         std::shared_ptr<Mesh> createRasterizeCommand() { // UNIT ONLY!
             std::vector<vk::Buffer> buffers = {};
             std::vector<vk::DeviceSize> offsets = {};
@@ -170,6 +169,13 @@ namespace lancer {
             this->secondaryCommand.endRenderPass();
             this->secondaryCommand.end();
 
+            // 
+            return shared_from_this();
+        };
+
+        // TODO: 
+        std::shared_ptr<Mesh> buildAccelerationStructure() {
+            
             // 
             return shared_from_this();
         };
@@ -245,9 +251,9 @@ namespace lancer {
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
 
         // WIP buffer bindings
-        vkt::Vector<VkVertexInputAttributeDescription> attributeBuffer = {};
-        vkt::Vector<VkVertexInputBindingDescription> bindingBuffer = {};
-        vkt::Vector<uint8_t> scratchBuffer = {};
+        vkt::Vector<VkVertexInputAttributeDescription> gpuAttributeBuffer = {};
+        vkt::Vector<VkVertexInputBindingDescription> gpuBindingBuffer = {};
+        vkt::Vector<uint8_t> gpuScratchBuffer = {};
 
         // 
         vk::AccelerationStructureNV accelerationStructure = {};
