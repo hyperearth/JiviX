@@ -25,12 +25,14 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> pushInstance(const vkh::VsGeometryInstance& instance = {}) {
-            this->rawInstances[this->instanceCounter++] = instance;
+        std::shared_ptr<Instance> pushInstance(const vkh::VsGeometryInstance& instance = {}, const uintptr_t meshID = 0ull) {
+            const auto instanceID = this->instanceCounter++;
+            this->rawInstances[instanceID] = instance;
+            this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID].accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle);
             return shared_from_this();
         };
 
-        // 
+        // Push Mesh "Template" For Any Other Instances
         uintptr_t pushMesh(const std::shared_ptr<Mesh>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(mesh); return ptr;
@@ -75,10 +77,11 @@ namespace lancer {
             return shared_from_this();
         };
 
-        // TODO: 
+        //  
         std::shared_ptr<Instance> buildAccelerationStructure() {
-            
-            // 
+            this->buildCommand = vkt::createCommandBuffer(*thread, *thread, false, false);
+            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            this->buildCommand.end();
             return shared_from_this();
         };
 
@@ -114,6 +117,20 @@ namespace lancer {
             };
 
             // 
+            if (!this->gpuScratchBuffer.has()) { // 
+                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
+                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_NV,
+                    .accelerationStructure = this->accelerationStructure
+                });
+
+                // 
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+                    .size = requirements.memoryRequirements.size,
+                    .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
+                }, VMA_MEMORY_USAGE_GPU_ONLY));
+            };
+
+            // 
             return shared_from_this();
         };
 
@@ -124,6 +141,7 @@ namespace lancer {
         vkt::Vector<vkh::VsGeometryInstance> rawInstances = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...
         vkt::Vector<vkh::VsGeometryInstance> gpuInstances = {};
         uint32_t instanceCounter = 0u;
+        bool needsUpdate = false;
 
         // 
         vkh::VsDescriptorSetCreateInfoHelper descriptorSetInfo = {};

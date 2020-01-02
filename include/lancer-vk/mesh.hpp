@@ -115,7 +115,7 @@ namespace lancer {
             return shared_from_this();
         };
 
-        // 
+        // MORE useful for instanced data
         std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}) {
             this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset();
             this->geometryTemplate.geometry.triangles.transformData = transformData;
@@ -138,8 +138,7 @@ namespace lancer {
 
         // Create Secondary Command With Pipeline
         std::shared_ptr<Mesh> createRasterizeCommand() { // UNIT ONLY!
-            std::vector<vk::Buffer> buffers = {};
-            std::vector<vk::DeviceSize> offsets = {};
+            std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             for (auto& B : this->bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
 
             // 
@@ -150,7 +149,7 @@ namespace lancer {
             const auto  clearValues = std::vector<vk::ClearValue>{ vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
 
             // 
-            this->secondaryCommand = vkt::createCommandBuffer(*thread, *thread, false, false); // do reference of cmd buffer
+            this->secondaryCommand = vkt::createCommandBuffer(*thread, *thread, true, false); // do reference of cmd buffer
             this->secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->refFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             this->secondaryCommand.setViewport(0, { viewport });
             this->secondaryCommand.setScissor(0, { renderArea });
@@ -173,10 +172,11 @@ namespace lancer {
             return shared_from_this();
         };
 
-        // TODO: 
+        // 
         std::shared_ptr<Mesh> buildAccelerationStructure() {
-            
-            // 
+            this->buildCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
+            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,{},0ull,needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            this->buildCommand.end();
             return shared_from_this();
         };
 
@@ -201,7 +201,7 @@ namespace lancer {
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
                     .info = this->accelerationStructureInfo
                 });
-                
+
                 //
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
@@ -222,6 +222,20 @@ namespace lancer {
             };
 
             // 
+            if (!gpuScratchBuffer.has()) { // 
+                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
+                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_NV,
+                    .accelerationStructure = this->accelerationStructure
+                });
+
+                // 
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+                    .size = requirements.memoryRequirements.size,
+                    .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
+                }, VMA_MEMORY_USAGE_GPU_ONLY));
+            };
+
+            // 
             return shared_from_this();
         };
 
@@ -230,6 +244,7 @@ namespace lancer {
         vkt::Vector<uint8_t> indexData = {}; 
         vk::IndexType indexType = vk::IndexType::eNoneNV;
         uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 1u;
+        bool needsUpdate = false;
 
         // 
         std::vector<vkt::Vector<uint8_t>> bindings = {};
@@ -246,6 +261,7 @@ namespace lancer {
         std::vector<vkh::VkGeometryNV> geometries = {};
 
         // 
+        vk::CommandBuffer buildCommand = {};
         vkh::VkGeometryNV geometryTemplate = {};
         vk::CommandBuffer secondaryCommand = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages

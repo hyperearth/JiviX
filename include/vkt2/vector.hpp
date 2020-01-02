@@ -184,6 +184,9 @@ namespace vkt {
         const vk::DeviceSize& offset() const { return bufInfo.offset; };
         const vk::DeviceSize& range() const { return bufInfo.range; };
 
+        // 
+        bool has() const { return allocation ? true : false; };
+
     // 
     protected: friend BufferRegion<T>; // 
         vk::DescriptorBufferInfo bufInfo = {};
@@ -272,6 +275,9 @@ namespace vkt {
         // typed casting 
         template<class Tm = T> Vector<Tm>& cast() { return reinterpret_cast<Vector<Tm>&>(*this); };
         template<class Tm = T> const Vector<Tm>& cast() const { return reinterpret_cast<const Vector<Tm>&>(*this); };
+
+        // 
+        bool has() const { return region ? true : false; };
 
         // 
         vk::BufferView& createBufferView(const vk::Format& format = vk::Format::eUndefined) {

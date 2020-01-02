@@ -56,7 +56,7 @@ namespace vkh {
         eVertexBuffer : 1,
         eIndirectBuffer : 1,
         eConditionalRendering : 1,
-        eRayTracingNV : 1,
+        eRayTracing : 1,
         eTransformFeedbackBuffer : 1,
         eTransformFeedbackCounterBuffer : 1,
         eSharedDeviceAddress : 1;
