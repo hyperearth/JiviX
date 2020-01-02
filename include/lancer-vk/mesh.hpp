@@ -244,8 +244,10 @@ namespace lancer {
         vk::CommandBuffer secondaryCommand = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
 
-        // 
-        vk::Buffer scratchBuffer = {};
+        // WIP buffer bindings
+        vkt::Vector<VkVertexInputAttributeDescription> attributeBuffer = {};
+        vkt::Vector<VkVertexInputBindingDescription> bindingBuffer = {};
+        vkt::Vector<uint8_t> scratchBuffer = {};
 
         // 
         vk::AccelerationStructureNV accelerationStructure = {};

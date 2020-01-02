@@ -30,33 +30,49 @@ namespace lancer {
         // 
         uintptr_t pushMesh(const std::shared_ptr<Mesh>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
-            this->meshes.push_back(mesh);
-            return ptr;
+            this->meshes.push_back(mesh); return ptr;
         };
 
         // 
         std::shared_ptr<Instance> describeMeshBindings() {
-            // Polyfill Geometry Bindings
-            // TODO: Attributes Support
-
+            // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const uint32_t bindingCount = 4u;
             for (uint32_t i=0;i<bindingCount;i++) {
-                auto& handle = handles.push_back(descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                auto& handle = descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = i,
-                    .dstArrayElement = 1u,
                     .descriptorCount = meshes.size(),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }));
+                });
                 for (uint32_t i=0;i<meshes.size();i++) {
                     handle.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].bindings[j];
                 };
             };
 
+            // plush bindings
+            auto bindingSet = bindingDescriptorSet.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 0u,
+                .descriptorCount = meshes.size(),
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+            });
+
+            // plush attributes
+            auto attributeSet = bindingDescriptorSet.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 1u,
+                .descriptorCount = meshes.size(),
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+            });
+
+            // plush into descriptor sets
+            for (uint32_t i=0;i<meshes.size();i++) {
+                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].bindingBuffer;
+                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = meshes[i].attributeBuffer;
+            };
+
+            // 
             return shared_from_this();
         };
 
-               // TODO: Build Acceleration Structure 
-    protected: // TODO: Attribute and Binding Data Buffers
+    protected: // TODO: Build Acceleration Structure 
         std::vector<std::shared_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
 
         // 
@@ -71,6 +87,7 @@ namespace lancer {
         // 
         vk::CommandBuffer drawCommand = {};
         vk::DescriptorSet descriptorSet = {};
+        vk::DescriptorSet bindingDescriptorSet = {};
         vk::AccelerationStructureNV accelerationStructure = {};
         vk::Buffer scratchBuffer = {};
 

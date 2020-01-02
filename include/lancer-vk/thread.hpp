@@ -49,6 +49,7 @@ namespace lancer {
         operator vk::Queue&() { return queue; };
         operator vk::Device&() { return driver->getDevice(); };
         operator std::shared_ptr<Driver>&() { return driver; };
+        operator Driver&() { return *driver; };
 
         // 
         operator const vk::CommandPool&() const { return commandPool; };
@@ -56,9 +57,6 @@ namespace lancer {
         operator const vk::Queue&() const { return queue; };
         operator const vk::Device&() const { return driver->getDevice(); };
         operator const std::shared_ptr<Driver>&() const { return driver; };
-
-        // casting access
-        operator Driver&() { return *driver; };
         operator const Driver&() const { return *driver; };
 
         // indirect access
