@@ -21,13 +21,13 @@ namespace lancer {
         vk::Rect2D& refScissor() { return scissor; };
         vk::Viewport& refViewport() { return viewport; };
         vk::RenderPass& refRenderPass() { return renderPass; };
-        vk::Framebuffer& refFramebuffer() { return framebuffer; };
+        //vk::Framebuffer& refFramebuffer() { return framebuffer; };
 
         // 
         const vk::Rect2D& refScissor() const { return scissor; };
         const vk::Viewport& refViewport() const { return viewport; };
         const vk::RenderPass& refRenderPass() const { return renderPass; };
-        const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
+        //const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
 
         // 
         std::shared_ptr<Context> createRenderPass() { // 
@@ -84,7 +84,8 @@ namespace lancer {
 
         // 
         std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
-            std::array<VkImageView, 4u> attachments = {};
+            std::array<VkImageView, 5u> deferredAttachments = {};
+            std::array<VkImageView, 5u> samplingAttachments = {};
 
             // 
             for (uint32_t b=0u;b<4u;b++) { // 
@@ -95,10 +96,10 @@ namespace lancer {
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
-                attachments[b] = frameBfImages[b];
+                deferredAttachments[b] = frameBfImages[b];
             };
 
-            // TODO: Re-Sampler With Thin ReProjection
+            // 
             for (uint32_t b=0u;b<4u;b++) { // 
                 samplesImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{ 
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
@@ -107,7 +108,7 @@ namespace lancer {
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
-                //attachments[b] = samplesImages[b];
+                samplingAttachments[b] = samplesImages[b];
             };
 
             // 
@@ -119,11 +120,24 @@ namespace lancer {
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
             });
 
-            // Framebuffer
-            driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+            // 5th attachment
+            deferredAttachments[4u] = depthImage;
+            samplingAttachments[4u] = depthImage;
+
+            // 
+            deferredFramebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
-                .attachmentCount = attachments.size(),
-                .pAttachments = attachments.data(),
+                .attachmentCount = deferredAttachments.size(),
+                .pAttachments = deferredAttachments.data(),
+                .width = width,
+                .height = height
+            });
+
+            // Reprojection WILL NOT write own depth... 
+            samplingFramebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+                .renderPass = renderPass,
+                .attachmentCount = samplingAttachments.size(),
+                .pAttachments = samplingAttachments.data(),
                 .width = width,
                 .height = height
             });
@@ -167,30 +181,51 @@ namespace lancer {
         // 
         std::shared_ptr<Context> createDescriptorSets() {
             std::array<VkDescriptorImageInfo, 4u> descriptions = {};
-            for (uint32_t b=0u;b<4u;b++) { descriptions[b] = frameBfImages[b]; };
 
-            // 
-            vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,driver->getDescriptorPool());
-            auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 0u,
-                .descriptorCount = 4u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-            });
-            memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
+            { // For Deferred Rendering
+                for (uint32_t b=0u;b<4u;b++) { descriptions[b] = frameBfImages[b]; };
 
-            // 
-            deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(deferredDescriptorSet)),{});
+                // 
+                vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,driver->getDescriptorPool());
+                auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
+                    .descriptorCount = 4u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+                });
+                memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
+
+                // 
+                deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
+                driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(deferredDescriptorSet)),{});
+            };
+
+            { // For Reprojection Pipeline
+                for (uint32_t b=0u;b<4u;b++) { descriptions[b] = samplesImages[b]; };
+
+                // 
+                vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,driver->getDescriptorPool());
+                auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
+                    .descriptorCount = 4u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+                });
+                memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
+
+                // Reprojection WILL NOT write own depth... 
+                samplingDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
+                driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(samplingDescriptorSet)),{});
+            };
 
             // 
             return shared_from_this();
         };
-        
+
     protected: // 
         vk::Rect2D scissor = {};
         vk::Viewport viewport = {};
         vk::RenderPass renderPass = {};
-        vk::Framebuffer framebuffer = {};
+        vk::Framebuffer samplingFramebuffer = {};
+        vk::Framebuffer deferredFramebuffer = {};
 
         // Image Buffers
         std::array<vkt::ImageRegion,4u> samplesImages = {}; // Path Tracing
@@ -199,6 +234,7 @@ namespace lancer {
 
         // 
         vk::DescriptorSet deferredDescriptorSet = {};
+        vk::DescriptorSet samplingDescriptorSet = {};
         vk::PipelineLayout unifiedPipelineLayout = {};
 
         // 
