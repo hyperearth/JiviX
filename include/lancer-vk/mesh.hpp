@@ -154,15 +154,24 @@ namespace lancer {
             for (auto& B : this->bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
 
             // 
+            const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
-            const auto& viewport = this->context->refViewport();
-
-            // TODO: Fix Clear Values
-            const auto  clearValues = std::vector<vk::ClearValue>{ vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
+            const auto clearValues = std::vector<vk::ClearValue>{ 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearDepthStencilValue(1.0f, 0)
+            };
 
             // 
+            this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
+            this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
+            this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
+            this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
+            this->rasterizationState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(),this->pipelineInfo);
             this->secondaryCommand = vkt::createCommandBuffer(*thread, *thread, true, false); // do reference of cmd buffer
-            this->secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->refFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            this->secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             this->secondaryCommand.setViewport(0, { viewport });
             this->secondaryCommand.setScissor(0, { renderArea });
             this->secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);

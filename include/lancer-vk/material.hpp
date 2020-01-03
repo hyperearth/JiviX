@@ -1,6 +1,8 @@
 #pragma once
 #include "./config.hpp"
 #include "./driver.hpp"
+#include "./thread.hpp"
+#include "./context.hpp"
 
 namespace lancer {
 
@@ -11,7 +13,21 @@ namespace lancer {
 
     // WIP Materials
     class Material : public std::enable_shared_from_this<Material> { public: 
-        Material() {};
+        Material(const std::shared_ptr<Driver>& driver) {
+            this->driver = driver;
+            this->thread = std::make_shared<Thread>(this->driver);
+
+            // 
+            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+        };
+
+        // 
+        std::shared_ptr<Material> setContext(const std::shared_ptr<Context>& context) {
+            this->context = context;
+            this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->materialDescriptorSetLayout,driver->getDescriptorPool());
+            return shared_from_this();
+        };
 
         // 
         std::shared_ptr<Material> setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
@@ -28,6 +44,23 @@ namespace lancer {
         // 
         std::shared_ptr<Material> pushSampledImage(const vkh::VkDescriptorImageInfo& info = {}) {
             this->sampledImages.push_back(info);
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Material> createDescriptorSet() {
+            {   // Setup Textures
+                auto& handle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
+                    .descriptorCount = sampledImages.size(),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+                });
+                memcpy(&handle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size()*sizeof(VkDescriptorImageInfo));
+
+                // Reprojection WILL NOT write own depth... 
+                this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)),{});
+            };
             return shared_from_this();
         };
 
@@ -48,6 +81,7 @@ namespace lancer {
         // 
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
+        std::shared_ptr<Context> context = {};
     };
 
 };

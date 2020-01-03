@@ -23,6 +23,14 @@ namespace lancer {
         };
 
         // 
+        std::shared_ptr<Instance> setContext(const std::shared_ptr<Context>& context) {
+            this->context = context;
+            this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->driver->getDescriptorPool());
+            this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->driver->getDescriptorPool());
+            return shared_from_this();
+        };
+
+        // 
         std::shared_ptr<Instance> setThread(const std::shared_ptr<Thread>& thread) {
             this->thread = thread;
             return shared_from_this();
@@ -187,6 +195,7 @@ namespace lancer {
         // 
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
+        std::shared_ptr<Context> context = {};
     };
 
 };
