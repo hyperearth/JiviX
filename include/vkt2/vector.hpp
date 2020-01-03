@@ -87,17 +87,29 @@ namespace vkt {
         void* mapped() { if (!allocationInfo.pMappedData) { vmaMapMemory(allocator, allocation, &allocationInfo.pMappedData); }; return allocationInfo.pMappedData; };
         void unmap() { vmaUnmapMemory(allocator, allocation); allocationInfo.pMappedData = nullptr; };
 
-        // 
-        operator const vk::Image& () const { return image; };
-        operator const VkImage& () const { return (VkImage&)image; };
-
         // VMA HACK FOR EXTRACT DEVICE
+        operator const vk::Image& () const { return image; };
         operator const vk::Device& () const { return(vk::Device&)(allocator->m_hDevice); };
+
+        // 
+        operator const VkImage& () const { return (VkImage&)image; };
         operator const VkDevice& () const { return allocator->m_hDevice; };
+
+        // 
+        operator vk::Image& () { return image; };
+        operator vk::Device& () { return(vk::Device&)(allocator->m_hDevice); };
+
+        // 
+        operator VkImage& () { return (VkImage&)image; };
+        operator VkDevice& () { return allocator->m_hDevice; };
 
         // Allocation
         operator const VmaAllocation& () const { return allocation; };
         operator const VmaAllocationInfo& () const { return allocationInfo; };
+
+        // 
+        operator VmaAllocation& () { return allocation; };
+        operator VmaAllocationInfo& () { return allocationInfo; };
 
     // 
     protected: friend VmaImageAllocation; // 
@@ -108,14 +120,71 @@ namespace vkt {
     };
 
     // 
-    class ImageRegion : public std::enable_shared_from_this<ImageRegion> { public:
-        protected: friend VmaImageAllocation;
+    class ImageRegion : public std::enable_shared_from_this<ImageRegion> { public: 
+        ImageRegion(){};
+        ImageRegion(const std::shared_ptr<VmaImageAllocation>& allocation, const vkh::VkImageViewCreateInfo& info = {}, const vk::ImageLayout& layout = vk::ImageLayout::eGeneral) {
+            this->allocation = allocation;
+            this->imgInfo.imageView = ((vk::Device&)(allocation)).createImageView(info);
+            this->imgInfo.imageLayout = VkImageLayout(layout);
+            this->subresourceRange = info.subresourceRange;
+        };
+        ImageRegion(const ImageRegion& region) { 
+            this->allocation = region; 
+            this->subresourceRange = region;
+            this->imgInfo = (vk::DescriptorImageInfo&)(region); 
+        };
+        ImageRegion& operator=(const ImageRegion& region){
+            this->allocation = region; 
+            this->subresourceRange = region; 
+            this->imgInfo = (vk::DescriptorImageInfo&)(region); 
+            return *this;
+        };
+
+        // 
+        vkh::VkImageSubresourceRange& subresourceRange() { return this->subresourceRange; };
+        vkh::VkImageSubresourceLayers subresourceLayers(const uint32_t mipLevel =  0u) const { return {
+            .aspectMask = this->subresourceRange.aspectMask,
+            .mipLevel = this->subresourceRange.baseMipLevel + mipLevel,
+            .baseArrayLayer = this->subresourceRange.baseArrayLayer,
+            .layerCount = this->subresourceRange.layerCount
+        };};
+
+        // 
+        operator std::shared_ptr<VmaImageAllocation>&() { return this->allocation; };
+        operator vkh::VkImageSubresourceRange&() { return this->subresourceRange; };
+        operator vkh::VkDescriptorImageInfo&() { return this->imgInfo; };
+        operator vk::DescriptorImageInfo&() { return this->imgInfo; };
+        operator vk::ImageSubresourceRange&() { return this->subresourceRange; };
+        operator vk::ImageView&() { return reinterpret_cast<vk::ImageView&>(this->imgInfo.imageView); };
+        operator vk::Image&() { return *allocation; };
+        operator vk::Device&() { return *allocation; };
+
+        // 
+        operator const std::shared_ptr<VmaImageAllocation>&() const { return this->allocation; };
+        operator const vkh::VkImageSubresourceRange&() const { return this->subresourceRange; };
+        operator const vkh::VkDescriptorImageInfo&() const { return this->imgInfo; };
+        operator const vk::DescriptorImageInfo&() const { return this->imgInfo; };
+        operator const vk::ImageSubresourceRange&() const { return this->subresourceRange; };
+        operator const vk::ImageView&() const { return reinterpret_cast<const vk::ImageView&>(this->imgInfo.imageView); };
+        operator const vk::Image&() const { return *allocation; };
+        operator const vk::Device&() const { return *allocation; };
+
+        // 
+        VmaImageAllocation* operator->() { return &(*allocation); };
+        VmaImageAllocation& operator*() { return (*allocation); };
+        const VmaImageAllocation* operator->() const { return &(*allocation); };
+        const VmaImageAllocation& operator*() const { return (*allocation); };
+
+    // 
+    protected: friend VmaImageAllocation; // 
+        vkh::VkDescriptorImageInfo imgInfo = {};
+        vkh::VkImageSubresourceRange subresourceRange = {};
         std::shared_ptr<VmaImageAllocation> allocation = {};
     };
 
-    // Wrapper Class (Planned To Deprecate)
+    // Wrapper Class
     template<class T = uint8_t>
-    class Vector { // direct wrapper for indirect pointer `std::shared_ptr<BufferRegion<T>>`
+    class Vector { // 
     public:
         Vector() {};
         Vector(const std::shared_ptr<VmaBufferAllocation>& allocation, vk::DeviceSize offset = 0u, vk::DeviceSize size = VK_WHOLE_SIZE) : allocation(allocation), bufInfo({*allocation,offset,size}) {};
@@ -202,6 +271,12 @@ namespace vkt {
 
         // 
         bool has() const { return allocation ? true : false; };
+
+        // 
+        VmaBufferAllocation* operator->() { return &(*allocation); };
+        VmaBufferAllocation& operator*() { return (*allocation); };
+        const VmaBufferAllocation* operator->() const { return &(*allocation); };
+        const VmaBufferAllocation& operator*() const { return (*allocation); };
 
     protected: friend Vector<T>; // 
         vkh::VkDescriptorBufferInfo bufInfo = {}; vk::BufferView view = {};
