@@ -98,7 +98,7 @@ namespace lancer {
                 attachments[b] = frameBfImages[b];
             };
 
-            // 
+            // TODO: Re-Sampler With Thin ReProjection
             for (uint32_t b=0u;b<4u;b++) { // 
                 samplesImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{ 
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
@@ -203,9 +203,9 @@ namespace lancer {
 
         // 
         vk::DescriptorSetLayout materialDescriptorSetLayout = {}; // Material Descriptions
-        vk::DescriptorSetLayout deferredDescriptorSetLayout = {}; // Ray-Traced Data
+        vk::DescriptorSetLayout deferredDescriptorSetLayout = {}; // Deferred Shading Descriptions (Diffuse Texturing)
         vk::DescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
-        vk::DescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples (Diffuse, Path-Tracing and Reprojection)
+        vk::DescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples (Diffuse, Path-Tracing and ReProjection)
         vk::DescriptorSetLayout bindingsDescriptorSetLayout = {}; // Bindings, Attributes Descriptions
 
         // 
