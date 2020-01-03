@@ -84,6 +84,9 @@ namespace lancer {
 
         // 
         std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
+            std::array<VkImageView, 4u> attachments = {};
+
+            // 
             for (uint32_t b=0u;b<4u;b++) { // 
                 frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{ 
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
@@ -92,6 +95,7 @@ namespace lancer {
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
+                attachments[b] = frameBfImages[b];
             };
 
             // 
@@ -103,6 +107,7 @@ namespace lancer {
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
+                //attachments[b] = samplesImages[b];
             };
 
             // 
@@ -112,6 +117,15 @@ namespace lancer {
                 .usage = { .eDepthStencilAttachment = 1 }, 
             }), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+            });
+
+            // Framebuffer
+            driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+                .renderPass = renderPass,
+                .attachmentCount = attachments.size(),
+                .pAttachments = attachments.data(),
+                .width = width,
+                .height = height
             });
 
             // 
@@ -149,6 +163,28 @@ namespace lancer {
             // 
             return shared_from_this();
         };
+
+        // 
+        std::shared_ptr<Context> createDescriptorSets() {
+            std::array<VkDescriptorImageInfo, 4u> descriptions = {};
+            for (uint32_t b=0u;b<4u;b++) { descriptions[b] = frameBfImages[b]; };
+
+            // 
+            vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,driver->getDescriptorPool());
+            auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 0u,
+                .descriptorCount = 4u,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+            });
+            memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
+
+            // 
+            deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
+            driver->getDevice().updateDescriptorSets({vk::WriteDescriptorSet(deferredDescriptorSet).setDstSet(deferredDescriptorSet)},{});
+
+            // 
+            return shared_from_this();
+        };
         
     protected: // 
         vk::Rect2D scissor = {};
@@ -156,13 +192,16 @@ namespace lancer {
         vk::RenderPass renderPass = {};
         vk::Framebuffer framebuffer = {};
 
-        // 
+        // Image Buffers
         std::array<vkt::ImageRegion,4u> samplesImages = {}; // Path Tracing
         std::array<vkt::ImageRegion,4u> frameBfImages = {}; // Rasterization
         vkt::ImageRegion depthImage = {};
 
         // 
+        vk::DescriptorSet deferredDescriptorSet = {};
         vk::PipelineLayout unifiedPipelineLayout = {};
+
+        // 
         vk::DescriptorSetLayout materialDescriptorSetLayout = {}; // Material Descriptions
         vk::DescriptorSetLayout deferredDescriptorSetLayout = {}; // Ray-Traced Data
         vk::DescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
