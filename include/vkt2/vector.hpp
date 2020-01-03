@@ -156,6 +156,7 @@ namespace vkt {
         operator vk::DescriptorImageInfo&() { return this->imgInfo; };
         operator vk::ImageSubresourceRange&() { return this->subresourceRange; };
         operator vk::ImageView&() { return reinterpret_cast<vk::ImageView&>(this->imgInfo.imageView); };
+        operator vk::ImageLayout&() { return reinterpret_cast<vk::ImageLayout&>(this->imgInfo.imageLayout); };
         operator vk::Image&() { return *allocation; };
         operator vk::Device&() { return *allocation; };
 
@@ -166,6 +167,7 @@ namespace vkt {
         operator const vk::DescriptorImageInfo&() const { return this->imgInfo; };
         operator const vk::ImageSubresourceRange&() const { return this->subresourceRange; };
         operator const vk::ImageView&() const { return reinterpret_cast<const vk::ImageView&>(this->imgInfo.imageView); };
+        operator const vk::ImageLayout&() const { return reinterpret_cast<const vk::ImageLayout&>(this->imgInfo.imageLayout); };
         operator const vk::Image&() const { return *allocation; };
         operator const vk::Device&() const { return *allocation; };
 
