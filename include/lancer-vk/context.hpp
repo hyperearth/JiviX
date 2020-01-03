@@ -30,6 +30,59 @@ namespace lancer {
         const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
 
         // 
+        std::shared_ptr<Context> createRenderPass() { // 
+            vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
+            for (uint32_t b=0u;b<4u;b++) {
+                rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
+                    .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                });
+            };
+
+            // 
+            rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
+                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+            });
+
+            // 
+            rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
+                .srcSubpass = VK_SUBPASS_EXTERNAL,
+                .dstSubpass = 0u,
+                .srcStageMask = {.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
+                .dstStageMask = {.eColorAttachmentOutput = 1},
+                .srcAccessMask = {.eColorAttachmentWrite = 1},
+                .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                .dependencyFlags = {.eByRegion = 1}
+            });
+
+            // 
+            rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
+                .srcSubpass = 0u,
+                .dstSubpass = VK_SUBPASS_EXTERNAL,
+                .srcStageMask = {.eColorAttachmentOutput = 1},
+                .dstStageMask = {.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
+                .srcAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                .dependencyFlags = {.eByRegion = 1}
+            });
+
+            // 
+            this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
+
+            // 
+            return shared_from_this();
+        };
+
+        // 
         std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
             for (uint32_t b=0u;b<4u;b++) { // 
                 frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{ 
@@ -85,6 +138,13 @@ namespace lancer {
             // 
             materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 128u, .stageFlags = { .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{.ePartiallyBound = 1});
             materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount =   8u, .stageFlags = { .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{.ePartiallyBound = 1});
+
+            // 
+            materialDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(materialDescriptorSetLayoutHelper);
+            deferredDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(deferredDescriptorSetLayoutHelper);
+            samplingDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(samplingDescriptorSetLayoutHelper);
+            deferredDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(deferredDescriptorSetLayoutHelper);
+            bindingsDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(bindingsDescriptorSetLayoutHelper);
 
             // 
             return shared_from_this();
