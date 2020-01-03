@@ -180,7 +180,7 @@ namespace lancer {
 
             // 
             deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
-            driver->getDevice().updateDescriptorSets({vk::WriteDescriptorSet(deferredDescriptorSet).setDstSet(deferredDescriptorSet)},{});
+            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(deferredDescriptorSet)),{});
 
             // 
             return shared_from_this();

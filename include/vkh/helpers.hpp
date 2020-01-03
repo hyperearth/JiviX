@@ -131,10 +131,9 @@ namespace vkh {
 
     // TODO: REMOVE CODE TAFTOLOGY
     class VsDescriptorSetCreateInfoHelper { public: uint32_t flags = 0u; using T = uintptr_t; // 
-
-         VsDescriptorSetCreateInfoHelper& reset() { heap.clear(); entries.clear(); handles.clear(); writes.clear(); writes_acs.clear(); format(); return *this; };
-        ~VsDescriptorSetCreateInfoHelper() { reset(); };
-         VsDescriptorSetCreateInfoHelper(const VkDescriptorSetLayout& layout = {}, const VkDescriptorPool& pool = {}) {
+        inline  VsDescriptorSetCreateInfoHelper& reset() { heap.clear(); entries.clear(); handles.clear(); writes.clear(); writes_acs.clear(); format(); return *this; };
+        inline ~VsDescriptorSetCreateInfoHelper() { reset(); };
+        inline  VsDescriptorSetCreateInfoHelper(const VkDescriptorSetLayout& layout = {}, const VkDescriptorPool& pool = {}) {
             template_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO;
             template_info.pNext = nullptr;
             template_info.flags = flags;
@@ -162,6 +161,11 @@ namespace vkh {
             } else {
                 return _push_description<VkDescriptorImageInfo>(entry);
             };
+        };
+
+        // 
+        inline VsDescriptorSetCreateInfoHelper& setDescriptorSet(const vk::DescriptorSet& set = {}) {
+            this->set = set; return *this;
         };
 
         // 
@@ -219,6 +223,7 @@ namespace vkh {
         inline std::vector<VkWriteDescriptorSet>& mapWriteDescriptorSet() {
             uint32_t I=0; for (auto& entry : entries) { const uint32_t i = I++;
                 const uintptr_t& pt0 = entry.offset;
+                writes[i].dstSet = this->set;
                 if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER || entry.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) { // Map Buffers
                     writes[i].pBufferInfo = (VkDescriptorBufferInfo*)(heap.data()+pt0);
                 } else 
@@ -236,8 +241,8 @@ namespace vkh {
         };
 
         // Export By Operator
-        operator std::vector<VkWriteDescriptorSet>&() { return mapWriteDescriptorSet(); };
-        operator const std::vector<VkWriteDescriptorSet>&() const { return writes; };
+        inline operator std::vector<VkWriteDescriptorSet>&() { return mapWriteDescriptorSet(); };
+        inline operator const std::vector<VkWriteDescriptorSet>&() const { return writes; };
 
 
     protected: template<class T = T> // 
@@ -249,6 +254,7 @@ namespace vkh {
             entries.back().stride = sizeof(T);
             handles.push_back({ &entries.back(), &heap.back() });
             writes.push_back({
+                .dstSet = this->set,
                 .dstBinding = entry.dstBinding,
                 .dstArrayElement = entry.dstArrayElement,
                 .descriptorCount = entry.descriptorCount,
@@ -263,6 +269,7 @@ namespace vkh {
         // 
         VkDescriptorSetAllocateInfo allocate_info = {};
         VkDescriptorUpdateTemplateCreateInfo template_info = {};
+        VkDescriptorSet set = {};
 
         // 
         std::vector<uint8_t> heap = {};

@@ -59,7 +59,7 @@ namespace lancer {
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const uint32_t bindingCount = 4u;
             for (uint32_t i=0;i<bindingCount;i++) {
-                auto& handle = descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                auto& handle = meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = i,
                     .descriptorCount = meshes.size(),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
@@ -70,14 +70,14 @@ namespace lancer {
             };
 
             // plush bindings
-            auto bindingSet = descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            auto bindingSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 0u,
                 .descriptorCount = meshes.size(),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             });
 
             // plush attributes
-            auto attributeSet = descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            auto attributeSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 1u,
                 .descriptorCount = meshes.size(),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -88,6 +88,14 @@ namespace lancer {
                 bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuBindings;
                 attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuAttributes;
             };
+
+            // 
+            bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(bindingsDescriptorSetInfo)[0];
+            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(bindingsDescriptorSetInfo.setDescriptorSet(bindingsDescriptorSet)),{});
+
+            // 
+            meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(meshDataDescriptorSetInfo)[0];
+            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(meshDataDescriptorSetInfo.setDescriptorSet(meshDataDescriptorSet)),{});
 
             // 
             return shared_from_this();
@@ -162,13 +170,15 @@ namespace lancer {
         bool needsUpdate = false;
 
         // 
-        vkh::VsDescriptorSetCreateInfoHelper descriptorSetInfo = {};
+        vkh::VsDescriptorSetCreateInfoHelper meshDataDescriptorSetInfo = {};
+        vkh::VsDescriptorSetCreateInfoHelper bindingsDescriptorSetInfo = {};
         vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
 
         // 
         vk::CommandBuffer buildCommand = {};
         vk::DescriptorSet descriptorSet = {};
-        vk::DescriptorSet bindingDescriptorSet = {};
+        vk::DescriptorSet meshDataDescriptorSet = {};
+        vk::DescriptorSet bindingsDescriptorSet = {};
         vk::AccelerationStructureNV accelerationStructure = {};
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
         VmaAllocationInfo allocationInfo = {};
