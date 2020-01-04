@@ -7,6 +7,7 @@
 #include "./material.hpp"
 #include "./renderer.hpp"
 
+// TODO: Ray-Tracing Pipelines, Re-Sampling Pipelines, Deferred Shadings, Denoise Shaders, 
 namespace lancer {
 
 };

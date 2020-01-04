@@ -286,8 +286,8 @@ namespace lancer {
 
         // 
         vk::CommandBuffer buildCommand = {};
-        vkh::VkGeometryNV geometryTemplate = {};
         vk::CommandBuffer secondaryCommand = {};
+        vkh::VkGeometryNV geometryTemplate = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
 
         // WIP buffer bindings
