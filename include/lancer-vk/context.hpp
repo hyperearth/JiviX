@@ -37,8 +37,8 @@ namespace lancer {
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
+                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                     .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
                 });
             };
@@ -46,11 +46,11 @@ namespace lancer {
             // 
             rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
-                .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             });
 
             // 
