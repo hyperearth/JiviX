@@ -165,6 +165,14 @@ namespace lancer {
             };
 
             // 
+            this->pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rasterize.vert.spv"), vk::ShaderStageFlagBits::eVertex),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rasterize.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+            });
+            this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{
+                .depthTestEnable = true,
+                .depthWriteEnable = true
+            };
             this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;

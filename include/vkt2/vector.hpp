@@ -277,7 +277,8 @@ namespace vkt {
 
         // 
         const vk::DeviceSize& offset() const { return bufInfo.offset; };
-        const vk::DeviceSize& range() const { return bufInfo.range; };
+        const vk::DeviceSize& range() const { return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range() - bufInfo.offset) : (allocation->range() - bufInfo.offset)); };
+              vk::DeviceSize& range()       { return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range() - bufInfo.offset) : (allocation->range() - bufInfo.offset)); };
 
         // typed casting 
         template<class Tm = T> Vector<Tm>& cast() { return reinterpret_cast<Vector<Tm>&>(*this); };

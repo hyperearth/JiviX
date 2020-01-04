@@ -16,8 +16,8 @@ namespace vkh {
     // W - Work in Progress, V - Verified, D - deprecated...
 
     // TODO: REMOVE CODE TAFTOLOGY
-    class VsRayTracingPipelineCreateInfoHelper { protected: 
-        VkRayTracingPipelineCreateInfoNV vk_info = {};
+    class VsRayTracingPipelineCreateInfoHelper { 
+    protected: 
         VkRayTracingShaderGroupCreateInfoNV raygen_shader_group = {};
         std::vector<VkPipelineShaderStageCreateInfo> stages = {};
         std::vector<VkRayTracingShaderGroupCreateInfoNV> miss_shader_groups = {};
@@ -25,12 +25,14 @@ namespace vkh {
         std::vector<VkRayTracingShaderGroupCreateInfoNV> compiled_shader_groups = {};
 
     public: // get offsets of shader groups
+        VkRayTracingPipelineCreateInfoNV vkInfo = {};
         uintptr_t raygenOffsetIndex() { return 0u; };
         uintptr_t missOffsetIndex() {return 1u; };
         uintptr_t hitOffsetIndex() { return miss_shader_groups.size()+missOffsetIndex(); };
+        uintptr_t groupCount() { return compiled_shader_groups.size(); };
 
         // 
-        VsRayTracingPipelineCreateInfoHelper(const VkRayTracingPipelineCreateInfoNV& info = {}) : vk_info(info) {};
+        VsRayTracingPipelineCreateInfoHelper(const VkRayTracingPipelineCreateInfoNV& info = {}) : vkInfo(info) {};
 
         // result groups
         inline std::vector<VkRayTracingShaderGroupCreateInfoNV>& compileGroups() {
@@ -85,31 +87,31 @@ namespace vkh {
         // 
         inline VkRayTracingPipelineCreateInfoNV& format() {
             auto& groups = compileGroups();
-            vk_info.pGroups = groups.data();
-            vk_info.pStages = stages.data();
-            vk_info.stageCount = stages.size();
-            vk_info.groupCount = groups.size();
-            return vk_info;
+            vkInfo.pGroups = groups.data();
+            vkInfo.pStages = stages.data();
+            vkInfo.stageCount = stages.size();
+            vkInfo.groupCount = groups.size();
+            return vkInfo;
         };
 
         // 
-        inline operator const ::VkRayTracingPipelineCreateInfoNV* () const { return vk_info; };
-        inline operator const VkRayTracingPipelineCreateInfoNV* () { return &vk_info; };
+        inline operator const ::VkRayTracingPipelineCreateInfoNV* () const { return vkInfo; };
+        inline operator const VkRayTracingPipelineCreateInfoNV* () { return &vkInfo; };
 
         // 
         inline operator ::VkRayTracingPipelineCreateInfoNV* () { return format(); };
         inline operator VkRayTracingPipelineCreateInfoNV* () { return &format(); };
 
         // 
-        inline operator const ::VkRayTracingPipelineCreateInfoNV&() const { return vk_info; };
-        inline operator const VkRayTracingPipelineCreateInfoNV&() { return vk_info; };
+        inline operator const ::VkRayTracingPipelineCreateInfoNV&() const { return vkInfo; };
+        inline operator const VkRayTracingPipelineCreateInfoNV&() { return vkInfo; };
 
         // 
         inline operator ::VkRayTracingPipelineCreateInfoNV&() { return format(); };
         inline operator VkRayTracingPipelineCreateInfoNV&() { return format(); };
 
         // Vulkan-HPP
-        inline operator const vk::RayTracingPipelineCreateInfoNV& () const { return vk_info; };
+        inline operator const vk::RayTracingPipelineCreateInfoNV& () const { return vkInfo; };
         inline operator vk::RayTracingPipelineCreateInfoNV& () { return format(); };
     };
 
