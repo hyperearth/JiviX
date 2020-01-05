@@ -44,6 +44,24 @@ namespace lancer {
         };
 
         // Getter Operators
+        vk::CommandPool& getCommandPool() { return commandPool; };
+        vk::DescriptorPool& getDescriptorPool() { return descriptorPool; };
+        vk::Queue& getQueue() { return queue; };
+        vk::Device& getDevice() { return driver->getDevice(); };
+        std::shared_ptr<Driver>& getDriverPtr() { return driver; };
+        Driver& getDriver() { return *driver; };
+
+        // 
+        const vk::CommandPool& getCommandPool() const { return commandPool; };
+        const vk::DescriptorPool& getDescriptorPool() const { return descriptorPool; };
+        const vk::Queue& getQueue() const { return queue; };
+        const vk::Device& getDevice() const { return driver->getDevice(); };
+        const std::shared_ptr<Driver>& getDriverPtr() const { return driver; };
+        const Driver& getDriver() const { return *driver; };
+
+
+
+        // Getter Operators
         operator vk::CommandPool&() { return commandPool; };
         operator vk::DescriptorPool&() { return descriptorPool; };
         operator vk::Queue&() { return queue; };

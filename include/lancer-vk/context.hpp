@@ -186,7 +186,7 @@ namespace lancer {
                 for (uint32_t b=0u;b<4u;b++) { descriptions[b] = frameBfImages[b]; };
 
                 // 
-                vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,driver->getDescriptorPool());
+                vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,thread->getDescriptorPool());
                 auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = 4u,
@@ -203,7 +203,7 @@ namespace lancer {
                 for (uint32_t b=0u;b<4u;b++) { descriptions[b] = samplesImages[b]; };
 
                 // 
-                vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,driver->getDescriptorPool());
+                vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,thread->getDescriptorPool());
                 auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = 4u,

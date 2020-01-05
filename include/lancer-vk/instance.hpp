@@ -25,8 +25,8 @@ namespace lancer {
         // 
         std::shared_ptr<Instance> setContext(const std::shared_ptr<Context>& context) {
             this->context = context;
-            this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->driver->getDescriptorPool());
-            this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->driver->getDescriptorPool());
+            this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
+            this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
             return shared_from_this();
         };
 
