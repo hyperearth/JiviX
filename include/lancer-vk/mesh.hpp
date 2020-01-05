@@ -134,10 +134,11 @@ namespace lancer {
         };
 
         // MORE useful for instanced data
-        std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}) {
+        std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
             this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset();
             this->geometryTemplate.geometry.triangles.transformData = transformData;
             this->gpuTransformData = transformData;
+            this->transformStride = stride; // used for instanced correction
             return shared_from_this();
         };
 
