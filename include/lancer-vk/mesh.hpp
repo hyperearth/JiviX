@@ -222,9 +222,9 @@ namespace lancer {
             // Use Same Geometry for Sub-Instances
             this->geometries.resize(instanceCount);
             for (uint32_t i = 0u; i < instanceCount; i++) {
-                  this->geometries[i] = this->geometryTemplate;
-                  this->geometries[i].geometry.triangles.transformOffset = sizeof(glm::mat3x4) * i + this->gpuTransformData.offset(); // Should To Be Different's
-                //this->geometries[i].geometry.triangles.transformData = gpuTransformData;
+                this->geometries[i] = this->geometryTemplate;
+                this->geometries[i].geometry.triangles.transformOffset = this->transformStride * i + this->gpuTransformData.offset(); // Should To Be Different's
+                this->geometries[i].geometry.triangles.transformData = gpuTransformData;
             };
 
             // Re-assign instance count
@@ -284,10 +284,9 @@ namespace lancer {
         // 
         std::vector<vkt::Vector<uint8_t>> bindings = {};
 
-        // Accumulated by "Instance" for instanced rendering
+        // accumulated by "Instance" for instanced rendering
+        uint32_t transformStride = sizeof(glm::mat3x4);
         vkt::Vector<glm::mat3x4> gpuTransformData = {};
-
-        // construct bindings and attributes
         uint32_t lastBindID = 0u, locationCounter = 0u;
 
         // 
