@@ -111,6 +111,7 @@ namespace lancer {
 
         // 
         std::shared_ptr<Instance> buildAccelerationStructure() {
+            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
             this->buildCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
             this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(this->buildCommand);

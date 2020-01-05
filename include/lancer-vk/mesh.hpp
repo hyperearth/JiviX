@@ -200,6 +200,7 @@ namespace lancer {
 
         // 
         std::shared_ptr<Mesh> buildAccelerationStructure() {
+            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
             this->buildCommand = vkt::createCommandBuffer(*this->thread, *this->thread, true, false);
             this->buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
             this->buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
