@@ -137,7 +137,7 @@ namespace lancer {
             
             // Meshes for Rendering and Build for Ray-Tracing
             for (auto& M : this->instances->meshes) {
-                M->createRasterizeCommand();
+                M->createRasterizeCommand()->buildAccelerationStructure();
                 this->preparedCommand.executeCommands(M->buildCommand);
                 this->preparedCommand.executeCommands(M->rasterCommand);
             };
