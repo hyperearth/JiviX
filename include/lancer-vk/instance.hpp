@@ -8,11 +8,11 @@ namespace lancer {
 
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
-    class Instance : public std::enable_shared_from_this<Instance> { public: 
+    class Instance : public std::enable_shared_from_this<Instance> { public: friend Renderer;
         Instance(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
-
+            
             // 
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;
             this->accelerationStructureInfo.instanceCount = 1u;
@@ -76,7 +76,7 @@ namespace lancer {
                     handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->bindings[j];
                 };
             };
-
+            
             // plush bindings
             auto bindingSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 0u,
@@ -96,7 +96,7 @@ namespace lancer {
                 bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuBindings;
                 attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuAttributes;
             };
-
+            
             // 
             bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(bindingsDescriptorSetInfo)[0];
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(bindingsDescriptorSetInfo.setDescriptorSet(bindingsDescriptorSet)),{});
@@ -115,33 +115,32 @@ namespace lancer {
             this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(this->buildCommand);
             this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            vkt::commandBarrier(this->buildCommand);
             this->buildCommand.end();
             return shared_from_this();
         };
 
         // Create Or Rebuild Acceleration Structure
-        std::shared_ptr<Instance> createAccelerationStructure() {
-
-            // Re-assign instance count
+        std::shared_ptr<Instance> createAccelerationStructure() { // Re-assign instance count
             this->accelerationStructureInfo.instanceCount = instanceCounter;
-
+            
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
                     .info = this->accelerationStructureInfo
                 });
-
+                
                 //
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
                     .accelerationStructure = this->accelerationStructure
                 });
-
+                
                 // 
                 VmaAllocationCreateInfo allocInfo = {};
                 allocInfo.memoryTypeBits |= requirements.memoryRequirements.memoryTypeBits;
                 vmaAllocateMemory(this->driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&this->allocation,&this->allocationInfo);
-
+                
                 // 
                 this->driver->getDevice().bindAccelerationStructureMemoryNV({vkh::VkBindAccelerationStructureMemoryInfoNV{
                     .accelerationStructure = this->accelerationStructure,
@@ -163,7 +162,7 @@ namespace lancer {
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
                 }, VMA_MEMORY_USAGE_GPU_ONLY));
             };
-
+            
             // 
             return shared_from_this();
         };
@@ -193,7 +192,7 @@ namespace lancer {
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
         VmaAllocationInfo allocationInfo = {};
         VmaAllocation allocation = {};
-
+        
         // 
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};

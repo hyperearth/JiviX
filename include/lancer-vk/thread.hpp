@@ -3,7 +3,6 @@
 #include "./driver.hpp"
 
 namespace lancer {
-
     class Thread : public std::enable_shared_from_this<Thread> { public: 
         Thread() {};
         Thread(const std::shared_ptr<Driver>& driver) { // derrivate from driver framework
@@ -30,10 +29,10 @@ namespace lancer {
 
             return shared_from_this();
         };
-
+        
         // 
         std::shared_ptr<Thread> createCommandPool() {
-
+            
             return shared_from_this();
         };
 
@@ -58,9 +57,7 @@ namespace lancer {
         const vk::Device& getDevice() const { return driver->getDevice(); };
         const std::shared_ptr<Driver>& getDriverPtr() const { return driver; };
         const Driver& getDriver() const { return *driver; };
-
-
-
+        
         // Getter Operators
         operator vk::CommandPool&() { return commandPool; };
         operator vk::DescriptorPool&() { return descriptorPool; };

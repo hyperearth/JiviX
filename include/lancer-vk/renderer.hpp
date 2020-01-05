@@ -5,12 +5,14 @@
 #include "./context.hpp"
 
 namespace lancer {
-    class Renderer : public std::enable_shared_from_this<Renderer> { public: 
+
+    // TODO: Descriptor Sets
+    class Renderer : public std::enable_shared_from_this<Renderer> { public: // 
         Renderer(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = std::make_shared<Context>();
-
+            
             // get ray-tracing properties
             auto  prop = driver->getPhysicalDevice().getProperties2<vk::PhysicalDeviceRayTracingPropertiesNV>();
             auto& rtxp = *(vk::PhysicalDeviceRayTracingPropertiesNV*)prop.pNext;
@@ -27,7 +29,7 @@ namespace lancer {
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/raytrace.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/raytrace.rmiss.spv"), vk::ShaderStageFlagBits::eMissNV)
             });
-
+            
             //this->rayTraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper{};
             this->rayTraceInfo.vkInfo.layout = this->context->unifiedPipelineLayout;
             this->rayTraceInfo.addShaderStages(stages);
@@ -39,7 +41,7 @@ namespace lancer {
 
             // SBT helped for buffer
             this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment,this->rawSBTBuffer.data());
-
+            
             // 
             return shared_from_this();
         };
@@ -50,7 +52,7 @@ namespace lancer {
             // get ray-tracing properties
             auto  prop = driver->getPhysicalDevice().getProperties2<vk::PhysicalDeviceRayTracingPropertiesNV>();
             auto& rtxp = *(vk::PhysicalDeviceRayTracingPropertiesNV*)prop.pNext;
-
+            
             // 
             const auto& renderArea = this->context->refScissor();
             this->rayTraceCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
@@ -65,8 +67,34 @@ namespace lancer {
                 renderArea.extent.width, renderArea.extent.height, 1u
             );
             this->rayTraceCommand.end();
-
+            
             // 
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Renderer> setupResampleCommand() {
+            const auto& viewport  = this->context->refViewport();
+            const auto& renderArea = this->context->refScissor();
+            const auto clearValues = std::vector<vk::ClearValue>{ 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearDepthStencilValue(1.0f, 0)
+            };
+            
+            // 
+            this->resampleCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
+            this->resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            this->resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
+            this->resampleCommand.setViewport(0, { viewport });
+            this->resampleCommand.setScissor(0, { renderArea });
+            this->resampleCommand.draw(renderArea.extent.width * renderArea.extent.height, 1u, 0u, 0u);
+            this->resampleCommand.endRenderPass();
+            vkt::commandBarrier(this->resampleCommand);
+            this->resampleCommand.end();
+            
             return shared_from_this();
         };
 
@@ -74,7 +102,7 @@ namespace lancer {
         std::shared_ptr<Renderer> setupResamplingStages() {
             const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
-
+            
             for (uint32_t i=0u;i<4u;i++) {
                 this->pipelineInfo.colorBlendAttachmentStates.push_back(vkh::VkPipelineColorBlendAttachmentState{
                     .blendEnable = true,
@@ -92,24 +120,62 @@ namespace lancer {
                 .depthTestEnable = false,
                 .depthWriteEnable = false
             };
-
+            
+            this->pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
             this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
             this->resamplingState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(),this->pipelineInfo);
-
+            
             return shared_from_this();
         };
 
+        // 
+        std::shared_ptr<Renderer> setupRenderables(){
+            this->preparedCommand = vkt::createCommandBuffer(*thread, *thread, false, false);
+            
+            // Meshes for Rendering and Build for Ray-Tracing
+            for (auto& M : this->instances->meshes) {
+                M->createRasterizeCommand();
+                this->preparedCommand.executeCommands(M->buildCommand);
+                this->preparedCommand.executeCommands(M->rasterCommand);
+            };
+            
+            // 
+            this->instances->describeMeshBindings();
+            this->instances->buildAccelerationStructure();
+            
+            // Instanced Data
+            this->preparedCommand.executeCommands(instances->buildCommand);
+            
+            // Pipelines
+            this->setupResamplingStages();
+            this->setupRayTracingStages();
+            
+            // Commands
+            this->setupResampleCommand();
+            this->setupRayTraceCommand();
+            
+            // Resample Previous Frame and Ray Trace Samples
+            this->preparedCommand.executeCommands(this->resampleCommand);
+            this->preparedCommand.executeCommands(this->rayTraceCommand);
+            
+            // TODO: final stage pipeline?
+            this->preparedCommand.end();
+            return shared_from_this();
+        };
+
+
     protected: // 
-        vk::CommandBuffer deferredCommand = {};
+        vk::CommandBuffer preparedCommand = {};
+        vk::CommandBuffer resampleCommand = {};
         vk::CommandBuffer rayTraceCommand = {};
         vk::Pipeline rayTracingStage = {};
         vk::Pipeline resamplingStage = {};
         vk::Pipeline denoiseStage = {};
         vk::Pipeline compileStage = {};
-
+        
         // binding data
         std::shared_ptr<Material> materials = {}; // materials
         std::shared_ptr<Instance> instances = {}; // instances
@@ -130,7 +196,7 @@ namespace lancer {
         std::shared_ptr<Context> context = {};
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
-
+        
         // 
         std::vector<std::shared_ptr<Instance>> instances = {};
         std::vector<std::shared_ptr<Material>> materials = {};

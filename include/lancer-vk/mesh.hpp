@@ -8,7 +8,8 @@ namespace lancer {
 
     // WIP Mesh Object
     // Sub-Instances Can Be Supported
-    class Mesh : public std::enable_shared_from_this<Mesh> { public: //friend Instance;
+    // TODO: Descriptor Sets
+    class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Instance; friend Renderer;
         Mesh(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
@@ -140,14 +141,6 @@ namespace lancer {
             return shared_from_this();
         };
 
-        // TOOD: Context Object
-        std::shared_ptr<Mesh> createPipeline() {
-            this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
-            this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->refViewport;
-            this->driver->getDevice().createGraphicsPipeline(this->driver->getPipelineCache(), this->pipelineInfo);
-            return shared_from_this();
-        };
-
         // Create Secondary Command With Pipeline
         std::shared_ptr<Mesh> createRasterizeCommand() { // UNIT ONLY!
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -181,24 +174,25 @@ namespace lancer {
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
             this->rasterizationState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(),this->pipelineInfo);
-            this->secondaryCommand = vkt::createCommandBuffer(*thread, *thread, true, false); // do reference of cmd buffer
-            this->secondaryCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
-            this->secondaryCommand.setViewport(0, { viewport });
-            this->secondaryCommand.setScissor(0, { renderArea });
-            this->secondaryCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
-            this->secondaryCommand.bindVertexBuffers(0u, buffers, offsets);
+            this->rasterCommand = vkt::createCommandBuffer(*thread, *thread, true, false); // do reference of cmd buffer
+            this->rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            this->rasterCommand.setViewport(0, { viewport });
+            this->rasterCommand.setScissor(0, { renderArea });
+            this->rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
+            this->rasterCommand.bindVertexBuffers(0u, buffers, offsets);
 
             // Make Draw Instanced 
             if (indexType != vk::IndexType::eNoneNV) { // PLC Mode
-                this->secondaryCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-                this->secondaryCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
+                this->rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                this->rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
             } else { // VAL Mode
-                this->secondaryCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
+                this->rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
 
             // 
-            this->secondaryCommand.endRenderPass();
-            this->secondaryCommand.end();
+            this->rasterCommand.endRenderPass();
+            vkt::commandBarrier(this->rasterCommand);
+            this->rasterCommand.end();
 
             // 
             return shared_from_this();
@@ -211,6 +205,7 @@ namespace lancer {
             this->buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
             vkt::commandBarrier(this->buildCommand);
             this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            vkt::commandBarrier(this->buildCommand);
             this->buildCommand.end();
             return shared_from_this();
         };
@@ -296,7 +291,7 @@ namespace lancer {
 
         // 
         vk::CommandBuffer buildCommand = {};
-        vk::CommandBuffer secondaryCommand = {};
+        vk::CommandBuffer rasterCommand = {};
         vkh::VkGeometryNV geometryTemplate = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
 

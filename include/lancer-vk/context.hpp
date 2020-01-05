@@ -119,7 +119,7 @@ namespace lancer {
             }), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
             });
-
+            
             // 5th attachment
             deferredAttachments[4u] = depthImage;
             samplingAttachments[4u] = depthImage;
@@ -141,7 +141,7 @@ namespace lancer {
                 .width = width,
                 .height = height
             });
-
+            
             // 
             return shared_from_this();
         };
@@ -162,7 +162,7 @@ namespace lancer {
 
             // 
             deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , .descriptorCount =   4u, .stageFlags = { .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{.ePartiallyBound = 1});
-
+            
             // 
             materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 128u, .stageFlags = { .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{.ePartiallyBound = 1});
             materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount =   8u, .stageFlags = { .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{.ePartiallyBound = 1});
@@ -173,7 +173,7 @@ namespace lancer {
             samplingDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(samplingDescriptorSetLayoutHelper);
             deferredDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(deferredDescriptorSetLayoutHelper);
             bindingsDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(bindingsDescriptorSetLayoutHelper);
-
+            
             // 
             return shared_from_this();
         };
@@ -193,7 +193,7 @@ namespace lancer {
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                 });
                 memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
-
+                
                 // 
                 deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
                 driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(deferredDescriptorSet)),{});
@@ -201,7 +201,7 @@ namespace lancer {
 
             { // For Reprojection Pipeline
                 for (uint32_t b=0u;b<4u;b++) { descriptions[b] = samplesImages[b]; };
-
+                
                 // 
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout,thread->getDescriptorPool());
                 auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -215,7 +215,7 @@ namespace lancer {
                 samplingDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
                 driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(samplingDescriptorSet)),{});
             };
-
+            
             // 
             return shared_from_this();
         };
@@ -243,14 +243,14 @@ namespace lancer {
         vk::DescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
         vk::DescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples (Diffuse, Path-Tracing and ReProjection)
         vk::DescriptorSetLayout bindingsDescriptorSetLayout = {}; // Bindings, Attributes Descriptions
-
+        
         // 
         vkh::VsDescriptorSetLayoutCreateInfoHelper materialDescriptorSetLayoutHelper = {};
         vkh::VsDescriptorSetLayoutCreateInfoHelper deferredDescriptorSetLayoutHelper = {};
         vkh::VsDescriptorSetLayoutCreateInfoHelper meshDataDescriptorSetLayoutHelper = {};
         vkh::VsDescriptorSetLayoutCreateInfoHelper samplingDescriptorSetLayoutHelper = {};
         vkh::VsDescriptorSetLayoutCreateInfoHelper bindingsDescriptorSetLayoutHelper = {};
-
+        
         // 
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
