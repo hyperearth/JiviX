@@ -130,6 +130,10 @@ namespace lancer {
         std::shared_ptr<Context> context = {};
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
+
+        // 
+        std::vector<std::shared_ptr<Instance>> instances = {};
+        std::vector<std::shared_ptr<Material>> materials = {};
     };
 
 };

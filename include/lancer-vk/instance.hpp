@@ -170,6 +170,8 @@ namespace lancer {
 
     protected: // 
         std::vector<std::shared_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
+        std::vector<vk::CommandBuffer> rasterCommands = {}; // Accumulator For Rasterization Commands
+        std::vector<vk::CommandBuffer> buildsCommands = {}; // Accumulator For Mesh Building Commands
 
         // 
         vkt::Vector<vkh::VsGeometryInstance> rawInstances = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...
