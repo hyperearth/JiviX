@@ -48,32 +48,32 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTraceCommand() { 
+        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { 
             // get ray-tracing properties
             const auto& rtxp = rayTracingProperties;
             
             // 
             const auto& renderArea = this->context->refScissor();
-            this->rayTraceCommand = vkt::createCommandBuffer(*thread, *thread);
-            this->rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment) });
-            vkt::commandBarrier(this->rayTraceCommand);
-            this->rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
-            this->rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            this->rayTraceCommand.traceRaysNV(
+            //this->rayTraceCommand = vkt::createCommandBuffer(*thread, *thread);
+            rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment) });
+            vkt::commandBarrier(rayTraceCommand);
+            rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
+            rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            rayTraceCommand.traceRaysNV(
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset(), 
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset()+this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset()+this->rayTraceInfo.hitOffsetIndex()  * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
                 {},0u,0u,
                 renderArea.extent.width, renderArea.extent.height, 1u
             );
-            this->rayTraceCommand.end();
+            //rayTraceCommand.end();
             
             // 
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Renderer> setupResampleCommand() {
+        std::shared_ptr<Renderer> setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}) {
             const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{ 
@@ -85,16 +85,16 @@ namespace lancer {
             };
 
             // 
-            this->resampleCommand = vkt::createCommandBuffer(*thread, *thread);
-            this->resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
-            this->resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
-            this->resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            this->resampleCommand.setViewport(0, { viewport });
-            this->resampleCommand.setScissor(0, { renderArea });
-            this->resampleCommand.draw(renderArea.extent.width * renderArea.extent.height, 1u, 0u, 0u);
-            this->resampleCommand.endRenderPass();
-            vkt::commandBarrier(this->resampleCommand);
-            this->resampleCommand.end();
+            //resampleCommand = vkt::createCommandBuffer(*thread, *thread);
+            resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
+            resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            resampleCommand.setViewport(0, { viewport });
+            resampleCommand.setScissor(0, { renderArea });
+            resampleCommand.draw(renderArea.extent.width * renderArea.extent.height, 1u, 0u, 0u);
+            resampleCommand.endRenderPass();
+            vkt::commandBarrier(resampleCommand);
+            //resampleCommand.end();
 
             return shared_from_this();
         };
@@ -136,37 +136,37 @@ namespace lancer {
 
         // 
         std::shared_ptr<Renderer> setupCommands() { // Setup Commands
-            this->instances->buildAccelerationStructure()->createDescriptorSet();
-            this->materials->createDescriptorSet();
+            this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
+
+            // prepare meshes for ray-tracing
             for (auto& M : this->instances->meshes) {
-                M->createRasterizePipeline()->createRasterizeCommand()->buildAccelerationStructure();
-                commands.push_back(M->rasterCommand);
-                commands.push_back(M->buildCommand);
+                M->buildAccelerationStructure(this->cmdbuf);
             };
-            commands.push_back(instances->buildCommand);
 
-            // Setup Deferred Pipelines
-            // TODO: Run It ONCE!
-            this->setupResamplingPipeline()->setupResampleCommand();
-            this->setupRayTracingPipeline()->setupRayTraceCommand();
+            // setup instanced and material data
+            this->materials->createDescriptorSet()->createDescriptorSet();
+            this->instances->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
-            // Plush Commands
-            //this->setupResampleCommand();
-            //this->setupRayTraceCommand();
+            // first-step rendering
+            for (auto& M : this->instances->meshes) {
+                M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf);
+            };
 
-            // Resample Previous Frame and Ray Trace Samples
-            commands.push_back(this->resampleCommand);
-            commands.push_back(this->rayTraceCommand);
+            // 
+            this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
+            this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf);
 
-            // TODO: final stage pipeline?
+            // 
+            this->cmdbuf.end();
             return shared_from_this();
         };
 
     protected: // 
         std::vector<vk::CommandBuffer> commands = {};
+        vk::CommandBuffer cmdbuf = {};
         //vk::CommandBuffer preparedCommand = {};
-        vk::CommandBuffer resampleCommand = {};
-        vk::CommandBuffer rayTraceCommand = {};
+        //vk::CommandBuffer resampleCommand = {};
+        //vk::CommandBuffer rayTraceCommand = {};
         vk::Pipeline rayTracingStage = {};
         vk::Pipeline resamplingStage = {};
         vk::Pipeline denoiseStage = {};

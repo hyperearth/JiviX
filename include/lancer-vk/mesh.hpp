@@ -173,7 +173,7 @@ namespace lancer {
         };
 
         // Create Secondary Command With Pipeline
-        std::shared_ptr<Mesh> createRasterizeCommand() { // UNIT ONLY!
+        std::shared_ptr<Mesh> createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}) { // UNIT ONLY!
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             for (auto& B : this->bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
 
@@ -189,41 +189,41 @@ namespace lancer {
             };
             
             // 
-            this->rasterCommand = vkt::createCommandBuffer(*thread, *thread); // do reference of cmd buffer
-            this->rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
-            this->rasterCommand.setViewport(0, { viewport });
-            this->rasterCommand.setScissor(0, { renderArea });
-            this->rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            this->rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
-            this->rasterCommand.bindVertexBuffers(0u, buffers, offsets);
+            //rasterCommand = vkt::createCommandBuffer(*thread, *thread); // do reference of cmd buffer
+            rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            rasterCommand.setViewport(0, { viewport });
+            rasterCommand.setScissor(0, { renderArea });
+            rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
+            rasterCommand.bindVertexBuffers(0u, buffers, offsets);
 
             // Make Draw Instanced 
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
-                this->rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-                this->rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
+                rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
             } else { // VAL Mode
-                this->rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
+                rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
 
             // 
-            this->rasterCommand.endRenderPass();
-            vkt::commandBarrier(this->rasterCommand);
-            this->rasterCommand.end();
+            rasterCommand.endRenderPass();
+            vkt::commandBarrier(rasterCommand);
+            //rasterCommand.end();
 
             // 
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Mesh> buildAccelerationStructure() {
+        std::shared_ptr<Mesh> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
-            this->buildCommand = vkt::createCommandBuffer(*this->thread, *this->thread);
-            this->buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
-            this->buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
-            vkt::commandBarrier(this->buildCommand);
-            this->buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
-            vkt::commandBarrier(this->buildCommand);
-            this->buildCommand.end();
+            //buildCommand = vkt::createCommandBuffer(*this->thread, *this->thread);
+            buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
+            buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
+            vkt::commandBarrier(buildCommand);
+            buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            vkt::commandBarrier(buildCommand);
+            //buildCommand.end();
             return shared_from_this();
         };
 
@@ -307,8 +307,8 @@ namespace lancer {
         std::vector<vkh::VkGeometryNV> geometries = {};
 
         // 
-        vk::CommandBuffer buildCommand = {};
-        vk::CommandBuffer rasterCommand = {};
+        //vk::CommandBuffer buildCommand = {};
+        //vk::CommandBuffer rasterCommand = {};
         vkh::VkGeometryNV geometryTemplate = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
 

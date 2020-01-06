@@ -125,14 +125,14 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> buildAccelerationStructure() {
+        std::shared_ptr<Instance> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
-            this->buildCommand = vkt::createCommandBuffer(*thread, *thread);
-            this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
-            vkt::commandBarrier(this->buildCommand);
-            this->buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
-            vkt::commandBarrier(this->buildCommand);
-            this->buildCommand.end();
+            //buildCommand = vkt::createCommandBuffer(*thread, *thread);
+            buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
+            vkt::commandBarrier(buildCommand);
+            buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            vkt::commandBarrier(buildCommand);
+            //buildCommand.end();
             return shared_from_this();
         };
 
@@ -185,8 +185,8 @@ namespace lancer {
 
     protected: // 
         std::vector<std::shared_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
-        std::vector<vk::CommandBuffer> rasterCommands = {}; // Accumulator For Rasterization Commands
-        std::vector<vk::CommandBuffer> buildsCommands = {}; // Accumulator For Mesh Building Commands
+        //std::vector<vk::CommandBuffer> rasterCommands = {}; // Accumulator For Rasterization Commands
+        //std::vector<vk::CommandBuffer> buildsCommands = {}; // Accumulator For Mesh Building Commands
 
         // 
         vkt::Vector<vkh::VsGeometryInstance> rawInstances = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...
@@ -200,7 +200,7 @@ namespace lancer {
         vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
 
         // 
-        vk::CommandBuffer buildCommand = {};
+        //vk::CommandBuffer buildCommand = {};
         vk::DescriptorSet descriptorSet = {};
         vk::DescriptorSet meshDataDescriptorSet = {};
         vk::DescriptorSet bindingsDescriptorSet = {};
