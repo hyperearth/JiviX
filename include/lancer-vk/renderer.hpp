@@ -137,6 +137,7 @@ namespace lancer {
         // 
         std::shared_ptr<Renderer> setupCommands() { // Setup Commands
             this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
+            this->context->createDescriptorSets();
 
             // prepare meshes for ray-tracing
             for (auto& M : this->instances->meshes) {
@@ -144,7 +145,7 @@ namespace lancer {
             };
 
             // setup instanced and material data
-            this->materials->createDescriptorSet()->createDescriptorSet();
+            this->materials->createDescriptorSet();
             this->instances->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering

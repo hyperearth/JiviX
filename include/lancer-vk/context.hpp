@@ -181,17 +181,14 @@ namespace lancer {
             // 
             std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
             this->unifiedPipelineLayout = driver->getDevice().createPipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts));
-
-            // 
-            this->descriptorSets[2] = this->deferredDescriptorSet;
-            this->descriptorSets[3] = this->samplingDescriptorSet;
             return shared_from_this();
         };
 
         // 
         std::shared_ptr<Context> createDescriptorSets() {
-            std::array<VkDescriptorImageInfo, 4u> descriptions = {};
+            if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
 
+            std::array<VkDescriptorImageInfo, 4u> descriptions = {};
             { // For Deferred Rendering
                 for (uint32_t b=0u;b<4u;b++) { descriptions[b] = frameBfImages[b]; };
 
@@ -205,8 +202,8 @@ namespace lancer {
                 memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
                 
                 // 
-                deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
-                driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(deferredDescriptorSet)),{});
+                this->deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(deferredDescriptorSet)),{});
             };
 
             { // For Reprojection Pipeline
@@ -222,9 +219,13 @@ namespace lancer {
                 memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
 
                 // Reprojection WILL NOT write own depth... 
-                samplingDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
-                driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(samplingDescriptorSet)),{});
+                this->samplingDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(samplingDescriptorSet)),{});
             };
+
+            // 
+            this->descriptorSets[2] = this->deferredDescriptorSet;
+            this->descriptorSets[3] = this->samplingDescriptorSet;
             
             // 
             return shared_from_this();
