@@ -130,6 +130,7 @@ namespace vkt
         vk::Image depthImage = {};
         vk::ImageView depthImageView = {};
         vk::PipelineCache pipelineCache = {};
+        vk::DispatchLoaderDynamic dispatch = {};
         VmaAllocator allocator = {};
         uint32_t queueFamilyIndex = 0;
         uint32_t instanceVersion = 0;
@@ -144,6 +145,7 @@ namespace vkt
         inline vk::PhysicalDevice& getPhysicalDevice(const uint32_t& gpuID) { physicalDevice = physicalDevices[gpuID]; return physicalDevice; };
 
         // 
+        inline vk::DispatchLoaderDynamic getDispatch() { return dispatch; };
         inline vk::PhysicalDevice& getPhysicalDevice() { return physicalDevice; };
         inline vk::Device& getDevice() { return device; };
         inline vk::Queue& getQueue() { return queue; };
@@ -155,6 +157,7 @@ namespace vkt
         inline VmaAllocator& getAllocator() { return allocator; };
 
         // 
+        inline const vk::DispatchLoaderDynamic getDispatch() const { return dispatch; };
         inline const vk::PhysicalDevice& getPhysicalDevice() const { return physicalDevice; };
         inline const vk::Device& getDevice() const { return device; };
         inline const vk::Queue& getQueue() const { return queue; };

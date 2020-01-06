@@ -35,13 +35,13 @@ namespace lancer {
             //this->rayTraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper{};
             this->rayTraceInfo.vkInfo.layout = this->context->unifiedPipelineLayout;
             this->rayTraceInfo.addShaderStages(stages);
-            this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo);
+            this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo,nullptr,this->driver->getDispatch());
 
             // get ray-tracing properties
             const auto& rtxp = rayTracingProperties;
 
             // SBT helped for buffer
-            this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment,this->rawSBTBuffer.data());
+            this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment,this->rawSBTBuffer.data(),this->driver->getDispatch());
             
             // 
             return shared_from_this();
@@ -64,10 +64,10 @@ namespace lancer {
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset()+this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset()+this->rayTraceInfo.hitOffsetIndex()  * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
                 {},0u,0u,
-                renderArea.extent.width, renderArea.extent.height, 1u
+                renderArea.extent.width, renderArea.extent.height, 1u, 
+                this->driver->getDispatch()
             );
-            //rayTraceCommand.end();
-            
+
             // 
             return shared_from_this();
         };

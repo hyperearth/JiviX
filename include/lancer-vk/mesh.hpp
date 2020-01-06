@@ -221,7 +221,7 @@ namespace lancer {
             buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
             buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
             vkt::commandBarrier(buildCommand);
-            buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(),this->driver->getDispatch());
             vkt::commandBarrier(buildCommand);
             //buildCommand.end();
             return shared_from_this();
@@ -247,13 +247,13 @@ namespace lancer {
             if (!this->accelerationStructure) { // create acceleration structure fastly...
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
                     .info = this->accelerationStructureInfo
-                });
+                }, nullptr, this->driver->getDispatch());
 
                 //
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
                     .accelerationStructure = this->accelerationStructure
-                });
+                }, this->driver->getDispatch());
 
                 // 
                 VmaAllocationCreateInfo allocInfo = {};
@@ -265,7 +265,7 @@ namespace lancer {
                     .accelerationStructure = this->accelerationStructure,
                     .memory = this->allocationInfo.deviceMemory,
                     .memoryOffset = this->allocationInfo.offset
-                }});
+                }}, this->driver->getDispatch());
             };
 
             // 
@@ -273,7 +273,7 @@ namespace lancer {
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_NV,
                     .accelerationStructure = this->accelerationStructure
-                });
+                }, this->driver->getDispatch());
 
                 // 
                 this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
