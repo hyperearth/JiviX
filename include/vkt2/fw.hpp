@@ -359,10 +359,11 @@ namespace vkt
                 });
                 this->pipelineCache = this->device.createPipelineCache(vk::PipelineCacheCreateInfo());
             };
-            //this->device->linkPhysicalHelper(this->physicalHelper)->create()->cache(std::vector<uint8_t>{ 0u,0u,0u,0u });
+            
             this->queue = this->device.getQueue(queueFamilyIndex, 0); // 
             this->fence = this->device.createFence(vk::FenceCreateInfo().setFlags({}));
             this->commandPool = this->device.createCommandPool(vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer), queueFamilyIndex));
+            this->dispatch = vk::DispatchLoaderDynamic(this->instance, this->device); // 
 
             VmaAllocatorCreateInfo vma_info = {};
             vma_info.device = this->device;
