@@ -9,9 +9,10 @@ namespace lancer {
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Instance : public std::enable_shared_from_this<Instance> { public: friend Renderer;
-        Instance(const std::shared_ptr<Driver>& driver) {
+        Instance(const std::shared_ptr<Context>& context, const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
+            this->context = context;
             
             // 
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;

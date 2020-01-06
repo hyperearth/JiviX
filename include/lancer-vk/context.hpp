@@ -7,7 +7,7 @@ namespace lancer {
     // TODO: Full Context Support
     class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend Instance; friend Driver; friend Material; friend Renderer;
         Context() {};
-        Context(const std::shared_ptr<Driver>& driver){
+        Context(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
         };

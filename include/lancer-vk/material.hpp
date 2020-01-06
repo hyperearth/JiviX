@@ -13,9 +13,10 @@ namespace lancer {
 
     // WIP Materials
     class Material : public std::enable_shared_from_this<Material> { public: 
-        Material(const std::shared_ptr<Driver>& driver) {
+        Material(const std::shared_ptr<Context>& context, const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
+            this->context = context;
             
             // 
             this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));

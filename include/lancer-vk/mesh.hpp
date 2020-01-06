@@ -10,9 +10,10 @@ namespace lancer {
     // Sub-Instances Can Be Supported
     // TODO: Descriptor Sets
     class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Instance; friend Renderer;
-        Mesh(const std::shared_ptr<Driver>& driver) {
+        Mesh(const std::shared_ptr<Context>& context, const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
+            this->context = context;
 
             // 
             this->accelerationStructureInfo.geometryCount = this->instanceCount;
