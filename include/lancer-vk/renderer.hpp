@@ -38,12 +38,7 @@ namespace lancer {
             this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo,nullptr,this->driver->getDispatch());
 
             // get ray-tracing properties
-            const auto& rtxp = rayTracingProperties;
-
-            // SBT helped for buffer
-            this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment,this->rawSBTBuffer.data(),this->driver->getDispatch());
-            
-            // 
+            this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupBaseAlignment,this->rawSBTBuffer.data(),this->driver->getDispatch());
             return shared_from_this();
         };
 
@@ -51,10 +46,7 @@ namespace lancer {
         std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { 
             // get ray-tracing properties
             const auto& rtxp = rayTracingProperties;
-            
-            // 
             const auto& renderArea = this->context->refScissor();
-            //this->rayTraceCommand = vkt::createCommandBuffer(*thread, *thread);
             rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment) });
             vkt::commandBarrier(rayTraceCommand);
             rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
@@ -67,8 +59,7 @@ namespace lancer {
                 renderArea.extent.width, renderArea.extent.height, 1u, 
                 this->driver->getDispatch()
             );
-
-            // 
+            vkt::commandBarrier(rayTraceCommand);
             return shared_from_this();
         };
 
@@ -85,7 +76,6 @@ namespace lancer {
             };
 
             // 
-            //resampleCommand = vkt::createCommandBuffer(*thread, *thread);
             resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
             resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
@@ -94,8 +84,8 @@ namespace lancer {
             resampleCommand.draw(renderArea.extent.width * renderArea.extent.height, 1u, 0u, 0u);
             resampleCommand.endRenderPass();
             vkt::commandBarrier(resampleCommand);
-            //resampleCommand.end();
 
+            // 
             return shared_from_this();
         };
 
