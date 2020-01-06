@@ -76,7 +76,7 @@ namespace lancer {
                     handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->bindings[j];
                 };
             };
-            
+
             // plush bindings
             auto bindingSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 0u,
@@ -91,19 +91,31 @@ namespace lancer {
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             });
 
+            // plush attributes
+            auto accelerationSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 2u,
+                .descriptorCount = 1u,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+            });
+
             // plush into descriptor sets
             for (uint32_t i=0;i<meshes.size();i++) {
                 bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuBindings;
                 attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuAttributes;
             };
-            
-            // 
-            bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(bindingsDescriptorSetInfo)[0];
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(bindingsDescriptorSetInfo.setDescriptorSet(bindingsDescriptorSet)),{});
+            accelerationSet.offset<vk::AccelerationStructureNV>(0u) = accelerationStructure;
 
             // 
-            meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(meshDataDescriptorSetInfo)[0];
+            this->meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(meshDataDescriptorSetInfo)[0];
+            this->bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(bindingsDescriptorSetInfo)[0];
+
+            // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(meshDataDescriptorSetInfo.setDescriptorSet(meshDataDescriptorSet)),{});
+            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(bindingsDescriptorSetInfo.setDescriptorSet(bindingsDescriptorSet)),{});
+
+            //
+            this->context->descriptorSets[0] = this->meshDataDescriptorSet;
+            this->context->descriptorSets[1] = this->bindingsDescriptorSet;
 
             // 
             return shared_from_this();

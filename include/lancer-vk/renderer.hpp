@@ -87,6 +87,7 @@ namespace lancer {
             // 
             this->resampleCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
             this->resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            this->resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             this->resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
             this->resampleCommand.setViewport(0, { viewport });
             this->resampleCommand.setScissor(0, { renderArea });
@@ -132,28 +133,28 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRenderables(){
+        std::shared_ptr<Renderer> setupRenderables() { // 
             this->preparedCommand = vkt::createCommandBuffer(*thread, *thread, false, false);
             
-            // Meshes for Rendering and Build for Ray-Tracing
+            // Setup Commands
+            this->instances->buildAccelerationStructure();
+            this->instances->describeMeshBindings();
             for (auto& M : this->instances->meshes) {
                 M->createRasterizeCommand()->buildAccelerationStructure();
+            };
+            
+            // Draw and Build Hierarchy
+            for (auto& M : this->instances->meshes) {
                 this->preparedCommand.executeCommands(M->buildCommand);
                 this->preparedCommand.executeCommands(M->rasterCommand);
             };
-            
-            // 
-            this->instances->describeMeshBindings();
-            this->instances->buildAccelerationStructure();
-            
-            // Instanced Data
             this->preparedCommand.executeCommands(instances->buildCommand);
             
-            // Pipelines
+            // Setup Deferred Pipelines
             this->setupResamplingStages();
             this->setupRayTracingStages();
             
-            // Commands
+            // Plush Commands
             this->setupResampleCommand();
             this->setupRayTraceCommand();
             

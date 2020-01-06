@@ -61,6 +61,9 @@ namespace lancer {
                 this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
                 this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)),{});
             };
+
+            // 
+            this->context->descriptorSets[4] = this->descriptorSet;
             return shared_from_this();
         };
 
@@ -70,15 +73,13 @@ namespace lancer {
         // 
         vkt::Vector<MaterialUnit> rawMaterials = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...
         vkt::Vector<MaterialUnit> gpuMaterials = {};
-        vk::DeviceSize materialCounter = 0u;
 
         // 
         vkh::VsDescriptorSetCreateInfoHelper descriptorSetInfo = {};
-        
-        // 
         vk::DescriptorSet descriptorSet = {};
 
         // 
+        vk::DeviceSize materialCounter = 0u;
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
         std::shared_ptr<Context> context = {};

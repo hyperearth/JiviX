@@ -175,10 +175,13 @@ namespace lancer {
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
             this->rasterizationState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(),this->pipelineInfo);
+
+            // 
             this->rasterCommand = vkt::createCommandBuffer(*thread, *thread, true, false); // do reference of cmd buffer
             this->rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             this->rasterCommand.setViewport(0, { viewport });
             this->rasterCommand.setScissor(0, { renderArea });
+            this->rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             this->rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
             this->rasterCommand.bindVertexBuffers(0u, buffers, offsets);
 
@@ -217,8 +220,8 @@ namespace lancer {
 
             // Pre-Initialize Geometries
             // Use Same Geometry for Sub-Instances
-            this->geometries.resize(instanceCount);
-            for (uint32_t i = 0u; i < instanceCount; i++) {
+            this->geometries.resize(this->instanceCount);
+            for (uint32_t i = 0u; i < this->instanceCount; i++) {
                 this->geometries[i] = this->geometryTemplate;
                 this->geometries[i].geometry.triangles.transformOffset = this->transformStride * i + this->gpuTransformData.offset(); // Should To Be Different's
                 this->geometries[i].geometry.triangles.transformData = gpuTransformData;
@@ -271,7 +274,7 @@ namespace lancer {
             return shared_from_this();
         };
 
-
+    // 
     protected: friend Mesh; friend Instance; friend Renderer; // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indexData = {}; 
         vk::IndexType indexType = vk::IndexType::eNoneNV;
