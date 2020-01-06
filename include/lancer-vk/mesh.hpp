@@ -189,7 +189,6 @@ namespace lancer {
             };
             
             // 
-            //rasterCommand = vkt::createCommandBuffer(*thread, *thread); // do reference of cmd buffer
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
             rasterCommand.setScissor(0, { renderArea });
@@ -204,26 +203,23 @@ namespace lancer {
             } else { // VAL Mode
                 rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
-
-            // 
             rasterCommand.endRenderPass();
-            vkt::commandBarrier(rasterCommand);
-            //rasterCommand.end();
 
             // 
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Mesh> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
-            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
-            //buildCommand = vkt::createCommandBuffer(*this->thread, *this->thread);
+        std::shared_ptr<Mesh> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
             buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
             buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
-            vkt::commandBarrier(buildCommand);
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Mesh> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(),this->driver->getDispatch());
-            vkt::commandBarrier(buildCommand);
-            //buildCommand.end();
             return shared_from_this();
         };
 

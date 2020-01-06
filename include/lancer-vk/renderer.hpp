@@ -140,18 +140,18 @@ namespace lancer {
             this->context->createDescriptorSets();
 
             // prepare meshes for ray-tracing
-            for (auto& M : this->instances->meshes) {
-                M->buildAccelerationStructure(this->cmdbuf);
-            };
+            for (auto& M : this->instances->meshes) { M->copyBuffers(this->cmdbuf); }; // copy concurrently
+            vkt::commandBarrier(this->cmdbuf);
+            for (auto& M : this->instances->meshes) { M->buildAccelerationStructure(this->cmdbuf); }; // build concurrently
+            vkt::commandBarrier(this->cmdbuf);
 
             // setup instanced and material data
             this->materials->createDescriptorSet();
             this->instances->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
-            for (auto& M : this->instances->meshes) {
-                M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf);
-            };
+            for (auto& M : this->instances->meshes) { M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf); }; // draw concurrently
+            vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
