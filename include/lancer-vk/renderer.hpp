@@ -25,7 +25,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTracingStages() {
+        std::shared_ptr<Renderer> setupRayTracingPipeline() {
             const std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/raytrace.rgen.spv" ), vk::ShaderStageFlagBits::eRaygenNV),
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/raytrace.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
@@ -82,7 +82,7 @@ namespace lancer {
                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
                 vk::ClearDepthStencilValue(1.0f, 0)
             };
-            
+
             // 
             this->resampleCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
             this->resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
@@ -94,16 +94,16 @@ namespace lancer {
             this->resampleCommand.endRenderPass();
             vkt::commandBarrier(this->resampleCommand);
             this->resampleCommand.end();
-            
+
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Renderer> setupResamplingStages() {
+        std::shared_ptr<Renderer> setupResamplingPipeline() {
             const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
-            
-            for (uint32_t i=0u;i<4u;i++) {
+
+            for (uint32_t i=0u;i<4u;i++) { // 
                 this->pipelineInfo.colorBlendAttachmentStates.push_back(vkh::VkPipelineColorBlendAttachmentState{
                     .blendEnable = true,
                     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
@@ -111,7 +111,7 @@ namespace lancer {
                 });
             };
 
-            this->pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
+            this->pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)
             });
@@ -120,14 +120,16 @@ namespace lancer {
                 .depthTestEnable = false,
                 .depthWriteEnable = false
             };
-            
+
             this->pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
             this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
             this->resamplingState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(),this->pipelineInfo);
-            
+
             return shared_from_this();
         };
 
@@ -140,15 +142,15 @@ namespace lancer {
             this->instances->createDescriptorSet();
             this->materials->createDescriptorSet();
             for (auto& M : this->instances->meshes) {
-                M->createRasterizeCommand()->buildAccelerationStructure();
+                M->createRasterizePipeline()->createRasterizeCommand()->buildAccelerationStructure();
                 this->preparedCommand.executeCommands(M->buildCommand);
                 this->preparedCommand.executeCommands(M->rasterCommand);
             };
             this->preparedCommand.executeCommands(instances->buildCommand);
             
             // Setup Deferred Pipelines
-            this->setupResamplingStages();
-            this->setupRayTracingStages();
+            this->setupResamplingPipeline();
+            this->setupRayTracingPipeline();
             
             // Plush Commands
             this->setupResampleCommand();
@@ -162,7 +164,6 @@ namespace lancer {
             this->preparedCommand.end();
             return shared_from_this();
         };
-
 
     protected: // 
         vk::CommandBuffer preparedCommand = {};

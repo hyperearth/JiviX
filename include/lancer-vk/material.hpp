@@ -85,5 +85,4 @@ namespace lancer {
         std::shared_ptr<Thread> thread = {};
         std::shared_ptr<Context> context = {};
     };
-
 };
