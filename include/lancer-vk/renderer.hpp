@@ -47,9 +47,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTraceCommand(){
-            
-            // get ray-tracing properties
+        std::shared_ptr<Renderer> setupRayTraceCommand() { // get ray-tracing properties
             auto  prop = driver->getPhysicalDevice().getProperties2<vk::PhysicalDeviceRayTracingPropertiesNV>();
             auto& rtxp = *(vk::PhysicalDeviceRayTracingPropertiesNV*)prop.pNext;
             
@@ -138,13 +136,10 @@ namespace lancer {
             
             // Setup Commands
             this->instances->buildAccelerationStructure();
-            this->instances->describeMeshBindings();
+            this->instances->createDescriptorSet();
+            this->materials->createDescriptorSet();
             for (auto& M : this->instances->meshes) {
                 M->createRasterizeCommand()->buildAccelerationStructure();
-            };
-            
-            // Draw and Build Hierarchy
-            for (auto& M : this->instances->meshes) {
                 this->preparedCommand.executeCommands(M->buildCommand);
                 this->preparedCommand.executeCommands(M->rasterCommand);
             };

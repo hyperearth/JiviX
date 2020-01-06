@@ -63,7 +63,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> describeMeshBindings() {
+        std::shared_ptr<Instance> createDescriptorSet() {
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const uint32_t bindingCount = 4u;
             for (uint32_t i=0;i<bindingCount;i++) {
