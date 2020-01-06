@@ -104,6 +104,8 @@ namespace lancer {
                 bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuBindings;
                 attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuAttributes;
             };
+
+            // Accelerator Structure Should To Be Built
             accelerationSet.offset<vk::AccelerationStructureNV>(0u) = accelerationStructure;
 
             // 
@@ -125,7 +127,7 @@ namespace lancer {
         // 
         std::shared_ptr<Instance> buildAccelerationStructure() {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
-            this->buildCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
+            this->buildCommand = vkt::createCommandBuffer(*thread, *thread);
             this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(this->buildCommand);
             this->buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());

@@ -189,7 +189,7 @@ namespace lancer {
             };
             
             // 
-            this->rasterCommand = vkt::createCommandBuffer(*thread, *thread, true, false); // do reference of cmd buffer
+            this->rasterCommand = vkt::createCommandBuffer(*thread, *thread); // do reference of cmd buffer
             this->rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             this->rasterCommand.setViewport(0, { viewport });
             this->rasterCommand.setScissor(0, { renderArea });
@@ -217,7 +217,7 @@ namespace lancer {
         // 
         std::shared_ptr<Mesh> buildAccelerationStructure() {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
-            this->buildCommand = vkt::createCommandBuffer(*this->thread, *this->thread, true, false);
+            this->buildCommand = vkt::createCommandBuffer(*this->thread, *this->thread);
             this->buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
             this->buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
             vkt::commandBarrier(this->buildCommand);
