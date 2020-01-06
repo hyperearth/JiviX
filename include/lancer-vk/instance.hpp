@@ -69,7 +69,7 @@ namespace lancer {
             for (uint32_t i=0;i<bindingCount;i++) {
                 auto& handle = meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = i,
-                    .descriptorCount = meshes.size(),
+                    .descriptorCount = uint32_t(meshes.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 });
                 for (uint32_t j=0;j<meshes.size();j++) {
@@ -80,14 +80,14 @@ namespace lancer {
             // plush bindings
             auto bindingSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 0u,
-                .descriptorCount = meshes.size(),
+                .descriptorCount = uint32_t(meshes.size()),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             });
 
             // plush attributes
             auto attributeSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 1u,
-                .descriptorCount = meshes.size(),
+                .descriptorCount = uint32_t(meshes.size()),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             });
 
@@ -127,7 +127,7 @@ namespace lancer {
             this->buildCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
             this->buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(this->buildCommand);
-            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            this->buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
             vkt::commandBarrier(this->buildCommand);
             this->buildCommand.end();
             return shared_from_this();
@@ -170,7 +170,7 @@ namespace lancer {
                 });
 
                 // 
-                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
                 }, VMA_MEMORY_USAGE_GPU_ONLY));

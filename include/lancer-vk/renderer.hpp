@@ -12,12 +12,14 @@ namespace lancer {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = std::make_shared<Context>();
-            
+
             // get ray-tracing properties
-            auto  prop = driver->getPhysicalDevice().getProperties2<vk::PhysicalDeviceRayTracingPropertiesNV>();
-            auto& rtxp = *(vk::PhysicalDeviceRayTracingPropertiesNV*)prop.pNext;
+            this->properties.pNext = &this->rayTracingProperties;
+            vkGetPhysicalDeviceProperties2(driver->getPhysicalDevice(), &(VkPhysicalDeviceProperties2&)this->properties);
+            //driver->getPhysicalDevice().getProperties2(this->properties); // Vulkan-HPP Bugged
 
             // 
+            auto& rtxp = rayTracingProperties;
             this->rawSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             this->gpuSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
@@ -36,8 +38,7 @@ namespace lancer {
             this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo);
 
             // get ray-tracing properties
-            auto  prop = driver->getPhysicalDevice().getProperties2<vk::PhysicalDeviceRayTracingPropertiesNV>();
-            auto& rtxp = *(vk::PhysicalDeviceRayTracingPropertiesNV*)prop.pNext;
+            auto& rtxp = rayTracingProperties;
 
             // SBT helped for buffer
             this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment,this->rawSBTBuffer.data());
@@ -47,9 +48,9 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTraceCommand() { // get ray-tracing properties
-            auto  prop = driver->getPhysicalDevice().getProperties2<vk::PhysicalDeviceRayTracingPropertiesNV>();
-            auto& rtxp = *(vk::PhysicalDeviceRayTracingPropertiesNV*)prop.pNext;
+        std::shared_ptr<Renderer> setupRayTraceCommand() { 
+            // get ray-tracing properties
+            auto& rtxp = rayTracingProperties;
             
             // 
             const auto& renderArea = this->context->refScissor();
@@ -84,7 +85,7 @@ namespace lancer {
             
             // 
             this->resampleCommand = vkt::createCommandBuffer(*thread, *thread, true, false);
-            this->resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            this->resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             this->resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             this->resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
             this->resampleCommand.setViewport(0, { viewport });
@@ -194,8 +195,11 @@ namespace lancer {
         std::shared_ptr<Thread> thread = {};
         
         // 
-        std::vector<std::shared_ptr<Instance>> instances = {};
-        std::vector<std::shared_ptr<Material>> materials = {};
+        vk::PhysicalDeviceRayTracingPropertiesNV rayTracingProperties = {};
+        vk::PhysicalDeviceProperties2 properties = {};
+
+        //std::vector<std::shared_ptr<Instance>> instances = {};
+        //std::vector<std::shared_ptr<Material>> materials = {};
     };
 
 };

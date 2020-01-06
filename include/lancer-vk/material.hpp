@@ -52,7 +52,7 @@ namespace lancer {
             {   // Setup Textures
                 auto& handle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
-                    .descriptorCount = sampledImages.size(),
+                    .descriptorCount = uint32_t(sampledImages.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                 });
                 memcpy(&handle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size()*sizeof(VkDescriptorImageInfo));

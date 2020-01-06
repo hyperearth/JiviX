@@ -178,7 +178,7 @@ namespace lancer {
 
             // 
             this->rasterCommand = vkt::createCommandBuffer(*thread, *thread, true, false); // do reference of cmd buffer
-            this->rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass, this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            this->rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             this->rasterCommand.setViewport(0, { viewport });
             this->rasterCommand.setScissor(0, { renderArea });
             this->rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
@@ -209,7 +209,7 @@ namespace lancer {
             this->buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings.  offset(), this->gpuBindings.  range() } });
             this->buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
             vkt::commandBarrier(this->buildCommand);
-            this->buildCommand.buildAccelerationStructureNV(this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
+            this->buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset());
             vkt::commandBarrier(this->buildCommand);
             this->buildCommand.end();
             return shared_from_this();
