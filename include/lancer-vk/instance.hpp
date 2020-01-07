@@ -198,7 +198,6 @@ namespace lancer {
         vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
 
         // 
-        vk::DescriptorSet descriptorSet = {};
         vk::DescriptorSet meshDataDescriptorSet = {};
         vk::DescriptorSet bindingsDescriptorSet = {};
         vk::AccelerationStructureNV accelerationStructure = {};
