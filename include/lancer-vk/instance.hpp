@@ -9,8 +9,8 @@ namespace lancer {
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Instance : public std::enable_shared_from_this<Instance> { public: friend Renderer;
-        Instance(const std::shared_ptr<Context>& context, const std::shared_ptr<Driver>& driver) {
-            this->driver = driver;
+        Instance(const std::shared_ptr<Context>& context) {
+            this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = context;
             
@@ -26,8 +26,6 @@ namespace lancer {
         // 
         std::shared_ptr<Instance> setContext(const std::shared_ptr<Context>& context) {
             this->context = context;
-            this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
-            this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
             return shared_from_this();
         };
 
@@ -39,7 +37,8 @@ namespace lancer {
 
         // 
         std::shared_ptr<Instance> setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
-            this->rawInstances = rawInstances; this->instanceCounter = instanceCounter;
+            this->rawInstances = rawInstances; 
+            this->instanceCounter = instanceCounter;
             return shared_from_this();
         };
 
@@ -64,36 +63,39 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> createDescriptorSet() {
+        std::shared_ptr<Instance> createDescriptorSet() { // 
+            this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
+            this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
+
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const uint32_t bindingCount = 4u;
             for (uint32_t i=0;i<bindingCount;i++) {
-                auto& handle = meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = i,
-                    .descriptorCount = uint32_t(meshes.size()),
+                    .descriptorCount = uint32_t(this->meshes.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 });
-                for (uint32_t j=0;j<meshes.size();j++) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->bindings[j];
+                for (uint32_t j=0;j<this->meshes.size();j++) {
+                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->bindings[j];
                 };
             };
 
             // plush bindings
-            auto bindingSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            auto& bindingSet = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 0u,
-                .descriptorCount = uint32_t(meshes.size()),
+                .descriptorCount = uint32_t(this->meshes.size()),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             });
 
             // plush attributes
-            auto attributeSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            auto& attributeSet = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 1u,
-                .descriptorCount = uint32_t(meshes.size()),
+                .descriptorCount = uint32_t(this->meshes.size()),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             });
 
             // plush attributes
-            auto accelerationSet = bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            auto& accelerationSet = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 2u,
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -101,7 +103,7 @@ namespace lancer {
 
             // plush into descriptor sets
             for (uint32_t i=0;i<meshes.size();i++) {
-                bindingSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuBindings;
+                bindingSet  .offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuBindings;
                 attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)meshes[i]->gpuAttributes;
             };
 

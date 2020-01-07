@@ -8,8 +8,9 @@ namespace lancer {
 
     // TODO: Descriptor Sets
     class Renderer : public std::enable_shared_from_this<Renderer> { public: // 
-        Renderer(const std::shared_ptr<Context>& context, const std::shared_ptr<Driver>& driver) {
-            this->driver = driver;
+        Renderer(){};
+        Renderer(const std::shared_ptr<Context>& context) {
+            this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = std::make_shared<Context>();
 

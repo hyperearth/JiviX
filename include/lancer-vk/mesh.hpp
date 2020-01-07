@@ -10,8 +10,8 @@ namespace lancer {
     // Sub-Instances Can Be Supported
     // TODO: Descriptor Sets
     class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Instance; friend Renderer;
-        Mesh(const std::shared_ptr<Context>& context, const std::shared_ptr<Driver>& driver) {
-            this->driver = driver;
+        Mesh(const std::shared_ptr<Context>& context) {
+            this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = context;
 

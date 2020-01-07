@@ -13,8 +13,8 @@ namespace lancer {
 
     // WIP Materials
     class Material : public std::enable_shared_from_this<Material> { public: 
-        Material(const std::shared_ptr<Context>& context, const std::shared_ptr<Driver>& driver) {
-            this->driver = driver;
+        Material(const std::shared_ptr<Context>& context) {
+            this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = context;
             

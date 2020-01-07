@@ -31,6 +31,10 @@ namespace lancer {
         //const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
 
         // 
+        std::shared_ptr<Driver>& getDriver() { return driver; };
+        const std::shared_ptr<Driver>& getDriver() const { return driver; };
+
+        // 
         std::shared_ptr<Context> createRenderPass() { // 
             vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
             for (uint32_t b=0u;b<4u;b++) {
