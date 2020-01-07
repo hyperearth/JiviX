@@ -222,6 +222,7 @@ namespace lancer {
             // Re-assign instance count
             this->accelerationStructureInfo.geometryCount = this->geometries.size();
             this->accelerationStructureInfo.pGeometries = this->geometries.data();
+            this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_NV;
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...

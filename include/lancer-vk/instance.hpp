@@ -135,7 +135,8 @@ namespace lancer {
         // Create Or Rebuild Acceleration Structure
         std::shared_ptr<Instance> createAccelerationStructure() { // Re-assign instance count
             this->accelerationStructureInfo.instanceCount = instanceCounter;
-            
+            this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
+
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
