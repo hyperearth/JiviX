@@ -96,8 +96,10 @@ namespace lancer {
             for (uint32_t i=0u;i<4u;i++) { // 
                 this->pipelineInfo.colorBlendAttachmentStates.push_back(vkh::VkPipelineColorBlendAttachmentState{
                     .blendEnable = true,
+                    .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
                     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
-                    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE
+                    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
                 });
             };
 
