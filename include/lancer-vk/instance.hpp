@@ -130,8 +130,8 @@ namespace lancer {
             buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(buildCommand);
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(), this->driver->getDispatch());
-            vkt::commandBarrier(buildCommand);
-            return shared_from_this();
+            vkt::commandBarrier(buildCommand); 
+            this->needsUpdate = true; return shared_from_this();
         };
 
         // Create Or Rebuild Acceleration Structure
