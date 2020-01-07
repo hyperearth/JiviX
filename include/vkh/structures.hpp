@@ -276,6 +276,31 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     } VkImageCreateInfo;
 
     // 
+    typedef struct VkSamplerCreateInfo {
+        VkStructureType         sType                   = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        const void*             pNext                   = nullptr;
+        VkSamplerCreateFlags    flags                   = {};
+        VkFilter                magFilter               = VK_FILTER_NEAREST;
+        VkFilter                minFilter               = VK_FILTER_NEAREST;
+        VkSamplerMipmapMode     mipmapMode              = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+        VkSamplerAddressMode    addressModeU            = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        VkSamplerAddressMode    addressModeV            = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        VkSamplerAddressMode    addressModeW            = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        float                   mipLodBias              = 0.f;
+        VkBool32                anisotropyEnable        = false;
+        float                   maxAnisotropy           = 0.f;
+        VkBool32                compareEnable           = false;
+        VkCompareOp             compareOp               = VK_COMPARE_OP_ALWAYS;
+        float                   minLod                  = 0.f;
+        float                   maxLod                  = 1.f;
+        VkBorderColor           borderColor             = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+        VkBool32                unnormalizedCoordinates = false;
+
+        STRUCT_OPERATORS(VkSamplerCreateInfo)
+        VK_HPP_STRUCT_OPERATORS(VkSamplerCreateInfo,vk::SamplerCreateInfo)
+    } VkSamplerCreateInfo;
+
+    // 
     typedef struct VkImageSubresourceRange {
         VkImageAspectFlags    aspectMask = {};
         uint32_t              baseMipLevel = 0u;
