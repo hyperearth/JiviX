@@ -125,9 +125,8 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupCommands() { // Setup Commands
+        std::shared_ptr<Renderer> setupCommands() { // setup Commands
             this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
-            this->context->createDescriptorSets();
 
             // prepare meshes for ray-tracing
             for (auto& M : this->instances->meshes) { M->copyBuffers(this->cmdbuf); }; // copy concurrently
