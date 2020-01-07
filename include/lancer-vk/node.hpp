@@ -8,8 +8,8 @@ namespace lancer {
 
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
-    class Instance : public std::enable_shared_from_this<Instance> { public: friend Renderer;
-        Instance(const std::shared_ptr<Context>& context) {
+    class Node : public std::enable_shared_from_this<Node> { public: friend Renderer;
+        Node(const std::shared_ptr<Context>& context) {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = context;
@@ -24,32 +24,32 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> setContext(const std::shared_ptr<Context>& context) {
+        std::shared_ptr<Node> setContext(const std::shared_ptr<Context>& context) {
             this->context = context;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Instance> setThread(const std::shared_ptr<Thread>& thread) {
+        std::shared_ptr<Node> setThread(const std::shared_ptr<Thread>& thread) {
             this->thread = thread;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Instance> setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
+        std::shared_ptr<Node> setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
             this->rawInstances = rawInstances; 
             this->instanceCounter = instanceCounter;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Instance> setGpuInstance(const vkt::Vector<vkh::VsGeometryInstance>& gpuInstances = {}) {
+        std::shared_ptr<Node> setGpuInstance(const vkt::Vector<vkh::VsGeometryInstance>& gpuInstances = {}) {
             this->gpuInstances = gpuInstances;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Instance> pushInstance(const vkh::VsGeometryInstance& instance = {}, const uintptr_t meshID = 0ull) {
+        std::shared_ptr<Node> pushInstance(const vkh::VsGeometryInstance& instance = {}, const uintptr_t meshID = 0ull) {
             const auto instanceID = this->instanceCounter++;
             this->rawInstances[instanceID] = instance;
             this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle, this->driver->getDispatch());
@@ -63,7 +63,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> createDescriptorSet() { // 
+        std::shared_ptr<Node> createDescriptorSet() { // 
             this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
             this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
 
@@ -123,7 +123,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Instance> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+        std::shared_ptr<Node> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
             buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(buildCommand);
@@ -133,7 +133,7 @@ namespace lancer {
         };
 
         // Create Or Rebuild Acceleration Structure
-        std::shared_ptr<Instance> createAccelerationStructure() { // Re-assign instance count
+        std::shared_ptr<Node> createAccelerationStructure() { // Re-assign instance count
             this->accelerationStructureInfo.instanceCount = instanceCounter;
             this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
 

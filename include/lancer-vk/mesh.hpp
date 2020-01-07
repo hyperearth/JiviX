@@ -9,7 +9,7 @@ namespace lancer {
     // WIP Mesh Object
     // Sub-Instances Can Be Supported
     // TODO: Descriptor Sets
-    class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Instance; friend Renderer;
+    class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Node; friend Renderer;
         Mesh(const std::shared_ptr<Context>& context) {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
@@ -268,7 +268,7 @@ namespace lancer {
         };
 
     // 
-    protected: friend Mesh; friend Instance; friend Renderer; // GPU Vertex and Attribute Data
+    protected: friend Mesh; friend Node; friend Renderer; // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indexData = {}; 
         vk::IndexType indexType = vk::IndexType::eNoneNV;
         uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 1u;

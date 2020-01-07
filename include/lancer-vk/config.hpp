@@ -6,8 +6,8 @@ namespace lancer {
     //class Driver;
     class Thread;
     class Mesh;
+    class Node;
     class Renderer;
     class Material;
-    class Instance;
 
 };

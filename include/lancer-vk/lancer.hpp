@@ -3,7 +3,7 @@
 #include "./driver.hpp"
 #include "./context.hpp"
 #include "./mesh.hpp"
-#include "./instance.hpp"
+#include "./node.hpp"
 #include "./material.hpp"
 #include "./renderer.hpp"
 

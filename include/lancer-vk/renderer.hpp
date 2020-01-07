@@ -3,6 +3,8 @@
 #include "./driver.hpp"
 #include "./thread.hpp"
 #include "./context.hpp"
+#include "./mesh.hpp"
+#include "./node.hpp"
 
 namespace lancer {
 
@@ -131,17 +133,17 @@ namespace lancer {
             this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
 
             // prepare meshes for ray-tracing
-            for (auto& M : this->instances->meshes) { M->copyBuffers(this->cmdbuf); }; // copy concurrently
+            for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); }; // copy concurrently
             vkt::commandBarrier(this->cmdbuf);
-            for (auto& M : this->instances->meshes) { M->buildAccelerationStructure(this->cmdbuf); }; // build concurrently
+            for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf); }; // build concurrently
             vkt::commandBarrier(this->cmdbuf);
 
             // setup instanced and material data
             this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
-            this->instances->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
+            this->node->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
-            for (auto& M : this->instances->meshes) { M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf); }; // draw concurrently
+            for (auto& M : this->node->meshes) { M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf); }; // draw concurrently
             vkt::commandBarrier(this->cmdbuf);
 
             // 
@@ -161,14 +163,15 @@ namespace lancer {
         //std::vector<vk::CommandBuffer> commands = {};
         vk::CommandBuffer cmdbuf = {};
         
+        // 
         vk::Pipeline rayTracingStage = {};
         vk::Pipeline resamplingStage = {};
-        vk::Pipeline denoiseStage = {};
-        vk::Pipeline compileStage = {};
+        //vk::Pipeline denoiseStage = {};
+        //vk::Pipeline compileStage = {};
         
         // binding data
         std::shared_ptr<Material> materials = {}; // materials
-        std::shared_ptr<Instance> instances = {}; // instances
+        std::shared_ptr<Node> node = {}; // currently only one node... 
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
