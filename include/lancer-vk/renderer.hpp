@@ -136,7 +136,7 @@ namespace lancer {
             vkt::commandBarrier(this->cmdbuf);
 
             // setup instanced and material data
-            this->materials->createDescriptorSet();
+            this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
             this->instances->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
@@ -152,12 +152,14 @@ namespace lancer {
             return shared_from_this();
         };
 
+        // 
+        vk::CommandBuffer& refCommandBuffer() { return cmdbuf; };
+        const vk::CommandBuffer& refCommandBuffer() const { return cmdbuf; };
+
     protected: // 
-        std::vector<vk::CommandBuffer> commands = {};
+        //std::vector<vk::CommandBuffer> commands = {};
         vk::CommandBuffer cmdbuf = {};
-        //vk::CommandBuffer preparedCommand = {};
-        //vk::CommandBuffer resampleCommand = {};
-        //vk::CommandBuffer rayTraceCommand = {};
+        
         vk::Pipeline rayTracingStage = {};
         vk::Pipeline resamplingStage = {};
         vk::Pipeline denoiseStage = {};

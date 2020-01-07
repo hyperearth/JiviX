@@ -49,6 +49,12 @@ namespace lancer {
         };
 
         // 
+        std::shared_ptr<Material> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
+            buildCommand.copyBuffer(this->rawMaterials, this->gpuMaterials, { vk::BufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() } });
+            return shared_from_this();
+        };
+
+        // 
         std::shared_ptr<Material> createDescriptorSet() {
             {   // Setup Textures
                 auto& handle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{

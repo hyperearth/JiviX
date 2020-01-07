@@ -231,6 +231,15 @@ namespace lancer {
             return shared_from_this();
         };
 
+        // 
+        std::shared_ptr<Context> initialize(const uint32_t& width = 800u, const uint32_t& height = 600u) {
+            this->createRenderPass();
+            this->createFramebuffers(width,height);
+            this->createDescriptorSetLayouts();
+            this->createDescriptorSets();
+            return shared_from_this();
+        };
+
     protected: // 
         vk::Rect2D scissor = {};
         vk::Viewport viewport = {};
