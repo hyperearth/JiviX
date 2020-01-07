@@ -111,16 +111,12 @@ namespace lancer {
             accelerationSet.offset<vk::AccelerationStructureNV>(0u) = accelerationStructure;
 
             // 
-            this->meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(meshDataDescriptorSetInfo)[0];
-            this->bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(bindingsDescriptorSetInfo)[0];
+            this->context->descriptorSets[0] = this->meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(meshDataDescriptorSetInfo)[0];
+            this->context->descriptorSets[1] = this->bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(bindingsDescriptorSetInfo)[0];
 
             // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(meshDataDescriptorSetInfo.setDescriptorSet(meshDataDescriptorSet)),{});
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(bindingsDescriptorSetInfo.setDescriptorSet(bindingsDescriptorSet)),{});
-
-            //
-            this->context->descriptorSets[0] = this->meshDataDescriptorSet;
-            this->context->descriptorSets[1] = this->bindingsDescriptorSet;
 
             // 
             return shared_from_this();

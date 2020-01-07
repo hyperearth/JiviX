@@ -37,8 +37,15 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Material> setGpuInstance(const vkt::Vector<MaterialUnit>& gpuMaterials = {}) {
+        std::shared_ptr<Material> setGpuMaterials(const vkt::Vector<MaterialUnit>& gpuMaterials = {}) {
             this->gpuMaterials = gpuMaterials;
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Material> pushMaterial(const MaterialUnit& material = {}) {
+            const auto materialID = materialCounter++;
+            this->rawMaterials[materialID] = material;
             return shared_from_this();
         };
 
@@ -57,12 +64,20 @@ namespace lancer {
         // 
         std::shared_ptr<Material> createDescriptorSet() {
             {   // Setup Textures
-                auto& handle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                auto& imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = uint32_t(sampledImages.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                 });
-                memcpy(&handle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size()*sizeof(VkDescriptorImageInfo));
+                memcpy(&imagesHandle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size()*sizeof(VkDescriptorImageInfo));
+
+                // 
+                auto& bufferHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                });
+                bufferHandle.offset<VkDescriptorBufferInfo>() = gpuMaterials;
 
                 // Reprojection WILL NOT write own depth... 
                 this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
