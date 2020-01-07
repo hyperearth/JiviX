@@ -496,7 +496,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         VkBlendFactor            dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         VkBlendOp                colorBlendOp        = VK_BLEND_OP_ADD;
         VkBlendFactor            srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        VkBlendFactor            dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        VkBlendFactor            dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         VkBlendOp                alphaBlendOp        = VK_BLEND_OP_ADD;
         VkColorComponentFlags    colorWriteMask      = {.eR = 1, .eG = 1, .eB = 1, .eA = 1};
 
