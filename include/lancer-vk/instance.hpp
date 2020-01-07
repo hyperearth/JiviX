@@ -75,9 +75,9 @@ namespace lancer {
                     .descriptorCount = uint32_t(this->meshes.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 });
-                for (uint32_t j=0;j<this->meshes.size();j++) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->bindings[j];
-                };
+                for (uint32_t j=0;j<this->meshes.size();j++) { if (i < this->meshes[j]->bindings.size() && i < bindingCount) {
+                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[j]->bindings[i];
+                };};
             };
 
             // plush bindings
