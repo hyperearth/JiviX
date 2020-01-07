@@ -50,7 +50,7 @@ namespace lancer {
             this->pipelineInfo.vertexInputAttributeDescriptions.back().binding = this->lastBindID;
             this->pipelineInfo.vertexInputAttributeDescriptions.back().location = locationID;
             this->rawAttributes[locationID] = this->pipelineInfo.vertexInputAttributeDescriptions.back();
-            if (isVertex) { // TODO: fix from vec4 into vec3
+            if (isVertex) { // 
                 const auto& binding = this->pipelineInfo.vertexInputBindingDescriptions.back();
                 this->vertexCount = this->bindings.back().range() / binding.stride;
                 this->geometryTemplate.geometry.triangles.vertexOffset = attribute.offset + this->bindings.back().offset();
@@ -58,6 +58,10 @@ namespace lancer {
                 this->geometryTemplate.geometry.triangles.vertexStride = binding.stride;
                 this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount;
                 this->geometryTemplate.geometry.triangles.vertexData = this->bindings.back();
+                
+                // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
+                if (attribute.format == VK_FORMAT_R32G32B32A32_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+                if (attribute.format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
             return shared_from_this();
         };
