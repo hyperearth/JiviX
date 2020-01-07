@@ -230,11 +230,6 @@ namespace vkt {
         T* const data() { return mapped(); };
         const T* data() const { return mapped(); };
 
-        // return corrected size
-        vk::DeviceSize size() const {
-            return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range() - bufInfo.offset) : (allocation->range() - bufInfo.offset)) / sizeof(T);
-        };
-
         // 
         vk::BufferView& createBufferView(const vk::Format& format = vk::Format::eUndefined) {
             vkh::VkBufferViewCreateInfo info = {};
@@ -287,8 +282,8 @@ namespace vkt {
 
         // 
         const vk::DeviceSize& offset() const { return bufInfo.offset; };
-        const vk::DeviceSize range() const { return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range() - bufInfo.offset) : (allocation->range() - bufInfo.offset)); };
-              vk::DeviceSize range()       { return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range() - bufInfo.offset) : (allocation->range() - bufInfo.offset)); };
+        vk::DeviceSize range() const { return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range() - bufInfo.offset) : (allocation->range() - bufInfo.offset)); };
+        vk::DeviceSize size() const { return this->range() / sizeof(T); };
 
         // typed casting 
         template<class Tm = T> Vector<Tm>& cast() { return reinterpret_cast<Vector<Tm>&>(*this); };

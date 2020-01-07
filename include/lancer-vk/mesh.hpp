@@ -66,65 +66,45 @@ namespace lancer {
             return shared_from_this();
         };
 
-        // Uint32_T version
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint32_t>& indices){
-            this->indexData = indices;
-            this->indexType = vk::IndexType::eUint32;
-            this->indexCount = indices.size();
-            this->geometryTemplate.geometry.triangles.indexOffset = indices.offset();
-            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometryTemplate.geometry.triangles.indexCount = indices.size();
-            this->geometryTemplate.geometry.triangles.indexData = indices;
-            return shared_from_this();
-        };
+        // 
+        template<class T = uint8_t>
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& indices, const vk::IndexType& type){
+            vk::DeviceSize count = 0u;
+            switch (type) { // 
+                case vk::IndexType::eUint32:   count = indices.range() / 4u; break;
+                case vk::IndexType::eUint16:   count = indices.range() / 2u; break;
+                case vk::IndexType::eUint8EXT: count = indices.range() / 1u; break;
+                default: count = 0u;
+            };
 
-        // Uint16_T version
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint16_t>& indices){
-            this->indexData = indices;
-            this->indexType = vk::IndexType::eUint16;
-            this->indexCount = indices.size();
-            this->geometryTemplate.geometry.triangles.indexOffset = indices.offset();
-            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometryTemplate.geometry.triangles.indexCount = indices.size();
-            this->geometryTemplate.geometry.triangles.indexData = indices;
-            return shared_from_this();
-        };
+            // 
+            if (indices.has() && type != vk::IndexType::eNoneNV) {
+                this->indexData = indices;
+                this->indexType = type;
+                this->indexCount = count;
+            } else {
+                this->indexData = {};
+                this->indexType = vk::IndexType::eNoneNV;
+                this->indexCount = 0u;
+            };
 
-        // Uint8_T version
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t>& indices){
-            this->indexData = indices;
-            this->indexType = vk::IndexType::eUint8EXT;
-            this->indexCount = indices.size();
-            this->geometryTemplate.geometry.triangles.indexOffset = indices.offset();
+            // 
+            this->geometryTemplate.geometry.triangles.indexOffset = this->indexData.offset();
             this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometryTemplate.geometry.triangles.indexCount = indices.size();
-            this->geometryTemplate.geometry.triangles.indexData = indices;
-            return shared_from_this();
-        };
-
-        // Reset Indices
-        std::shared_ptr<Mesh> setIndexData(){
-            this->indexData = {};
-            this->indexType = vk::IndexType::eNoneNV;
-            this->indexCount = 0u;
-            this->geometryTemplate.geometry.triangles.indexOffset = 0u;
-            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometryTemplate.geometry.triangles.indexCount = 0u;
-            this->geometryTemplate.geometry.triangles.indexData = {};
+            this->geometryTemplate.geometry.triangles.indexCount = this->indexCount;
+            this->geometryTemplate.geometry.triangles.indexData = this->indexData;
             return shared_from_this();
         };
 
         // 
-        template<class T = uint8_t> // Use Unified and Dynamic Version
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& indices, const vk::IndexType& type){
-            switch(type) {
-                case vk::IndexType::eUint32: return this->setIndexData(vkt::Vector<uint32_t>(indices)); break; // uint32_t version 
-                case vk::IndexType::eUint16: return this->setIndexData(vkt::Vector<uint16_t>(indices)); break; // uint16_t version
-                case vk::IndexType::eUint8EXT: return this->setIndexData(vkt::Vector<uint8_t>(indices)); break; // uint8_t version
-                default: return this->setIndexData();
-            };
-            return shared_from_this();
-        };
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint32_t>& indices) { return this->setIndexData(indices,vk::IndexType::eUint32); };
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint16_t>& indices) { return this->setIndexData(indices,vk::IndexType::eUint16); };
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t >& indices) { return this->setIndexData(indices,vk::IndexType::eUint8EXT); };
+        std::shared_ptr<Mesh> setIndexData() { return this->setIndexData({},vk::IndexType::eNoneNV); };
+
+        // some type dependent
+        template<class T = uint8_t>
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& indices) { return this->setIndexData(indices); };
 
         // 
         std::shared_ptr<Mesh> setDriver(const std::shared_ptr<Driver>& driver = {}){
