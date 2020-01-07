@@ -104,7 +104,7 @@ namespace lancer {
 
         // some type dependent
         template<class T = uint8_t>
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& indices) { return this->setIndexData(indices); };
+        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& indices = {}) { return this->setIndexData(indices); };
 
         // 
         std::shared_ptr<Mesh> setDriver(const std::shared_ptr<Driver>& driver = {}){
