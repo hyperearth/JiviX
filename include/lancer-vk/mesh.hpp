@@ -181,10 +181,10 @@ namespace lancer {
             const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{ 
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 1.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 1.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 1.0f}), 
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 1.0f}), 
                 vk::ClearDepthStencilValue(1.0f, 0)
             };
             
