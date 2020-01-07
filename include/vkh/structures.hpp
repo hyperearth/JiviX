@@ -492,8 +492,8 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
     // 
     typedef struct VkPipelineColorBlendAttachmentState {
         VkBool32                 blendEnable         = false;
-        VkBlendFactor            srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-        VkBlendFactor            dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+        VkBlendFactor            srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        VkBlendFactor            dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         VkBlendOp                colorBlendOp        = VK_BLEND_OP_ADD;
         VkBlendFactor            srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
         VkBlendFactor            dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
