@@ -43,9 +43,8 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { 
-            // get ray-tracing properties
-            const auto& rtxp = rayTracingProperties;
+        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { // get ray-tracing properties
+            const auto& rtxp = this->rayTracingProperties;
             const auto& renderArea = this->context->refScissor();
             rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment) });
             vkt::commandBarrier(rayTraceCommand);
@@ -53,8 +52,8 @@ namespace lancer {
             rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rayTraceCommand.traceRaysNV(
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset(), 
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset()+this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset()+this->rayTraceInfo.hitOffsetIndex()  * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
+                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
+                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo. hitOffsetIndex() * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
                 {},0u,0u,
                 renderArea.extent.width, renderArea.extent.height, 1u, 
                 this->driver->getDispatch()
