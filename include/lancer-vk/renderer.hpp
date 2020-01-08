@@ -28,6 +28,18 @@ namespace lancer {
         };
 
         // 
+        std::shared_ptr<Renderer> linkMaterial(const std::shared_ptr<Material>& materials = {}) {
+            this->materials = materials;
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Renderer> linkNode(const std::shared_ptr<Node>& node = {}) {
+            this->node = node;
+            return shared_from_this();
+        };
+
+        // 
         std::shared_ptr<Renderer> setupRayTracingPipeline() {
             const std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/raytrace.rgen.spv" ), vk::ShaderStageFlagBits::eRaygenNV),

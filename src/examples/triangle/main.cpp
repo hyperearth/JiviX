@@ -2,7 +2,7 @@
 #include <vkt2/fw.hpp>
 #include <lancer-vk/lancer.hpp>
 
-vkt::GPUFramework fw = {};
+std::shared_ptr<vkt::GPUFramework> fw = {};
 
 int main() {
     glfwInit();
@@ -18,15 +18,16 @@ int main() {
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	// initialize Vulkan
-	auto instance = fw.createInstance();
-	auto manager = fw.createWindowSurface(canvasWidth, canvasHeight);
-	auto physicalDevice = fw.getPhysicalDevice(0u);
-	auto device = fw.createDevice(true,"./",false);
-	auto swapchain = fw.createSwapchain();
-	auto renderPass = fw.createRenderPass();
-	auto framebuffers = fw.createSwapchainFramebuffer(swapchain, renderPass);
-	auto queue = fw.getQueue();
-	auto commandPool = fw.getCommandPool();
+    auto fw = std::make_shared<vkt::GPUFramework>();
+	auto instance = fw->createInstance();
+	auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
+	auto physicalDevice = fw->getPhysicalDevice(0u);
+	auto device = fw->createDevice(true,"./",false);
+	auto swapchain = fw->createSwapchain();
+	auto renderPass = fw->createRenderPass();
+	auto framebuffers = fw->createSwapchainFramebuffer(swapchain, renderPass);
+	auto queue = fw->getQueue();
+	auto commandPool = fw->getCommandPool();
 
     // Vookoo-styled Create Graphics
     vkh::VsDescriptorSetLayoutCreateInfoHelper descriptorSetLayoutInfo = {};
@@ -57,16 +58,16 @@ int main() {
     // 
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
     pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
-    auto finalPipeline = device.createGraphicsPipeline(fw.getPipelineCache(), pipelineInfo);
+    auto finalPipeline = device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo);
 
     //
     auto descriptorSet = device.allocateDescriptorSets(vkh::VkDescriptorSetAllocateInfo{
-        .descriptorPool = fw.getDescriptorPool(),
+        .descriptorPool = fw->getDescriptorPool(),
         .pSetLayouts = &reinterpret_cast<const VkDescriptorSetLayout&>(descriptorSetLayout)
     });
 
     // added for LOC testing
-    auto hostBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+    auto hostBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
         .size = 16u * 3u,
         .usage = {.eTransferSrc = 1, .eStorageBuffer = 1 },
     }, VMA_MEMORY_USAGE_CPU_TO_GPU));
@@ -77,7 +78,7 @@ int main() {
     hostBuffer[2] = glm::vec4( 0.f,  1.f, 0.f, 1.f);
 
     // 
-    auto gpuBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{
+    auto gpuBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
         .size = 16u * 3u,
         .usage = {.eTransferDst = 1, .eStorageBuffer = 1 },
     }, VMA_MEMORY_USAGE_GPU_ONLY));
@@ -87,6 +88,24 @@ int main() {
         cmd.copyBuffer(hostBuffer, gpuBuffer, { vkh::VkBufferCopy{.size = 16u * 3u} });
     });
     // Buffer LOC test end
+ 
+
+    //  
+    auto context = std::make_shared<lancer::Context>(fw);
+    auto mesh = std::make_shared<lancer::Mesh>(context);
+    auto node = std::make_shared<lancer::Node>(context);
+    auto material = std::make_shared<lancer::Material>(context);
+    auto renderer = std::make_shared<lancer::Renderer>(context);
+
+    // initialize renderer
+    context->initialize(canvasWidth, canvasHeight);
+    renderer->linkMaterial(material)->linkNode(node);
+
+    // geometry data
+    mesh->addBinding(gpuBuffer, { .stride = 16u });
+    mesh->addAttribute({ .format = VK_FORMAT_R32G32B32A32_SFLOAT }, true);
+    node->pushInstance(vkh::VsGeometryInstance{}, node->pushMesh(mesh));
+
 
 	// 
 	int currSemaphore = -1;
@@ -134,7 +153,6 @@ int main() {
                 .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
                 .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));
-
         };
 
         // present for displaying of this image
