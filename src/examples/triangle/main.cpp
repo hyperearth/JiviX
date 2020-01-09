@@ -88,9 +88,9 @@ int main() {
         cmd.copyBuffer(hostBuffer, gpuBuffer, { vkh::VkBufferCopy{.size = 16u * 3u} });
     });
     // Buffer LOC test end
- 
 
-    //  
+
+    // 
     auto context = std::make_shared<lancer::Context>(fw);
     auto mesh = std::make_shared<lancer::Mesh>(context);
     auto node = std::make_shared<lancer::Node>(context);
@@ -106,6 +106,8 @@ int main() {
     mesh->addAttribute({ .format = VK_FORMAT_R32G32B32A32_SFLOAT }, true);
     node->pushInstance(vkh::VsGeometryInstance{}, node->pushMesh(mesh));
 
+    // initialize program
+    renderer->setupCommands();
 
 	// 
 	int currSemaphore = -1;
