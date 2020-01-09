@@ -11,21 +11,55 @@ struct RayPayloadData {
     uvec4 udata;
 };
 
-// Using Transposed, DirectX styled Matrices
-layout (binding = 0, set = 4, scalar) uniform Matrices {
-    mat4 prvproject;
-    mat4 projection;
-    mat4 projectionInv;
-    mat3x4 prevmodel;
-    mat3x4 modelview;
-    mat3x4 modelviewInv;
-    uvec4 indexData;
+struct Binding {
+    uint32_t binding;
+    uint32_t stride;
+    uint32_t rate;
+    uint32_t reserved;
 };
 
-// 
-layout (binding = 0, set = 0) uniform sampler2D textures[];
-layout (binding = 0, set = 1) uniform sampler2D frameBuffers[];
-layout (binding = 0, set = 2, rgba32f) uniform image2D writeImages[];
+struct Attribute {
+    uint32_t location;
+    uint32_t binding;
+    uint32_t format;
+    uint32_t offset;
+};
+
+// Mesh Data Buffers
+layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
+layout (binding = 1, set = 0, scalar) buffer Data1 { uint8_t data[]; } mesh1[];
+layout (binding = 2, set = 0, scalar) buffer Data2 { uint8_t data[]; } mesh2[];
+layout (binding = 3, set = 0, scalar) buffer Data3 { uint8_t data[]; } mesh3[];
+layout (binding = 4, set = 0, scalar) buffer Data4 { uint8_t data[]; } mesh4[];
+layout (binding = 5, set = 0, scalar) buffer Data5 { uint8_t data[]; } mesh5[];
+layout (binding = 6, set = 0, scalar) buffer Data6 { uint8_t data[]; } mesh6[];
+layout (binding = 7, set = 0, scalar) buffer Data7 { uint8_t data[]; } mesh7[];
+
+// Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
+layout (binding = 0, set = 1, scalar) uniform Bindings   { Binding   data[8]; } bindings  [];
+layout (binding = 1, set = 1, scalar) uniform Attributes { Attribute data[8]; } attributes[];
+layout (binding = 3, set = 1, scalar) uniform Matrices {
+    //mat4 prvproject;
+    mat4 projection;
+    mat4 projectionInv;
+    //mat3x4 prevmodel;
+    mat3x4 modelview;
+    mat3x4 modelviewInv;
+    //uvec4 indexData;
+};
+
+
+// Deferred and Rasterization Set
+layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
+
+
+// Sampling And Ray Tracing Set (also, re-used from previous frame)
+layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
+
+
+// Material Set
+layout (binding = 0, set = 4) uniform sampler2D textures[];
+
 
 // 
 float raySphereIntersect(in vec3 r0, in vec3 rd, in vec3 s0, in float sr) {
