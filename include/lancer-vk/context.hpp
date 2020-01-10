@@ -96,6 +96,16 @@ namespace lancer {
         };
 
         // 
+        std::array<vk::DescriptorSet,5u>& getDescriptorSets(){
+            return descriptorSets;
+        };
+
+        // 
+        vk::PipelineLayout getPipelineLayout(){
+            return unifiedPipelineLayout;
+        };
+
+        // 
         std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
             std::array<VkImageView, 5u> deferredAttachments = {};
             std::array<VkImageView, 5u> samplingAttachments = {};

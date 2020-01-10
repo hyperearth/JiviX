@@ -40,7 +40,6 @@ void main() {
     //float depth = raySphereIntersect(origin,raydir,vec3(10.f,10.f,10.f),2.f);
     
 
-    
     //if (depth > 0.f) {
     //    PrimaryRay.udata.x = 1u;
     //    PrimaryRay.fdata.xyz = vec3(10.f, 10.f, 10.f);

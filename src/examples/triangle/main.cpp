@@ -29,42 +29,9 @@ int main() {
 	auto queue = fw->getQueue();
 	auto commandPool = fw->getCommandPool();
 
-    // Vookoo-styled Create Graphics
-    vkh::VsDescriptorSetLayoutCreateInfoHelper descriptorSetLayoutInfo = {};
-    descriptorSetLayoutInfo.pushBinding({ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1 } });
-    auto descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutInfo);
-
-    // 
-    vkh::VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-    std::vector<VkDescriptorSetLayout> layouts{ descriptorSetLayout };
-    auto finalPipelineLayout = device.createPipelineLayout(pipelineLayoutInfo.setSetLayouts(layouts));
-
     // 
     auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
     auto viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
-
-    // 
-    vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-    });
-    pipelineInfo.graphicsPipelineCreateInfo.layout = finalPipelineLayout;
-    pipelineInfo.graphicsPipelineCreateInfo.renderPass = renderPass;
-    pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
-    pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
-
-    // 
-    pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
-    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
-    auto finalPipeline = device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo);
-
-    //
-    auto descriptorSet = device.allocateDescriptorSets(vkh::VkDescriptorSetAllocateInfo{
-        .descriptorPool = fw->getDescriptorPool(),
-        .pSetLayouts = &reinterpret_cast<const VkDescriptorSetLayout&>(descriptorSetLayout)
-    });
 
     // added for LOC testing
     auto hostBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
@@ -86,8 +53,7 @@ int main() {
     // 
     vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
         cmd.copyBuffer(hostBuffer, gpuBuffer, { vkh::VkBufferCopy{.size = 16u * 3u} });
-    });
-    // Buffer LOC test end
+    });  // Buffer LOC test end
 
 
     // 
@@ -109,6 +75,21 @@ int main() {
     // initialize program
     renderer->setupCommands();
 
+    // 
+    vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
+    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+    });
+    pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
+    pipelineInfo.graphicsPipelineCreateInfo.renderPass = context->refRenderPass();
+    pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
+    pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
+    pipelineInfo.colorBlendAttachmentStates = { {}, {}, {}, {} }; // Default Blend State
+    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
+    auto finalPipeline = device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo);
+
 	// 
 	int currSemaphore = -1;
 	uint32_t currentBuffer = 0u;
@@ -128,8 +109,6 @@ int main() {
 
         { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
-            //auto renderArea = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight));
-            //auto viewport = vk::Viewport(0.0f, 0.0f, renderArea.extent.width, renderArea.extent.height, 0, 1.0f);
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
@@ -139,7 +118,7 @@ int main() {
                 commandBuffer.setViewport(0, { viewport });
                 commandBuffer.setScissor(0, { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalPipeline);
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, finalPipelineLayout, 0, descriptorSet, nullptr);
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, context->getPipelineLayout(), 0, context->getDescriptorSets(), nullptr);
                 commandBuffer.draw(4, 1, 0, 0);
                 commandBuffer.endRenderPass();
                 commandBuffer.end();

@@ -25,9 +25,6 @@ precision highp int;
 // 
 layout (location = 0) out vec4 gColor;
 
-//const vec2 cpositions[4] = { vec2(-1.f, 1.f), vec2(1.f, 1.f), vec2(-1.f, -1.f), vec2(1.f, -1.f) };
-//const vec2 tcoords[4] = { vec2(0.f), vec2(1.f, 0.f), vec2(0.f, 1.f), vec2(1.f) };
-
 // 
 void main() {
     const uint idx = gl_VertexIndex;

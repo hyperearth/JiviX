@@ -48,7 +48,7 @@ void main() { // Hi-DPI adaptation
 
     // 
     uint i = 0u; signal = raydir.xyz*0.5f+0.5f;
-    for (i = 0u;i<4u;i++) {
+    for (i = 0u;i<1u;i++) {
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
             0, 1, 0,
             origin.xyz, 0.0001f,
