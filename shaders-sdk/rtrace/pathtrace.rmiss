@@ -28,19 +28,25 @@ precision highp int;
 
 layout ( location = 0 ) rayPayloadInNV RayPayloadData PrimaryRay;
 
+
 void main() {
     // PrimaryRay.fdata = vec4();
 
     vec3 raydir = gl_WorldRayDirectionNV;
     vec3 origin = gl_WorldRayOriginNV;
-    float depth = raySphereIntersect(origin,raydir,vec3(10.f,10.f,10.f),2.f);
     
-    if (depth > 0.f) {
-        PrimaryRay.udata.x = 1u;
-        PrimaryRay.fdata.xyz = vec3(10.f, 10.f, 10.f);
-    } else {
-        PrimaryRay.udata.x = 1u;
-        PrimaryRay.fdata.xyz = vec3(0.9f, 0.96f, 0.99f) * 0.5f;
-    };
+    PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTNV
+
+    //float depth = raySphereIntersect(origin,raydir,vec3(10.f,10.f,10.f),2.f);
+    
+
+    
+    //if (depth > 0.f) {
+    //    PrimaryRay.udata.x = 1u;
+    //    PrimaryRay.fdata.xyz = vec3(10.f, 10.f, 10.f);
+    //} else {
+    //    PrimaryRay.udata.x = 1u;
+    //    PrimaryRay.fdata.xyz = vec3(0.9f, 0.96f, 0.99f) * 0.5f;
+    //};
 
 };

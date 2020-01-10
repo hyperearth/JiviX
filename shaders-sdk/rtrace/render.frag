@@ -28,8 +28,8 @@ layout ( location = 0 ) out vec4 uFragColor;
 
 // 
 void main() {
-    const vec2 size = textureSize(frameBuffers[DIFFUSED],0);
+    const vec2 size = imageSize(writeImages[DIFFUSED_FLIP1]);
     vec2 coord = gl_FragCoord.xy; coord.y = size.y - coord.y;
-    vec4 samples = max(texelFetch(frameBuffers[DIFFUSED],ivec2(coord),0),0.0001f.xxxx); samples.xyz /= samples.w;
-    if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[DIFFUSED],ivec2(coord),0).xyz,1.f);
+    vec4 samples = max(imageLoad(writeImages[DIFFUSED_FLIP1],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
+    if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],ivec2(coord),0).xyz,1.f);
 };

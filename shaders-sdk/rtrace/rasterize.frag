@@ -23,24 +23,20 @@ precision highp int;
 #include "./index.glsl"
 
 // 
-layout (location = 0) in vec4 gPosition;
-layout (location = 1) in vec4 gNormals;
-layout (location = 2) in vec4 gTexcoords;
+layout (location = 0) in vec4 gTexcoords;
+layout (location = 1) in vec4 gPosition;
+layout (location = 2) in vec4 gNormals;
 layout (location = 3) in vec4 gTangents;
-layout (location = 4) flat in ivec4 gIndexes;
+//layout (location = 4) flat in ivec4 gIndexes;
 
 // 
-layout (location = 0) out vec4 colors;
-layout (location = 1) out vec4 normals;
-layout (location = 2) out vec4 txnormals;
-layout (location = 3) out vec4 parameters;
-layout (location = 4) out vec4 samples;
+layout (location = COLORING) out vec4 colored;
+layout (location = SAMPLING) out vec4 samples;
+layout (location = NORMALED) out vec4 normals;
+layout (location = TANGENTS) out vec4 tangent;
 
 // 
 void main() {
-    colors = vec4(texture(textures[0],gTexcoords.xy).xyz,1.f);
-    normals = gNormals;
-    txnormals = gNormals;
+    colored = vec4(texture(textures[0],gTexcoords.xy).xyz,1.f);
     samples = gPosition;
-    parameters = intBitsToFloat(gIndexes);
 };

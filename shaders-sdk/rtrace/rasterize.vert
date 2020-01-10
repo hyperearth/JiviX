@@ -22,22 +22,20 @@ precision highp float;
 precision highp int;
 #include "./index.glsl"
 
-// 
-//layout (location = 0) in vec4 iPosition;
+// Left Oriented
 layout (location = 0) in vec3 iPosition;
-layout (location = 1) in vec4 iNormals;
 layout (location = 2) in vec4 iTexcoords;
+layout (location = 1) in vec4 iNormals;
 layout (location = 3) in vec4 iTangents;
 
-// 
-layout (location = 0) out vec4 gPosition;
-layout (location = 1) out vec4 gNormals;
-layout (location = 2) out vec4 gTexcoords;
+// Right Oriented
+layout (location = 0) out vec4 gTexcoords;
+layout (location = 1) out vec4 gPosition;
+layout (location = 2) out vec4 gNormals;
 layout (location = 3) out vec4 gTangents;
-layout (location = 4) flat out ivec4 gIndexes;
 
 // 
-void main() {
+void main() { // Cross-Lake
     gTexcoords = iTexcoords;
     gPosition = vec4(iPosition,1.f);
     gTangents = iTangents;

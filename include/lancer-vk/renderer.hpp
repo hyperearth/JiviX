@@ -23,8 +23,8 @@ namespace lancer {
 
             // 
             const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -119,8 +119,8 @@ namespace lancer {
             };
 
             this->pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)
             });
 
             this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{
@@ -143,6 +143,8 @@ namespace lancer {
         // 
         std::shared_ptr<Renderer> setupCommands() { // setup Commands
             this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
+            this->cmdbuf.updateBuffer<Matrices>(context->uniformGPUData, context->uniformGPUData.offset(), context->uniformData);
+            vkt::commandBarrier(this->cmdbuf);
 
             // prepare meshes for ray-tracing
             for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); }; // copy concurrently

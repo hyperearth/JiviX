@@ -4,12 +4,20 @@
 #include "./thread.hpp"
 namespace lancer {
 
+    struct Matrices {
+        glm::mat4 projection;
+        glm::mat4 projectionInv;
+        glm::mat3x4 modelview;
+        glm::mat3x4 modelviewInv;
+    };
+
     // TODO: Full Context Support
     class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend Node; friend Driver; friend Material; friend Renderer;
         Context() {};
         Context(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
+            this->uniformGPUData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -146,7 +154,17 @@ namespace lancer {
                 .width = width,
                 .height = height
             });
-            
+
+            // TODO: controllable 
+            glm::mat4 projected = glm::perspective(glm::pi<float>() / 3, float(width) / float(height), 0.0001f, 10000.f);
+            glm::mat4 modelview = glm::lookAt(glm::vec3(0.f,0.f,1.f),glm::vec3(0.f,0.f,-1.f),glm::vec3(0.f,1.f,0.f));
+
+            // 
+            uniformData.modelview = glm::transpose(modelview);
+            uniformData.modelviewInv = glm::transpose(glm::inverse(modelview));
+            uniformData.projection = glm::transpose(projected);
+            uniformData.projectionInv = glm::transpose(glm::inverse(projected));
+
             // 
             return shared_from_this();
         };
@@ -251,6 +269,10 @@ namespace lancer {
         vk::RenderPass renderPass = {};
         vk::Framebuffer samplingFramebuffer = {};
         vk::Framebuffer deferredFramebuffer = {};
+
+        // 
+        vkt::Vector<Matrices> uniformGPUData = {};
+        Matrices uniformData = {};
 
         // Image Buffers
         std::array<vkt::ImageRegion,4u> samplesImages = {}; // Path Tracing

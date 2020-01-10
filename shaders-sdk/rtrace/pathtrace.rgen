@@ -26,29 +26,9 @@ precision highp int;
 
 layout (binding = 2, set = 3) uniform accelerationStructureNV Scene;
 
-//layout ( location = 0 ) rayPayloadNV RayPayload PrimaryRay;
-
 RayPayloadData PrimaryRay;
 
-//const float PHI = 1.61803398874989484820459 * 00000.1; // Golden Ratio   
-//const float PI  = 3.14159265358979323846264 * 00000.1; // PI
-//const float SQ2 = 1.41421356237309504880169 * 10000.0; // Square Root of Two
-
-//float gold_noise(in vec2 coordinate, in float seed){
-//    return fract(tan(distance(coordinate*(seed+PHI), vec2(PHI, PI)))*SQ2);
-//}
-
-//const float PIh = 3.14159265358979323846264*2.0;
-//const float BLUR_RADIUS = 20.f;
-
-//const vec4 shapeColors[2] = {vec4(0.1f,0.6f,0.1f,0.6f), vec4(0.6f,0.1f,0.1f,0.6f)};
-
-
-
-
-
-void main() {
-    // Hi-DPI adaptation
+void main() { // Hi-DPI adaptation
     const vec2 curPixel = vec2(gl_LaunchIDNV.xy) + 0.5f;
     const vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
 
@@ -63,24 +43,31 @@ void main() {
     vec3 energy = vec3(1.f,1.f,1.f);
     bool emission = false;
 
-    vec3 lastps = origin.xyz;
-
-    signal = raydir.xyz*0.5f+0.5f;//normal;
+    signal = raydir.xyz*0.5f+0.5f;
 
     uint i = 0u;
     for (i = 0u;i<4u;i++) {
-        /*// TODO: Add Triangle Tracing
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
-                 0,
-                 1,
-                 0,
-                 origin.xyz,
-                 0.001f,
-                 raydir.xyz,
-                 100.f,
-                 0);*/
+            0,
+            1,
+            0,
+            origin.xyz,
+            0.001f,
+            raydir.xyz,
+            100.f,
+            0);
 
+        // 
+        float depth = PrimaryRay.fdata.z;
+        if (depth >= 10000.f) { // 
+            energy *= vec3(0.9f,0.98,0.999f);
+        } else {
+            energy *= vec3(0.5f,0.5f,1.f);
+        };
+    };
 
+/*
+    for (i = 0u;i<4u;i++) {
         Box box = { -1.f.xxx, 1.f.xxx };
         vec4 sphere = vec4(vec3(0.f,12.f,12.f), 1.f);
         vec2 boxdepth = boxIntersect(origin.xyz, raydir.xyz, box.min, box.max); 
@@ -138,15 +125,18 @@ void main() {
         if (dot(energy.xyz,1.f.xxx) < 0.001f) { emission = false; break; };
         if (PrimaryRay.udata.x == 1u) { emission = true; break; };
     };
+*/
 
     // 
-    if (!emission) { energy *= 0.f; };
+    //if (!emission) { energy *= 0.f; };
 
     // Diffuse Samples Overall
-    if ( i > 0 ) {
-        const vec4 originSample = texelFetch(frameBuffers[DIFFUSED],ivec2(gl_LaunchIDNV.xy),0);
-        imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + 1.f));
-    };
+    //if ( i > 0 ) {
+        const vec4 originSample = texelFetch(frameBuffers[DIFFUSED_FLIP0],ivec2(gl_LaunchIDNV.xy),0);
+        const vec4 locateSample = texelFetch(frameBuffers[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy),0);
+        imageStore(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + 1.f));
+        imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(locateSample));
+    //};
 
     
 };

@@ -1,8 +1,15 @@
 
-#define SAMPLING 0
-#define DIFFUSED 1
-#define REFLECTS 2
-#define INDIRECT 3
+// Re-Sampling
+#define DIFFUSED_FLIP0 0
+#define SAMPLING_FLIP0 1
+#define DIFFUSED_FLIP1 2
+#define SAMPLING_FLIP1 3
+
+// Rasterization or First Step
+#define COLORING 0
+#define SAMPLING 1
+#define NORMALED 2
+#define TANGENTS 3
 
 // 
 struct RayPayloadData {
@@ -25,6 +32,10 @@ struct Attribute {
     uint32_t offset;
 };
 
+struct MaterialUnit {
+    f32vec4 diffuse;
+};
+
 // Mesh Data Buffers
 layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
 layout (binding = 1, set = 0, scalar) buffer Data1 { uint8_t data[]; } mesh1[];
@@ -39,27 +50,21 @@ layout (binding = 7, set = 0, scalar) buffer Data7 { uint8_t data[]; } mesh7[];
 layout (binding = 0, set = 1, scalar) uniform Bindings   { Binding   data[8]; } bindings  [];
 layout (binding = 1, set = 1, scalar) uniform Attributes { Attribute data[8]; } attributes[];
 layout (binding = 3, set = 1, scalar) uniform Matrices {
-    //mat4 prvproject;
     mat4 projection;
     mat4 projectionInv;
-    //mat3x4 prevmodel;
     mat3x4 modelview;
     mat3x4 modelviewInv;
-    //uvec4 indexData;
 };
-
 
 // Deferred and Rasterization Set
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
 
-
 // Sampling And Ray Tracing Set (also, re-used from previous frame)
 layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
 
-
 // Material Set
 layout (binding = 0, set = 4) uniform sampler2D textures[];
-
+layout (binding = 1, set = 4, scalar) buffer Materials { MaterialUnit data[]; } materials[];
 
 // 
 float raySphereIntersect(in vec3 r0, in vec3 rd, in vec3 s0, in float sr) {

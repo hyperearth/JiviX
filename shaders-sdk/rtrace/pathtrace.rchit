@@ -24,10 +24,8 @@ precision highp int;
 #include "./index.glsl"
 
 layout ( location = 0 ) rayPayloadInNV RayPayloadData PrimaryRay;
-                        hitAttributeNV vec2 HitAttribs;
+                        hitAttributeNV vec2 baryCoord;
 
-// Test Material 
 void main() {
-    PrimaryRay.udata.x = 0u;
-    PrimaryRay.fdata.xyz = vec3(0.8f, 0.8f, 0.8f);
+    PrimaryRay.fdata.xyz = vec3(baryCoord, gl_HitTNV);
 };
