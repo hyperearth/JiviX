@@ -124,7 +124,7 @@ namespace vkt {
         ImageRegion(){};
         ImageRegion(const std::shared_ptr<VmaImageAllocation>& allocation, const vkh::VkImageViewCreateInfo& info = {}, const vk::ImageLayout& layout = vk::ImageLayout::eGeneral) {
             this->allocation = allocation;
-            this->imgInfo.imageView = ((vk::Device&)(allocation)).createImageView(info);
+            this->imgInfo.imageView = ((vk::Device&)(*allocation)).createImageView(vk::ImageViewCreateInfo(info).setImage(*allocation));
             this->imgInfo.imageLayout = VkImageLayout(layout);
             this->subresourceRange = info.subresourceRange;
         };
