@@ -32,29 +32,27 @@ void main() { // Hi-DPI adaptation
     const vec2 curPixel = vec2(gl_LaunchIDNV.xy) + 0.5f;
     const vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
 
+    // 
     vec4 origss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
     vec4 targss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
 
+    // 
     vec3 origin = origss*modelviewInv;
     vec3 target = targss*modelviewInv;
     vec3 raydir = normalize(target - origin);
 
+    // 
     vec3 signal = vec3(0.f,0.f,0.f);
     vec3 energy = vec3(1.f,1.f,1.f);
     bool emission = false;
 
-    signal = raydir.xyz*0.5f+0.5f;
-
-    uint i = 0u;
+    // 
+    uint i = 0u; signal = raydir.xyz*0.5f+0.5f;
     for (i = 0u;i<4u;i++) {
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
-            0,
-            1,
-            0,
-            origin.xyz,
-            0.001f,
-            raydir.xyz,
-            100.f,
+            0, 1, 0,
+            origin.xyz, 0.0001f,
+            raydir.xyz, 10000.f,
             0);
 
         // 
@@ -64,79 +62,13 @@ void main() { // Hi-DPI adaptation
         } else {
             energy *= vec3(0.5f,0.5f,1.f);
         };
-    };
-
-/*
-    for (i = 0u;i<4u;i++) {
-        Box box = { -1.f.xxx, 1.f.xxx };
-        vec4 sphere = vec4(vec3(0.f,12.f,12.f), 1.f);
-        vec2 boxdepth = boxIntersect(origin.xyz, raydir.xyz, box.min, box.max); 
-        float bdepth = (boxdepth.x <= boxdepth.y && boxdepth.y >= 0.f) ? (boxdepth.x >= 0.f ? min(boxdepth.x, boxdepth.y) : max(boxdepth.x, boxdepth.y)) : 10000.f;
-        float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : 0.f;
-        float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
-        float depth = min(min(sdepth, bdepth), pdepth);
-        vec3 lastps = origin.xyz + raydir.xyz*depth;
-
-
-
-        if (depth >= 10000.f) { // Midnight Skylight Depth
-            PrimaryRay.udata.x = 1u;
-            PrimaryRay.fdata.xyz = 0.f.xxx;//vec3(0.9f, 0.96f, 0.99f) * 0.5f;
-            PrimaryRay.normal.xyz = raydir.xyz;
-        } else 
-
-        if (fequal(depth, sdepth)) { // Sphere Light Depth
-            PrimaryRay.udata.x = 1u;
-            PrimaryRay.fdata.xyz = vec3(2.f, 2.f, 2.f);
-            PrimaryRay.normal.xyz = normalize(lastps.xyz - sphere.xyz);
-        } else 
-
-        if (fequal(depth, bdepth)) { // Box Depth
-            PrimaryRay.udata.x = 0u;
-            PrimaryRay.fdata.xyz = vec3(0.9f, 0.6f, 0.6f);
-            PrimaryRay.normal.xyz = normalize(boxNormal(lastps.xyz,box.min,box.max));
-        } else 
-
-        if (fequal(depth, pdepth)) { // Plane Depth
-            PrimaryRay.udata.x = 0u;
-            PrimaryRay.fdata.xyz = vec3(0.9f, 0.9f, 0.9f);
-            PrimaryRay.normal.xyz = vec3(0.f,1.f,0.f);
-        } else 
-        
-        {
-            PrimaryRay.udata.x = 0u;
-            PrimaryRay.fdata.xyz = vec3(0.f);
-            PrimaryRay.normal.xyz = vec3(0.f,0.f,0.f);
-        }
 
         // 
-        origin.xyz = lastps.xyz + faceforward(PrimaryRay.normal.xyz,raydir.xyz,PrimaryRay.normal.xyz) * 0.0001f;
-        raydir.xyz = randomHemisphereCosine(PrimaryRay.normal.xyz,uvec2(gl_LaunchIDNV.xy));
-        energy.xyz *= PrimaryRay.fdata.xyz;
-
-        // 
-        if ( i == 0 ) { // Like In Rasterization
-            //signal = PrimaryRay.normal.xyz*0.5f+0.5f;
-            imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(lastps,1.f));
-            imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), vec4(exchange(energy.xyz,1.f.xxx),1.f));
-        };
-
-        // Finalize 
-        if (dot(energy.xyz,1.f.xxx) < 0.001f) { emission = false; break; };
-        if (PrimaryRay.udata.x == 1u) { emission = true; break; };
+        if (i == 0u) { origin.xyz += raydir.xyz * depth; };
     };
-*/
 
-    // 
-    //if (!emission) { energy *= 0.f; };
-
-    // Diffuse Samples Overall
-    //if ( i > 0 ) {
-        const vec4 originSample = texelFetch(frameBuffers[DIFFUSED_FLIP0],ivec2(gl_LaunchIDNV.xy),0);
-        const vec4 locateSample = texelFetch(frameBuffers[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy),0);
-        imageStore(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(originSample.xyz + energy, originSample.w + 1.f));
-        imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(locateSample));
-    //};
-
-    
+    const vec4 directSample = imageLoad(writeImages[DIFFUSED_FLIP0],ivec2(gl_LaunchIDNV.xy));
+    const vec4 locateSample = vec4(origin.xyz,1.f);//imageLoad(writeImages[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy));
+    imageStore(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(directSample.xyz + energy, directSample.w + 1.f));
+    imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(locateSample));
 };

@@ -68,12 +68,6 @@ layout (binding = 1, set = 4, scalar) buffer Materials { MaterialUnit data[]; } 
 
 // 
 float raySphereIntersect(in vec3 r0, in vec3 rd, in vec3 s0, in float sr) {
-    // - r0: ray origin
-    // - rd: normalized ray direction
-    // - s0: sphere center
-    // - sr: sphere radius
-    // - Returns distance from r0 to first intersecion with sphere,
-    //   or -1.0 if no intersection.
     float a = dot(rd, rd);
     vec3 s0_r0 = r0 - s0;
     float b = 2.0 * dot(rd, s0_r0);
@@ -82,14 +76,13 @@ float raySphereIntersect(in vec3 r0, in vec3 rd, in vec3 s0, in float sr) {
         return -1.0;
     }
     return (-b - sqrt((b*b) - 4.0*a*c))/(2.0*a);
-}
+};
 
 // NEXT standard consts in current
 // Ray tracing NEXT capable shader standard development planned begin in 2019 year
 const float PHI = 1.6180339887498948482f;
 const float SFN = 0.00000011920928955078125f, SFO = 1.f+SFN;//1.00000011920928955078125f;
 const float INFINITY = 1e+5f, N_INFINITY = (INFINITY*(1.f-SFN));
-
 const float PI = 3.1415926535897932384626422832795028841971f;
 const float TWO_PI = 6.2831853071795864769252867665590057683943f;
 const float SQRT_OF_ONE_THIRD = 0.5773502691896257645091487805019574556476f;
@@ -97,10 +90,6 @@ const float E = 2.7182818284590452353602874713526624977572f;
 const float INV_PI = 0.3183098861837907f;
 const float TWO_INV_PI = 0.6366197723675814f;
 const float INV_TWO_PI = 0.15915494309189535f;
-
-
-
-uint counter = 0u;
 
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
 uint hash( uint x ) {
@@ -112,9 +101,8 @@ uint hash( uint x ) {
     return x;
 }
 
-
-
 // Compound versions of the hashing algorithm I whipped together.
+uint counter = 0u;
 uint hash( uvec2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)                         ); }
 uint hash( uvec3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
 uint hash( uvec4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
