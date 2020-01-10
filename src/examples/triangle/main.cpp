@@ -46,8 +46,8 @@ int main() {
     // 
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
     pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
     });
     pipelineInfo.graphicsPipelineCreateInfo.layout = finalPipelineLayout;
     pipelineInfo.graphicsPipelineCreateInfo.renderPass = renderPass;
