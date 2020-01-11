@@ -119,16 +119,22 @@ namespace vkh {
         VkDescriptorUpdateTemplateEntry* entry_t = nullptr;
         T* field_t = nullptr;
 
+        ~VsDescriptorHandle() {};
+         VsDescriptorHandle() {};
+         VsDescriptorHandle(VkDescriptorUpdateTemplateEntry* entry_t, T* field_t = nullptr) : entry_t(entry_t), field_t(field_t), stride(sizeof(T)) {};
+         VsDescriptorHandle(size_t stride, VkDescriptorUpdateTemplateEntry* entry_t = nullptr, T* field_t = nullptr) : entry_t(entry_t), field_t(field_t), stride(stride) {};
+        template<class C = T> VsDescriptorHandle(VsDescriptorHandle<C>& handle) : entry_t(handle.entry_t), field_t((T*)(handle.field_t)), stride(handle.stride) {};
+
         // any buffers and images can `write` into types
-        //template<class T = T> inline       VsDescriptorHandle<T> offset(const uint32_t& idx = 0u)       { return VsDescriptorHandle<T>{ sizeof(T), entry_t, (T*)field_t + idx}; };
-        //template<class T = T> inline const VsDescriptorHandle<T> offset(const uint32_t& idx = 0u) const { return VsDescriptorHandle<T>{ sizeof(T), entry_t, (T*)field_t + idx}; };
-        template<class T = T> inline       T& offset(const uint32_t& idx = 0u)       { return *((T*)field_t + idx); };
-        template<class T = T> inline const T& offset(const uint32_t& idx = 0u) const { return *((T*)field_t + idx); };
+        template<class T = T> inline       VsDescriptorHandle<T> offset(const uint32_t& idx = 0u)       { return VsDescriptorHandle<T>{ sizeof(T), entry_t, (T*)field_t + idx}; };
+        template<class T = T> inline const VsDescriptorHandle<T> offset(const uint32_t& idx = 0u) const { return VsDescriptorHandle<T>{ sizeof(T), entry_t, (T*)field_t + idx}; };
+        //template<class T = T> inline       T& offset(const uint32_t& idx = 0u)       { return *((T*)field_t + idx); };
+        //template<class T = T> inline const T& offset(const uint32_t& idx = 0u) const { return *((T*)field_t + idx); };
         inline const uint32_t& size() const { return entry_t->descriptorCount; };
 
         // 
         template<class C = T> inline VsDescriptorHandle<T>& operator=(const VsDescriptorHandle<C>& d) { this->stride = d.stride, this->entry_t = d.entry_t, this->field_t = d.field_t; return *this; };
-        template<class C = T> inline VsDescriptorHandle<T>& operator=(const C& d) { *reinterpret_cast<C*>(field_t) = d; return *this; };
+        template<class C = T> inline VsDescriptorHandle<T>& operator=(const C& d) { *reinterpret_cast<C*>(this->field_t) = d; return *this; };
 
         // 
         inline T* operator&() { return  (T*)field_t; };
@@ -264,7 +270,7 @@ namespace vkh {
             entries.push_back(entry);
             entries.back().offset = pt0;
             entries.back().stride = sizeof(T);
-            handles.push_back({ sizeof(T), &entries.back(), &heap.back() });
+            handles.push_back({ sizeof(T), &entries.back(), &heap[pt0] });
             writes.push_back({
                 .dstSet = this->set,
                 .dstBinding = entry.dstBinding,

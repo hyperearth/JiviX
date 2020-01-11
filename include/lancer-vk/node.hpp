@@ -19,8 +19,8 @@ namespace lancer {
             this->accelerationStructureInfo.instanceCount = 1u;
 
             // 
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -39,6 +39,7 @@ namespace lancer {
         std::shared_ptr<Node> setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
             this->rawInstances = rawInstances; 
             this->instanceCounter = instanceCounter;
+            this->mapMeshes.resize(instanceCounter);
             return shared_from_this();
         };
 
@@ -52,7 +53,18 @@ namespace lancer {
         std::shared_ptr<Node> pushInstance(const vkh::VsGeometryInstance& instance = {}, const uintptr_t meshID = 0ull) {
             const auto instanceID = this->instanceCounter++;
             this->rawInstances[instanceID] = instance;
-            this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle, this->driver->getDispatch());
+            this->mapMeshes.push_back(meshID);
+            if (this->meshes[meshID]->accelerationStructure) {
+                this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle, this->driver->getDispatch());
+            };
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Node> mapMeshData() {
+            for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
+                this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[this->mapMeshes[i]]->accelerationStructure, 8ull, &this->rawInstances[i].accelerationStructureHandle, this->driver->getDispatch());
+            };
             return shared_from_this();
         };
 
@@ -70,35 +82,21 @@ namespace lancer {
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const uint32_t bindingCount = 4u;
             for (uint32_t i=0;i<bindingCount;i++) {
-                auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = i,
-                    .descriptorCount = uint32_t(this->meshes.size()),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                });
                 for (uint32_t j=0;j<this->meshes.size();j++) { if (i < this->meshes[j]->bindings.size() && i < bindingCount) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[j]->bindings[i];
+                    this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                        .dstBinding = i,
+                        .dstArrayElement = j,
+                        .descriptorCount = 1u,
+                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                    }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[j]->bindings[i];
                 };};
             };
-
-            // plush bindings
-            auto& bindingSet = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 0u,
-                .descriptorCount = uint32_t(this->meshes.size()),
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-            });
-
-            // plush attributes
-            auto& attributeSet = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 1u,
-                .descriptorCount = uint32_t(this->meshes.size()),
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-            });
 
             // plush attributes
             this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                 .dstBinding = 2u,
                 .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV
             }).offset<vk::AccelerationStructureNV>(0u) = accelerationStructure;
 
             // plush uniforms 
@@ -110,8 +108,19 @@ namespace lancer {
 
             // plush into descriptor sets
             for (uint32_t i=0;i<meshes.size();i++) {
-                bindingSet  .offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuBindings;
-                attributeSet.offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuAttributes;
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
+                    .dstArrayElement = i,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuBindings;
+
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 1u,
+                    .dstArrayElement = i,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuAttributes;
             };
 
             // 
@@ -119,10 +128,12 @@ namespace lancer {
                 this->context->descriptorSets[0] = (this->meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(this->meshDataDescriptorSetInfo)[0])
             )),{});
 
-            // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->bindingsDescriptorSetInfo.setDescriptorSet(
                 this->context->descriptorSets[1] = (this->bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(this->bindingsDescriptorSetInfo)[0])
             )),{});
+
+            // remap mesh data
+            this->mapMeshData();
 
             // 
             return shared_from_this();
@@ -181,6 +192,8 @@ namespace lancer {
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
                 }, VMA_MEMORY_USAGE_GPU_ONLY));
             };
+
+
             
             // 
             return shared_from_this();
@@ -188,6 +201,7 @@ namespace lancer {
 
     protected: // 
         std::vector<std::shared_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
+        std::vector<uint32_t> mapMeshes = {};
 
         // 
         vkt::Vector<vkh::VsGeometryInstance> rawInstances = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...

@@ -17,7 +17,7 @@ namespace lancer {
         Context(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
-            this->uniformGPUData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->uniformGPUData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -229,7 +229,7 @@ namespace lancer {
 
                 // 
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout, thread->getDescriptorPool());
-                auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = 4u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
@@ -238,8 +238,9 @@ namespace lancer {
                 memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
 
                 // 
-                this->deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(deferredDescriptorSet)),{});
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
+                    this->deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
+                )),{});
             };
 
             { // For Reprojection Pipeline
@@ -247,7 +248,7 @@ namespace lancer {
 
                 // 
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
-                auto& handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = 4u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
@@ -256,8 +257,9 @@ namespace lancer {
                 memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
 
                 // Reprojection WILL NOT write own depth... 
-                this->samplingDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0];
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(samplingDescriptorSet)),{});
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
+                    this->samplingDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
+                )),{});
             };
 
             // 

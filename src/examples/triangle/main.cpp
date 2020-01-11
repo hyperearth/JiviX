@@ -36,7 +36,7 @@ int main() {
     // added for LOC testing
     auto hostBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
         .size = 16u * 3u,
-        .usage = {.eTransferSrc = 1, .eStorageBuffer = 1 },
+        .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
     }, VMA_MEMORY_USAGE_CPU_TO_GPU));
 
     // triangle data
@@ -47,7 +47,7 @@ int main() {
     // 
     auto gpuBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
         .size = 16u * 3u,
-        .usage = {.eTransferDst = 1, .eStorageBuffer = 1 },
+        .usage = { .eTransferDst = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
     }, VMA_MEMORY_USAGE_GPU_ONLY));
 
     // 
@@ -82,7 +82,7 @@ int main() {
         vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
     });
     pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
-    pipelineInfo.graphicsPipelineCreateInfo.renderPass = context->refRenderPass();
+    pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->renderPass;//context->refRenderPass();
     pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
     pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
@@ -114,7 +114,7 @@ int main() {
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(device, commandPool, false, false); // do reference of cmd buffer
-                commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+                commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(fw->renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
                 commandBuffer.setViewport(0, { viewport });
                 commandBuffer.setScissor(0, { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalPipeline);

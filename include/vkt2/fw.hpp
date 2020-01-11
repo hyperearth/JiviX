@@ -315,17 +315,22 @@ namespace vkt
             auto gStorage16 = vk::PhysicalDevice16BitStorageFeatures{};
             auto gStorage8 = vk::PhysicalDevice8BitStorageFeaturesKHR{};
             auto gDescIndexing = vk::PhysicalDeviceDescriptorIndexingFeaturesEXT{};
+
+            // 
             gStorage16.pNext = &gStorage8;
-            gStorage8.pNext = &gDescIndexing;
             gDescIndexing.descriptorBindingPartiallyBound = true;
+            gDescIndexing.pNext = &gStorage16;
 
             // 
             auto gFeatures = vk::PhysicalDeviceFeatures2{};
-            gFeatures.pNext = &gStorage16;
+            gFeatures.pNext = &gDescIndexing;
             gFeatures.features.shaderInt16 = true;
             gFeatures.features.shaderInt64 = true;
             gFeatures.features.shaderUniformBufferArrayDynamicIndexing = true;
-            physicalDevice.getFeatures2(&gFeatures);
+
+            // 
+            vkGetPhysicalDeviceFeatures2(physicalDevice, &(VkPhysicalDeviceFeatures2&)gFeatures);
+            //physicalDevice.getFeatures2(&gFeatures);
 
             // get features and queue family properties
             //auto gpuFeatures = gpu.getFeatures();
@@ -351,13 +356,14 @@ namespace vkt
             if (queueCreateInfos.size() > 0) {
                 this->queueFamilyIndex = queueFamilyIndices[qptr];
                 this->device = this->physicalDevice.createDevice(vkh::VkDeviceCreateInfo{
+                    .pNext = &gFeatures,
                     .queueCreateInfoCount = uint32_t(queueCreateInfos.size()),
                     .pQueueCreateInfos = reinterpret_cast<::VkDeviceQueueCreateInfo*>(queueCreateInfos.data()),
                     .enabledLayerCount = uint32_t(layers.size()),
                     .ppEnabledLayerNames = layers.data(),
                     .enabledExtensionCount = uint32_t(deviceExtensions.size()),
                     .ppEnabledExtensionNames = deviceExtensions.data(),
-                    //.pEnabledFeatures = &(VkPhysicalDeviceFeatures&)(gFeatures.features)
+                    .pEnabledFeatures = &(VkPhysicalDeviceFeatures&)(gFeatures.features)
                 });
                 this->pipelineCache = this->device.createPipelineCache(vk::PipelineCacheCreateInfo());
             };

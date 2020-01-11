@@ -21,10 +21,10 @@ namespace lancer {
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_NV;
 
             // create required buffers
-            this->rawBindings = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuBindings = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
-            this->rawAttributes = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuAttributes = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawBindings = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuBindings = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawAttributes = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuAttributes = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -171,7 +171,7 @@ namespace lancer {
                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 1.0f}), 
                 vk::ClearDepthStencilValue(1.0f, 0)
             };
-            
+
             // 
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
@@ -215,8 +215,10 @@ namespace lancer {
             this->geometries.resize(this->instanceCount);
             for (uint32_t i = 0u; i < this->instanceCount; i++) {
                 this->geometries[i] = this->geometryTemplate;
-                this->geometries[i].geometry.triangles.transformOffset = this->transformStride * i + this->gpuTransformData.offset(); // Should To Be Different's
-                this->geometries[i].geometry.triangles.transformData = gpuTransformData;
+                if (this->gpuTransformData.has()) {
+                    this->geometries[i].geometry.triangles.transformOffset = this->transformStride * i + this->gpuTransformData.offset(); // Should To Be Different's
+                    this->geometries[i].geometry.triangles.transformData = this->gpuTransformData;
+                };
             };
 
             // Re-assign instance count

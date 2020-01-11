@@ -19,8 +19,8 @@ namespace lancer {
             this->context = context;
 
             // 
-            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -63,30 +63,28 @@ namespace lancer {
 
         // 
         std::shared_ptr<Material> createDescriptorSet() {
-            {   // Setup Textures
-                auto& imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+            this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(context->materialDescriptorSetLayout, driver->descriptorPool);
+
+            if (sampledImages.size() > 0u) { // Setup Textures
+                vkh::VsDescriptorHandle<VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = uint32_t(sampledImages.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                });
-                memcpy(&imagesHandle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size()*sizeof(VkDescriptorImageInfo));
+                    });
+                memcpy(&imagesHandle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(VkDescriptorImageInfo));
                 //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<VkDescriptorImageInfo>(i) = sampledImages[i]; };
-
-                // 
-                auto& bufferHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 0u,
-                    .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                });
-                bufferHandle.offset<VkDescriptorBufferInfo>() = gpuMaterials;
-
-                // Reprojection WILL NOT write own depth... 
-                this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)),{});
             };
 
             // 
-            this->context->descriptorSets[4] = this->descriptorSet;
+            this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 1u,
+                .descriptorCount = 1u,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+            }).offset<vkh::VkDescriptorBufferInfo>() = (vkh::VkDescriptorBufferInfo&)this->gpuMaterials;
+
+            // Reprojection WILL NOT write own depth... 
+            this->context->descriptorSets[4] = this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
+            this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)), {});
             return shared_from_this();
         };
 
