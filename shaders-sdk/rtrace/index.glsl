@@ -57,7 +57,8 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
 };
 
 // Deferred and Rasterization Set
-layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
+//layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
+layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
 
 // Sampling And Ray Tracing Set (also, re-used from previous frame)
 layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];

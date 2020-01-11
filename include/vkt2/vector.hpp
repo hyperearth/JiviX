@@ -134,9 +134,9 @@ namespace vkt {
             this->imgInfo = (vk::DescriptorImageInfo&)(region); 
         };
         ImageRegion& operator=(const ImageRegion& region){
-            this->allocation = region; 
-            this->subresourceRange = (vk::ImageSubresourceRange&)region;
-            this->imgInfo = (vk::DescriptorImageInfo&)(region); 
+            this->allocation = region.allocation;
+            this->subresourceRange = region.subresourceRange;
+            this->imgInfo = region.imgInfo;
             return *this;
         };
 
@@ -197,7 +197,7 @@ namespace vkt {
         VmaImageAllocation& operator*() { return (*allocation); };
         const VmaImageAllocation* operator->() const { return &(*allocation); };
         const VmaImageAllocation& operator*() const { return (*allocation); };
-        
+
         // 
         vkh::VkImageSubresourceRange subresourceRange = {};
     // 

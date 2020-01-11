@@ -87,7 +87,8 @@ namespace vkt
             "VK_KHR_shader_float16_int8",
             "VK_KHR_shader_float_controls",
             "VK_KHR_shader_clock",
-            //"VK_KHR_surface",
+            "VK_KHR_imageless_framebuffer",
+            "VK_KHR_storage_buffer_storage_class",
 
             "VK_NV_compute_shader_derivatives",
             "VK_NV_corner_sampled_image",
@@ -316,6 +317,7 @@ namespace vkt
             auto gDescIndexing = vk::PhysicalDeviceDescriptorIndexingFeaturesEXT{};
             gStorage16.pNext = &gStorage8;
             gStorage8.pNext = &gDescIndexing;
+            gDescIndexing.descriptorBindingPartiallyBound = true;
 
             // 
             auto gFeatures = vk::PhysicalDeviceFeatures2{};
@@ -342,7 +344,7 @@ namespace vkt
                     queueFamilyIndices.push_back(graphicsFamilyIndex);
                     break;
                 };
-            };
+            }; //VkPhysicalDeviceDescriptorIndexingFeaturesEXT
 
             // return device with queue pointer
             const uint32_t qptr = 0;
@@ -355,7 +357,7 @@ namespace vkt
                     .ppEnabledLayerNames = layers.data(),
                     .enabledExtensionCount = uint32_t(deviceExtensions.size()),
                     .ppEnabledExtensionNames = deviceExtensions.data(),
-                    .pEnabledFeatures = reinterpret_cast<VkPhysicalDeviceFeatures*>(&gFeatures.features)
+                    //.pEnabledFeatures = &(VkPhysicalDeviceFeatures&)(gFeatures.features)
                 });
                 this->pipelineCache = this->device.createPipelineCache(vk::PipelineCacheCreateInfo());
             };
