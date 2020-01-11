@@ -19,8 +19,8 @@ namespace lancer {
             this->accelerationStructureInfo.instanceCount = 1u;
 
             // 
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance)*8u, .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance)*8u, .usage = { .eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -63,7 +63,8 @@ namespace lancer {
         // 
         std::shared_ptr<Node> mapMeshData() {
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
-                this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[this->mapMeshes[i]]->accelerationStructure, 8ull, &this->rawInstances[i].accelerationStructureHandle, this->driver->getDispatch());
+                this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[this->mapMeshes[i]]->accelerationStructure, sizeof(uint64_t), &this->rawInstances[i].accelerationStructureHandle, this->driver->getDispatch());
+                //std::cout << this->rawInstances[i].accelerationStructureHandle << std::endl;
             };
             return shared_from_this();
         };
@@ -147,7 +148,7 @@ namespace lancer {
             buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
             vkt::commandBarrier(buildCommand);
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(), this->driver->getDispatch());
-            vkt::commandBarrier(buildCommand); 
+            vkt::commandBarrier(buildCommand);
             this->needsUpdate = true; return shared_from_this();
         };
 
@@ -194,6 +195,9 @@ namespace lancer {
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
                 }, VMA_MEMORY_USAGE_GPU_ONLY));
             };
+
+            // 
+            this->mapMeshData();
 
             // 
             return shared_from_this();

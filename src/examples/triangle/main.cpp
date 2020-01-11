@@ -108,7 +108,7 @@ int main() {
         device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
 
         { // submit rendering (and wait presentation in device)
-            std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}), vk::ClearDepthStencilValue(1.0f, 0) };
+            std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.f}), vk::ClearDepthStencilValue(1.0f, 0) };
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
@@ -127,10 +127,10 @@ int main() {
             // Create render submission 
             std::vector<vk::Semaphore> waitSemaphores = { framebuffers[n_semaphore].semaphore }, signalSemaphores = { framebuffers[c_semaphore].semaphore };
             std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-            std::array<vk::CommandBuffer, 1> XPEHb = { commandBuffer };
+            std::array<vk::CommandBuffer, 2> XPEHb = { renderer->refCommandBuffer(), commandBuffer };
 
             // Submit command once
-            vkt::submitCmd(device, queue, { commandBuffer }, vk::SubmitInfo()
+            vkt::submitCmd(device, queue, { renderer->refCommandBuffer(), commandBuffer }, vk::SubmitInfo()
                 .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
                 .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));

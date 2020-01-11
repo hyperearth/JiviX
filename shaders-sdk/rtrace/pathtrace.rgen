@@ -26,19 +26,19 @@ precision highp int;
 
 layout (binding = 2, set = 1) uniform accelerationStructureNV Scene;
 
-RayPayloadData PrimaryRay;
+layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 
 void main() { // Hi-DPI adaptation
     const vec2 curPixel = vec2(gl_LaunchIDNV.xy) + 0.5f;
     const vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
 
     // 
-    vec4 origss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
-    vec4 targss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
+    //vec4 origss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
+    //vec4 targss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
 
     // 
-    vec3 origin = origss*modelviewInv;
-    vec3 target = targss*modelviewInv;
+    vec3 origin = vec3((curPixel/sizPixel)*2.f-1.f,1.f);//origss*modelviewInv;
+    vec3 target = vec3((curPixel/sizPixel)*2.f-1.f,0.f);//targss*modelviewInv;
     vec3 raydir = normalize(target - origin);
 
     // 
@@ -57,7 +57,7 @@ void main() { // Hi-DPI adaptation
 
         // 
         float depth = PrimaryRay.fdata.z;
-        if (depth >= 10000.f) { // 
+        if (depth <= 9999.f) { // 
             energy *= vec3(0.9f,0.98,0.999f);
         } else {
             energy *= vec3(0.5f,0.5f,1.f);
@@ -67,8 +67,13 @@ void main() { // Hi-DPI adaptation
         if (i == 0u) { origin.xyz += raydir.xyz * depth; };
     };
 
+    //energy *= raydir * 0.5f + 0.5f;
+    energy *= PrimaryRay.fdata.xyz;
+
+    // 
     const vec4 directSample = imageLoad(writeImages[DIFFUSED_FLIP0],ivec2(gl_LaunchIDNV.xy));
-    const vec4 locateSample = vec4(origin.xyz,1.f);//imageLoad(writeImages[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy));
+    const vec4 locateSample = imageLoad(writeImages[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy));
     imageStore(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(directSample.xyz + energy, directSample.w + 1.f));
     imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(locateSample));
+    imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_LaunchIDNV.xy), vec4(0.f,0.f,0.f,0.f));
 };
