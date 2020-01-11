@@ -86,7 +86,7 @@ int main() {
     pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
     pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
-    pipelineInfo.colorBlendAttachmentStates = { {}, {}, {}, {} }; // Default Blend State
+    pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
     pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
     auto finalPipeline = device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo);
 

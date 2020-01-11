@@ -24,7 +24,7 @@ precision highp int;
 #include "./index.glsl"
 
 
-layout (binding = 2, set = 3) uniform accelerationStructureNV Scene;
+layout (binding = 2, set = 1) uniform accelerationStructureNV Scene;
 
 RayPayloadData PrimaryRay;
 

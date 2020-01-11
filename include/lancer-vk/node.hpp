@@ -93,11 +93,13 @@ namespace lancer {
             };
 
             // plush attributes
-            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 2u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV
-            }).offset<vk::AccelerationStructureNV>(0u) = accelerationStructure;
+            if (accelerationStructure) {
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 2u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV
+                }).offset<vk::AccelerationStructureNV>(0u) = accelerationStructure;
+            };
 
             // plush uniforms 
             this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -193,8 +195,6 @@ namespace lancer {
                 }, VMA_MEMORY_USAGE_GPU_ONLY));
             };
 
-
-            
             // 
             return shared_from_this();
         };
