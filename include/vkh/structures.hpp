@@ -949,7 +949,7 @@ namespace vkh { // TODO: Coverage ALL of MOST and Common USING Vulkan Structures
         uint32_t instanceId : 24;
         uint32_t mask : 8;
         uint32_t instanceOffset : 24;
-        uint32_t flags_8u : 8;
+        uint32_t flags : 8;
         //union { uint32_t flags_8u : 8; VkGeometryInstanceFlagsNV flags = {}; };
         uint64_t accelerationStructureHandle = 0ull;
 

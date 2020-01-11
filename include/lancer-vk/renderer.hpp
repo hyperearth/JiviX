@@ -23,8 +23,8 @@ namespace lancer {
 
             // 
             const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize *8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuSBTBuffer = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize *8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -46,14 +46,14 @@ namespace lancer {
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rmiss.spv"), vk::ShaderStageFlagBits::eMissNV)
             });
-            
+
             //this->rayTraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper{};
             this->rayTraceInfo.vkInfo.layout = this->context->unifiedPipelineLayout;
             this->rayTraceInfo.addShaderStages(stages);
             this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo,nullptr,this->driver->getDispatch());
 
             // get ray-tracing properties
-            this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupBaseAlignment,this->rawSBTBuffer.data(),this->driver->getDispatch());
+            this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupHandleSize,this->rawSBTBuffer.data(),this->driver->getDispatch());
             return shared_from_this();
         };
 
@@ -61,14 +61,14 @@ namespace lancer {
         std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { // get ray-tracing properties
             const auto& rtxp = this->rayTracingProperties;
             const auto& renderArea = this->context->refScissor();
-            rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupBaseAlignment) });
+            rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupHandleSize) });
             vkt::commandBarrier(rayTraceCommand);
             rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
             rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rayTraceCommand.traceRaysNV(
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset(), 
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo. hitOffsetIndex() * rtxp.shaderGroupBaseAlignment, rtxp.shaderGroupBaseAlignment,
+                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
+                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo. hitOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
                 {},0u,0u,
                 renderArea.extent.width, renderArea.extent.height, 1u, 
                 this->driver->getDispatch()

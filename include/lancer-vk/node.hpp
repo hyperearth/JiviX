@@ -17,6 +17,7 @@ namespace lancer {
             // 
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;
             this->accelerationStructureInfo.instanceCount = 1u;
+            this->accelerationStructureInfo.geometryCount = 0u;
 
             // 
             this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance)*8u, .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
@@ -156,6 +157,7 @@ namespace lancer {
         std::shared_ptr<Node> createAccelerationStructure() { // Re-assign instance count
             this->accelerationStructureInfo.instanceCount = instanceCounter;
             this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
+            this->accelerationStructureInfo.geometryCount = 0u;
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...

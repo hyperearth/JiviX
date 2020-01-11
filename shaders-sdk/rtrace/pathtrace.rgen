@@ -3,6 +3,7 @@
 #extension GL_GOOGLE_include_directive  : require
 #extension GL_EXT_scalar_block_layout   : require
 #extension GL_EXT_shader_realtime_clock : require
+#extension GL_EXT_samplerless_texture_functions : require
 
 #extension GL_EXT_shader_explicit_arithmetic_types         : require
 #extension GL_EXT_shader_explicit_arithmetic_types_int8    : require
@@ -24,21 +25,21 @@ precision highp int;
 #include "./index.glsl"
 
 
-layout (binding = 2, set = 1) uniform accelerationStructureNV Scene;
-
+layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
 layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 
+// TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
-    const vec2 curPixel = vec2(gl_LaunchIDNV.xy) + 0.5f;
+    const vec2 curPixel = vec2(gl_LaunchIDNV.xy); //+ 0.5f;
     const vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
 
     // 
-    //vec4 origss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
-    //vec4 targss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
+    vec4 origss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
+    vec4 targss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
 
     // 
-    vec3 origin = vec3((curPixel/sizPixel)*2.f-1.f,1.f);//origss*modelviewInv;
-    vec3 target = vec3((curPixel/sizPixel)*2.f-1.f,0.f);//targss*modelviewInv;
+    vec3 origin = origss*modelviewInv;
+    vec3 target = targss*modelviewInv;
     vec3 raydir = normalize(target - origin);
 
     // 
@@ -48,7 +49,8 @@ void main() { // Hi-DPI adaptation
 
     // 
     uint i = 0u; signal = raydir.xyz*0.5f+0.5f;
-    for (i = 0u;i<1u;i++) {
+    for (i = 0u; i < 1u; i++) {
+        //PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f);
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
             0, 1, 0,
             origin.xyz, 0.0001f,
@@ -57,7 +59,7 @@ void main() { // Hi-DPI adaptation
 
         // 
         float depth = PrimaryRay.fdata.z;
-        if (depth <= 9999.f) { // 
+        if (depth >= 9999.f) { // 
             energy *= vec3(0.9f,0.98,0.999f);
         } else {
             energy *= vec3(0.5f,0.5f,1.f);
@@ -68,12 +70,13 @@ void main() { // Hi-DPI adaptation
     };
 
     //energy *= raydir * 0.5f + 0.5f;
-    energy *= PrimaryRay.fdata.xyz;
+    //energy *= PrimaryRay.fdata.xyz;
 
     // 
     const vec4 directSample = imageLoad(writeImages[DIFFUSED_FLIP0],ivec2(gl_LaunchIDNV.xy));
-    const vec4 locateSample = imageLoad(writeImages[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy));
+    const vec4 locateSample = vec4(texelFetch(frameBuffers[SAMPLING],ivec2(gl_LaunchIDNV.xy),0));
+    //const vec4 locateSample = imageLoad(writeImages[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy));
     imageStore(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(directSample.xyz + energy, directSample.w + 1.f));
     imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(locateSample));
-    imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_LaunchIDNV.xy), vec4(0.f,0.f,0.f,0.f));
+    imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_LaunchIDNV.xy), vec4(0.f,0.f,0.f,0.f)); // Access And Clear Manually
 };

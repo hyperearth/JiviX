@@ -70,7 +70,12 @@ int main() {
     // geometry data
     mesh->addBinding(gpuBuffer, { .stride = 16u });
     mesh->addAttribute({ .format = VK_FORMAT_R32G32B32A32_SFLOAT }, true);
-    node->pushInstance(vkh::VsGeometryInstance{}, node->pushMesh(mesh));
+    node->pushInstance(vkh::VsGeometryInstance{
+        .instanceId = 0u,
+        .mask = 0xff,
+        .instanceOffset = 0u,
+        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV
+    }, node->pushMesh(mesh));
 
     // initialize program
     renderer->setupCommands();

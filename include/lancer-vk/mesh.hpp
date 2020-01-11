@@ -16,6 +16,7 @@ namespace lancer {
             this->context = context;
 
             // 
+            this->accelerationStructureInfo.instanceCount = 0u;
             this->accelerationStructureInfo.geometryCount = this->instanceCount;
             this->accelerationStructureInfo.pGeometries = &this->geometryTemplate;
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_NV;
@@ -215,6 +216,7 @@ namespace lancer {
             this->geometries.resize(this->instanceCount);
             for (uint32_t i = 0u; i < this->instanceCount; i++) {
                 this->geometries[i] = this->geometryTemplate;
+                this->geometries[i].flags = { .eOpaque = 1 };
                 if (this->gpuTransformData.has()) {
                     this->geometries[i].geometry.triangles.transformOffset = this->transformStride * i + this->gpuTransformData.offset(); // Should To Be Different's
                     this->geometries[i].geometry.triangles.transformData = this->gpuTransformData;
@@ -225,6 +227,7 @@ namespace lancer {
             this->accelerationStructureInfo.geometryCount = this->geometries.size();
             this->accelerationStructureInfo.pGeometries = this->geometries.data();
             this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_NV;
+            this->accelerationStructureInfo.instanceCount = 0u;
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...

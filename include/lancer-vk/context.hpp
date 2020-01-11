@@ -168,7 +168,7 @@ namespace lancer {
             });
 
             // TODO: controllable 
-            glm::mat4 projected = glm::perspective(30.f, float(width) / float(height), 0.0001f, 10000.f);
+            glm::mat4 projected = glm::perspective(110.f*glm::pi<float>()/180.f, float(width) / float(height), 0.0001f, 10000.f);
             glm::mat4 modelview = glm::lookAt(glm::vec3(0.f,0.f,1.f),glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,1.f,0.f));
 
             // 
