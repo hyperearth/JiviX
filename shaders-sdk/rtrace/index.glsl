@@ -2,8 +2,8 @@
 // Re-Sampling
 #define DIFFUSED_FLIP0 0
 #define SAMPLING_FLIP0 1
-#define DIFFUSED_FLIP1 2
-#define SAMPLING_FLIP1 3
+#define DIFFUSED_FLIP1 0//2
+#define SAMPLING_FLIP1 1//3
 
 // Rasterization or First Step
 #define COLORING 0

@@ -134,6 +134,8 @@ namespace lancer {
             const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
+            //this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
             this->pipelineInfo.vertexInputAttributeDescriptions = this->vertexInputAttributeDescriptions;
             this->pipelineInfo.vertexInputBindingDescriptions = this->vertexInputBindingDescriptions;

@@ -53,7 +53,7 @@ namespace lancer {
                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                    .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                     .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
                 });
             };
@@ -111,7 +111,8 @@ namespace lancer {
         // 
         std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
             std::array<VkImageView, 5u> deferredAttachments = {};
-            std::array<VkImageView, 5u> samplingAttachments = {};
+            std::array<VkImageView, 5u> smpFlip0Attachments = {};
+            std::array<VkImageView, 5u> smpFlip1Attachments = {};
 
             // 
             for (uint32_t b=0u;b<4u;b++) { // 
@@ -127,14 +128,22 @@ namespace lancer {
 
             // 
             for (uint32_t b=0u;b<4u;b++) { // 
-                samplesImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{ 
+                smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
                     .extent = {width,height,1u}, 
-                    .usage = { .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 }, 
+                    .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
-                samplingAttachments[b] = samplesImages[b];
+                smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .extent = {width,height,1u},
+                    .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                }), vkh::VkImageViewCreateInfo{
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                });
+                smpFlip0Attachments[b] = smFlip0Images[b];
+                smpFlip1Attachments[b] = smFlip1Images[b];
             };
 
             // 
@@ -145,12 +154,12 @@ namespace lancer {
             }), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .subresourceRange = { .aspectMask = { .eDepth = 1 } },
-
             });
             
             // 5th attachment
             deferredAttachments[4u] = depthImage;
-            samplingAttachments[4u] = depthImage;
+            smpFlip0Attachments[4u] = depthImage;
+            smpFlip1Attachments[4u] = depthImage;
 
             // 
             deferredFramebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
@@ -160,12 +169,21 @@ namespace lancer {
                 .width = width,
                 .height = height
             });
-            
+
             // Reprojection WILL NOT write own depth... 
-            samplingFramebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+            smpFlip0Framebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
-                .attachmentCount = samplingAttachments.size(),
-                .pAttachments = samplingAttachments.data(),
+                .attachmentCount = smpFlip0Attachments.size(),
+                .pAttachments = smpFlip0Attachments.data(),
+                .width = width,
+                .height = height
+            });
+
+            // Reprojection WILL NOT write own depth... 
+            smpFlip1Framebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+                .renderPass = renderPass,
+                .attachmentCount = smpFlip1Attachments.size(),
+                .pAttachments = smpFlip1Attachments.data(),
                 .width = width,
                 .height = height
             });
@@ -186,8 +204,9 @@ namespace lancer {
 
             //  
             vkt::submitOnce(*thread, *thread, *thread, [&,this](vk::CommandBuffer& cmd) { for (uint32_t i = 0u; i < 4u; i++) { // Definitely Not an Hotel
-                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{.image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
-                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{.image = this->samplesImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->samplesImages[i] });
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip0Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip0Images[i] });
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip1Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip1Images[i] });
             };});
 
             // 
@@ -263,7 +282,7 @@ namespace lancer {
             };
 
             { // For Reprojection Pipeline
-                for (uint32_t b = 0u; b < 4u; b++) { descriptions[b] = samplesImages[b]; };
+                for (uint32_t b = 0u; b < 4u; b++) { descriptions[b] = smFlip0Images[b]; };
 
                 // 
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
@@ -277,13 +296,32 @@ namespace lancer {
 
                 // Reprojection WILL NOT write own depth... 
                 this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
-                    this->samplingDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
+                    this->smpFlip0DescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
                 )),{});
+            };
+
+            { // For Reprojection Pipeline
+                for (uint32_t b = 0u; b < 4u; b++) { descriptions[b] = smFlip1Images[b]; };
+
+                // 
+                vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
+                vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
+                    .descriptorCount = 4u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+                });
+                //for (uint32_t i = 0u; i < descriptions.size(); i++) { handle.offset<VkDescriptorImageInfo>(i) = descriptions[i]; };
+                memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size() * sizeof(VkDescriptorImageInfo));
+
+                // Reprojection WILL NOT write own depth... 
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
+                    this->smpFlip1DescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
+                )), {});
             };
 
             // 
             this->descriptorSets[2] = this->deferredDescriptorSet;
-            this->descriptorSets[3] = this->samplingDescriptorSet;
+            this->descriptorSets[3] = this->smpFlip0DescriptorSet;
             
             // 
             return shared_from_this();
@@ -302,7 +340,8 @@ namespace lancer {
         vk::Rect2D scissor = {};
         vk::Viewport viewport = {};
         vk::RenderPass renderPass = {};
-        vk::Framebuffer samplingFramebuffer = {};
+        vk::Framebuffer smpFlip0Framebuffer = {};
+        vk::Framebuffer smpFlip1Framebuffer = {};
         vk::Framebuffer deferredFramebuffer = {};
 
         // 
@@ -310,14 +349,16 @@ namespace lancer {
         Matrices uniformData = {};
 
         // Image Buffers
-        std::array<vkt::ImageRegion,4u> samplesImages = {}; // Path Tracing
-        std::array<vkt::ImageRegion,4u> frameBfImages = {}; // Rasterization
+        std::array<vkt::ImageRegion, 4u> smFlip0Images = {};
+        std::array<vkt::ImageRegion, 4u> smFlip1Images = {}; // Path Tracing
+        std::array<vkt::ImageRegion, 4u> frameBfImages = {}; // Rasterization
         std::array<vk::DescriptorSet,5u> descriptorSets = {};
         vkt::ImageRegion depthImage = {};
 
         // 
         vk::DescriptorSet deferredDescriptorSet = {};
-        vk::DescriptorSet samplingDescriptorSet = {};
+        vk::DescriptorSet smpFlip0DescriptorSet = {};
+        vk::DescriptorSet smpFlip1DescriptorSet = {};
         vk::PipelineLayout unifiedPipelineLayout = {};
 
         // 

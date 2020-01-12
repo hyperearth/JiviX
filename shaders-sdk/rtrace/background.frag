@@ -36,6 +36,9 @@ void main() {
     const vec2 size = imageSize(writeImages[DIFFUSED_FLIP1]);
     vec2 coord = gl_FragCoord.xy; coord.y = size.y - coord.y;
     vec4 samples = max(imageLoad(writeImages[DIFFUSED_FLIP1],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
-    samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f), colored = vec4(vec3(1.f,1.f,1.f),1.f); // Emission 
-    gl_FragDepth = 1.f;
+    samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f), colored = vec4(vec3(1.f,1.f,1.f),1.f); // Emission
+    
+    gl_FragDepth = 1.f; 
+    imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
+    imageStore(writeImages[SAMPLING_FLIP0], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), samples);
 };

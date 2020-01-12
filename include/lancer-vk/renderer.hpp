@@ -108,7 +108,7 @@ namespace lancer {
             this->pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-                });
+            });
 
             this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{
                 .depthTestEnable = false,
@@ -140,6 +140,11 @@ namespace lancer {
             };
 
             // 
+            //this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+            //this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+
+            // 
             rasterCommand.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, clearValues[4u].depthStencil, (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
@@ -166,8 +171,10 @@ namespace lancer {
                 vk::ClearDepthStencilValue(1.f, 0)
             };
 
+            this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+
             // 
-            resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->samplingFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->smpFlip0Framebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
             resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             resampleCommand.setViewport(0, { viewport });
@@ -184,6 +191,17 @@ namespace lancer {
         std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { // get ray-tracing properties
             const auto& rtxp = this->rayTracingProperties;
             const auto& renderArea = this->context->refScissor();
+
+            this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+
+            // copy resampled data into ray tracing samples
+            for (uint32_t i = 0; i < 2; i++) {
+                rayTraceCommand.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
+                    this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
+                ) });
+            };
+
+            // 
             rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount() * rtxp.shaderGroupHandleSize) });
             vkt::commandBarrier(rayTraceCommand);
             rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
@@ -206,7 +224,7 @@ namespace lancer {
                 this->context->createRenderPass();
             };
 
-            //
+            // 
             this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
             this->cmdbuf.updateBuffer<Matrices>(context->uniformGPUData, context->uniformGPUData.offset(), context->uniformData);
             vkt::commandBarrier(this->cmdbuf);
