@@ -54,6 +54,7 @@ namespace lancer {
         std::shared_ptr<Node> pushInstance(const vkh::VsGeometryInstance& instance = {}, const uintptr_t meshID = 0ull) {
             const auto instanceID = this->instanceCounter++;
             this->rawInstances[instanceID] = instance;
+            this->rawInstances[instanceID].instanceId = meshID; // Customize Per Mesh
             this->mapMeshes.push_back(meshID);
             if (this->meshes[meshID]->accelerationStructure) {
                 this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle, this->driver->getDispatch());
