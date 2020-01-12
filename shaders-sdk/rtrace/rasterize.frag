@@ -37,6 +37,6 @@ layout (location = TANGENTS) out vec4 tangent;
 
 // 
 void main() {
-    colored = 1.f.xxxx;//vec4(texture(textures[0],gTexcoords.xy).xyz,1.f);
+    colored = vec4(1.f,1.f,1.f,1.f);//vec4(texture(textures[0],gTexcoords.xy).xyz,1.f);
     samples = gPosition;
 };
