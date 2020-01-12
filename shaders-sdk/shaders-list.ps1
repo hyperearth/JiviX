@@ -57,6 +57,8 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     BuildCompute "rasterize.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "resample.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "resample.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "background.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "background.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "pathtrace.rgen"   "$INDIR$RTPU" "$HRDDIR$RTPU"
     BuildCompute "pathtrace.rchit"  "$INDIR$RTPU" "$HRDDIR$RTPU"
     BuildCompute "pathtrace.rmiss"  "$INDIR$RTPU" "$HRDDIR$RTPU"

@@ -29,8 +29,8 @@ layout (location = 1) in vec4 iNormals;
 layout (location = 3) in vec4 iTangents;
 
 // Right Oriented
-layout (location = 0) out vec4 gTexcoords;
-layout (location = 1) out vec4 gPosition;
+layout (location = 0) out vec4 gPosition;
+layout (location = 1) out vec4 gTexcoords;
 layout (location = 2) out vec4 gNormals;
 layout (location = 3) out vec4 gTangents;
 

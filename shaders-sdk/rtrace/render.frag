@@ -29,9 +29,9 @@ layout ( location = 0 ) out vec4 uFragColor;
 
 // 
 void main() {
-    const vec2 size = imageSize(writeImages[DIFFUSED_FLIP1]);
-    vec2 coord = gl_FragCoord.xy; coord.y = size.y - coord.y;
+    const ivec2 size = imageSize(writeImages[DIFFUSED_FLIP1]);
+    vec2 coord = gl_FragCoord.xy, swapc = gl_FragCoord.xy; coord.y = float(size.y) - coord.y;
     vec4 samples = max(imageLoad(writeImages[DIFFUSED_FLIP1],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
     //if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*vec3(1.f,1.f,1.f),1.f);
-    if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],ivec2(coord),0).xyz,1.f);
+    if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],ivec2(swapc),0).xyz,1.f);
 };

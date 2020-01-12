@@ -30,17 +30,20 @@ layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 
 // TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
-    const vec2 curPixel = vec2(gl_LaunchIDNV.xy); //+ 0.5f;
-    const vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
+    vec2 curPixel = vec2(gl_LaunchIDNV.xy); //+ 0.5f;
+    vec2 sizPixel = vec2(gl_LaunchSizeNV.xy);
+    //curPixel.y = sizPixel.y - curPixel.y;
 
     // 
-    vec4 origss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
-    vec4 targss = vec4(divW(vec4((curPixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
+    const vec4 worldsSample = texelFetch(frameBuffers[SAMPLING], ivec2(gl_LaunchIDNV.xy),0);
+    const vec3 cameraSample = worldsSample*modelview;
 
     // 
-    vec3 origin = origss*modelviewInv;
-    vec3 target = targss*modelviewInv;
-    vec3 raydir = normalize(target - origin);
+    vec3 raydir = (modelviewInv * normalize(cameraSample.xyz)).xyz;
+    vec3 origin = worldsSample.xyz;
+
+    // DEBUG
+    origin.xyz -= raydir.xyz;
 
     // 
     vec3 signal = vec3(0.f,0.f,0.f);
@@ -60,9 +63,9 @@ void main() { // Hi-DPI adaptation
         // 
         float depth = PrimaryRay.fdata.z;
         if (depth >= 9999.f) { // 
-            energy *= vec3(0.9f,0.98,0.999f);
+            energy *= vec3(0.9f,0.98,0.999f); emission = true;
         } else {
-            energy *= vec3(0.5f,0.5f,1.f);
+            energy *= vec3(0.5f,0.75f,1.f);
         };
 
         // 
@@ -73,10 +76,9 @@ void main() { // Hi-DPI adaptation
     //energy *= PrimaryRay.fdata.xyz;
 
     // 
-    const vec4 directSample = imageLoad(writeImages[DIFFUSED_FLIP0],ivec2(gl_LaunchIDNV.xy));
-    const vec4 locateSample = vec4(texelFetch(frameBuffers[SAMPLING],ivec2(gl_LaunchIDNV.xy),0));
+    const vec4 directSample =  imageLoad(writeImages[DIFFUSED_FLIP0], ivec2(gl_LaunchIDNV.xy));
     //const vec4 locateSample = imageLoad(writeImages[SAMPLING_FLIP0],ivec2(gl_LaunchIDNV.xy));
     imageStore(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(directSample.xyz + energy, directSample.w + 1.f));
-    imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(locateSample));
+    imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(worldsSample.xyz,1.f));
     imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_LaunchIDNV.xy), vec4(0.f,0.f,0.f,0.f)); // Access And Clear Manually
 };
