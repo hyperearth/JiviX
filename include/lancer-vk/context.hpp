@@ -45,6 +45,7 @@ namespace lancer {
         // 
         std::shared_ptr<Context> createRenderPass() { // 
             vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
+
             for (uint32_t b=0u;b<4u;b++) {
                 rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
@@ -52,6 +53,7 @@ namespace lancer {
                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                    .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
                     .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
                 });
             };
@@ -63,6 +65,7 @@ namespace lancer {
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                 .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             });
 
@@ -181,12 +184,24 @@ namespace lancer {
             scissor = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(width, height) };
             viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
+            //  
+            vkt::submitOnce(*thread, *thread, *thread, [&,this](vk::CommandBuffer& cmd) { for (uint32_t i = 0u; i < 4u; i++) { // Definitely Not an Hotel
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{.image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{.image = this->samplesImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->samplesImages[i] });
+            };});
+
             // 
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Context> createDescriptorSetLayouts() { // 
+        std::shared_ptr<Context> createDescriptorSetLayouts() { // reset layout descriptions
+            this->meshDataDescriptorSetLayoutHelper = {};
+            this->bindingsDescriptorSetLayoutHelper = {};
+            this->samplingDescriptorSetLayoutHelper = {};
+            this->deferredDescriptorSetLayoutHelper = {};
+            this->materialDescriptorSetLayoutHelper = {};
+
             for (uint32_t b=0u;b<8u;b++) { // For Ray Tracers
                 this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER     , .descriptorCount =   64u, .stageFlags = { .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
             };

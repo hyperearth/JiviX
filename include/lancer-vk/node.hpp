@@ -120,6 +120,7 @@ namespace lancer {
                     .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
                 }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuBindings;
 
+                // 
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 1u,
                     .dstArrayElement = i,
@@ -133,6 +134,7 @@ namespace lancer {
                 this->context->descriptorSets[0] = (this->meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(this->meshDataDescriptorSetInfo)[0])
             )),{});
 
+            // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->bindingsDescriptorSetInfo.setDescriptorSet(
                 this->context->descriptorSets[1] = (this->bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(this->bindingsDescriptorSetInfo)[0])
             )),{});
