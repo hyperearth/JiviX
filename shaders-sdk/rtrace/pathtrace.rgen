@@ -34,7 +34,7 @@ void main() { // Hi-DPI adaptation
     ivec2 sizPixel = ivec2(gl_LaunchSizeNV.xy);
 
     // 
-    const vec4 worldsSample = texelFetch(frameBuffers[SAMPLING], ivec2(invPixel.xy),0);
+    const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
     const vec3 cameraSample = worldsSample*modelview;
 
     // 
@@ -75,9 +75,9 @@ void main() { // Hi-DPI adaptation
     };
 
     // 
-      const vec4 directSample = imageLoad(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy));
-    //const vec4 locateSample = imageLoad(writeImages[SAMPLING_FLIP0], ivec2(gl_LaunchIDNV.xy));
-    imageStore(writeImages[DIFFUSED_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(directSample.xyz + energy, directSample.w + 1.f));
+      const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
+    //const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
+    imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), vec4(directSample.xyz + energy, directSample.w + 1.f));
     //imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(worldsSample.xyz,1.f));
     //imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_LaunchIDNV.xy), vec4(0.f,0.f,0.f,0.f)); // Access And Clear Manually
 };

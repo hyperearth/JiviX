@@ -33,8 +33,8 @@ void main() {
     //const ivec2 f2fx = ivec2(idx%size.x,idx/size.x);
 
     // 
-    const vec4 positions = imageLoad(writeImages[SAMPLING_FLIP1],f2fx);
-    const vec4 diffcolor = imageLoad(writeImages[DIFFUSED_FLIP1],f2fx);
+    const vec4 positions = imageLoad(writeImages[SAMPLING],f2fx);
+    const vec4 diffcolor = imageLoad(writeImages[DIFFUSED],f2fx);
 
     // 
     gl_PointSize = 0; gColor = 0.f.xxxx;

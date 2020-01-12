@@ -31,7 +31,7 @@ layout (location = 3) in vec4 gTangents;
 
 // 
 layout (location = COLORING) out vec4 colored;
-layout (location = SAMPLING) out vec4 samples;
+layout (location = POSITION) out vec4 samples;
 layout (location = NORMALED) out vec4 normals;
 layout (location = TANGENTS) out vec4 tangent;
 

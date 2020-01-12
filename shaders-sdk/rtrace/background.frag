@@ -27,18 +27,18 @@ precision highp int;
 layout ( location = 0 ) in vec2 vcoord;
 layout ( location = 1 ) in vec4 position;
 layout ( location = COLORING ) out vec4 colored;
-layout ( location = SAMPLING ) out vec4 samples;
+layout ( location = POSITION ) out vec4 samples;
 layout ( location = NORMALED ) out vec4 normals;
 layout ( location = TANGENTS ) out vec4 tangent;
 
 // 
 void main() {
-    const vec2 size = imageSize(writeImages[DIFFUSED_FLIP1]);
+    const vec2 size = imageSize(writeImages[DIFFUSED]);
     vec2 coord = gl_FragCoord.xy; coord.y = size.y - coord.y;
-    vec4 samples = max(imageLoad(writeImages[DIFFUSED_FLIP1],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
+    vec4 samples = max(imageLoad(writeImages[DIFFUSED],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
     samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f), colored = vec4(vec3(1.f,1.f,1.f),1.f); // Emission
     
     gl_FragDepth = 1.f; 
-    imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
-    imageStore(writeImages[SAMPLING_FLIP0], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), samples);
+    imageStore(writeImages[DIFFUSED], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
+    imageStore(writeImages[SAMPLING], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), samples);
 };

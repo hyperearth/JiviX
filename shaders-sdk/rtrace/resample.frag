@@ -25,8 +25,8 @@ precision highp int;
 // 
 layout (location = 0) in vec4 gColor;
 //layout (location = 1) in vec4 gSample;
-layout (location = DIFFUSED_FLIP0) out vec4 oDiffused;
-layout (location = SAMPLING_FLIP0) out vec4 oSampling;
+layout (location = DIFFUSED) out vec4 oDiffused;
+layout (location = SAMPLING) out vec4 oSampling;
 
 // 
 void main() {

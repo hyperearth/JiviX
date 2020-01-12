@@ -153,9 +153,9 @@ namespace lancer {
                 .usage = { .eTransferDst = 1, .eDepthStencilAttachment = 1 },
             }), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .subresourceRange = { .aspectMask = { .eDepth = 1 } },
+                .subresourceRange = { .aspectMask = { .eDepth = 1, .eStencil = 1 } },
             });
-            
+
             // 5th attachment
             deferredAttachments[4u] = depthImage;
             smpFlip0Attachments[4u] = depthImage;
@@ -202,12 +202,15 @@ namespace lancer {
             scissor = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(width, height) };
             viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
-            //  
-            vkt::submitOnce(*thread, *thread, *thread, [&,this](vk::CommandBuffer& cmd) { for (uint32_t i = 0u; i < 4u; i++) { // Definitely Not an Hotel
-                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
-                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip0Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip0Images[i] });
-                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip1Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip1Images[i] });
-            };});
+            // 
+            vkt::submitOnce(*thread, *thread, *thread, [&,this](vk::CommandBuffer& cmd) {
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage, .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = depthImage });
+                for (uint32_t i = 0u; i < 4u; i++) { // Definitely Not an Hotel
+                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
+                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip0Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip0Images[i] });
+                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip1Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip1Images[i] });
+                };
+            });
 
             // 
             return shared_from_this();
