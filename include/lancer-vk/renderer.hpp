@@ -58,26 +58,6 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { // get ray-tracing properties
-            const auto& rtxp = this->rayTracingProperties;
-            const auto& renderArea = this->context->refScissor();
-            rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount()*rtxp.shaderGroupHandleSize) });
-            vkt::commandBarrier(rayTraceCommand);
-            rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
-            rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            rayTraceCommand.traceRaysNV(
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset(), 
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo. hitOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
-                {},0u,0u,
-                renderArea.extent.width, renderArea.extent.height, 1u, 
-                this->driver->getDispatch()
-            );
-            vkt::commandBarrier(rayTraceCommand);
-            return shared_from_this();
-        };
-
-        // 
         std::shared_ptr<Renderer> setupBackgroundPipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
@@ -147,7 +127,6 @@ namespace lancer {
             return shared_from_this();
         };
 
-
         // 
         std::shared_ptr<Renderer> setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}) { // 
             const auto& viewport = this->context->refViewport();
@@ -197,6 +176,26 @@ namespace lancer {
             vkt::commandBarrier(resampleCommand);
 
             // 
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { // get ray-tracing properties
+            const auto& rtxp = this->rayTracingProperties;
+            const auto& renderArea = this->context->refScissor();
+            rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount() * rtxp.shaderGroupHandleSize) });
+            vkt::commandBarrier(rayTraceCommand);
+            rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
+            rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            rayTraceCommand.traceRaysNV(
+                this->gpuSBTBuffer, this->gpuSBTBuffer.offset(),
+                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
+                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.hitOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
+                {}, 0u, 0u,
+                renderArea.extent.width, renderArea.extent.height, 1u,
+                this->driver->getDispatch()
+            );
+            vkt::commandBarrier(rayTraceCommand);
             return shared_from_this();
         };
 
