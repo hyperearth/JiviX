@@ -171,7 +171,7 @@ namespace lancer {
             resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             resampleCommand.setViewport(0, { viewport });
             resampleCommand.setScissor(0, { renderArea });
-            resampleCommand.draw(renderArea.extent.width * renderArea.extent.height, 1u, 0u, 0u);
+            resampleCommand.draw(renderArea.extent.width, renderArea.extent.height, 0u, 0u);
             resampleCommand.endRenderPass();
             vkt::commandBarrier(resampleCommand);
 

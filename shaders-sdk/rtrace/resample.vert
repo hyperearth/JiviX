@@ -27,9 +27,10 @@ layout (location = 0) out vec4 gColor;
 
 // 
 void main() {
-    const uint idx = gl_VertexIndex;
+    //const uint idx = gl_VertexIndex;
     const ivec2 size = imageSize(writeImages[0]  );
-    const ivec2 f2fx = ivec2(idx%size.x,idx/size.x);
+    const ivec2 f2fx = ivec2(gl_VertexIndex, gl_InstanceIndex);
+    //const ivec2 f2fx = ivec2(idx%size.x,idx/size.x);
 
     // 
     const vec4 positions = imageLoad(writeImages[SAMPLING_FLIP1],f2fx);
