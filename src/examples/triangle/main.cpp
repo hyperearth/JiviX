@@ -101,10 +101,13 @@ int main() {
 
     // Every mesh will have transform buffer per internal instances
     std::vector<std::shared_ptr<lancer::Mesh>> meshes = {};
+    std::vector<std::vector<glm::mat3x4>> instancedTransformPerMesh = {}; // Run Out, Run Over
+
+    // Transform Data Buffer
     std::vector<vkt::Vector<glm::mat3x4>> gpuInstancedTransformPerMesh = {};
     std::vector<vkt::Vector<glm::mat3x4>> cpuInstancedTransformPerMesh = {};
 
-    // 
+    // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
     std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
 
@@ -135,6 +138,12 @@ int main() {
         buffersViews.back().stride = BV.byteStride;
     };
 
+    // 
+    auto addInstance = [&](const uint32_t meshID = 0u, const glm::mat3x4& T = glm::mat3x4(1.f)) {
+        instancedTransformPerMesh[meshID].push_back(T);
+        meshes[meshID]->increaseInstanceCount();
+    };
+
 
     // Gonki 
     //  #  //
@@ -150,6 +159,7 @@ int main() {
     // 
     for (uint32_t i = 0; i < model.meshes.size(); i++) {
         auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
+        instancedTransformPerMesh.push_back({});
         const auto& meshData = model.meshes[i];
 
         for (uint32_t v = 0; v < meshData.primitives.size(); v++) {

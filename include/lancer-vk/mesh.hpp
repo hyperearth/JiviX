@@ -115,6 +115,12 @@ namespace lancer {
         };
 
         // 
+        std::shared_ptr<Mesh> increaseInstanceCount(const uint32_t& instanceCount = 1u) {
+            this->instanceCount += instanceCount;
+            return shared_from_this();
+        };
+
+        // 
         std::shared_ptr<Mesh> setInstanceCount(const uint32_t& instanceCount = 1u) {
             this->instanceCount = instanceCount;
             return shared_from_this();
@@ -164,6 +170,8 @@ namespace lancer {
 
         // Create Secondary Command With Pipeline
         std::shared_ptr<Mesh> createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}) { // UNIT ONLY!
+            if (this->instanceCount <= 0u) return shared_from_this();
+
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             for (auto& B : this->bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
 
@@ -186,7 +194,7 @@ namespace lancer {
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
 
-            // Make Draw Instanced 
+            // Make Draw Instanced
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
                 rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
@@ -281,7 +289,7 @@ namespace lancer {
     protected: friend Mesh; friend Node; friend Renderer; // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indexData = {}; 
         vk::IndexType indexType = vk::IndexType::eNoneNV;
-        uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 1u;
+        uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 0u;
         bool needsUpdate = false;
 
         // 
