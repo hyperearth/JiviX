@@ -82,6 +82,20 @@ namespace lancer {
         const Driver& operator*() const { return *driver; };
         const Driver* operator->() const { return &(*driver); };
 
+        // 
+        std::shared_ptr<Thread> submitOnce(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
+            vkt::submitOnce(*this, *this, *this, cmdFn, smbi);
+            return shared_from_this();
+        };
+
+        // Async Version
+        auto submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
+            return std::async(std::launch::async | std::launch::deferred, [=, this]() {
+                vkt::submitOnceAsync(*this, *this, *this, cmdFn, smbi).get();
+                return this->shared_from_this();
+            });
+        };
+
     // 
     protected: friend Thread; friend Driver; // 
         vk::Queue queue = {};

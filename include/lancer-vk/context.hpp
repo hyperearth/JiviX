@@ -203,7 +203,7 @@ namespace lancer {
             viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
             // 
-            vkt::submitOnce(*thread, *thread, *thread, [&,this](vk::CommandBuffer& cmd) {
+            thread->submitOnce([&,this](vk::CommandBuffer& cmd) {
                 vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage, .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = depthImage });
                 for (uint32_t i = 0u; i < 4u; i++) { // Definitely Not an Hotel
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
