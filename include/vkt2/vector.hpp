@@ -60,8 +60,8 @@ namespace vkt {
     public: // in-variant 
         vk::Buffer buffer = {};
         vk::DeviceSize range = 0ull;
-
-    // 
+        //vk::DeviceSize stride = 1ull;
+        //
     protected: friend VmaBufferAllocation; // 
         VmaAllocation allocation = {};
         VmaAllocationInfo allocationInfo = {};
@@ -291,9 +291,16 @@ namespace vkt {
         operator const VkBufferView& () const { return reinterpret_cast<const VkBufferView&>(view); };
 
         // 
-        const vk::DeviceSize& offset() const { return bufInfo.offset; };
-        vk::DeviceSize range() const { return (bufInfo.range != VK_WHOLE_SIZE ? std::min(bufInfo.range, allocation->range - bufInfo.offset) : (allocation->range - bufInfo.offset)); };
-        vk::DeviceSize size() const { return this->range() / sizeof(T); };
+        vk::DeviceSize& offset() { return this->bufInfo.offset; };
+        //vk::DeviceSize& stride() { return this->stride; };
+
+        // 
+        const vk::DeviceSize& offset() const { return this->bufInfo.offset; };
+        //const vk::DeviceSize& stride() const { return this->stride; };
+
+        // 
+        vk::DeviceSize range() const { return (this->bufInfo.range != VK_WHOLE_SIZE ? std::min(this->bufInfo.range, this->allocation->range - this->bufInfo.offset) : (this->allocation->range - this->bufInfo.offset)); };
+        vk::DeviceSize size() const { return this->range() / this->stride; };
 
         // 
         vk::Buffer& buffer() { return reinterpret_cast<vk::Buffer&>(allocation->buffer); };
@@ -302,7 +309,7 @@ namespace vkt {
         // 
         const vk::Buffer& buffer() const { return reinterpret_cast<vk::Buffer&>(allocation->buffer); };
         //const VkBuffer& buffer() const { return reinterpret_cast<VkBuffer&>(allocation->buffer); };
-        
+
         // typed casting 
         template<class Tm = T> Vector<Tm>& cast() { return reinterpret_cast<Vector<Tm>&>(*this); };
         template<class Tm = T> const Vector<Tm>& cast() const { return reinterpret_cast<const Vector<Tm>&>(*this); };
@@ -316,10 +323,11 @@ namespace vkt {
         const VmaBufferAllocation* operator->() const { return &(*allocation); };
         const VmaBufferAllocation& operator*() const { return (*allocation); };
 
-    protected: friend Vector<T>; // 
-        //vkh::VkDescriptorBufferInfo bufInfo = {}; vk::BufferView view = {};
-        vk::DescriptorBufferInfo bufInfo = {}; vk::BufferView view = {};
-        std::shared_ptr<VmaBufferAllocation> allocation = {};
+        //
+        protected: friend Vector<T>; // 
+        protected: vk::DescriptorBufferInfo bufInfo = {};
+        public   : vk::DeviceSize stride = sizeof(T);
+        protected: vk::BufferView view = {};
+        protected: std::shared_ptr<VmaBufferAllocation> allocation = {};
     };
-
 };

@@ -99,11 +99,14 @@ int main() {
     }
 
 
-    // 
+    // Every mesh will have transform buffer per internal instances
     std::vector<std::shared_ptr<lancer::Mesh>> meshes = {};
+    std::vector<vkt::Vector<glm::mat3x4>> gpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<glm::mat3x4>> cpuInstancedTransformPerMesh = {};
+
+    // 
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
     std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
-
 
     // 
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
@@ -124,61 +127,71 @@ int main() {
         });
     };
 
+    // buffer views
+    std::vector<vkt::Vector<uint8_t>> buffersViews = {};
+    for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
+        auto& BV = model.bufferViews[i];
+        buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, BV.byteLength));
+        buffersViews.back().stride = BV.byteStride;
+    };
+
+
+    // Gonki 
+    //  #  //
+    // ### //
+    //  #  //
+    // ### //
+
+    // Tanki
+    //  #  //  #  //  #  //
+    // #*# // ### // ### //
+    // # # // ### // # # //
 
     // 
     for (uint32_t i = 0; i < model.meshes.size(); i++) {
-        auto mesh = std::make_shared<lancer::Mesh>(context);
-        auto& meshData = model.meshes[i];
-        meshes.push_back(mesh);
+        auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
+        const auto& meshData = model.meshes[i];
 
-        // Gonki
         for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
-            auto& primitive = meshData.primitives[v];
+            const auto& primitive = meshData.primitives[v];
 
             { // Vertices
-                auto& bindingId = primitive.attributes.find("POSITION")->second;
-                auto& attribute = model.accessors[bindingId];
-                auto& bufferView = model.bufferViews[attribute.bufferView];
-                auto stride = attribute.ByteStride(bufferView);
-                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+                const auto& bindingId = primitive.attributes.find("POSITION")->second;
+                const auto& attribute = model.accessors[bindingId];
+                const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
 
                 // 
-                mesh->addBinding(buffer, vkh::VkVertexInputBindingDescription{ 0u, uint32_t(attribute.ByteStride(bufferView)) });
+                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 0u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
             };
 
             { // TexCoords
-                auto& bindingId = primitive.attributes.find("TEXCOORD_0")->second;
-                auto& attribute = model.accessors[bindingId];
-                auto& bufferView = model.bufferViews[attribute.bufferView];
-                auto stride = attribute.ByteStride(bufferView);
-                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+                const auto& bindingId = primitive.attributes.find("TEXCOORD_0")->second;
+                const auto& attribute = model.accessors[bindingId];
+                const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
 
                 // 
-                mesh->addBinding(buffer, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(bufferView)) });
+                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
             };
 
             { // Normals
-                auto& bindingId = primitive.attributes.find("NORMAL")->second;
-                auto& attribute = model.accessors[bindingId];
-                auto& bufferView = model.bufferViews[attribute.bufferView];
-                auto stride = attribute.ByteStride(bufferView);
-                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+                const auto& bindingId = primitive.attributes.find("NORMAL")->second;
+                const auto& attribute = model.accessors[bindingId];
+                const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
 
                 // 
-                mesh->addBinding(buffer, vkh::VkVertexInputBindingDescription{ 2u, uint32_t(attribute.ByteStride(bufferView)) });
+                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 2u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 2u, 2u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
             };
 
-            if (primitive.indices >= 0) {
-                auto& bindingId = primitive.indices;
-                auto& attribute = model.accessors[bindingId];
-                auto& bufferView = model.bufferViews[attribute.bufferView];
-                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+            if (primitive.indices >= 0) { // 
+                const auto& bindingId = primitive.indices;
+                const auto& attribute = model.accessors[bindingId];
+                const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // determine index type
-                mesh->setIndexData(buffer, attribute.componentType == TINYGLTF_COMPONENT_TYPE_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
+                mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
             };
         };
     };
