@@ -1,6 +1,14 @@
 #define VMA_IMPLEMENTATION
+#define TINYOBJLOADER_IMPLEMENTATION
+
 #include <vkt2/fw.hpp>
 #include <lancer-vk/lancer.hpp>
+
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "misc/tiny_gltf.h"
+
 
 std::shared_ptr<vkt::GPUFramework> fw = {};
 
@@ -66,6 +74,118 @@ int main() {
     // initialize renderer
     context->initialize(canvasWidth, canvasHeight);
     renderer->linkMaterial(material)->linkNode(node);
+
+
+
+    tinygltf::Model model = {};
+    tinygltf::TinyGLTF loader = {};
+    std::string err = "";
+    std::string warn = "";
+
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
+    //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
+
+    if (!warn.empty()) {
+        printf("Warn: %s\n", warn.c_str());
+    }
+
+    if (!err.empty()) {
+        printf("Err: %s\n", err.c_str());
+    }
+
+    if (!ret) {
+        printf("Failed to parse glTF\n");
+        return -1;
+    }
+
+
+    // 
+    std::vector<std::shared_ptr<lancer::Mesh>> meshes = {};
+    std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
+    std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
+
+
+    // 
+    for (uint32_t i = 0; i < model.buffers.size(); i++) {
+        cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            .size = model.buffers[i].data.size(),
+            .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+        }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
+
+        memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
+
+        gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            .size = model.buffers[i].data.size(),
+            .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+        }, VMA_MEMORY_USAGE_GPU_ONLY)));
+
+        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+            cmd.copyBuffer(cpuBuffers.back(), gpuBuffers.back(), { vkh::VkBufferCopy{.size = model.buffers[i].data.size()} });
+        });
+    };
+
+
+    // 
+    for (uint32_t i = 0; i < model.meshes.size(); i++) {
+        auto mesh = std::make_shared<lancer::Mesh>(context);
+        auto& meshData = model.meshes[i];
+        meshes.push_back(mesh);
+
+        // Gonki
+        for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
+            auto& primitive = meshData.primitives[v];
+
+            { // Vertices
+                auto& bindingId = primitive.attributes.find("POSITION")->second;
+                auto& attribute = model.accessors[bindingId];
+                auto& bufferView = model.bufferViews[attribute.bufferView];
+                auto stride = attribute.ByteStride(bufferView);
+                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+
+                // 
+                mesh->addBinding(buffer, vkh::VkVertexInputBindingDescription{ 0u, uint32_t(attribute.ByteStride(bufferView)) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
+            };
+
+            { // TexCoords
+                auto& bindingId = primitive.attributes.find("TEXCOORD_0")->second;
+                auto& attribute = model.accessors[bindingId];
+                auto& bufferView = model.bufferViews[attribute.bufferView];
+                auto stride = attribute.ByteStride(bufferView);
+                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+
+                // 
+                mesh->addBinding(buffer, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(bufferView)) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
+            };
+
+            { // Normals
+                auto& bindingId = primitive.attributes.find("NORMAL")->second;
+                auto& attribute = model.accessors[bindingId];
+                auto& bufferView = model.bufferViews[attribute.bufferView];
+                auto stride = attribute.ByteStride(bufferView);
+                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+
+                // 
+                mesh->addBinding(buffer, vkh::VkVertexInputBindingDescription{ 2u, uint32_t(attribute.ByteStride(bufferView)) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 2u, 2u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
+            };
+
+            if (primitive.indices >= 0) {
+                auto& bindingId = primitive.indices;
+                auto& attribute = model.accessors[bindingId];
+                auto& bufferView = model.bufferViews[attribute.bufferView];
+                auto buffer = vkt::Vector<>(gpuBuffers[bufferView.buffer], bufferView.byteOffset);
+
+                // determine index type
+                mesh->setIndexData(buffer, attribute.componentType == TINYGLTF_COMPONENT_TYPE_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
+            };
+        };
+    };
+
+
+
+
 
     // geometry data
     mesh->addBinding(gpuBuffer, { .stride = 16u });
