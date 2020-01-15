@@ -42,6 +42,6 @@ void main() { // Cross-Lake
     gTangents = iTangents;
     gNormals = iNormals;
     
-    
-    gl_Position = vec4(vec4((gPosition * instances[meshInfo.data.x].transform[gl_InstanceIndex]).xyz, 1.f) * modelview, 1.f) * projection;
+    const mat3x4 matras = mat3x4(instances[meshInfo.data.x].transform[gl_InstanceIndex]);
+    gl_Position = vec4(vec4((gPosition * matras).xyz, 1.f) * modelview, 1.f) * projection;
 };

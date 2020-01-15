@@ -211,7 +211,7 @@ int main() {
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        addMeshInstance(i, glm::translate(glm::vec3(0.f, 0.5f, 0.f)));
+        addMeshInstance(i, glm::translate(glm::vec3(0.f, .5f, 0.f)));
 
         // 
         const auto matStride = sizeof(glm::mat4x4);
