@@ -189,8 +189,8 @@ namespace lancer {
             });
 
             // TODO: controllable 
-            glm::mat4 projected = glm::perspective(110.f*glm::pi<float>()/180.f, float(width) / float(height), 0.0001f, 10000.f);
-            glm::mat4 modelview = glm::lookAt(glm::vec3(0.f,2.f,2.f),glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,1.f,0.f));
+            glm::mat4 projected = glm::perspective(80.f/180.f*glm::pi<float>(), float(width) / float(height), 0.0001f, 10000.f);
+            glm::mat4 modelview = glm::lookAt(glm::vec3(5.f,2.f,2.f),glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,1.f,0.f));
 
             // 
             uniformData.modelview = glm::transpose(modelview);
@@ -328,7 +328,7 @@ namespace lancer {
             // 
             this->descriptorSets[2] = this->deferredDescriptorSet;
             this->descriptorSets[3] = this->smpFlip0DescriptorSet;
-            
+
             // 
             return shared_from_this();
         };

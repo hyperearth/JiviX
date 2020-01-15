@@ -55,7 +55,9 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
     mat3x4 modelview;
     mat3x4 modelviewInv;
 };
-layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
+
+// 
+layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { layout(row_major) mat4x4 transform[]; } instances[];
 
 // 
 layout(push_constant) uniform pushConstants { uvec4 data; } meshInfo;

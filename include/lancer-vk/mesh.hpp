@@ -127,7 +127,7 @@ namespace lancer {
         };
 
         // MORE useful for instanced data
-        std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
+        std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::vec4>& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
             this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset();
             this->geometryTemplate.geometry.triangles.transformData = transformData;
             this->gpuTransformData = transformData;
@@ -300,8 +300,8 @@ namespace lancer {
         std::vector<vkh::VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
         // accumulated by "Instance" for instanced rendering
-        uint32_t transformStride = sizeof(glm::mat3x4);
-        vkt::Vector<glm::mat3x4> gpuTransformData = {};
+        uint32_t transformStride = sizeof(glm::vec4);
+        vkt::Vector<glm::vec4> gpuTransformData = {};
         uint32_t lastBindID = 0u, locationCounter = 0u;
 
         // 

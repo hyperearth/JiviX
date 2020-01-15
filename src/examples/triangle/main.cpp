@@ -105,11 +105,11 @@ int main() {
 
     // Every mesh will have transform buffer per internal instances
     std::vector<std::shared_ptr<lancer::Mesh>> meshes = {};
-    std::vector<std::vector<glm::mat3x4>> instancedTransformPerMesh = {}; // Run Out, Run Over
+    std::vector<std::vector<glm::mat4x4>> instancedTransformPerMesh = {}; // Run Out, Run Over
 
     // Transform Data Buffer
-    std::vector<vkt::Vector<glm::mat3x4>> gpuInstancedTransformPerMesh = {};
-    std::vector<vkt::Vector<glm::mat3x4>> cpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<glm::mat4x4>> gpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<glm::mat4x4>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
@@ -143,7 +143,7 @@ int main() {
     };
 
     // 
-    auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat3x4& T = glm::mat3x4(1.f)) {
+    auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
         instancedTransformPerMesh[meshID].push_back(T);
         meshes[meshID]->increaseInstanceCount();
     };
@@ -211,28 +211,32 @@ int main() {
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        addMeshInstance(i);
+        addMeshInstance(i, glm::translate(glm::vec3(0.f, 0.5f, 0.f)));
+
+        // 
+        const auto matStride = sizeof(glm::mat4x4);
+        const auto matSize = instancedTransformPerMesh[i].size() * matStride;
 
         // 
         cpuInstancedTransformPerMesh.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = sizeof(glm::mat3x4), .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+            .size = matSize, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
         //
-        memcpy(cpuInstancedTransformPerMesh.back().data(), instancedTransformPerMesh[i].data(), instancedTransformPerMesh[i].size() * sizeof(glm::mat3x4));
+        memcpy(cpuInstancedTransformPerMesh.back().data(), instancedTransformPerMesh[i].data(), matSize);
 
         // 
         gpuInstancedTransformPerMesh.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = sizeof(glm::mat3x4), .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eRayTracing = 1 },
+            .size = matSize, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eRayTracing = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
         // 
         vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
-            cmd.copyBuffer(cpuInstancedTransformPerMesh.back(), gpuInstancedTransformPerMesh.back(), { vkh::VkBufferCopy{ .size = sizeof(glm::mat3x4) } });
+            cmd.copyBuffer(cpuInstancedTransformPerMesh.back(), gpuInstancedTransformPerMesh.back(), { vkh::VkBufferCopy{ .size = matSize } });
         });
 
         // 
-        meshes[i]->setTransformData(gpuInstancedTransformPerMesh.back());
+        meshes[i]->setTransformData(gpuInstancedTransformPerMesh.back(), matStride);
     };
 
 
