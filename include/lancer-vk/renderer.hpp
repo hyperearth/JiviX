@@ -128,7 +128,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}) { // 
+        std::shared_ptr<Renderer> setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{
@@ -149,6 +149,7 @@ namespace lancer {
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
             rasterCommand.setScissor(0, { renderArea });
+            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1 })), 0u, { meshData });
             rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->backgroundStage);
             rasterCommand.draw(4u, 1u, 0u, 0u);
@@ -160,7 +161,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}) {
+        std::shared_ptr<Renderer> setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{ 
@@ -177,6 +178,7 @@ namespace lancer {
             resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->smpFlip0Framebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
             resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            resampleCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1 })), 0u, { meshData });
             resampleCommand.setViewport(0, { viewport });
             resampleCommand.setScissor(0, { renderArea });
             resampleCommand.draw(renderArea.extent.width, renderArea.extent.height, 0u, 0u);
@@ -188,7 +190,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}) { // get ray-tracing properties
+        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // get ray-tracing properties
             const auto& rtxp = this->rayTracingProperties;
             const auto& renderArea = this->context->refScissor();
 
@@ -206,6 +208,7 @@ namespace lancer {
             vkt::commandBarrier(rayTraceCommand);
             rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
             rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            rayTraceCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1 })), 0u, { meshData });
             rayTraceCommand.traceRaysNV(
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset(),
                 this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
@@ -240,8 +243,8 @@ namespace lancer {
             this->node->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
-            this->setupBackgroundPipeline()->setupSkyboxedCommand(this->cmdbuf);
-            for (auto& M : this->node->meshes) { M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf); }; // draw concurrently
+            this->setupBackgroundPipeline()->setupSkyboxedCommand(this->cmdbuf); uint32_t I = 0u;
+            for (auto& M : this->node->meshes) { M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++,0u,0u,0u)); }; // draw concurrently
             vkt::commandBarrier(this->cmdbuf);
 
             // 

@@ -137,9 +137,9 @@ int main() {
     // buffer views
     std::vector<vkt::Vector<uint8_t>> buffersViews = {};
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
-        auto& BV = model.bufferViews[i];
+        const auto& BV = model.bufferViews[i];
         buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, BV.byteLength));
-        buffersViews.back().stride = BV.byteStride;
+        if (BV.byteStride) { buffersViews.back().stride = BV.byteStride; };
     };
 
     // 
@@ -168,9 +168,9 @@ int main() {
 
         for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
             const auto& primitive = meshData.primitives[v];
+            int bindingId = -1;
 
-            { // Vertices
-                const auto& bindingId = primitive.attributes.find("POSITION")->second;
+            if ((bindingId = primitive.attributes.find("POSITION")->second) >= 0u) { // Vertices
                 const auto& attribute = model.accessors[bindingId];
                 const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
 
@@ -179,18 +179,16 @@ int main() {
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
             };
 
-            { // TexCoords
-                const auto& bindingId = primitive.attributes.find("TEXCOORD_0")->second;
+            if ((bindingId = primitive.attributes.find("TEXCOORD_0")->second) >= 0u) { // TexCoords
                 const auto& attribute = model.accessors[bindingId];
                 const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32_SFLOAT, uint32_t(attribute.byteOffset) });
             };
 
-            { // Normals
-                const auto& bindingId = primitive.attributes.find("NORMAL")->second;
+            if ((bindingId = primitive.attributes.find("NORMAL")->second) >= 0u) { // Normals
                 const auto& attribute = model.accessors[bindingId];
                 const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
 
@@ -199,13 +197,12 @@ int main() {
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 2u, 2u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) });
             };
 
-            if (primitive.indices >= 0) { // 
-                const auto& bindingId = primitive.indices;
+            if ((bindingId = primitive.indices) >= 0) { // 
                 const auto& attribute = model.accessors[bindingId];
                 const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // determine index type
-                mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
+                mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
             };
         };
     };
@@ -222,11 +219,11 @@ int main() {
         }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
         //
-        memcpy(cpuInstancedTransformPerMesh.back().data(), instancedTransformPerMesh.data(), sizeof(glm::mat3x4));
+        memcpy(cpuInstancedTransformPerMesh.back().data(), instancedTransformPerMesh[i].data(), instancedTransformPerMesh[i].size() * sizeof(glm::mat3x4));
 
         // 
         gpuInstancedTransformPerMesh.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = sizeof(glm::mat3x4), .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+            .size = sizeof(glm::mat3x4), .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eRayTracing = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
         // 
@@ -246,8 +243,8 @@ int main() {
         .mask = 0xff,
         .instanceOffset = 0u,
         .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV
-    }, node->pushMesh(mesh));
-    //}, node->pushMesh(meshes[0u]));
+    //}, node->pushMesh(mesh));
+    }, node->pushMesh(meshes[0u]));
 
     // initialize program
     renderer->setupCommands();

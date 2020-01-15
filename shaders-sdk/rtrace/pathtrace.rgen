@@ -39,11 +39,11 @@ void main() { // Hi-DPI adaptation
     const vec3 cameraSample = worldsSample*modelview;
 
     // 
-    vec3 raydir = (modelviewInv * normalize(cameraSample.xyz)).xyz;
+    vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
     vec3 origin = worldsSample.xyz;
 
     // DEBUG
-    origin.xyz -= raydir.xyz;
+    origin.xyz -= raydir.xyz * 0.1f;
 
     // 
     vec3 signal = vec3(0.f,0.f,0.f);
@@ -68,11 +68,14 @@ void main() { // Hi-DPI adaptation
             energy *= vec3(0.5f,0.75f,1.f);
         };
 
+        // DEBUG
+        energy = 1.f.xxx;//*= origin.xyz * 0.5f + 0.5f;
+
         // 
         if (i == 0u) { origin.xyz += raydir.xyz * depth; };
 
-        // 
-        //energy *= vec3(depth,depth,depth)*0.5f;
+        // DEBUG
+        energy *= origin.xyz * 0.5f + 0.5f;
     };
 
     // 

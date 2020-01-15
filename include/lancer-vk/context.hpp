@@ -190,7 +190,7 @@ namespace lancer {
 
             // TODO: controllable 
             glm::mat4 projected = glm::perspective(110.f*glm::pi<float>()/180.f, float(width) / float(height), 0.0001f, 10000.f);
-            glm::mat4 modelview = glm::lookAt(glm::vec3(0.f,1.f,1.f),glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,1.f,0.f));
+            glm::mat4 modelview = glm::lookAt(glm::vec3(0.f,2.f,2.f),glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,1.f,0.f));
 
             // 
             uniformData.modelview = glm::transpose(modelview);
@@ -224,6 +224,7 @@ namespace lancer {
             this->deferredDescriptorSetLayoutHelper = {};
             this->materialDescriptorSetLayoutHelper = {};
 
+            // 
             for (uint32_t b=0u;b<8u;b++) { // For Ray Tracers
                 this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER     , .descriptorCount =   64u, .stageFlags = { .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
             };
@@ -235,6 +236,7 @@ namespace lancer {
             this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount =   64u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1 });
             this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV, .descriptorCount =    1u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1 });
             this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount =    1u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1 });
+            this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount =   64u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1 });
 
             // 
             this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , .descriptorCount =   4u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
@@ -255,8 +257,9 @@ namespace lancer {
             this->meshDataDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(meshDataDescriptorSetLayoutHelper);
 
             // 
+            std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = { .eVertex = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1 }, .offset = 0u, .size = 16u } };
             std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
-            this->unifiedPipelineLayout = driver->getDevice().createPipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts));
+            this->unifiedPipelineLayout = driver->getDevice().createPipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges));
             return shared_from_this();
         };
 

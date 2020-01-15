@@ -169,9 +169,10 @@ namespace lancer {
         };
 
         // Create Secondary Command With Pipeline
-        std::shared_ptr<Mesh> createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}) { // UNIT ONLY!
+        std::shared_ptr<Mesh> createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
             if (this->instanceCount <= 0u) return shared_from_this();
 
+            // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             for (auto& B : this->bindings) { buffers.push_back(B); offsets.push_back(B.offset()); };
 
@@ -193,6 +194,7 @@ namespace lancer {
             rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
+            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1 })), 0u, { meshData });
 
             // Make Draw Instanced
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
@@ -314,10 +316,10 @@ namespace lancer {
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
 
         // WIP buffer bindings
-        vkt::Vector<VkVertexInputAttributeDescription> rawAttributes = {};
-        vkt::Vector<VkVertexInputAttributeDescription> gpuAttributes = {};
-        vkt::Vector<VkVertexInputBindingDescription> rawBindings = {};
-        vkt::Vector<VkVertexInputBindingDescription> gpuBindings = {};
+        vkt::Vector<vkh::VkVertexInputAttributeDescription> rawAttributes = {};
+        vkt::Vector<vkh::VkVertexInputAttributeDescription> gpuAttributes = {};
+        vkt::Vector<vkh::VkVertexInputBindingDescription> rawBindings = {};
+        vkt::Vector<vkh::VkVertexInputBindingDescription> gpuBindings = {};
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
 
         // 

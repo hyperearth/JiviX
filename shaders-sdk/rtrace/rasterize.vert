@@ -43,5 +43,5 @@ void main() { // Cross-Lake
     gNormals = iNormals;
 
     // Final Output 
-    gl_Position = vec4(vec4(iPosition,1.f) * modelview, 1.f) * projection;
+    gl_Position = vec4(vec4(vec4(iPosition.xyz,1.f) * instances[meshInfo.data.x].transform[gl_InstanceIndex], 1.f) * modelview, 1.f) * projection;
 };
