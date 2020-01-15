@@ -91,7 +91,7 @@ namespace lancer {
                         .dstArrayElement = j,
                         .descriptorCount = 1u,
                         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                    }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[j]->bindings[i];
+                    }).offset<vkh::VkDescriptorBufferInfo>(0u) = (vkh::VkDescriptorBufferInfo&)this->meshes[j]->bindings[i];
                 };};
             };
 

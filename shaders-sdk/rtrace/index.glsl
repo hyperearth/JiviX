@@ -56,6 +56,50 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
     mat3x4 modelviewInv;
 };
 
+// System Specified
+#define meshID nonuniformEXT(meshID_)
+
+// System Specified
+uint8_t load_u8(in uint offset, in uint binding, in uint meshID_) {
+    if (binding == 0u) { return mesh0[meshID].data[offset]; };
+    if (binding == 1u) { return mesh1[meshID].data[offset]; };
+    if (binding == 2u) { return mesh2[meshID].data[offset]; };
+    if (binding == 3u) { return mesh3[meshID].data[offset]; };
+    if (binding == 4u) { return mesh4[meshID].data[offset]; };
+    if (binding == 5u) { return mesh5[meshID].data[offset]; };
+    if (binding == 6u) { return mesh6[meshID].data[offset]; };
+    if (binding == 7u) { return mesh7[meshID].data[offset]; };
+    return uint8_t(0u);
+};
+
+// System Specified
+uint16_t load_u16(in uint offset, in uint binding, in uint meshID_) {
+    if (binding == 0u) { return pack16(u8vec2(mesh0[meshID].data[offset], mesh0[meshID].data[offset+1])); };
+    if (binding == 1u) { return pack16(u8vec2(mesh1[meshID].data[offset], mesh1[meshID].data[offset+1])); };
+    if (binding == 2u) { return pack16(u8vec2(mesh2[meshID].data[offset], mesh2[meshID].data[offset+1])); };
+    if (binding == 3u) { return pack16(u8vec2(mesh3[meshID].data[offset], mesh3[meshID].data[offset+1])); };
+    if (binding == 4u) { return pack16(u8vec2(mesh4[meshID].data[offset], mesh4[meshID].data[offset+1])); };
+    if (binding == 5u) { return pack16(u8vec2(mesh5[meshID].data[offset], mesh5[meshID].data[offset+1])); };
+    if (binding == 6u) { return pack16(u8vec2(mesh6[meshID].data[offset], mesh6[meshID].data[offset+1])); };
+    if (binding == 7u) { return pack16(u8vec2(mesh7[meshID].data[offset], mesh7[meshID].data[offset+1])); };
+    return uint16_t(0u);
+};
+
+// System Specified
+uint32_t load_u32(in uint offset, in uint binding, in uint meshID_) {
+    if (binding == 0u) { return pack32(u8vec4(mesh0[meshID].data[offset], mesh0[meshID].data[offset+1], mesh0[meshID].data[offset+2], mesh0[meshID].data[offset+3])); };
+    if (binding == 1u) { return pack32(u8vec4(mesh1[meshID].data[offset], mesh1[meshID].data[offset+1], mesh1[meshID].data[offset+2], mesh1[meshID].data[offset+3])); };
+    if (binding == 2u) { return pack32(u8vec4(mesh2[meshID].data[offset], mesh2[meshID].data[offset+1], mesh2[meshID].data[offset+2], mesh2[meshID].data[offset+3])); };
+    if (binding == 3u) { return pack32(u8vec4(mesh3[meshID].data[offset], mesh3[meshID].data[offset+1], mesh3[meshID].data[offset+2], mesh3[meshID].data[offset+3])); };
+    if (binding == 4u) { return pack32(u8vec4(mesh4[meshID].data[offset], mesh4[meshID].data[offset+1], mesh4[meshID].data[offset+2], mesh4[meshID].data[offset+3])); };
+    if (binding == 5u) { return pack32(u8vec4(mesh5[meshID].data[offset], mesh5[meshID].data[offset+1], mesh5[meshID].data[offset+2], mesh5[meshID].data[offset+3])); };
+    if (binding == 6u) { return pack32(u8vec4(mesh6[meshID].data[offset], mesh6[meshID].data[offset+1], mesh6[meshID].data[offset+2], mesh6[meshID].data[offset+3])); };
+    if (binding == 7u) { return pack32(u8vec4(mesh7[meshID].data[offset], mesh7[meshID].data[offset+1], mesh7[meshID].data[offset+2], mesh7[meshID].data[offset+3])); };
+    return uint32_t(0u);
+};
+
+
+
 // Deferred and Rasterization Set
 //layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
 layout (binding = 0, set = 2) uniform texture2D frameBuffers[];

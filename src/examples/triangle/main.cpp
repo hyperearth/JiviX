@@ -75,6 +75,10 @@ int main() {
     context->initialize(canvasWidth, canvasHeight);
     renderer->linkMaterial(material)->linkNode(node);
 
+    // 
+    mesh->addBinding(gpuBuffer, vkh::VkVertexInputBindingDescription{ 0u, 16u });
+    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, 0u }, true);
+    mesh->increaseInstanceCount();
 
 
     tinygltf::Model model = {};
@@ -115,14 +119,14 @@ int main() {
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = model.buffers[i].data.size(),
-            .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+            .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
 
         gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = model.buffers[i].data.size(),
-            .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+            .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
         vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
@@ -139,7 +143,7 @@ int main() {
     };
 
     // 
-    auto addInstance = [&](const uint32_t meshID = 0u, const glm::mat3x4& T = glm::mat3x4(1.f)) {
+    auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat3x4& T = glm::mat3x4(1.f)) {
         instancedTransformPerMesh[meshID].push_back(T);
         meshes[meshID]->increaseInstanceCount();
     };
@@ -182,7 +186,7 @@ int main() {
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) });
             };
 
             { // Normals
@@ -192,7 +196,7 @@ int main() {
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 2u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 2u, 2u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 2u, 2u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) });
             };
 
             if (primitive.indices >= 0) { // 
@@ -208,17 +212,42 @@ int main() {
 
 
 
+    // add default SubInstance
+    for (uint32_t i = 0; i < 1u; i++) {
+        addMeshInstance(i);
+
+        // 
+        cpuInstancedTransformPerMesh.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            .size = sizeof(glm::mat3x4), .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+        }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
+
+        //
+        memcpy(cpuInstancedTransformPerMesh.back().data(), instancedTransformPerMesh.data(), sizeof(glm::mat3x4));
+
+        // 
+        gpuInstancedTransformPerMesh.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            .size = sizeof(glm::mat3x4), .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+        }, VMA_MEMORY_USAGE_GPU_ONLY)));
+
+        // 
+        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+            cmd.copyBuffer(cpuInstancedTransformPerMesh.back(), gpuInstancedTransformPerMesh.back(), { vkh::VkBufferCopy{ .size = sizeof(glm::mat3x4) } });
+        });
+
+        // 
+        meshes[i]->setTransformData(gpuInstancedTransformPerMesh.back());
+    };
 
 
-    // geometry data
-    mesh->addBinding(gpuBuffer, { .stride = 16u });
-    mesh->addAttribute({ .format = VK_FORMAT_R32G32B32A32_SFLOAT }, true);
+
+    // 
     node->pushInstance(vkh::VsGeometryInstance{
         .instanceId = 0u,
         .mask = 0xff,
         .instanceOffset = 0u,
         .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV
     }, node->pushMesh(mesh));
+    //}, node->pushMesh(meshes[0u]));
 
     // initialize program
     renderer->setupCommands();
