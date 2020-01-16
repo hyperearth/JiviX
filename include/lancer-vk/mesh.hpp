@@ -47,32 +47,40 @@ namespace lancer {
 
         // 
         std::shared_ptr<Mesh> addBinding(const vkt::Vector<uint8_t>& vector, const vkh::VkVertexInputBindingDescription& binding = {}) {
-            this->lastBindID = binding.binding;//this->vertexInputBindingDescriptions.size();
-            this->vertexInputBindingDescriptions.push_back(binding);
-            this->vertexInputBindingDescriptions.back().binding = this->lastBindID;
-            this->rawBindings[this->lastBindID] = this->vertexInputBindingDescriptions.back();
-            this->bindings.resize(this->lastBindID+1u);
-            this->bindings[this->lastBindID] = vector;
+            const uintptr_t bindingID = binding.binding;
+            //const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
+            this->vertexInputBindingDescriptions.resize(bindingID+1u);
+            this->vertexInputBindingDescriptions[bindingID] = binding;
+            this->vertexInputBindingDescriptions[bindingID].binding = bindingID;
+            this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
+            this->bindings.resize(bindingID+1u);
+            this->bindings[bindingID] = vector;
+
             //this->bindings.push_back(vector);
+            this->lastBindID = bindingID;
             return shared_from_this();
         };
 
         // 
         std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& isVertex = false) {
-            const uintptr_t locationID = attribute.location;//this->locationCounter++;
-            this->vertexInputAttributeDescriptions.push_back(attribute);
-            this->vertexInputAttributeDescriptions.back().binding = this->lastBindID;
-            this->vertexInputAttributeDescriptions.back().location = locationID;
-            this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions.back();
+            const uintptr_t locationID = attribute.location;
+            const uintptr_t bindingID = attribute.binding;
+            //const uintptr_t locationID = this->locationCounter++;
+            //const uintptr_t bindingID = this->lastBindID;
+            this->vertexInputAttributeDescriptions.resize(locationID+1u);
+            this->vertexInputAttributeDescriptions[locationID] = attribute;
+            this->vertexInputAttributeDescriptions[locationID].binding = bindingID;
+            this->vertexInputAttributeDescriptions[locationID].location = locationID;
+            this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions[locationID];
             if (isVertex) { // 
-                const auto& binding = this->vertexInputBindingDescriptions.back();
-                this->vertexCount = this->bindings.back().range() / binding.stride;
-                this->geometryTemplate.geometry.triangles.vertexOffset = attribute.offset + this->bindings.back().offset();
+                const auto& binding = this->vertexInputBindingDescriptions[bindingID];
+                this->vertexCount = this->bindings[bindingID].range() / binding.stride;
+                this->geometryTemplate.geometry.triangles.vertexOffset = attribute.offset + this->bindings[bindingID].offset();
                 this->geometryTemplate.geometry.triangles.vertexFormat = attribute.format;
                 this->geometryTemplate.geometry.triangles.vertexStride = binding.stride;
                 this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount;
-                this->geometryTemplate.geometry.triangles.vertexData = this->bindings.back();
-                
+                this->geometryTemplate.geometry.triangles.vertexData = this->bindings[bindingID];
+
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
                 if (attribute.format == VK_FORMAT_R32G32B32A32_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 if (attribute.format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
