@@ -13,16 +13,19 @@
 
 // 
 struct RayPayloadData {
-     vec4 fdata;
-     vec4 normal;
     uvec4 udata;
+    vec4 fdata;
+    vec4 position;
+    vec4 texcoords;
+    vec4 normals;
+    vec4 tangents;
 };
 
 struct Binding {
     uint32_t binding;
     uint32_t stride;
     uint32_t rate;
-    uint32_t reserved;
+    //uint32_t reserved;
 };
 
 struct Attribute {
@@ -45,10 +48,11 @@ layout (binding = 4, set = 0, scalar) buffer Data4 { uint8_t data[]; } mesh4[];
 layout (binding = 5, set = 0, scalar) buffer Data5 { uint8_t data[]; } mesh5[];
 layout (binding = 6, set = 0, scalar) buffer Data6 { uint8_t data[]; } mesh6[];
 layout (binding = 7, set = 0, scalar) buffer Data7 { uint8_t data[]; } mesh7[];
+layout (binding = 8, set = 0, r32ui) readonly uniform uimageBuffer indices; // indices compatible 
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
-layout (binding = 0, set = 1, scalar) uniform Bindings   { Binding   data[8]; } bindings  [];
-layout (binding = 1, set = 1, scalar) uniform Attributes { Attribute data[8]; } attributes[];
+layout (binding = 0, set = 1, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
+layout (binding = 1, set = 1, scalar) readonly buffer Attributes { Attribute data[]; } attributes[];
 layout (binding = 3, set = 1, scalar) uniform Matrices {
     mat4 projection;
     mat4 projectionInv;
@@ -58,9 +62,15 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
 
 // 
 layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { layout(row_major) mat4x4 transform[]; } instances[];
+layout (binding = 5, set = 1, scalar) uniform MeshData {
+    uint materialID;
+    uint hasIndex;
+    uint reserved;
+    uint reserve0;
+} meshInfo[];
 
 // 
-layout(push_constant) uniform pushConstants { uvec4 data; } meshInfo;
+layout(push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // System Specified
 #define meshID nonuniformEXT(meshID_)
@@ -103,6 +113,35 @@ uint32_t load_u32(in uint offset, in uint binding, in uint meshID_) {
     if (binding == 7u) { return pack32(u8vec4(mesh7[meshID].data[offset], mesh7[meshID].data[offset+1], mesh7[meshID].data[offset+2], mesh7[meshID].data[offset+3])); };
     return uint32_t(0u);
 };
+
+// TODO: Add Uint16_t, Uint32_t, Float16_t Support
+vec4 get_vec4(in uint idx, in uint loc, in uint meshID_) {
+    Attribute attrib = attributes[meshID].data[loc];
+    Binding binding = bindings[meshID].data[attrib.binding];
+    uint32_t boffset = binding.stride * idx + attrib.offset;
+    vec4 vec = vec4(0.f);
+    
+    // 
+    //if (binding.stride >  0u) vec = vec4(0.f,0.f,1.f,0.f);
+    if (binding.stride >  0u) vec[0] = uintBitsToFloat(load_u32(boffset +  0u, attrib.binding, meshID_));
+    if (binding.stride >  4u) vec[1] = uintBitsToFloat(load_u32(boffset +  4u, attrib.binding, meshID_));
+    if (binding.stride >  8u) vec[2] = uintBitsToFloat(load_u32(boffset +  8u, attrib.binding, meshID_));
+    if (binding.stride > 12u) vec[3] = uintBitsToFloat(load_u32(boffset + 12u, attrib.binding, meshID_));
+    
+    // 
+    return vec;
+};
+
+vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycenter){
+    const mat3x4 mc = mat3x4(
+        get_vec4(indices[0],loc,meshID_),
+        get_vec4(indices[1],loc,meshID_),
+        get_vec4(indices[2],loc,meshID_)
+    );
+    return mc*barycenter;
+};
+
+
 
 
 

@@ -55,7 +55,7 @@ int main() {
     // 
     auto gpuBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
         .size = 16u * 3u,
-        .usage = { .eTransferDst = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
+        .usage = { .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
     }, VMA_MEMORY_USAGE_GPU_ONLY));
 
     // 
@@ -119,14 +119,14 @@ int main() {
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = model.buffers[i].data.size(),
-            .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+            .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
 
         gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = model.buffers[i].data.size(),
-            .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+            .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
         vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
@@ -162,12 +162,12 @@ int main() {
 
     // 
     for (uint32_t i = 0; i < model.meshes.size(); i++) {
-        auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
-        instancedTransformPerMesh.push_back({});
         const auto& meshData = model.meshes[i];
 
         for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
             const auto& primitive = meshData.primitives[v];
+            auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
+            instancedTransformPerMesh.push_back({});
 
             if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
                 const auto& attribute = model.accessors[primitive.attributes.find("POSITION")->second];
@@ -203,6 +203,8 @@ int main() {
                 // determine index type
                 mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
             };
+
+            mesh->setMaterialID(primitive.material);
         };
     };
 

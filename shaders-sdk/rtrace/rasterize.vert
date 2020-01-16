@@ -25,8 +25,8 @@ precision highp int;
 
 // Left Oriented
 layout (location = 0) in vec3 iPosition;
-layout (location = 2) in vec4 iTexcoords;
-layout (location = 1) in vec4 iNormals;
+layout (location = 2) in vec2 iTexcoords;
+layout (location = 1) in vec3 iNormals;
 layout (location = 3) in vec4 iTangents;
 
 // Right Oriented
@@ -37,11 +37,11 @@ layout (location = 3) out vec4 gTangents;
 
 // 
 void main() { // Cross-Lake
-    gTexcoords = iTexcoords;
+    gTexcoords.xy = iTexcoords;
     gPosition = vec4(iPosition,1.f);
     gTangents = iTangents;
-    gNormals = iNormals;
-    
-    const mat3x4 matras = mat3x4(instances[meshInfo.data.x].transform[gl_InstanceIndex]);
+    gNormals.xyz = iNormals;
+
+    const mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
     gl_Position = vec4(vec4((gPosition * matras).xyz, 1.f) * modelview, 1.f) * projection;
 };

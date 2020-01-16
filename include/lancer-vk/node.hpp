@@ -13,7 +13,7 @@ namespace lancer {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = context;
-            
+
             // 
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;
             this->accelerationStructureInfo.instanceCount = 1u;
@@ -113,20 +113,31 @@ namespace lancer {
 
             // plush into descriptor sets
             for (uint32_t i=0;i<meshes.size();i++) {
+
+                if (this->meshes[i]->indexData.has()) { // Plush Index Data (vk::BufferView)
+                    this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                        .dstBinding = 8u,
+                        .dstArrayElement = i,
+                        .descriptorCount = 1u,
+                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
+                    }).offset<vk::BufferView>(0u) = (vk::BufferView&)this->meshes[i]->indexData.createBufferView(this->meshes[i]->indexType == vk::IndexType::eUint16 ? vk::Format::eR16Uint : vk::Format::eR32Uint);
+                };
+
+                // 
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .dstArrayElement = i,
                     .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-                }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuBindings;
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuBindings;
 
                 // 
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 1u,
                     .dstArrayElement = i,
                     .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-                }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuAttributes;
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuAttributes;
 
                 // Push Transform Data Instanced Into... 
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -134,7 +145,15 @@ namespace lancer {
                     .dstArrayElement = i,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }).offset<vkh::VkDescriptorBufferInfo>(i) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuTransformData;
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuTransformData;
+
+                // Mesh Data Info (Has Indices, Material ID, etc.)
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 5u,
+                    .dstArrayElement = i,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = (vkh::VkDescriptorBufferInfo&)this->meshes[i]->gpuMeshInfo;
             };
 
             // 

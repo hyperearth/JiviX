@@ -75,8 +75,9 @@ void main() { // Hi-DPI adaptation
         if (i == 0u) { origin.xyz += raydir.xyz * depth; };
 
         // DEBUG
+        //energy.xyz *= vec3(PrimaryRay.udata.xyz) / 32.f;
         //energy *= depth.xxx * 0.5f;
-        energy *= origin.xyz * 0.5f + 0.5f;
+        energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
     };
 
     // 
