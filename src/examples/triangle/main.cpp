@@ -149,16 +149,16 @@ int main() {
     };
 
 
-    // Gonki 
-    //  #  //
-    // ### //
-    //  #  //
-    // ### //
+    // Gonki //
+    //   #   //
+    // # # # //
+    //   #   //
+    // # # # //
 
-    // Tanki
-    //  #  //  #  //  #  //
-    // #*# // ### // ### //
-    // # # // ### // # # //
+    // Tanki //       //       // 
+    //   #   //   #   //   #   //
+    // # * # // # # # // # # # //
+    // #   # // # # # // #   # //
 
     // 
     for (uint32_t i = 0; i < model.meshes.size(); i++) {
@@ -168,37 +168,36 @@ int main() {
 
         for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
             const auto& primitive = meshData.primitives[v];
-            int bindingId = -1;
 
-            if ((bindingId = primitive.attributes.find("POSITION")->second) >= 0u) { // Vertices
-                const auto& attribute = model.accessors[bindingId];
-                const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
+            if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
+                const auto& attribute = model.accessors[primitive.attributes.find("POSITION")->second];
+                const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 0u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
             };
 
-            if ((bindingId = primitive.attributes.find("TEXCOORD_0")->second) >= 0u) { // TexCoords
-                const auto& attribute = model.accessors[bindingId];
-                const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
+            if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) { // Texcoord
+                const auto& attribute = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+                const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32_SFLOAT, uint32_t(attribute.byteOffset) });
             };
 
-            if ((bindingId = primitive.attributes.find("NORMAL")->second) >= 0u) { // Normals
-                const auto& attribute = model.accessors[bindingId];
-                const auto& bufferView = buffersViews[attribute.bufferView];//model.bufferViews[attribute.bufferView];
+            if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) { // Normals
+                const auto& attribute = model.accessors[primitive.attributes.find("NORMAL")->second];
+                const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 2u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 2u, 2u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) });
             };
 
-            if ((bindingId = primitive.indices) >= 0) { // 
-                const auto& attribute = model.accessors[bindingId];
+            if (primitive.indices >= 0) {
+                const auto& attribute = model.accessors[primitive.indices];
                 const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // determine index type
@@ -237,18 +236,17 @@ int main() {
 
         // 
         meshes[i]->setTransformData(gpuInstancedTransformPerMesh.back(), matStride);
+
+        // 
+        node->pushInstance(vkh::VsGeometryInstance{
+            .instanceId = 0u,
+            .mask = 0xff,
+            .instanceOffset = 0u,
+            .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV
+        }, node->pushMesh(meshes[i]));
     };
 
 
-
-    // 
-    node->pushInstance(vkh::VsGeometryInstance{
-        .instanceId = 0u,
-        .mask = 0xff,
-        .instanceOffset = 0u,
-        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV
-    //}, node->pushMesh(mesh));
-    }, node->pushMesh(meshes[0u]));
 
     // initialize program
     renderer->setupCommands();

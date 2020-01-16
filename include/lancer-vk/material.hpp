@@ -70,7 +70,7 @@ namespace lancer {
                     .dstBinding = 0u,
                     .descriptorCount = uint32_t(sampledImages.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                    });
+                });
                 memcpy(&imagesHandle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(VkDescriptorImageInfo));
                 //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<VkDescriptorImageInfo>(i) = sampledImages[i]; };
             };
