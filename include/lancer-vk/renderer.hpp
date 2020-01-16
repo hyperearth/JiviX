@@ -70,7 +70,7 @@ namespace lancer {
             this->skyboxedInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/background.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/background.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-                });
+            });
 
             this->skyboxedInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{
                 .depthTestEnable = true,
@@ -146,6 +146,7 @@ namespace lancer {
 
             // 
             rasterCommand.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, clearValues[4u].depthStencil, (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
+            vkt::commandBarrier(this->cmdbuf);
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
             rasterCommand.setScissor(0, { renderArea });

@@ -35,6 +35,8 @@ void main() { // Hi-DPI adaptation
     ivec2 sizPixel = ivec2(gl_LaunchSizeNV.xy);
 
     // 
+    const vec4 colourSample = texelFetch(frameBuffers[COLORING], ivec2(invPixel.xy),0);
+    const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
     const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
     const vec3 cameraSample = worldsSample*modelview;
 
@@ -75,9 +77,8 @@ void main() { // Hi-DPI adaptation
         if (i == 0u) { origin.xyz += raydir.xyz * depth; };
 
         // DEBUG
-        //energy.xyz *= vec3(PrimaryRay.udata.xyz) / 32.f;
-        //energy *= depth.xxx * 0.5f;
         energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
+        //energy *= normalSample.xyz * 0.5f + 0.5f;
     };
 
     // 
