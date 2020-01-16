@@ -45,7 +45,7 @@ void main() { // Hi-DPI adaptation
     vec3 origin = worldsSample.xyz;
 
     // DEBUG
-    origin.xyz -= raydir.xyz;
+    origin.xyz -= raydir.xyz * 0.5f;
 
     // 
     vec3 signal = vec3(0.f,0.f,0.f);
@@ -71,7 +71,7 @@ void main() { // Hi-DPI adaptation
         };
 
         // DEBUG
-        //energy = 1.f.xxx;//*= origin.xyz * 0.5f + 0.5f;
+        //energy = PrimaryRay.fdata.zzz;//*= origin.xyz * 0.5f + 0.5f;
 
         // 
         if (i == 0u) { origin.xyz += raydir.xyz * depth; };
