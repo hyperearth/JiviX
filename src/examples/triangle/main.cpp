@@ -41,28 +41,6 @@ int main() {
     auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
     auto viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
-    // added for LOC testing
-    auto hostBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-        .size = 16u * 3u,
-        .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
-    }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-
-    // triangle data
-    hostBuffer[0] = glm::vec4( 1.f, -1.f, 0.f, 1.f);
-    hostBuffer[1] = glm::vec4(-1.f, -1.f, 0.f, 1.f);
-    hostBuffer[2] = glm::vec4( 0.f,  1.f, 0.f, 1.f);
-
-    // 
-    auto gpuBuffer = vkt::Vector<glm::vec4>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-        .size = 16u * 3u,
-        .usage = { .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
-    }, VMA_MEMORY_USAGE_GPU_ONLY));
-
-    // 
-    vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
-        cmd.copyBuffer(hostBuffer, gpuBuffer, { vkh::VkBufferCopy{.size = 16u * 3u} });
-    });  // Buffer LOC test end
-
 
     // 
     auto context = std::make_shared<lancer::Context>(fw);
@@ -74,11 +52,6 @@ int main() {
     // initialize renderer
     context->initialize(canvasWidth, canvasHeight);
     renderer->linkMaterial(material)->linkNode(node);
-
-    // 
-    mesh->addBinding(gpuBuffer, vkh::VkVertexInputBindingDescription{ 0u, 16u });
-    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, 0u }, true);
-    mesh->increaseInstanceCount();
 
 
     tinygltf::Model model = {};
@@ -122,13 +95,16 @@ int main() {
             .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
+        // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
 
+        // 
         gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = model.buffers[i].data.size(),
             .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
+        // 
         vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
             cmd.copyBuffer(cpuBuffers.back(), gpuBuffers.back(), { vkh::VkBufferCopy{.size = model.buffers[i].data.size()} });
         });
@@ -142,13 +118,6 @@ int main() {
         if (BV.byteStride) { buffersViews.back().stride = BV.byteStride; };
     };
 
-    // 
-    auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
-        instancedTransformPerMesh[meshID].push_back(T);
-        meshes[meshID]->increaseInstanceCount();
-    };
-
-
     // Gonki //
     //   #   //
     // # # # //
@@ -160,10 +129,12 @@ int main() {
     // # * # // # # # // # # # //
     // #   # // # # # // #   # //
 
-    // 
+
+    // Nodes
     for (uint32_t i = 0; i < model.meshes.size(); i++) {
         const auto& meshData = model.meshes[i];
 
+        // Make Instanced Primitives
         for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
             const auto& primitive = meshData.primitives[v];
             auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
@@ -209,6 +180,11 @@ int main() {
     };
 
 
+    // 
+    auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
+        instancedTransformPerMesh[meshID].push_back(T);
+        meshes[meshID]->increaseInstanceCount();
+    };
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
@@ -253,7 +229,7 @@ int main() {
     // initialize program
     renderer->setupCommands();
 
-    // 
+    //  
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
     pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
         vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
