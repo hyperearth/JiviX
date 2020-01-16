@@ -71,13 +71,13 @@ void main() { // Hi-DPI adaptation
         };
 
         // DEBUG
-        energy = 1.f.xxx;//*= origin.xyz * 0.5f + 0.5f;
+        //energy = 1.f.xxx;//*= origin.xyz * 0.5f + 0.5f;
 
         // 
         if (i == 0u) { origin.xyz += raydir.xyz * depth; };
 
         // DEBUG
-        energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
+        //energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
         //energy *= normalSample.xyz * 0.5f + 0.5f;
     };
 
