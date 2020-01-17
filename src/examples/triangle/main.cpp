@@ -287,8 +287,8 @@ int main() {
             };
 
             // Drunk Debug Camera Animation
-            //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
-            //context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
+            eye.z += float(context->timeDiff()) / 1000.f * 1.f;
+            context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
 
             // Create render submission 
             std::vector<vk::Semaphore> waitSemaphores = { framebuffers[n_semaphore].semaphore }, signalSemaphores = { framebuffers[c_semaphore].semaphore };

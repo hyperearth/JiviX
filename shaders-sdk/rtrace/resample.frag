@@ -3,6 +3,7 @@
 #extension GL_EXT_scalar_block_layout   : require
 #extension GL_EXT_shader_realtime_clock : require
 #extension GL_EXT_nonuniform_qualifier  : require
+#extension GL_EXT_samplerless_texture_functions : require
 
 #extension GL_EXT_shader_explicit_arithmetic_types         : require
 #extension GL_EXT_shader_explicit_arithmetic_types_int8    : require
@@ -25,17 +26,27 @@ precision highp int;
 
 // 
 layout (location = 0) in vec4 gColor;
-//layout (location = 1) in vec4 gSample;
+layout (location = 1) in vec4 gSample;
 layout (location = DIFFUSED) out vec4 oDiffused;
 layout (location = SAMPLING) out vec4 oSampling;
 
 // 
-void main() {
-    const ivec2 size = imageSize(writeImages[0]  );
+void main() { // Currently NO possible to compare
     const ivec2 f2fx = ivec2(gl_FragCoord.xy);
-    //const vec4 positions = imageLoad(writeImages[SAMPLING],f2fx); // re-set position
-    const vec4 positions = vec4(divW(vec4((f2fx/size)*2.f-1.f,gl_FragCoord.z,1.f)*projectionInv),1.f); // re-set position
+    const ivec2 size = ivec2(textureSize(frameBuffers[POSITION], 0));
+    const ivec2 i2fx = ivec2(f2fx.x,size.y-f2fx.y);
 
-    oDiffused = gColor;
-    oSampling = positions; // pick up as least
+    // world space
+    vec4 positions = vec4(gSample.xyz,1.f); // from previous frame got...
+    vec4 almostpos = vec4(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,1.f); // get current position of pixel
+    almostpos = vec4(vec4(almostpos.xyz,1.f) * modelview, 1.f) * projection, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-world space
+
+    // 
+    if (distance(almostpos.xyz,positions.xyz) < 0.01f) {
+        oDiffused = gColor;
+        oSampling = vec4(0.f);
+    } else {
+        oDiffused = vec4(0.f);
+        oSampling = vec4(0.f);
+    };
 };

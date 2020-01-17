@@ -170,7 +170,7 @@ namespace lancer {
 
             // 
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
-            this->pipelineInfo.graphicsPipelineCreateInfo.pNext = &conserv;
+            this->pipelineInfo.rasterizationState.pNext = &conserv;
             this->pipelineInfo.vertexInputAttributeDescriptions = this->vertexInputAttributeDescriptions;
             this->pipelineInfo.vertexInputBindingDescriptions = this->vertexInputBindingDescriptions;
             for (uint32_t i=0u;i<4u;i++) {
