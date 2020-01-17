@@ -21,7 +21,7 @@ int main() {
 	};
 
     // 
-	uint32_t canvasWidth = 800, canvasHeight = 600;
+	uint32_t canvasWidth = 1600, canvasHeight = 1200; // For 3840x2160 Resolutions
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
@@ -287,8 +287,9 @@ int main() {
             };
 
             // Drunk Debug Camera Animation
-            //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
-            //context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
+            eye.x -= float(context->timeDiff()) / 1000.f * 0.1f;
+            foc.x -= float(context->timeDiff()) / 1000.f * 0.1f;
+            context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
 
             // Create render submission 
             std::vector<vk::Semaphore> waitSemaphores = { framebuffers[n_semaphore].semaphore }, signalSemaphores = { framebuffers[c_semaphore].semaphore };

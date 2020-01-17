@@ -69,9 +69,14 @@ void main() { // Hi-DPI adaptation
     vec3 energy = vec3(1.f,1.f,1.f);
     bool emission = false;
 
+//random2(uvec2(rdata[0],packed))
+
     // 
+    Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
+    vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f);
+
     uint i = 0u; signal = raydir.xyz*0.5f+0.5f;
-    for (i = 0u; i < 1u; i++) {
+    for (i = 0u; i < 4u; i++) {
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
             0, 1, 0,
             origin.xyz, 0.0001f,
@@ -79,18 +84,44 @@ void main() { // Hi-DPI adaptation
             0);
 
         // 
-        float depth = PrimaryRay.fdata.z;
-        if (depth < 9999.f) { // 
-            //energy *= normalSample.xyz * 0.5f + 0.5f;
-            energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
-        } else {
+        float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
+        float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
+        float depth = min(min(PrimaryRay.fdata.z,sdepth),pdepth);
+        //float depth = min(PrimaryRay.fdata.z,sdepth);
+        
+        // TODO: better depth system
+        if (depth >= 9999.f) { // Skybox
             energy *= vec3(0.9f,0.98,0.999f); emission = true;
+            //energy *= vec3(0.f); emission = true;
+        } else 
+        if (depth == PrimaryRay.fdata.z) { // Primitive
+            energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
+        } else 
+        if (depth == sdepth) { // Light Sphere
+            energy *= 10.f.xxx; emission = true;
+            PrimaryRay.normals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
+        } else 
+        if (depth == pdepth) { // Plane
+            energy *= vec3(0.8f);
+            PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
+        } else { // Error as Skybox
+            energy *= vec3(0.9f,0.98,0.999f); emission = true;
+            //energy *= vec3(0.f); emission = true;
         };
 
         // 
         origin.xyz += raydir.xyz * depth;
         if (i == 0u) { smorig.xyz = origin.xyz; };
+
+        // 
+        raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
+        origin.xyz += faceforward(PrimaryRay.normals.xyz,raydir.xyz,-PrimaryRay.normals.xyz) * 0.0001f;
+        
+
+        if (emission) break; // if found emission, break
     };
+
+    if (!emission) { energy *= 0.f; };
 
     // 
     const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
