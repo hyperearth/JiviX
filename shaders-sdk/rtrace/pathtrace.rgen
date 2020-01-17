@@ -58,6 +58,7 @@ void main() { // Hi-DPI adaptation
     const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
     const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
+    const bool isBackground = all(equal(worldsSample.xyz,0.f.xxx));
 
     // 
     vec3 lnormal = normalSample.xyz;
@@ -90,10 +91,11 @@ void main() { // Hi-DPI adaptation
     // 
     Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f); vec3 lightc = 5.f.xxx;
+    const vec3 skyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 
     // 
     const uint ITERATION_COUNT = 3u;
-    uint i = 0u;
+    uint i = 0u; if (!isBackground) 
     for (i = 0u; i < ITERATION_COUNT; i++) {
         //
         ShadowsRay.position  = vec4(0.f);
@@ -134,7 +136,6 @@ void main() { // Hi-DPI adaptation
         //float depth = min(min(PrimaryRay.fdata.z,sdepth),pdepth);
         float depth = min(PrimaryRay.fdata.z,sdepth);
         
-        const vec3 skyColor = vec3(0.9f,0.98,0.999f);
         //const vec3 skyColor = 0.f.xxx;
 
         // TODO: better depth system
@@ -165,6 +166,8 @@ void main() { // Hi-DPI adaptation
 
         // 
         if (emission) { break; }; // if found emission, break
+    } else {
+        signal.xyz += energy * skyColor; emission = true;
     };
 
     
@@ -176,5 +179,5 @@ void main() { // Hi-DPI adaptation
     const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
     imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal + directSample);
     //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal);
-    imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(smorig.xyz, 1.f));
+    imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), worldsSample);
 };
