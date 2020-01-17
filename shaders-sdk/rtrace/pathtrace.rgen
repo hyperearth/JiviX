@@ -30,6 +30,16 @@ layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
 layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
 
+
+vec4 shiftByPixel(in vec4 wpos, in uint packed){
+    vec2 sizpx = vec2(gl_LaunchSizeNV.xy);
+    vec2 shift = random2(uvec2(rdata[0],packed));
+    vec4 sspos = vec4(vec4(divW(wpos * projectionInv),1.f) * modelviewInv, 1.f);
+    sspos.xy += shift/sizpx;
+    return vec4(divW(vec4(sspos * modelview, 1.f) * projection), 1.f);
+};
+
+
 // TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
     PrimaryRay.position  = vec4(0.f);
@@ -43,24 +53,27 @@ void main() { // Hi-DPI adaptation
     ivec2 sizPixel = ivec2(gl_LaunchSizeNV.xy);
     uint packed = pack32(u16vec2(curPixel));
 
-    // 
-    //const vec4 colourSample = texelFetch(frameBuffers[COLORING], ivec2(invPixel.xy),0);
-    //const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
-    //const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
-    //const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
+    // TODO: transform normals (include in ray tracers)
+    const vec4 colourSample = texelFetch(frameBuffers[COLORING], ivec2(invPixel.xy),0);
+    const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
+    const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
+    const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
 
     // 
-    //vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
-    //vec3 origin = worldsSample.xyz;
-
-    vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel);//+shift;
-    vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
-    vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
-
-    vec3 origin = origss*modelviewInv;
-    vec3 target = targss*modelviewInv;
-    vec3 raydir = normalize(target - origin);
+    vec3 lnormal = normalSample.xyz;
+    vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
+    vec3 origin = worldsSample.xyz;
     vec3 smorig = origin;
+    raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
+    origin.xyz += faceforward(PrimaryRay.normals.xyz,raydir.xyz,-PrimaryRay.normals.xyz) * 0.0001f;
+
+    //vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel);//+shift;
+    //vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
+    //vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
+
+    //vec3 origin = origss*modelviewInv;
+    //vec3 target = targss*modelviewInv;
+    //vec3 raydir = normalize(target - origin);
 
     // DEBUG
     //origin.xyz -= raydir.xyz * 0.1f;
@@ -76,12 +89,12 @@ void main() { // Hi-DPI adaptation
 
     // 
     Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
-    vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f); vec3 lightc = 10.f.xxx;
+    vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f); vec3 lightc = 5.f.xxx;
 
     // 
-    const uint SAMPLE_COUNT = 4u;
-    uint i = 0u; vec3 lnormal = vec3(0.f);
-    for (i = 0u; i < SAMPLE_COUNT; i++) {
+    const uint ITERATION_COUNT = 3u;
+    uint i = 0u;
+    for (i = 0u; i < ITERATION_COUNT; i++) {
         //
         ShadowsRay.position  = vec4(0.f);
         ShadowsRay.texcoords = vec4(0.f);
@@ -90,7 +103,7 @@ void main() { // Hi-DPI adaptation
         ShadowsRay.udata.xyz = uvec3(0u);
 
         // Shadows Rays
-        if (i >= 1u) {
+        if (i >= 0u) {
             vec3 lightp = sphere.xyz + randomSphere(uvec2(gl_LaunchIDNV.xy)) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
             vec3 lightd = normalize(lightp.xyz - origin.xyz);
 
@@ -105,7 +118,7 @@ void main() { // Hi-DPI adaptation
             float depth = ShadowsRay.fdata.z;
 
             float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-            if (depth >= (shdist-0.001f)) { signal += vec4(energy * (2.f * (1.f - cos_a_max)) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * lightc, 0.f); };
+            if (depth >= (shdist-0.001f)) { signal += vec4(energy * (2.f * (1.f - cos_a_max)) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * lightc * 2.f, 0.f); };
         };
 
         // Primary Rays
@@ -121,14 +134,18 @@ void main() { // Hi-DPI adaptation
         //float depth = min(min(PrimaryRay.fdata.z,sdepth),pdepth);
         float depth = min(PrimaryRay.fdata.z,sdepth);
         
+        const vec3 skyColor = vec3(0.9f,0.98,0.999f);
+        //const vec3 skyColor = 0.f.xxx;
+
         // TODO: better depth system
         if (depth >= 9999.f) { // Skybox
-            signal.xyz += energy * vec3(0.9f,0.98,0.999f); emission = true;
+            signal.xyz += energy * skyColor; emission = true;
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
-            if (i > 0u) energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
+            energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
         } else 
         if (depth == sdepth) { // Light Sphere
+            //signal.xyz += energy * lightc; emission = true;
             signal.xyz += energy * 0.f; emission = true; // confirm diffuse lightning
             PrimaryRay.normals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
         } else 
@@ -136,10 +153,10 @@ void main() { // Hi-DPI adaptation
             energy *= vec3(0.8f);
             PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
         } else { // Error as Skybox
-            signal.xyz += energy * vec3(0.9f,0.98,0.999f); emission = true;
+            signal.xyz += energy * skyColor; emission = true;
         };
         origin.xyz += raydir.xyz * depth;
-        if (i == 0u) { smorig.xyz = origin.xyz; };
+        //if (i == 0u) { smorig.xyz = origin.xyz; };
 
         // 
         raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
