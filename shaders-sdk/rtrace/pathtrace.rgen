@@ -53,7 +53,6 @@ void main() { // Hi-DPI adaptation
     //vec3 origin = worldsSample.xyz;
 
     vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel)+shift;
-    //vec2 shift = random2(uvec2(tdata[0],packed)), pixel = vec2(curPixel)+0.f;
     vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
     vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
 

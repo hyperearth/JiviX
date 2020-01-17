@@ -78,11 +78,11 @@ int main() {
 
     // Every mesh will have transform buffer per internal instances
     std::vector<std::shared_ptr<lancer::Mesh>> meshes = {};
-    std::vector<std::vector<glm::mat4x4>> instancedTransformPerMesh = {}; // Run Out, Run Over
+    std::vector<std::vector<glm::mat3x4>> instancedTransformPerMesh = {}; // Run Out, Run Over
 
     // Transform Data Buffer
-    std::vector<vkt::Vector<glm::mat4x4>> gpuInstancedTransformPerMesh = {};
-    std::vector<vkt::Vector<glm::mat4x4>> cpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<glm::mat3x4>> gpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<glm::mat3x4>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
@@ -181,7 +181,7 @@ int main() {
 
     // 
     auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
-        instancedTransformPerMesh[meshID].push_back(glm::transpose(T));
+        instancedTransformPerMesh[meshID].push_back(glm::mat3x4(glm::transpose(T)));
         meshes[meshID]->increaseInstanceCount();
     };
 
@@ -191,7 +191,7 @@ int main() {
         //addMeshInstance(i);
 
         // 
-        const auto matStride = sizeof(glm::mat4x4);
+        const auto matStride = sizeof(glm::mat3x4);
         const auto matSize = instancedTransformPerMesh[i].size() * matStride;
 
         // 
@@ -227,8 +227,6 @@ int main() {
     // 
     glm::vec3 eye = glm::vec3(5.f, 2.f, 2.f);
     glm::vec3 foc = glm::vec3(0.f, 0.f, 0.f);
-    //glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(canvasWidth) / float(canvasHeight), 0.0001f, 10000.f);
-    //glm::mat3x4 modelview = glm::lookAt(glm::vec3(5.f, 2.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
     // 
     //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
