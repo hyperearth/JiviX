@@ -28,6 +28,7 @@ precision highp int;
 
 layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
 layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
+layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
 
 // TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
@@ -65,8 +66,9 @@ void main() { // Hi-DPI adaptation
     //origin.xyz -= raydir.xyz * 0.1f;
 
     // 
-    vec3 signal = vec3(0.f,0.f,0.f);
+    vec4 signal = vec4(0.f,0.f,0.f,1.f);
     vec3 energy = vec3(1.f,1.f,1.f);
+
     bool emission = false;
 
 //random2(uvec2(rdata[0],packed))
@@ -75,8 +77,35 @@ void main() { // Hi-DPI adaptation
     Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f);
 
-    uint i = 0u; signal = raydir.xyz*0.5f+0.5f;
+    // 
+    uint i = 0u; vec3 lnormal = vec3(0.f);
     for (i = 0u; i < 4u; i++) {
+        //
+        ShadowsRay.position  = vec4(0.f);
+        ShadowsRay.texcoords = vec4(0.f);
+        ShadowsRay.normals   = vec4(0.f);
+        ShadowsRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTNV
+        ShadowsRay.udata.xyz = uvec3(0u);
+
+        // Shadows Rays
+        if (i >= 1u) {
+            vec3 lightp = sphere.xyz + randomSphere(uvec2(gl_LaunchIDNV.xy)) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
+            vec3 lightd = normalize(lightp.xyz - origin.xyz);
+
+            traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
+                1, 1, 1,
+                origin.xyz, 0.0001f,
+                lightd.xyz, 10000.f,
+                1);
+
+            float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
+            float depth = min(sdepth,PrimaryRay.fdata.z);
+
+            float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
+            if (depth >= shdist-0.001f) { signal += vec4(energy * (2.f * (1.f - cos_a_max)) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * 10.f.xxx, 1.f); };
+        };
+
+        // Primary Rays
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
             0, 1, 0,
             origin.xyz, 0.0001f,
@@ -97,8 +126,8 @@ void main() { // Hi-DPI adaptation
         if (depth == PrimaryRay.fdata.z) { // Primitive
             energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
         } else 
-        if (depth == sdepth) { // Light Sphere
-            energy *= 10.f.xxx; emission = true;
+        if (depth == sdepth) { // Light Sphere 
+            //energy *= 10.f.xxx; emission = true; // TODO: USE only for reflections, transmissions, speculars, glossy
             PrimaryRay.normals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
         } else 
         if (depth == pdepth) { // Plane
@@ -108,24 +137,24 @@ void main() { // Hi-DPI adaptation
             energy *= vec3(0.9f,0.98,0.999f); emission = true;
             //energy *= vec3(0.f); emission = true;
         };
-
-        // 
         origin.xyz += raydir.xyz * depth;
         if (i == 0u) { smorig.xyz = origin.xyz; };
 
         // 
         raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
         origin.xyz += faceforward(PrimaryRay.normals.xyz,raydir.xyz,-PrimaryRay.normals.xyz) * 0.0001f;
-        
+        lnormal.xyz = PrimaryRay.normals.xyz;
 
+        // 
         if (emission) break; // if found emission, break
     };
 
-    if (!emission) { energy *= 0.f; };
+    if (emission) { signal.xyz += energy; } else {};
 
     // 
     const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
     const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
-    imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), vec4(energy.xyz + directSample.xyz, directSample.w + 1.f));
-    imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(smorig.xyz,1.f));
+    imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal + directSample);
+    //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal);
+    imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(smorig.xyz, 1.f));
 };

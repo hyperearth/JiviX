@@ -40,16 +40,24 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTracingPipeline() {
+        std::shared_ptr<Renderer> setupRayTracingPipeline() { // 
             const std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rgen.spv" ), vk::ShaderStageFlagBits::eRaygenNV),
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rmiss.spv"), vk::ShaderStageFlagBits::eMissNV)
             });
 
+            // 
+            const std::vector<vkh::VkPipelineShaderStageCreateInfo> stages2 = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
+                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/shadows.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
+                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/shadows.rmiss.spv"), vk::ShaderStageFlagBits::eMissNV)
+            });
+
+            // 
             this->rayTraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper();
             this->rayTraceInfo.vkInfo.layout = this->context->unifiedPipelineLayout;
             this->rayTraceInfo.addShaderStages(stages);
+            this->rayTraceInfo.addShaderStages(stages2);
             this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo,nullptr,this->driver->getDispatch());
 
             // get ray-tracing properties

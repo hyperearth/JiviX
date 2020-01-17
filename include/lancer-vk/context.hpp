@@ -71,7 +71,7 @@ namespace lancer {
             // 
             rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
