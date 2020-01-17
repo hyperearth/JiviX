@@ -31,21 +31,39 @@ layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 
 // TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
+    PrimaryRay.position  = vec4(0.f);
+    PrimaryRay.texcoords = vec4(0.f);
+    PrimaryRay.normals   = vec4(0.f);
+    PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTNV
+    PrimaryRay.udata.xyz = uvec3(0u);
+
+    // 
     ivec2 curPixel = ivec2(gl_LaunchIDNV.xy), invPixel = ivec2(gl_LaunchIDNV.x,gl_LaunchSizeNV.y-gl_LaunchIDNV.y-1u);
     ivec2 sizPixel = ivec2(gl_LaunchSizeNV.xy);
+    uint packed = pack32(u16vec2(curPixel));
 
     // 
-    const vec4 colourSample = texelFetch(frameBuffers[COLORING], ivec2(invPixel.xy),0);
-    const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
-    const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
-    const vec3 cameraSample = worldsSample*modelview;
+    //const vec4 colourSample = texelFetch(frameBuffers[COLORING], ivec2(invPixel.xy),0);
+    //const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
+    //const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
+    //const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
 
     // 
-    vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
-    vec3 origin = worldsSample.xyz;
+    //vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
+    //vec3 origin = worldsSample.xyz;
+
+    vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel)+shift;
+    //vec2 shift = random2(uvec2(tdata[0],packed)), pixel = vec2(curPixel)+0.f;
+    vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
+    vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
+
+    vec3 origin = origss*modelviewInv;
+    vec3 target = targss*modelviewInv;
+    vec3 raydir = normalize(target - origin);
+    vec3 smorig = origin;
 
     // DEBUG
-    origin.xyz -= raydir.xyz * 0.5f;
+    //origin.xyz -= raydir.xyz * 0.1f;
 
     // 
     vec3 signal = vec3(0.f,0.f,0.f);
@@ -55,7 +73,6 @@ void main() { // Hi-DPI adaptation
     // 
     uint i = 0u; signal = raydir.xyz*0.5f+0.5f;
     for (i = 0u; i < 1u; i++) {
-        //PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f);
         traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
             0, 1, 0,
             origin.xyz, 0.0001f,
@@ -64,27 +81,21 @@ void main() { // Hi-DPI adaptation
 
         // 
         float depth = PrimaryRay.fdata.z;
-        if (depth >= 9999.f) { // 
-            energy *= vec3(0.9f,0.98,0.999f); emission = true;
+        if (depth < 9999.f) { // 
+            //energy *= normalSample.xyz * 0.5f + 0.5f;
+            energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
         } else {
-            energy *= vec3(0.5f,0.75f,1.f);
+            energy *= vec3(0.9f,0.98,0.999f); emission = true;
         };
 
-        // DEBUG
-        //energy = PrimaryRay.fdata.zzz;//*= origin.xyz * 0.5f + 0.5f;
-
         // 
-        if (i == 0u) { origin.xyz += raydir.xyz * depth; };
-
-        // DEBUG
-        //energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
-        //energy *= normalSample.xyz * 0.5f + 0.5f;
+        origin.xyz += raydir.xyz * depth;
+        if (i == 0u) { smorig.xyz = origin.xyz; };
     };
 
     // 
-      const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
-    //const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
-    imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), vec4(directSample.xyz + energy, directSample.w + 1.f));
-    //imageStore(writeImages[SAMPLING_FLIP1], ivec2(gl_LaunchIDNV.xy), vec4(worldsSample.xyz,1.f));
-    //imageStore(writeImages[DIFFUSED_FLIP0], ivec2(gl_LaunchIDNV.xy), vec4(0.f,0.f,0.f,0.f)); // Access And Clear Manually
+    const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
+    const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
+    imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), vec4(energy.xyz + directSample.xyz, directSample.w + 1.f));
+    imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(smorig.xyz,1.f));
 };

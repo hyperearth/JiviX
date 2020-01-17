@@ -179,16 +179,16 @@ int main() {
         };
     };
 
-
     // 
     auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
-        instancedTransformPerMesh[meshID].push_back(T);
+        instancedTransformPerMesh[meshID].push_back(glm::transpose(T));
         meshes[meshID]->increaseInstanceCount();
     };
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        addMeshInstance(i, glm::translate(glm::vec3(0.f, .5f, 0.f)));
+        addMeshInstance(i, glm::translate(glm::vec3(0.f, -.5f, 0.f)));
+        //addMeshInstance(i);
 
         // 
         const auto matStride = sizeof(glm::mat4x4);
@@ -224,7 +224,16 @@ int main() {
         }, node->pushMesh(meshes[i]));
     };
 
+    // 
+    glm::vec3 eye = glm::vec3(5.f, 2.f, 2.f);
+    glm::vec3 foc = glm::vec3(0.f, 0.f, 0.f);
+    //glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(canvasWidth) / float(canvasHeight), 0.0001f, 10000.f);
+    //glm::mat3x4 modelview = glm::lookAt(glm::vec3(5.f, 2.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
+    // 
+    //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
+    context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
+    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<float>(), float(canvasWidth) / float(canvasHeight), 0.0001f, 10000.f));
 
     // initialize program
     renderer->setupCommands();
@@ -247,6 +256,7 @@ int main() {
 	// 
 	int currSemaphore = -1;
 	uint32_t currentBuffer = 0u;
+    uint32_t frameCount = 0u;
 
 	// 
 	while (!glfwWindowShouldClose(manager.window)) {
@@ -272,11 +282,15 @@ int main() {
                 commandBuffer.setViewport(0, { viewport });
                 commandBuffer.setScissor(0, { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalPipeline);
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, context->getPipelineLayout(), 0, context->getDescriptorSets(), nullptr);
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, context->registerTime()->setDrawCount(frameCount++)->getPipelineLayout(), 0, context->getDescriptorSets(), nullptr);
                 commandBuffer.draw(4, 1, 0, 0);
                 commandBuffer.endRenderPass();
                 commandBuffer.end();
             };
+
+            // Drunk Debug Camera Animation
+            //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
+            //context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
 
             // Create render submission 
             std::vector<vk::Semaphore> waitSemaphores = { framebuffers[n_semaphore].semaphore }, signalSemaphores = { framebuffers[c_semaphore].semaphore };

@@ -37,11 +37,14 @@ layout (location = 3) out vec4 gTangents;
 
 // 
 void main() { // Cross-Lake
+    const mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
+
+    // 
     gTexcoords.xy = iTexcoords;
-    gPosition = vec4(iPosition,1.f);
+    gPosition = vec4(vec4(iPosition.xyz,1.f) * matras,1.f);
     gNormals.xyz = iNormals;
     gTangents = iTangents;
 
-    const mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
-    gl_Position = vec4(vec4((gPosition * matras).xyz, 1.f) * modelview, 1.f) * projection;
+    // 
+    gl_Position = vec4(gPosition * modelview, 1.f) * projection;
 };

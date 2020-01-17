@@ -31,6 +31,11 @@ layout (location = SAMPLING) out vec4 oSampling;
 
 // 
 void main() {
+    const ivec2 size = imageSize(writeImages[0]  );
+    const ivec2 f2fx = ivec2(gl_FragCoord.xy);
+    //const vec4 positions = imageLoad(writeImages[SAMPLING],f2fx); // re-set position
+    const vec4 positions = vec4(divW(vec4((f2fx/size)*2.f-1.f,gl_FragCoord.z,1.f)*projectionInv),1.f); // re-set position
+
     oDiffused = gColor;
-    //oSampling = gSample;
+    oSampling = positions; // pick up as least
 };

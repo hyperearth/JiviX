@@ -102,7 +102,7 @@ namespace lancer {
                     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
                     .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
                     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-                    });
+                });
             };
 
             this->pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
@@ -140,8 +140,6 @@ namespace lancer {
             };
 
             // 
-            //this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
-            //this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // 
@@ -230,7 +228,8 @@ namespace lancer {
 
             // 
             this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
-            this->cmdbuf.updateBuffer<Matrices>(context->uniformGPUData, context->uniformGPUData.offset(), context->uniformData);
+            this->cmdbuf.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
+            //this->cmdbuf.updateBuffer<Matrices>(context->uniformGPUData, context->uniformGPUData.offset(), context->uniformData);
             vkt::commandBarrier(this->cmdbuf);
 
             // prepare meshes for ray-tracing

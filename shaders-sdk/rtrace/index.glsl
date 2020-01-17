@@ -54,14 +54,19 @@ layout (binding = 8, set = 0, r32ui) readonly uniform uimageBuffer indices; // i
 layout (binding = 0, set = 1, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
 layout (binding = 1, set = 1, scalar) readonly buffer Attributes { Attribute data[]; } attributes[];
 layout (binding = 3, set = 1, scalar) uniform Matrices {
-    mat4 projection;
-    mat4 projectionInv;
-    mat3x4 modelview;
-    mat3x4 modelviewInv;
+    mat4 projection;    
+    mat4 projectionInv; 
+    mat3x4 modelview;   
+    mat3x4 modelviewInv; 
+    uvec4 mdata;        // mesh mutation or modification data
+    //uvec2 tdata, rdata; // first for time, second for randoms
+    uvec2 tdata;
+    uvec2 rdata;
 };
 
 // 
-layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { layout(row_major) mat4x4 transform[]; } instances[];
+//layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { layout(row_major) mat4x4 transform[]; } instances[];
+layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { layout(column_major) mat4x4 transform[]; } instances[];
 layout (binding = 5, set = 1, scalar) uniform MeshData {
     uint materialID;
     uint hasIndex;
@@ -209,8 +214,8 @@ float floatConstruct( uint m ) {
     m |= ieeeOne;                          // Add fractional part to 1.0
 
     float  f = uintBitsToFloat( m );       // Range [1:2]
-    return f - 1.0;                        // Range [0:1]
-}
+    return fract(f - 1.0);                 // Range [0:1]
+};
 
 highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
 

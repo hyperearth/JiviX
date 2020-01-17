@@ -163,9 +163,14 @@ namespace lancer {
             const auto& viewport  = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
-            //this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+            // TODO: Add to main package
+            // Enable Conservative Rasterization For Fix Some Antialiasing Issues
+            vk::PipelineRasterizationConservativeStateCreateInfoEXT conserv = {};
+            conserv.conservativeRasterizationMode = vk::ConservativeRasterizationModeEXT::eOverestimate;
 
+            // 
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
+            this->pipelineInfo.graphicsPipelineCreateInfo.pNext = &conserv;
             this->pipelineInfo.vertexInputAttributeDescriptions = this->vertexInputAttributeDescriptions;
             this->pipelineInfo.vertexInputBindingDescriptions = this->vertexInputBindingDescriptions;
             for (uint32_t i=0u;i<4u;i++) {

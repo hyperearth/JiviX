@@ -40,9 +40,7 @@ void main() {
     // 
     gl_PointSize = 0; gColor = 0.f.xxxx;
     if (diffcolor.w > 0.f) {
-        gl_Position = vec4(vec4(positions.xyz,1.f) * modelview, 1.f) * projection;
-        gl_Position /= gl_Position.w, gl_Position.y *= -1.f, gl_PointSize = 1; // resampling correction
-        
+        gl_Position = vec4(vec4(positions.xyz,1.f) * modelview, 1.f) * projection, gl_PointSize = 1, gl_Position.y *= -1.f;
         gColor = clamp(diffcolor, 0.f, 100000.f);
     };
 };

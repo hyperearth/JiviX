@@ -2,13 +2,19 @@
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
+#include <chrono>
+
 namespace lancer {
 
     struct Matrices {
-        glm::mat4 projection;
-        glm::mat4 projectionInv;
-        glm::mat3x4 modelview;
-        glm::mat3x4 modelviewInv;
+        glm::mat4 projection = glm::mat4(1.f);
+        glm::mat4 projectionInv = glm::mat4(1.f);
+        glm::mat3x4 modelview = glm::mat3x4(1.f);
+        glm::mat3x4 modelviewInv = glm::mat3x4(1.f);
+        glm::uvec4 mdata = glm::uvec4(0u);                         // mesh mutation or modification data
+        //glm::uvec2 tdata = glm::uvec2(0u), rdata = glm::uvec2(0u); // first for time, second for randoms
+        glm::uvec2 tdata = glm::uvec2(0u);
+        glm::uvec2 rdata = glm::uvec2(0u);
     };
 
     // TODO: Full Context Support
@@ -17,7 +23,11 @@ namespace lancer {
         Context(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
-            this->uniformGPUData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->uniformGPUData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->uniformRawData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->beginTime = std::chrono::high_resolution_clock::now();
+            this->leastTime = std::chrono::high_resolution_clock::now();
+            this->previTime = std::chrono::high_resolution_clock::now();
         };
 
         // 
@@ -99,13 +109,47 @@ namespace lancer {
         };
 
         // 
-        std::array<vk::DescriptorSet,5u>& getDescriptorSets(){
+        std::array<vk::DescriptorSet,5u>& getDescriptorSets() {
             return descriptorSets;
         };
 
         // 
-        vk::PipelineLayout getPipelineLayout(){
+        vk::PipelineLayout getPipelineLayout() {
             return unifiedPipelineLayout;
+        };
+
+        // 
+        std::shared_ptr<Context> registerTime() {
+            this->previTime = this->leastTime;
+            uniformRawData[0].tdata[0] = std::chrono::duration_cast<std::chrono::milliseconds>((this->leastTime = std::chrono::high_resolution_clock::now()) - this->beginTime).count(); // time from beginning
+            uniformRawData[0].tdata[1] = std::chrono::duration_cast<std::chrono::milliseconds>(this->leastTime - this->previTime).count(); // difference 
+            return shared_from_this();
+        };
+
+        // 
+        uint32_t& drawTime() { return uniformRawData[0].tdata[0u]; };
+        uint32_t& timeDiff() { return uniformRawData[0].tdata[1u]; };
+        const uint32_t& drawTime() const { return uniformRawData[0].tdata[0u]; };
+        const uint32_t& timeDiff() const { return uniformRawData[0].tdata[1u]; };
+
+        // 
+        std::shared_ptr<Context> setDrawCount(const uint32_t& count = 0u) {
+            uniformRawData[0].rdata[0] = count;
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Context> setPerspective(const glm::mat4x4& persp = glm::mat4(1.f)) {
+            uniformRawData[0].projection = glm::transpose(persp);
+            uniformRawData[0].projectionInv = glm::transpose(glm::inverse(persp));
+            return shared_from_this();
+        };
+
+        // 
+        std::shared_ptr<Context> setModelView(const glm::mat4x4& mv = glm::mat3x4(1.f)) {
+            uniformRawData[0].modelview = glm::transpose(mv);
+            uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(mv));
+            return shared_from_this();
         };
 
         // 
@@ -188,15 +232,15 @@ namespace lancer {
                 .height = height
             });
 
-            // TODO: controllable 
-            glm::mat4 projected = glm::perspective(80.f/180.f*glm::pi<float>(), float(width) / float(height), 0.0001f, 10000.f);
-            glm::mat4 modelview = glm::lookAt(glm::vec3(5.f,2.f,2.f),glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,1.f,0.f));
+            // 
+            glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(width) / float(height), 0.0001f, 10000.f);
+            glm::mat4x4 modelview = glm::lookAt(glm::vec3(5.f, 2.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
             // 
-            uniformData.modelview = glm::transpose(modelview);
-            uniformData.modelviewInv = glm::transpose(glm::inverse(modelview));
-            uniformData.projection = glm::transpose(projected);
-            uniformData.projectionInv = glm::transpose(glm::inverse(projected));
+            uniformRawData[0].modelview = glm::transpose(modelview);
+            uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(modelview));
+            uniformRawData[0].projection = glm::transpose(projected);
+            uniformRawData[0].projectionInv = glm::transpose(glm::inverse(projected));
 
             // 
             scissor = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(width, height) };
@@ -347,6 +391,11 @@ namespace lancer {
         };
 
     protected: // 
+        std::chrono::time_point<std::chrono::steady_clock> beginTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::steady_clock> leastTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::steady_clock> previTime = std::chrono::high_resolution_clock::now();
+
+        // 
         vk::Rect2D scissor = {};
         vk::Viewport viewport = {};
         vk::RenderPass renderPass = {};
@@ -356,7 +405,8 @@ namespace lancer {
 
         // 
         vkt::Vector<Matrices> uniformGPUData = {};
-        Matrices uniformData = {};
+        vkt::Vector<Matrices> uniformRawData = {};
+        //Matrices uniformData = {};
 
         // Image Buffers
         std::array<vkt::ImageRegion, 4u> smFlip0Images = {};
@@ -388,6 +438,10 @@ namespace lancer {
         // 
         std::shared_ptr<Driver> driver = {};
         std::shared_ptr<Thread> thread = {};
+
+        // 
+        //glm::mat4 projected = glm::mat4(1.f);
+        //glm::mat4 modelview = glm::mat4(1.f);
     };
 
 };
