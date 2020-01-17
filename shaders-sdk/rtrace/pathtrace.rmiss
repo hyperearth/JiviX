@@ -24,7 +24,7 @@ precision highp float;
 precision highp int;
 #include "./index.glsl"
 
-rayPayloadInNV RayPayloadData PrimaryRay;
+layout (location = 0) rayPayloadInNV RayPayloadData PrimaryRay;
 
 void main() {
     vec3 raydir = gl_WorldRayDirectionNV;
