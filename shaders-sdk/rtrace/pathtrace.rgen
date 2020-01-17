@@ -53,7 +53,7 @@ void main() { // Hi-DPI adaptation
     //vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
     //vec3 origin = worldsSample.xyz;
 
-    vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel)+shift;
+    vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel);//+shift;
     vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
     vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
 
@@ -67,7 +67,7 @@ void main() { // Hi-DPI adaptation
 
     // 
     //vec4 signal = vec4(0.f,0.f,0.f,1.f);
-    vec4 signal = vec4(0.f,0.f,0.f,0.f);
+    vec4 signal = vec4(0.f,0.f,0.f,1.f);
     vec3 energy = vec3(1.f,1.f,1.f);
 
     bool emission = false;
@@ -76,11 +76,12 @@ void main() { // Hi-DPI adaptation
 
     // 
     Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
-    vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f); vec3 lightc = 5.f.xxx;
+    vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f); vec3 lightc = 10.f.xxx;
 
     // 
+    const uint SAMPLE_COUNT = 4u;
     uint i = 0u; vec3 lnormal = vec3(0.f);
-    for (i = 0u; i < 4u; i++) {
+    for (i = 0u; i < SAMPLE_COUNT; i++) {
         //
         ShadowsRay.position  = vec4(0.f);
         ShadowsRay.texcoords = vec4(0.f);
@@ -117,26 +118,25 @@ void main() { // Hi-DPI adaptation
         // 
         float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
         float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
-        float depth = min(min(PrimaryRay.fdata.z,sdepth),pdepth);
-        //float depth = min(PrimaryRay.fdata.z,sdepth);
+        //float depth = min(min(PrimaryRay.fdata.z,sdepth),pdepth);
+        float depth = min(PrimaryRay.fdata.z,sdepth);
         
         // TODO: better depth system
         if (depth >= 9999.f) { // Skybox
-            energy *= vec3(0.9f,0.98,0.999f); emission = true;
+            signal.xyz += energy * vec3(0.9f,0.98,0.999f); emission = true;
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
-            energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
+            if (i > 0u) energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
         } else 
-        if (depth == sdepth) { // Light Sphere 
-            //energy *= lightc; emission = true; //
-            energy *= 1.f; emission = true; // confirm diffuse lightning
+        if (depth == sdepth) { // Light Sphere
+            signal.xyz += energy * 0.f; emission = true; // confirm diffuse lightning
             PrimaryRay.normals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
         } else 
         if (depth == pdepth) { // Plane
             energy *= vec3(0.8f);
             PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
         } else { // Error as Skybox
-            energy *= vec3(0.9f,0.98,0.999f); emission = true;
+            signal.xyz += energy * vec3(0.9f,0.98,0.999f); emission = true;
         };
         origin.xyz += raydir.xyz * depth;
         if (i == 0u) { smorig.xyz = origin.xyz; };
@@ -150,7 +150,9 @@ void main() { // Hi-DPI adaptation
         if (emission) { break; }; // if found emission, break
     };
 
-    if (emission) { signal += vec4(energy, 1.f); } else {};
+    
+
+    //if (emission) { signal += vec4(energy, 1.f); } else { signal.w = 1.f; };
 
     // 
     const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));

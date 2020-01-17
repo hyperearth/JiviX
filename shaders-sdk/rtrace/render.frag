@@ -87,4 +87,5 @@ void main() {
     vec4 samples = getDenoised(ivec2(coord),ivec2(swapc));
     //if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*vec3(1.f,1.f,1.f),1.f);
     if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],ivec2(coord),0).xyz,1.f);
+    //if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz.xyz,1.f);
 };

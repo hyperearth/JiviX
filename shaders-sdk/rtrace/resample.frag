@@ -43,13 +43,13 @@ void main() { // Currently NO possible to compare
     //positions = vec4(vec4(divW(vec4(positions.xyz,1.f) * projectionInv), 1.f)*modelviewInv,1.f), positions.z = gl_FragCoord.y; 
 
     // 
-    //if (distance(almostpos.xyz,positions.xyz) < 0.005f) { // TODO: Enable When Will Full Polygons
+    if (distance(almostpos.xyz,positions.xyz) < 0.005f) { // TODO: Enable When Will Full Polygons
         oDiffused = gColor;
         oSampling = vec4(0.f);
-    //} else {
-    //    oDiffused = vec4(0.f);
-    //    oSampling = vec4(0.f);
-    //};
+    } else {
+        oDiffused = vec4(0.f);
+        oSampling = vec4(0.f);
+    };
 
     //oDiffused = vec4((almostpos.xyz-positions.xyz)*0.5f+0.5f,1.f);
 };
