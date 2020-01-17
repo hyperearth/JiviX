@@ -40,13 +40,16 @@ void main() { // Currently NO possible to compare
     vec4 positions = vec4(gSample.xyz,1.f); // from previous frame got...
     vec4 almostpos = vec4(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,1.f); // get current position of pixel
     almostpos = vec4(vec4(almostpos.xyz,1.f) * modelview, 1.f) * projection, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-world space
+    //positions = vec4(vec4(divW(vec4(positions.xyz,1.f) * projectionInv), 1.f)*modelviewInv,1.f), positions.z = gl_FragCoord.y; 
 
     // 
-    if (distance(almostpos.xyz,positions.xyz) < 0.01f) {
+    if (distance(almostpos.xyz,positions.xyz) < 0.005f) {
         oDiffused = gColor;
         oSampling = vec4(0.f);
     } else {
         oDiffused = vec4(0.f);
         oSampling = vec4(0.f);
     };
+
+    //oDiffused = vec4((almostpos.xyz-positions.xyz)*0.5f+0.5f,1.f);
 };
