@@ -90,7 +90,7 @@ void main() { // Hi-DPI adaptation
 
     // 
     Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
-    vec4 sphere = vec4(vec3(8.f,8.f,8.f), 4.f); vec3 lightc = 5.f.xxx;
+    vec4 sphere = vec4(vec3(8.f,8.f,4.f), 4.f); vec3 lightc = 5.f.xxx;
     const vec3 skyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
     //const vec3 skyColor = 0.f.xxx;
 
@@ -144,7 +144,8 @@ void main() { // Hi-DPI adaptation
             signal.xyz += energy * skyColor; emission = true;
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
-            energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
+            //energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
+            energy *= vec3(0.9f,0.8f,0.8f)*0.75f;
         } else 
         if (depth == sdepth) { // Light Sphere
             //signal.xyz += energy * lightc; emission = true;
@@ -168,7 +169,7 @@ void main() { // Hi-DPI adaptation
         } else {
             raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
         };
-        origin.xyz += faceforward(PrimaryRay.normals.xyz,raydir.xyz,-PrimaryRay.normals.xyz) * 0.0001f;
+        origin.xyz += faceforward(PrimaryRay.normals.xyz,-raydir.xyz,PrimaryRay.normals.xyz) * 0.0001f;
         lnormal.xyz = PrimaryRay.normals.xyz;
 
         // 
