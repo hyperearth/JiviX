@@ -1,5 +1,6 @@
 #define VMA_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
+#define VKT_FORCE_VMA_IMPLEMENTATION
 
 #include <vkt2/fw.hpp>
 #include <lancer-vk/lancer.hpp>
