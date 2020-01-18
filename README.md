@@ -25,6 +25,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Execute Day     : [2021:Q1]
 - Based On        : C++20, STL, PartenOS
 - General To Do   : Rewrite Vulkan and D3D12 library set...
+- Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 
 Date: 10.12.2019 @helixd-2k18
 ```
