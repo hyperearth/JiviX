@@ -187,7 +187,7 @@ int main() {
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        addMeshInstance(i, glm::translate(glm::vec3(0.f, -.5f, 0.f)));
+        addMeshInstance(i, glm::translate(glm::vec3(0.f, -.5f, 0.f)) * glm::scale(glm::vec3(1.f)));
         //addMeshInstance(i);
 
         // 

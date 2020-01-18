@@ -116,8 +116,8 @@ void main() { // Hi-DPI adaptation
                 1);
 
             float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
-            //float depth = min(sdepth,ShadowsRay.fdata.z)+sphere.w;
-            float depth = ShadowsRay.fdata.z;
+            float depth = min(sdepth,ShadowsRay.fdata.z)+sphere.w;
+            //float depth = ShadowsRay.fdata.z;
 
             float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
             if (depth >= (shdist-0.001f)) { signal += vec4(energy * (2.f * (1.f - cos_a_max)) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * lightc * 2.f, 0.f); };
@@ -139,6 +139,7 @@ void main() { // Hi-DPI adaptation
         //const vec3 skyColor = 0.f.xxx;
 
         // TODO: better depth system
+        bool couldReflection = false;
         if (depth >= 9999.f) { // Skybox
             signal.xyz += energy * skyColor; emission = true;
         } else 
@@ -153,6 +154,7 @@ void main() { // Hi-DPI adaptation
         if (depth == pdepth) { // Plane
             energy *= vec3(0.8f);
             PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
+            couldReflection = true;
         } else { // Error as Skybox
             signal.xyz += energy * skyColor; emission = true;
         };
@@ -160,7 +162,11 @@ void main() { // Hi-DPI adaptation
         //if (i == 0u) { smorig.xyz = origin.xyz; };
 
         // 
-        raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
+        if (couldReflection) {
+            raydir.xyz = reflect(raydir.xyz,PrimaryRay.normals.xyz);
+        } else {
+            raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
+        };
         origin.xyz += faceforward(PrimaryRay.normals.xyz,raydir.xyz,-PrimaryRay.normals.xyz) * 0.0001f;
         lnormal.xyz = PrimaryRay.normals.xyz;
 
