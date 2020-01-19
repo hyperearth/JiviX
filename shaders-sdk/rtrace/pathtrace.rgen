@@ -144,7 +144,13 @@ void main() { // Hi-DPI adaptation
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
             vec3 diffuseColor = vec3(0.9f,0.8f,0.8f)*0.75f * (PrimaryRay.normals.xyz*0.5f+0.5f);
-            energy *= i > 0u ? diffuseColor : sqrt(diffuseColor);
+            energy *= i > 0u ? diffuseColor : 1.f.xxx;//sqrt(diffuseColor);
+            //vec3 forig = raydir.xyz * depth + origin.xyz;
+            //vec3 diffuseColor = vec3(0.5f,1.f,0.5f);
+            //if (forig.x >= 0.f && forig.z >= 0.f) diffuseColor = vec3(1.f,1.f,0.5f);
+            //if (forig.x >= 0.f && forig.z <= 0.f) diffuseColor = vec3(1.f,0.5f,0.5f);
+            //if (forig.x <= 0.f && forig.z >= 0.f) diffuseColor = vec3(0.5f,0.5f,1.f);
+            //energy *= diffuseColor*0.8f;
         } else 
         if (depth == sdepth) { // Light Sphere
             //signal.xyz += energy * lightc; emission = true;
@@ -183,5 +189,6 @@ void main() { // Hi-DPI adaptation
     const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
     const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
     imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal + directSample);
+    //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal);
     imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
 };

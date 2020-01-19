@@ -77,14 +77,15 @@ int main() {
         return -1;
     }
 
+    using mat4_t = glm::mat3x4;
 
     // Every mesh will have transform buffer per internal instances
     std::vector<std::shared_ptr<lancer::Mesh>> meshes = {};
-    std::vector<std::vector<glm::mat3x4>> instancedTransformPerMesh = {}; // Run Out, Run Over
+    std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
 
     // Transform Data Buffer
-    std::vector<vkt::Vector<glm::mat3x4>> gpuInstancedTransformPerMesh = {};
-    std::vector<vkt::Vector<glm::mat3x4>> cpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<mat4_t>> gpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
@@ -183,18 +184,19 @@ int main() {
 
     // 
     auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
-        instancedTransformPerMesh[meshID].push_back(glm::mat3x4(glm::transpose(T)));
+        instancedTransformPerMesh[meshID].push_back(mat4_t(glm::transpose(T)));
         meshes[meshID]->increaseInstanceCount();
     };
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.0f, -1.f)) * glm::scale(glm::vec3(1.f)));
-        addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.0f, -1.f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i);
+        //addMeshInstance(i, glm::translate(glm::vec3( 1.25f, -1.0f,  1.25f)) * glm::scale(glm::vec3(1.f)));
+        //addMeshInstance(i, glm::translate(glm::vec3(-1.25f, -1.0f,  1.25f)) * glm::scale(glm::vec3(1.f)));
+        addMeshInstance(i, glm::translate(glm::vec3( 1.25f, -1.0f, -1.25f)) * glm::scale(glm::vec3(1.f)));
+        //addMeshInstance(i, glm::translate(glm::vec3(-1.25f, -1.0f, -1.25f)) * glm::scale(glm::vec3(1.f)));
 
         // 
-        const auto matStride = sizeof(glm::mat3x4);
+        const auto matStride = sizeof(mat4_t);
         const auto matSize = instancedTransformPerMesh[i].size() * matStride;
 
         // 

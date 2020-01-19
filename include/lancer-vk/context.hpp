@@ -253,6 +253,9 @@ namespace lancer {
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip0Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip0Images[i] });
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip1Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip1Images[i] });
+                    cmd.clearColorImage(this->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
+                    cmd.clearColorImage(this->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
+                    cmd.clearColorImage(this->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
                 };
             });
 

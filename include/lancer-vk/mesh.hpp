@@ -271,7 +271,7 @@ namespace lancer {
                     this->geometries[i].geometry.triangles.transformData = this->gpuTransformData;
                 };
             };
-
+            
             // Re-assign instance count
             this->accelerationStructureInfo.geometryCount = this->geometries.size();
             this->accelerationStructureInfo.pGeometries = this->geometries.data();

@@ -4,8 +4,10 @@
 // 
 layout (location = 0) in vec4 gColor;
 layout (location = 1) in vec4 gSample;
+layout (location = 2) in vec4 wPosition;
 layout (location = DIFFUSED) out vec4 oDiffused;
 layout (location = SAMPLING) out vec4 oSampling;
+
 
 // 
 void main() { // Currently NO possible to compare
@@ -16,11 +18,13 @@ void main() { // Currently NO possible to compare
     // world space
     vec4 positions = vec4(gSample.xyz,1.f); // from previous frame got...
     vec4 almostpos = vec4(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,1.f); // get current position of pixel
+    vec4 worldspos = almostpos;
     almostpos = vec4(vec4(almostpos.xyz,1.f) * modelview, 1.f) * projection, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-world space
     //positions = vec4(vec4(divW(vec4(positions.xyz,1.f) * projectionInv), 1.f)*modelviewInv,1.f), positions.z = gl_FragCoord.y; 
 
     // 
-    if (distance(almostpos.xyz,positions.xyz) < 0.005f) { // TODO: Enable When Will Full Polygons
+    const bool isBackground = all(equal(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,0.f.xxx)); // don't place into background
+    if (distance(almostpos.z,positions.z) < 0.0001f && !isBackground) { // TODO: Enable When Will Full Polygons
         oDiffused = gColor;
         oSampling = vec4(0.f);
     } else {
