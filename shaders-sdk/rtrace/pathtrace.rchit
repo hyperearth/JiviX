@@ -14,6 +14,8 @@ void main() {
     PrimaryRay.position  = triangulate(idx3, 0u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord));
     PrimaryRay.texcoords = triangulate(idx3, 1u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord));
     PrimaryRay.normals   = triangulate(idx3, 2u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord));
-    PrimaryRay.udata.xyz = idx3;
+    //PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/int(meshInfo[gl_InstanceCustomIndexNV].prmCount));
+    //PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/gl_InstanceID);
+    PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/gl_HitKindNV);
     PrimaryRay.fdata.xyz = vec3(baryCoord, gl_HitTNV);
 };

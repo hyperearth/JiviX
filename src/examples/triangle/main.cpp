@@ -189,8 +189,8 @@ int main() {
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        addMeshInstance(i, glm::translate(glm::vec3(-1.f, -0.5f, 0.f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i, glm::translate(glm::vec3( 1.f, -0.5f, 0.f)) * glm::scale(glm::vec3(1.f)));
+        addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.0f, -1.f)) * glm::scale(glm::vec3(1.f)));
+        addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.0f, -1.f)) * glm::scale(glm::vec3(1.f)));
         //addMeshInstance(i);
 
         // 
@@ -220,7 +220,7 @@ int main() {
 
         // 
         node->pushInstance(vkh::VsGeometryInstance{
-            .instanceId = 0u,
+            .instanceId = i,
             .mask = 0xff,
             .instanceOffset = 0u,
             .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV

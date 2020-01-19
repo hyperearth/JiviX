@@ -226,9 +226,11 @@ namespace lancer {
 
             // Make Draw Instanced
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
+                this->rawMeshInfo[0u][2u] = this->indexCount / 3u;
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
                 rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
             } else { // VAL Mode
+                this->rawMeshInfo[0u][2u] = this->vertexCount / 3u;
                 rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
             rasterCommand.endRenderPass();

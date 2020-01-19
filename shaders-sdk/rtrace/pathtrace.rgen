@@ -3,6 +3,7 @@
 #extension GL_GOOGLE_include_directive          : require
 #include "./driver.glsl"
 
+//#define ENABLE_RASTERIZE_STAGE
 
 layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
 layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
@@ -39,20 +40,24 @@ void main() { // Hi-DPI adaptation
     const bool isBackground = all(equal(worldsSample.xyz,0.f.xxx));
 
     // 
-    vec3 lnormal = normalSample.xyz;
+#ifdef ENABLE_RASTERIZE_STAGE
     vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
     vec3 origin = worldsSample.xyz;
-    vec3 smorig = origin;
-    raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
-    origin.xyz += faceforward(PrimaryRay.normals.xyz,-raydir.xyz,PrimaryRay.normals.xyz) * 0.0001f;
+    vec3 lnormal = normalSample.xyz;
+    vec3 forign = origin.xyz;
+#else
+    vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel);//+shift;
+    vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
+    vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
 
-    //vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel);//+shift;
-    //vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
-    //vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
+    vec3 origin = origss*modelviewInv;
+    vec3 target = targss*modelviewInv;
+    vec3 raydir = normalize(target - origin);
+    vec3 lnormal = vec3(0.f);
+    vec3 forign = origin.xyz;
+#endif
 
-    //vec3 origin = origss*modelviewInv;
-    //vec3 target = targss*modelviewInv;
-    //vec3 raydir = normalize(target - origin);
+
 
     // DEBUG
     //origin.xyz -= raydir.xyz * 0.1f;
@@ -60,7 +65,7 @@ void main() { // Hi-DPI adaptation
     // 
     //vec4 signal = vec4(0.f,0.f,0.f,1.f);
     vec4 signal = vec4(0.f,0.f,0.f,1.f);
-    vec3 energy = vec3(1.f,1.f,1.f);
+    //vec3 energy = 1.f.xxx;
 
     bool emission = false;
 
@@ -68,14 +73,32 @@ void main() { // Hi-DPI adaptation
 
     // 
     Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
-    vec4 sphere = vec4(vec3(8.f,8.f,4.f), 4.f); vec3 lightc = 5.f.xxx;
+    vec4 sphere = vec4(vec3(8.f,8.f,4.f), 4.f); vec3 lightc = 10.f.xxx;
     const vec3 skyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
     //const vec3 skyColor = 0.f.xxx;
 
     // 
-    const uint ITERATION_COUNT = 3u;
-    uint i = 0u; if (!isBackground) 
+    const uint ITERATION_COUNT = 4u;
+
+#ifdef ENABLE_RASTERIZE_STAGE // complete first stage
+    bool couldReflection = false; // TODO: Dynamic That Value
+    vec3 energy = sqrt(colourSample.xyz);
+    if (couldReflection) {
+        raydir.xyz = reflect(raydir.xyz, lnormal);
+    } else {
+        raydir.xyz = randomHemisphereCosine(lnormal,uvec2(gl_LaunchIDNV.xy));
+    };
+    
+    origin.xyz += faceforward(lnormal,-raydir.xyz,lnormal) * 0.0001f; // pre-correction
+    
+    uint i = 1u; if (!isBackground) 
+    for (i = 1u; i < ITERATION_COUNT; i++) { //
+#else
+    vec3 energy = 1.f.xxx;//sqrt(colourSample.xyz);
+    uint i = 0u; if (true) //if (!isBackground) 
     for (i = 0u; i < ITERATION_COUNT; i++) { //
+#endif
+
         ShadowsRay.position  = vec4(0.f);
         ShadowsRay.texcoords = vec4(0.f);
         ShadowsRay.normals   = vec4(0.f);
@@ -83,7 +106,7 @@ void main() { // Hi-DPI adaptation
         ShadowsRay.udata.xyz = uvec3(0u);
 
         // Shadows Rays
-        if (i >= 0u) {
+        if (i >= 1u) {
             vec3 lightp = sphere.xyz + randomSphere(uvec2(gl_LaunchIDNV.xy)) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
             vec3 lightd = normalize(lightp.xyz - origin.xyz);
 
@@ -113,8 +136,6 @@ void main() { // Hi-DPI adaptation
         float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
         //float depth = min(min(PrimaryRay.fdata.z,sdepth),pdepth);
         float depth = min(PrimaryRay.fdata.z,sdepth);
-        
-        //const vec3 skyColor = 0.f.xxx;
 
         // TODO: better depth system
         bool couldReflection = false;
@@ -122,8 +143,8 @@ void main() { // Hi-DPI adaptation
             signal.xyz += energy * skyColor; emission = true;
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
-            //energy *= PrimaryRay.normals.xyz * 0.5f + 0.5f;
-            energy *= vec3(0.9f,0.8f,0.8f)*0.75f;
+            vec3 diffuseColor = vec3(0.9f,0.8f,0.8f)*0.75f * (PrimaryRay.normals.xyz*0.5f+0.5f);
+            energy *= i > 0u ? diffuseColor : sqrt(diffuseColor);
         } else 
         if (depth == sdepth) { // Light Sphere
             //signal.xyz += energy * lightc; emission = true;
@@ -133,22 +154,22 @@ void main() { // Hi-DPI adaptation
         if (depth == pdepth) { // Plane
             energy *= vec3(0.8f);
             PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
-            couldReflection = true;
+            //couldReflection = true;
         } else { // Error as Skybox
             signal.xyz += energy * skyColor; emission = true;
         };
         origin.xyz += raydir.xyz * depth;
-        //if (i == 0u) { smorig.xyz = origin.xyz; };
 
         // 
         PrimaryRay.normals.xyz = faceforward(PrimaryRay.normals.xyz,raydir.xyz,PrimaryRay.normals.xyz); // interverse into incoming ray
         if (couldReflection) {
-            raydir.xyz = reflect(raydir.xyz,PrimaryRay.normals.xyz);
+            raydir.xyz = reflect(raydir.xyz, PrimaryRay.normals.xyz);
         } else {
             raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
         };
         origin.xyz += faceforward(PrimaryRay.normals.xyz,-raydir.xyz,PrimaryRay.normals.xyz) * 0.0001f;
         lnormal.xyz = PrimaryRay.normals.xyz;
+        if (i == 0u) { forign = origin.xyz; };
 
         // 
         if (emission) { break; }; // if found emission, break
@@ -156,14 +177,11 @@ void main() { // Hi-DPI adaptation
         signal.xyz += energy * skyColor; emission = true;
     };
 
-    
-
     //if (emission) { signal += vec4(energy, 1.f); } else { signal.w = 1.f; };
 
     // 
     const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
     const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
     imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal + directSample);
-    //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal);
-    imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), worldsSample);
+    imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
 };
