@@ -24,12 +24,10 @@ void main() { // Currently NO possible to compare
 
     // 
     const bool isBackground = all(equal(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,0.f.xxx)); // don't place into background
-    if (distance(almostpos.z,positions.z) < 0.0001f && !isBackground) { // TODO: Enable When Will Full Polygons
+    if (abs(almostpos.z-positions.z) < 0.0001f && !isBackground) { // TODO: Enable When Will Full Polygons
         oDiffused = gColor;
-        oSampling = vec4(0.f);
     } else {
-        oDiffused = vec4(0.f);
-        oSampling = vec4(0.f);
+        discard;
     };
 
     //oDiffused = vec4((almostpos.xyz-positions.xyz)*0.5f+0.5f,1.f);

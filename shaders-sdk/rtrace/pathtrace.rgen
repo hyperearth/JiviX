@@ -140,7 +140,7 @@ void main() { // Hi-DPI adaptation
         // TODO: better depth system
         bool couldReflection = false;
         if (depth >= 9999.f) { // Skybox
-            signal.xyz += energy * skyColor; emission = true;
+            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); emission = true;
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
             vec3 diffuseColor = vec3(0.9f,0.8f,0.8f)*0.75f * (PrimaryRay.normals.xyz*0.5f+0.5f);
@@ -162,7 +162,7 @@ void main() { // Hi-DPI adaptation
             PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
             //couldReflection = true;
         } else { // Error as Skybox
-            signal.xyz += energy * skyColor; emission = true;
+            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); emission = true;
         };
         origin.xyz += raydir.xyz * depth;
 
@@ -180,7 +180,8 @@ void main() { // Hi-DPI adaptation
         // 
         if (emission) { break; }; // if found emission, break
     } else {
-        signal.xyz += energy * skyColor; emission = true;
+        signal.xyz += energy * 1.f.xxx; emission = true;
+        forign.xyz = 0.f.xxx;
     };
 
     //if (emission) { signal += vec4(energy, 1.f); } else { signal.w = 1.f; };
