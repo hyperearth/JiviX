@@ -168,6 +168,14 @@ namespace lancer {
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
                 deferredAttachments[b] = frameBfImages[b];
+
+                ((vk::DescriptorImageInfo&)(*frameBfImages[b])).sampler = driver->device.createSampler(vkh::VkSamplerCreateInfo{
+                    .magFilter = VK_FILTER_LINEAR,
+                    .minFilter = VK_FILTER_LINEAR,
+                    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    .unnormalizedCoordinates = true,
+                });
             };
 
             // 
@@ -294,7 +302,7 @@ namespace lancer {
             this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount =   4u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
 
             // 
-            this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE         , .descriptorCount =   4u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
+            this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount =   4u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
 
             // 
             this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 128u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
