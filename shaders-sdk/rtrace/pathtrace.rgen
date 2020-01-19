@@ -3,7 +3,7 @@
 #extension GL_GOOGLE_include_directive          : require
 #include "./driver.glsl"
 
-//#define ENABLE_RASTERIZE_STAGE
+#define ENABLE_RASTERIZE_STAGE
 
 layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
 layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
