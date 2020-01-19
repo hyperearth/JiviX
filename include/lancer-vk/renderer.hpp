@@ -154,6 +154,12 @@ namespace lancer {
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // 
+            for (uint32_t i = 0u; i < 4u; i++) { // Definitely Not an Hotel
+                //rasterCommand.clearColorImage(this->context->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->smFlip1Images[i] });
+                rasterCommand.clearColorImage(this->context->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->smFlip0Images[i] });
+                rasterCommand.clearColorImage(this->context->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->frameBfImages[i] });
+            };
+
             rasterCommand.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, clearValues[4u].depthStencil, (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
             vkt::commandBarrier(this->cmdbuf);
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);

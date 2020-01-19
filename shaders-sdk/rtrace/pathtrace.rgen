@@ -37,7 +37,7 @@ void main() { // Hi-DPI adaptation
     const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
     const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
-    const bool isBackground = all(equal(worldsSample.xyz,0.f.xxx));
+    const bool isBackground = all(fequal(worldsSample.xyz,0.f.xxx));
 
     // 
 #ifdef ENABLE_RASTERIZE_STAGE

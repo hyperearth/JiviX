@@ -6,6 +6,11 @@ layout (location = 0) out vec4 gColor;
 layout (location = 1) out vec4 gSample;
 layout (location = 2) out vec4 wPosition;
 
+out gl_PerVertex {   // some subset of these members will be used
+    vec4 gl_Position;
+    float gl_PointSize;
+};
+
 // 
 void main() {
     //const uint idx = gl_VertexIndex;
@@ -17,9 +22,9 @@ void main() {
     const vec4 diffcolor = imageLoad(writeImages[DIFFUSED],f2fx); // 
 
     // 
-    gl_PointSize = 0; gColor = 0.f.xxxx; wPosition = 0.f.xxxx;
-    if (diffcolor.w > 0.f && !all(equal(positions.xyz,0.f.xxx))) { // set into current 
-        gl_Position = vec4(vec4(positions.xyz,1.f) * modelview, 1.f) * projection, gl_PointSize = 1, gl_Position.y *= -1.f;
+    gl_PointSize = 0, gColor = 0.f.xxxx, wPosition = 0.f.xxxx;
+    if (diffcolor.w > 0.f && !all(fequal(positions.xyz,0.f.xxx))) { // set into current 
+        gl_Position = vec4(vec4(positions.xyz,1.f) * modelview, 1.f) * projection, gl_Position.y *= -1.f, gl_PointSize = 0.5f;
         wPosition = positions;
         gColor = clamp(diffcolor, 0.001f, 10000000.f);
         gSample = vec4(gl_Position.xyz / gl_Position.w,1.f);

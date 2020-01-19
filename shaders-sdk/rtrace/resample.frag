@@ -23,8 +23,8 @@ void main() { // Currently NO possible to compare
     //positions = vec4(vec4(divW(vec4(positions.xyz,1.f) * projectionInv), 1.f)*modelviewInv,1.f), positions.z = gl_FragCoord.y; 
 
     // 
-    const bool isBackground = all(equal(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,0.f.xxx)); // don't place into background
-    if (abs(almostpos.z-positions.z) < 0.0001f && !isBackground) { // TODO: Enable When Will Full Polygons
+    const bool isBackground = all(fequal(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,0.f.xxx)); // don't place into background
+    if (abs(almostpos.z-positions.z)<0.0005f && !isBackground) { // TODO: Enable When Will Full Polygons
         oDiffused = gColor;
     } else {
         discard;

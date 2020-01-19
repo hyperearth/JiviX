@@ -261,11 +261,38 @@ vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed) {
     return (hemi.x * tan_x + hemi.y * tan_y + n * hemi.z);
 };
 
+bvec4 and(in bvec4 a, in bvec4 b){
+    return bvec4(a.x&&b.x,a.y&&b.y,a.z&&b.z,a.w&&b.w);
+};
+
+bvec4 or(in bvec4 a, in bvec4 b){
+    return bvec4(a.x||b.x,a.y||b.y,a.z||b.z,a.w||b.w);
+};
+
+bvec3 and(in bvec3 a, in bvec3 b){
+    return bvec3(a.x&&b.x,a.y&&b.y,a.z&&b.z);
+};
+
+bvec3 or(in bvec3 a, in bvec3 b){
+    return bvec3(a.x||b.x,a.y||b.y,a.z||b.z);
+};
 
 bool fequal(in float a, in float b){
     return 
         a <= b + 0.0001f && 
         a >= b - 0.0001f;
+};
+
+bvec4 fequal(in vec4 a, in vec4 b){
+    return and(
+        lessThanEqual(a, b + 0.0001f),
+        greaterThanEqual(a, b - 0.0001f));
+};
+
+bvec3 fequal(in vec3 a, in vec3 b){
+    return and(
+        lessThanEqual(a, b + 0.0001f),
+        greaterThanEqual(a, b - 0.0001f));
 };
 
 

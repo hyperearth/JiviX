@@ -20,10 +20,10 @@ void main() {
     vec4 samples = max(imageLoad(writeImages[DIFFUSED],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
     //samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f);
     samples = vec4(vec3(0.f,0.f,0.f),0.f);
-    colored = vec4(/*vec3(1.f,1.f,1.f)*/skyColor,1.f);
-    normals = vec4((modelview * normalize(vec3(0.f, 0.f, 1.f))).xyz, 1.f);
+    colored = vec4(skyColor,0.f);
+    normals = vec4((modelview * normalize(vec3(0.f, 0.f, 1.f))).xyz, 0.f);
 
     gl_FragDepth = 1.f; 
     imageStore(writeImages[DIFFUSED], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
-    imageStore(writeImages[SAMPLING], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), samples);
+    imageStore(writeImages[SAMPLING], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(samples.xyz,0.f));
 };
