@@ -76,7 +76,7 @@ void main() { // Hi-DPI adaptation
     if (couldReflection) {
         raydir.xyz = reflect(raydir.xyz, lnormal);
     } else {
-        raydir.xyz = randomHemisphereCosine(lnormal,uvec2(gl_LaunchIDNV.xy));
+        raydir.xyz = randomHemisphereCosine(lnormal,uvec2(packed,rdata.x));
     };
     origin.xyz += faceforward(lnormal,-raydir.xyz,lnormal) * 0.0001f; // pre-correction
 
