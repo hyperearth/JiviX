@@ -38,11 +38,12 @@ Date:[21.12.2019]:[helix.d@IMN]
 
 ## TODO Lists
 
-- [x] Diffuse Layer with Global Illumination
-- [ ] Materials Support
-- [ ] Reflection Layers
-- [ ] Transparency Layers
-- [ ] Glossy Reflections
+- [x] Diffuse layer with global illumination (Path Tracing)
+- [ ] Materials support
+- [ ] Reflection layers
+- [ ] Transparency layers
+- [ ] Glossy reflections
+- [ ] ReShade extensions support
 
 ## Authors P.S. 
 
