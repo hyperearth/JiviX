@@ -20,6 +20,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Project Type    : Experimental, Personal
 - Portfolio       : Planned
 - Ray-Tracing     : Planned
+- Path-Tracing    : For Diffuse Only, (almost) noiseless
 - Role/Target     : Simplify Vulkan API, alternate of Vookoo...
 - License         : BSD-3 (Currently)
 - Graphical API   : Vulkan, DirectX 12 (Vulkan-HPP over D3D12)
@@ -32,5 +33,18 @@ Planned to beat world record as most perfect and most long-time development prod
 - General To Do   : Rewrite Vulkan and D3D12 library set...
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 
-Date: 10.12.2019 @helixd-2k18
+Date:[21.12.2019]:[helix.d@IMN]
 ```
+
+## TODO Lists
+
+- [x] Diffuse Layer with Global Illumination
+- [ ] Materials Support
+- [ ] Reflection Layers
+- [ ] Transparency Layers
+- [ ] Glossy Reflections
+
+## Authors P.S. 
+
+- helix.d@IMN
+- RTX@NVIDIA
