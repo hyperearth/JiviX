@@ -190,11 +190,14 @@ int main() {
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        //addMeshInstance(i, glm::translate(glm::vec3( 1.25f, -1.0f, 1.25f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i, glm::translate(glm::vec3(-1.25f, -1.0f, 1.25f)) * glm::scale(glm::vec3(1.f)));
-        addMeshInstance(i, glm::translate(glm::vec3(-1.25f, -1.0f, -1.25f)) * glm::scale(glm::vec3(1.f)));
-        addMeshInstance(i, glm::translate(glm::vec3( 1.25f, -1.0f, -1.25f)) * glm::scale(glm::vec3(1.f)));
-
+        //addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f,  1.f)) * glm::scale(glm::vec3(1.f)));
+        //addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f,  1.f)) * glm::scale(glm::vec3(1.f))); //!!!
+        //addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
+          addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
+        //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f,  1.f)) * glm::scale(glm::vec3(1.f)));
+        //addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f,  1.f)) * glm::scale(glm::vec3(1.f)));
+          addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
+        //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
 
         // 
         const auto matStride = sizeof(mat4_t);
