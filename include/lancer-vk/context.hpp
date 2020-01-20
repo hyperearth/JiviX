@@ -169,13 +169,13 @@ namespace lancer {
                 });
                 deferredAttachments[b] = frameBfImages[b];
 
-                ((vk::DescriptorImageInfo&)(*frameBfImages[b])).sampler = driver->device.createSampler(vkh::VkSamplerCreateInfo{
+                frameBfImages[b].setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                });
+                }));
             };
 
             // 
@@ -335,7 +335,7 @@ namespace lancer {
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = 4u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
                 //for (uint32_t i = 0u; i < descriptions.size(); i++) { handle.offset<VkDescriptorImageInfo>(i) = descriptions[i]; };
                 memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
