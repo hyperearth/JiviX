@@ -292,8 +292,8 @@ int main() {
             };
 
             // Drunk Debug Camera Animation
-            eye.x += float(context->timeDiff()) / 1000.f * 0.1f;
-            foc.x += float(context->timeDiff()) / 1000.f * 0.1f;
+            eye.x -= float(context->timeDiff()) / 1000.f * 0.1f;
+            foc.x -= float(context->timeDiff()) / 1000.f * 0.1f;
             context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
 
             // Create render submission 

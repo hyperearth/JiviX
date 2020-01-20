@@ -160,16 +160,13 @@ namespace lancer {
 
             // 
             for (uint32_t b=0u;b<4u;b++) { // 
-                frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{ 
+                deferredAttachments[b] = frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
                     .extent = {width,height,1u}, 
                     .usage = { .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 }, 
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                });
-                deferredAttachments[b] = frameBfImages[b];
-
-                frameBfImages[b].setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
+                }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
@@ -180,22 +177,20 @@ namespace lancer {
 
             // 
             for (uint32_t b=0u;b<4u;b++) { // 
-                smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
+                smpFlip0Attachments[b] = smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
                     .extent = {width,height,1u}, 
                     .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
-                smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
+                smpFlip1Attachments[b] = smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
-                smpFlip0Attachments[b] = smFlip0Images[b];
-                smpFlip1Attachments[b] = smFlip1Images[b];
             };
 
             // 

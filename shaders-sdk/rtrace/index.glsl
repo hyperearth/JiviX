@@ -333,3 +333,11 @@ vec3 exchange(inout vec3 orig, in vec3 data) {
 vec3 divW(in vec4 vect) { return vect.xyz/vect.w; };
 vec3 divW(in vec3 vect) {return vect.xyz; };
 
+vec3 world2screen(in vec3 origin){
+    return divW(vec4(vec4(origin,1.f) * modelview, 1.f) * projection);
+};
+
+vec3 screen2world(in vec3 origin){
+    return vec4(divW(vec4(origin,1.f) * projectionInv),1.f)*modelviewInv;
+};
+

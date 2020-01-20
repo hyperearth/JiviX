@@ -20,7 +20,8 @@ void main() {
     vec4 samples = max(imageLoad(writeImages[DIFFUSED],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
     //samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f);
     samples = vec4(vec3(0.f,0.f,0.f),0.f);
-    colored = vec4(skyColor,0.f);
+    //colored = vec4(0.f.xxx,1.f);
+    colored = vec4(skyColor,1.f);
     normals = vec4((modelview * normalize(vec3(0.f, 0.f, 1.f))).xyz, 0.f);
 
     gl_FragDepth = 1.f; 

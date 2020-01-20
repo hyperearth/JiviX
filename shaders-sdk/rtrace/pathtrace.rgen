@@ -33,9 +33,11 @@ void main() { // Hi-DPI adaptation
     uint packed = pack32(u16vec2(curPixel));
 
     // TODO: transform normals (include in ray tracers)
-    const vec4 colourSample = texelFetch(frameBuffers[COLORING], ivec2(invPixel.xy),0);
-    const vec4 normalSample = texelFetch(frameBuffers[NORMALED], ivec2(invPixel.xy),0);
-    const vec4 worldsSample = texelFetch(frameBuffers[POSITION], ivec2(invPixel.xy),0);
+    //const vec2 shift = random2(uvec2(rdata[0],packed)), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
+    const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
+    const vec4 colourSample = texture(frameBuffers[COLORING], pixel);
+    const vec4 normalSample = texture(frameBuffers[NORMALED], pixel);
+    const vec4 worldsSample = texture(frameBuffers[POSITION], pixel);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
     const bool isBackground = all(fequal(worldsSample.xyz,0.f.xxx));
 
@@ -46,12 +48,8 @@ void main() { // Hi-DPI adaptation
     vec3 lnormal = normalSample.xyz;
     vec3 forign = origin.xyz;
 #else
-    vec2 shift = random2(uvec2(rdata[0],packed)), pixel = vec2(invPixel);//+shift;
-    vec4 origss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.001f,1.f)*projectionInv),1.f);
-    vec4 targss = vec4(divW(vec4((pixel/sizPixel)*2.f-1.f,0.999f,1.f)*projectionInv),1.f);
-
-    vec3 origin = origss*modelviewInv;
-    vec3 target = targss*modelviewInv;
+    vec3 origin = screen2world(vec3((pixel/sizPixel)*2.f-1.f,0.001f));
+    vec3 target = screen2world(vec3((pixel/sizPixel)*2.f-1.f,0.999f));
     vec3 raydir = normalize(target - origin);
     vec3 lnormal = vec3(0.f);
     vec3 forign = origin.xyz;
@@ -82,13 +80,12 @@ void main() { // Hi-DPI adaptation
 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
     bool couldReflection = false; // TODO: Dynamic That Value
-    vec3 energy = sqrt(colourSample.xyz);
+    vec3 energy = 1.f.xxx;
     if (couldReflection) {
         raydir.xyz = reflect(raydir.xyz, lnormal);
     } else {
         raydir.xyz = randomHemisphereCosine(lnormal,uvec2(gl_LaunchIDNV.xy));
     };
-    
     origin.xyz += faceforward(lnormal,-raydir.xyz,lnormal) * 0.0001f; // pre-correction
     
     uint i = 1u; if (!isBackground) 
@@ -140,7 +137,7 @@ void main() { // Hi-DPI adaptation
         // TODO: better depth system
         bool couldReflection = false;
         if (depth >= 9999.f) { // Skybox
-            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); emission = true;
+            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); energy *= 0.f;
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
             vec3 diffuseColor = vec3(0.9f,0.8f,0.8f)*0.75f * (PrimaryRay.normals.xyz*0.5f+0.5f);
@@ -154,7 +151,7 @@ void main() { // Hi-DPI adaptation
         } else 
         if (depth == sdepth) { // Light Sphere
             //signal.xyz += energy * lightc; emission = true;
-            signal.xyz += energy * 0.f; emission = true; // confirm diffuse lightning
+            signal.xyz += energy * 0.f; energy *= 0.f; // confirm diffuse lightning
             PrimaryRay.normals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
         } else 
         if (depth == pdepth) { // Plane
@@ -162,7 +159,7 @@ void main() { // Hi-DPI adaptation
             PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
             //couldReflection = true;
         } else { // Error as Skybox
-            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); emission = true;
+            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); energy *= 0.f;
         };
         origin.xyz += raydir.xyz * depth;
 

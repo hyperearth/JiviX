@@ -17,8 +17,8 @@ void main() { // Currently NO possible to compare
 
     // world space
     vec4 positions = vec4(gSample.xyz,1.f); // SSP from previous frame got...
-    vec4 almostpos = vec4(texture(frameBuffers[POSITION],gl_FragCoord.xy,0).xyz,1.f), worldspos = almostpos; // get world space from pixel
-    almostpos = vec4(vec4(almostpos.xyz,1.f) * modelview, 1.f) * projection, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
+    vec4 almostpos = vec4(texture(frameBuffers[POSITION],gl_FragCoord.xy).xyz,1.f), worldspos = almostpos; // get world space from pixel
+    almostpos = vec4(world2screen(almostpos.xyz),1.f), almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
 
     // 
     const bool isBackground = all(fequal(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,0.f.xxx)); // don't place into background
