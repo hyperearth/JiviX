@@ -38,6 +38,9 @@ void main() { // Hi-DPI adaptation
     const vec4 colourSample = texture(frameBuffers[COLORING], pixel);
     const vec4 normalSample = texture(frameBuffers[NORMALED], pixel);
     const vec4 worldsSample = texture(frameBuffers[POSITION], pixel);
+    //const vec4 colourSample = texelFetch(frameBuffers[COLORING], invPixel, 0);
+    //const vec4 normalSample = texelFetch(frameBuffers[NORMALED], invPixel, 0);
+    //const vec4 worldsSample = texelFetch(frameBuffers[POSITION], invPixel, 0);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
     const bool isBackground = all(fequal(worldsSample.xyz,0.f.xxx));
 

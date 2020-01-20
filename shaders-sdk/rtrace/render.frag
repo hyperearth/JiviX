@@ -36,10 +36,11 @@ void sort(inout vec3 arr[9u], int d)
 }
 
 vec4 getDenoised(in ivec2 coord, in ivec2 swapc){
-    vec4 centerColor = getIndirect(swapc);
+    //vec4 centerColor = getIndirect(swapc);
     vec4 centerNormal = getNormal(coord);
     //vec4 sampleBlur = 0.f.xxxx;
     
+    /*
     vec3 samples[9u]; int scount = 0;
     for (uint x=0;x<3u;x++) {
         for (uint y=0;y<3u;y++) {
@@ -55,6 +56,20 @@ vec4 getDenoised(in ivec2 coord, in ivec2 swapc){
 
     if (scount > 0) sort(samples,int(sqrt(float(scount))));
     return vec4(samples[scount>>1u],1.f);
+    */
+
+    vec4 sampled = 0.f.xxxx; int scount = 0;
+    for (uint x=0;x<5u;x++) {
+        for (uint y=0;y<5u;y++) {
+            vec4 nsample = getNormal(coord+ivec2(x-1u,y-1u));
+            if (dot(nsample.xyz,centerNormal.xyz) > 0.5f || (x == 2u && y == 2u)) {
+                sampled += imageLoad(writeImages[DIFFUSED],ivec2(swapc)+ivec2(x,y)-2);
+            };
+        };
+    };
+
+    sampled = max(sampled, 0.001f);
+    return sampled /= sampled.w;
 };
 
 // 
