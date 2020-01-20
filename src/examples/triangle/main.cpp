@@ -184,20 +184,40 @@ int main() {
 
     // 
     auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
-        instancedTransformPerMesh[meshID].push_back(mat4_t(glm::transpose(T)));
-        meshes[meshID]->increaseInstanceCount();
+        //instancedTransformPerMesh[meshID].push_back(mat4_t(glm::transpose(T)));
+        //meshes[meshID]->increaseInstanceCount();
+
+        // 
+        //instancedTransformPerMesh[meshID].push_back(mat4_t(glm::transpose(T)));
+        node->pushInstance(vkh::VsGeometryInstance{
+            .transform = mat4_t(glm::transpose(T)),
+            .instanceId = meshID,
+            .mask = 0xff,
+            .instanceOffset = 0u,
+            .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
+        });
     };
+
+
 
     // add default SubInstance
     for (uint32_t i = 0; i < 1u; i++) {
-        //addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f,  1.f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f,  1.f)) * glm::scale(glm::vec3(1.f))); //!!!
-        //addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
-          addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f,  1.f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f,  1.f)) * glm::scale(glm::vec3(1.f)));
-          addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f, -1.f)) * glm::scale(glm::vec3(1.f)));
+        instancedTransformPerMesh[i].push_back(mat4_t(glm::transpose(
+            glm::translate(glm::vec3(0.f, 0.f, 0.f))
+            //glm::translate(glm::vec3(-1.f, -1.f, -1.f))
+        ))); // attemp for issues
+
+        node->pushMesh(meshes[i]->increaseInstanceCount());
+
+        const float unitScale = 1.f;
+      //addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f,  1.f)) * glm::scale(glm::vec3(unitScale)));
+        addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f,  1.f)) * glm::scale(glm::vec3(unitScale))); //!!! 
+      //addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f, -1.f)) * glm::scale(glm::vec3(unitScale)));
+        addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f, -1.f)) * glm::scale(glm::vec3(unitScale))); //!!! 
+      //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f,  1.f)) * glm::scale(glm::vec3(unitScale)));
+      //addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f,  1.f)) * glm::scale(glm::vec3(unitScale)));
+        addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f, -1.f)) * glm::scale(glm::vec3(unitScale))); //!!! 
+      //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f, -1.f)) * glm::scale(glm::vec3(unitScale)));
 
         // 
         const auto matStride = sizeof(mat4_t);
@@ -225,12 +245,13 @@ int main() {
         meshes[i]->setTransformData(gpuInstancedTransformPerMesh.back(), matStride);
 
         // 
-        node->pushInstance(vkh::VsGeometryInstance{
-            .instanceId = i,
-            .mask = 0xff,
-            .instanceOffset = 0u,
-            .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV
-        }, node->pushMesh(meshes[i]));
+        //node->pushInstance(vkh::VsGeometryInstance{
+        //    .transform = mat4_t(1.f),
+        //    .instanceId = i,
+        //    .mask = 0xff,
+        //    .instanceOffset = 0u,
+        //    .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
+        //});
     };
 
     // 
@@ -280,6 +301,7 @@ int main() {
 
         { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.f}), vk::ClearDepthStencilValue(1.0f, 0) };
+            context->registerTime()->setDrawCount(frameCount++);
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
@@ -289,7 +311,7 @@ int main() {
                 commandBuffer.setViewport(0, { viewport });
                 commandBuffer.setScissor(0, { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalPipeline);
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, context->registerTime()->setDrawCount(frameCount++)->getPipelineLayout(), 0, context->getDescriptorSets(), nullptr);
+                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, context->getPipelineLayout(), 0, context->getDescriptorSets(), nullptr);
                 commandBuffer.draw(4, 1, 0, 0);
                 commandBuffer.endRenderPass();
                 commandBuffer.end();

@@ -71,8 +71,17 @@ layout (binding = 5, set = 1, scalar) uniform MeshData {
     uint materialID;
     uint hasIndex;
     uint prmCount;
-    uint reserve0;
+    uint hasTransform;
 } meshInfo[];
+
+struct RTXInstance {
+    mat3x4 transform;
+    uint32_t dontcare0;
+    uint32_t dontcare1;
+    uvec2 handle;
+};
+
+layout (binding = 6, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 
 // 
 layout(push_constant) uniform pushConstants { uvec4 data; } drawInfo;

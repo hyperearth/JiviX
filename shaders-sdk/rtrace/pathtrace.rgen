@@ -153,7 +153,7 @@ void main() { // Hi-DPI adaptation
         if (couldReflection) {
             raydir.xyz = reflect(raydir.xyz, gNormals.xyz);
         } else {
-            raydir.xyz = randomHemisphereCosine(gNormals.xyz,uvec2(gl_LaunchIDNV.xy));
+            raydir.xyz = randomHemisphereCosine(gNormals.xyz,uvec2(packed,rdata.x));
         };
         origin.xyz += faceforward(gNormals.xyz,-raydir.xyz,gNormals.xyz) * 0.0001f;
         lnormal.xyz = gNormals.xyz;

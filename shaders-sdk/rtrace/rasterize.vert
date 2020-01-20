@@ -16,11 +16,15 @@ layout (location = 3) out vec4 gTangents;
 
 // 
 void main() { // Cross-Lake
-    const mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
+    mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
+    if (meshInfo[drawInfo.data.x].hasTransform == 0) {
+        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    };
 
     // 
     gTexcoords.xy = iTexcoords;
-    gPosition = vec4(vec4(iPosition.xyz,1.f) * matras,1.f);
+    //gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * rtxInstances[drawInfo.data.y].transform,1.f) * matras,1.f); // INVALID
+      gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * rtxInstances[drawInfo.data.y].transform,1.f); // CORRECT
     gNormals.xyz = iNormals;
     gTangents = iTangents;
 

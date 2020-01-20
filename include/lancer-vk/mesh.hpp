@@ -161,6 +161,7 @@ namespace lancer {
             this->geometryTemplate.geometry.triangles.transformData = transformData;
             this->gpuTransformData = transformData;
             this->transformStride = stride; // used for instanced correction
+            this->rawMeshInfo[0u][3u] = 1u;
             return shared_from_this();
         };
 
@@ -263,15 +264,17 @@ namespace lancer {
             // Pre-Initialize Geometries
             // Use Same Geometry for Sub-Instances
             this->geometries.resize(this->instanceCount);
+            //this->geometries = {};
             for (uint32_t i = 0u; i < this->instanceCount; i++) {
+                //this->geometries.push_back(this->geometryTemplate);
                 this->geometries[i] = this->geometryTemplate;
                 this->geometries[i].flags = { .eOpaque = 1 };
                 if (this->gpuTransformData.has()) {
-                    this->geometries[i].geometry.triangles.transformOffset = this->transformStride * i + this->gpuTransformData.offset(); // Should To Be Different's
+                    this->geometries[i].geometry.triangles.transformOffset = vk::DeviceSize(this->transformStride) * vk::DeviceSize(i) + this->gpuTransformData.offset(); // Should To Be Different's
                     this->geometries[i].geometry.triangles.transformData = this->gpuTransformData;
                 };
             };
-            
+
             // Re-assign instance count
             this->accelerationStructureInfo.geometryCount = this->geometries.size();
             this->accelerationStructureInfo.pGeometries = this->geometries.data();

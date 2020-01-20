@@ -260,8 +260,14 @@ namespace lancer {
             this->node->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
-            this->setupBackgroundPipeline()->setupSkyboxedCommand(this->cmdbuf); uint32_t I = 0u;
-            for (auto& M : this->node->meshes) { M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++,0u,0u,0u)); }; // draw concurrently
+            this->setupBackgroundPipeline()->setupSkyboxedCommand(this->cmdbuf);
+            for (auto& M : this->node->meshes) { M->createRasterizePipeline(); };
+
+            // draw concurrently
+            for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
+                const auto I = this->node->rawInstances[i].instanceId;
+                this->node->meshes[I]->createRasterizeCommand(this->cmdbuf, glm::uvec4(I, i, 0u, 0u));
+            };
             vkt::commandBarrier(this->cmdbuf);
 
             // 
