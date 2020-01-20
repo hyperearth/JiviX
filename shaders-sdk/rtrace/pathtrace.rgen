@@ -38,9 +38,6 @@ void main() { // Hi-DPI adaptation
     const vec4 colourSample = texture(frameBuffers[COLORING], pixel);
     const vec4 normalSample = texture(frameBuffers[NORMALED], pixel);
     const vec4 worldsSample = texture(frameBuffers[POSITION], pixel);
-    //const vec4 colourSample = texelFetch(frameBuffers[COLORING], invPixel, 0);
-    //const vec4 normalSample = texelFetch(frameBuffers[NORMALED], invPixel, 0);
-    //const vec4 worldsSample = texelFetch(frameBuffers[POSITION], invPixel, 0);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
     const bool isBackground = all(fequal(worldsSample.xyz,0.f.xxx));
 
@@ -59,43 +56,33 @@ void main() { // Hi-DPI adaptation
     vec3 forign = origin.xyz;
     vec3 fnorml = lnormal.xyz;
 
-
-
-    // DEBUG
-    //origin.xyz -= raydir.xyz * 0.1f;
+    //
+    vec4 gNormals = normalSample;
+    vec4 gSignal = vec4(0.f,0.f,0.f,1.f);
+    vec3 gEnergy = 1.f.xxx;
 
     // 
-    //vec4 signal = vec4(0.f,0.f,0.f,1.f);
-    vec4 signal = vec4(0.f,0.f,0.f,1.f);
-    //vec3 energy = 1.f.xxx;
-
     bool emission = false;
-
-//random2(uvec2(rdata[0],packed))
 
     // 
     Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     vec4 sphere = vec4(vec3(8.f,8.f,4.f), 4.f); vec3 lightc = 10.f.xxx;
-    const vec3 skyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
-    //const vec3 skyColor = 0.f.xxx;
 
     // 
     const uint ITERATION_COUNT = 4u;
 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
     bool couldReflection = false; // TODO: Dynamic That Value
-    vec3 energy = 1.f.xxx;
     if (couldReflection) {
         raydir.xyz = reflect(raydir.xyz, lnormal);
     } else {
         raydir.xyz = randomHemisphereCosine(lnormal,uvec2(gl_LaunchIDNV.xy));
     };
     origin.xyz += faceforward(lnormal,-raydir.xyz,lnormal) * 0.0001f; // pre-correction
-    
+
     uint i = 1u; if (!isBackground) 
     for (i = 1u; i < ITERATION_COUNT; i++) { //
 #else
-    vec3 energy = 1.f.xxx;//sqrt(colourSample.xyz);
     uint i = 0u; if (true) //if (!isBackground) 
     for (i = 0u; i < ITERATION_COUNT; i++) { //
 #endif
@@ -122,7 +109,7 @@ void main() { // Hi-DPI adaptation
             //float depth = ShadowsRay.fdata.z;
 
             float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-            if (depth >= (shdist-0.001f)) { signal += vec4(energy * (2.f * (1.f - cos_a_max)) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * lightc * 2.f, 0.f); };
+            if (depth >= (shdist-0.001f)) { gSignal += vec4(gEnergy * (2.f * (1.f - cos_a_max)) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * lightc * 2.f, 0.f); };
         };
 
         // Primary Rays
@@ -133,69 +120,64 @@ void main() { // Hi-DPI adaptation
             0);
 
         // 
+        gNormals = PrimaryRay.normals;
+
+        // 
         float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
         float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
-        //float depth = min(min(PrimaryRay.fdata.z,sdepth),pdepth);
         float depth = min(PrimaryRay.fdata.z,sdepth);
 
         // TODO: better depth system
         bool couldReflection = false;
         if (depth >= 9999.f) { // Skybox
-            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); energy *= 0.f;
+            gSignal.xyz += gEnergy * (i > 0u ? gSkyColor : 1.f.xxx); 
+            gEnergy *= 0.f;
         } else 
         if (depth == PrimaryRay.fdata.z) { // Primitive
-            vec3 diffuseColor = vec3(0.9f,0.8f,0.8f)*0.75f * (PrimaryRay.normals.xyz*0.5f+0.5f);
-            energy *= i > 0u ? diffuseColor : 1.f.xxx;//sqrt(diffuseColor);
-            //vec3 forig = raydir.xyz * depth + origin.xyz;
-            //vec3 diffuseColor = vec3(0.5f,1.f,0.5f);
-            //if (forig.x >= 0.f && forig.z >= 0.f) diffuseColor = vec3(1.f,1.f,0.5f);
-            //if (forig.x >= 0.f && forig.z <= 0.f) diffuseColor = vec3(1.f,0.5f,0.5f);
-            //if (forig.x <= 0.f && forig.z >= 0.f) diffuseColor = vec3(0.5f,0.5f,1.f);
-            //energy *= diffuseColor*0.8f;
+            gEnergy *= i > 0u ? DIFFUSE_COLOR : 1.f.xxx;
         } else 
         if (depth == sdepth) { // Light Sphere
-            //signal.xyz += energy * lightc; emission = true;
-            signal.xyz += energy * 0.f; energy *= 0.f; // confirm diffuse lightning
-            PrimaryRay.normals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
+            //gSignal.xyz += gEnergy;
+            gEnergy *= 0.f;
+            gNormals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
         } else 
         if (depth == pdepth) { // Plane
-            energy *= vec3(0.8f);
-            PrimaryRay.normals.xyz = vec3(0.f,1.f,0.f);
-            //couldReflection = true;
+            gEnergy *= vec3(0.8f);
+            gNormals.xyz = vec3(0.f,1.f,0.f);
         } else { // Error as Skybox
-            signal.xyz += energy * (i > 0u ? skyColor : 1.f.xxx); energy *= 0.f;
+            gSignal.xyz += gEnergy * (i > 0u ? gSkyColor : 1.f.xxx); 
+            gEnergy *= 0.f;
         };
         origin.xyz += raydir.xyz * depth;
 
         // 
-        PrimaryRay.normals.xyz = faceforward(PrimaryRay.normals.xyz,raydir.xyz,PrimaryRay.normals.xyz); // interverse into incoming ray
+        gNormals.xyz = faceforward(gNormals.xyz,raydir.xyz,gNormals.xyz); // interverse into incoming ray
         if (couldReflection) {
-            raydir.xyz = reflect(raydir.xyz, PrimaryRay.normals.xyz);
+            raydir.xyz = reflect(raydir.xyz, gNormals.xyz);
         } else {
-            raydir.xyz = randomHemisphereCosine(PrimaryRay.normals.xyz,uvec2(gl_LaunchIDNV.xy));
+            raydir.xyz = randomHemisphereCosine(gNormals.xyz,uvec2(gl_LaunchIDNV.xy));
         };
-        origin.xyz += faceforward(PrimaryRay.normals.xyz,-raydir.xyz,PrimaryRay.normals.xyz) * 0.0001f;
-        lnormal.xyz = PrimaryRay.normals.xyz;
+        origin.xyz += faceforward(gNormals.xyz,-raydir.xyz,gNormals.xyz) * 0.0001f;
+        lnormal.xyz = gNormals.xyz;
 
+        // 
         if (i == 0u) { // 
             forign =  origin.xyz;
             fnorml = lnormal.xyz;
         };
 
         // 
-        if (dot(energy.xyz,1.f.xxx) <= 0.0001f) { break; }; // if found emission, break
+        if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f) { break; }; // if found emission, break
     } else {
-        signal.xyz += energy * 1.f.xxx; emission = true;
+        gSignal.xyz += gEnergy * 1.f.xxx; emission = true;
         forign.xyz = 0.f.xxx;
     };
-
-    //if (emission) { signal += vec4(energy, 1.f); } else { signal.w = 1.f; };
 
     // 
     const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
     const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
-    imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal + directSample);
-    //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), signal);
+    imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal + directSample);
+    //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal);
     imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
     imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
 };

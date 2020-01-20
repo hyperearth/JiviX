@@ -341,3 +341,7 @@ vec3 screen2world(in vec3 origin){
     return vec4(divW(vec4(origin,1.f) * projectionInv),1.f)*modelviewInv;
 };
 
+
+// Some Settings
+const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
+#define DIFFUSE_COLOR (vec3(0.8f,0.8f,0.8f)*(gNormals.xyz*0.5f+0.5f))
