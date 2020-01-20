@@ -76,8 +76,6 @@ vec4 getDenoised(in ivec2 coord, in ivec2 swapc){
 void main() {
     const ivec2 size = imageSize(writeImages[DIFFUSED]);
     vec2 coord = gl_FragCoord.xy, swapc = gl_FragCoord.xy; coord.y = float(size.y) - coord.y;
-    //vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(swapc)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
     vec4 samples = getDenoised(ivec2(coord),ivec2(swapc));
-    //if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*sqrt(texelFetch(frameBuffers[COLORING],ivec2(coord),0).xyz),1.f);
     if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],ivec2(coord),0).xyz,1.f);
 };

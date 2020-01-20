@@ -29,9 +29,9 @@ void main() {
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
     if (diffcolor.w > 0.f && !all(fequal(positions.xyz,0.f.xxx))) { // set into current 
         gl_Position = vec4(world2screen(positions.xyz),1.f), gl_Position.y *= -1.f, gl_PointSize = 1.f;
-        wPosition = positions;
         gColor = clamp(diffcolor, 0.001f, 10000000.f);
         gSample = vec4(vec3(gl_Position.x,gl_Position.y*-1.f,gl_Position.z),1.f);
         gNormal = vec4(normaling.xyz,1.f);
+        wPosition = positions;
     };
 };

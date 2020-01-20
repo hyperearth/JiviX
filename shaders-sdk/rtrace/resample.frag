@@ -15,17 +15,17 @@ void main() { // Currently NO possible to compare
     const ivec2 f2fx = ivec2(gl_FragCoord.xy);
     const ivec2 size = ivec2(textureSize(frameBuffers[POSITION], 0));
     const ivec2 i2fx = ivec2(f2fx.x,size.y-f2fx.y-1);
-    const vec2 f2fx_m = vec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
+    const vec2 i2fxm = vec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 
     // world space
     vec4 positions = vec4(gSample.xyz,1.f); // SSP from previous frame got...
-    vec4 almostpos = vec4(texture(frameBuffers[POSITION],f2fx_m).xyz,1.f), worldspos = almostpos; // get world space from pixel
-    vec4 normaling = vec4(texture(frameBuffers[NORMALED],f2fx_m).xyz,1.f);
+    vec4 almostpos = vec4(texture(frameBuffers[POSITION],i2fxm).xyz,1.f), worldspos = almostpos; // get world space from pixel
+    vec4 normaling = vec4(texture(frameBuffers[NORMALED],i2fxm).xyz,1.f);
     almostpos = vec4(world2screen(almostpos.xyz),1.f);//, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
 
     // 
     const bool isBackground = all(fequal(texelFetch(frameBuffers[POSITION],i2fx.xy,0).xyz,0.f.xxx));
-    if (fequal(almostpos.z,positions.z) && dot(gNormal.xyz,normaling.xyz)>=0.5f && !isBackground) {
+    if (fequal(almostpos.z,positions.z) && dot(gNormal.xyz,normaling.xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) <= 0.01f && !isBackground) {
         oDiffused = gColor;
     } else {
         discard;
