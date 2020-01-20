@@ -44,7 +44,7 @@ void sort(inout vec3 arr[9u], int d)
 
 vec4 getDenoised(in ivec2 coord) {
     vec4 centerNormal = getNormal(coord);
-    vec4 centerOrigin = getPosition(coord);
+    vec3 centerOrigin = world2screen(getPosition(coord).xyz);
     
     /*
     vec3 samples[9u]; int scount = 0;
@@ -69,9 +69,9 @@ vec4 getDenoised(in ivec2 coord) {
         for (uint y=0;y<5u;y++) {
             ivec2 map = coord+ivec2(x-2u,y-2u);
             vec4 nsample = getNormal(map);
-            vec4 psample = getPosition(map);
+            vec3 psample = world2screen(getPosition(map).xyz);
 
-            if (dot(nsample.xyz,centerNormal.xyz) > 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.001f || (x == 2u && y == 2u)) {
+            if (dot(nsample.xyz,centerNormal.xyz) > 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == 2u && y == 2u)) {
                 sampled += getIndirect(map);
             };
         };
