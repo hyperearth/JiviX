@@ -22,6 +22,7 @@ void main() { // Currently NO possible to compare
 
     // 
     const bool isBackground = all(fequal(texelFetch(frameBuffers[POSITION],i2fx,0).xyz,0.f.xxx)); // don't place into background
+    //if (fequal(almostpos.z,positions.z) && distance(almostpos.xyz,positions.xyz) < 0.005f && all(lessThan(abs(almostpos.xy-positions.xy)*vec2(size.xy),1.f.xx)) && !isBackground) {
     if (fequal(almostpos.z,positions.z) && !isBackground) {
         oDiffused = gColor;
     } else {

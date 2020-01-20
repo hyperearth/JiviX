@@ -178,7 +178,7 @@ void main() { // Hi-DPI adaptation
         if (i == 0u) { forign = origin.xyz; };
 
         // 
-        if (emission) { break; }; // if found emission, break
+        if (dot(energy.xyz,1.f.xxx) <= 0.0001f) { break; }; // if found emission, break
     } else {
         signal.xyz += energy * 1.f.xxx; emission = true;
         forign.xyz = 0.f.xxx;
