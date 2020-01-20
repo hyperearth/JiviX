@@ -193,7 +193,7 @@ int main() {
         //addMeshInstance(i, glm::translate(glm::vec3( 1.25f, -1.0f, 1.25f)) * glm::scale(glm::vec3(1.f)));
         //addMeshInstance(i, glm::translate(glm::vec3(-1.25f, -1.0f, 1.25f)) * glm::scale(glm::vec3(1.f)));
         addMeshInstance(i, glm::translate(glm::vec3( 1.25f, -1.0f, -1.25f)) * glm::scale(glm::vec3(1.f)));
-        //addMeshInstance(i, glm::translate(glm::vec3(-1.25f, -1.0f, -1.25f)) * glm::scale(glm::vec3(1.f)));
+        addMeshInstance(i, glm::translate(glm::vec3(-1.25f, -1.0f, -1.25f)) * glm::scale(glm::vec3(1.f)));
 
         // 
         const auto matStride = sizeof(mat4_t);
@@ -292,8 +292,8 @@ int main() {
             };
 
             // Drunk Debug Camera Animation
-            eye.x += float(context->timeDiff()) / 1000.f * 0.1f;
-            foc.x += float(context->timeDiff()) / 1000.f * 0.1f;
+            eye.x -= float(context->timeDiff()) / 1000.f * 0.1f;
+            foc.x -= float(context->timeDiff()) / 1000.f * 0.1f;
             context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
 
             // Create render submission 

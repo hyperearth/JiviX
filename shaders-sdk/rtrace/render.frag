@@ -7,14 +7,21 @@ layout ( location = 0 ) in vec2 vcoord;
 layout ( location = 0 ) out vec4 uFragColor;
 
 // 
-vec4 getIndirect(in ivec2 swapc){
-    vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(swapc)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
-    return samples;
+vec4 getIndirect(in ivec2 map){
+    const ivec2 size = imageSize(writeImages[DIFFUSED]);
+    //vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
+    //return samples;
+    return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1));
 };
 
 vec4 getNormal(in ivec2 coord){
     vec4 normals = vec4(texelFetch(frameBuffers[NORMALED],ivec2(coord),0).xyz, 0.f);
     return normals;
+};
+
+vec4 getPosition(in ivec2 coord){
+    vec4 position = vec4(texelFetch(frameBuffers[POSITION],ivec2(coord),0).xyz, 0.f);
+    return position;
 };
 
 // bubble sort horror
@@ -35,10 +42,9 @@ void sort(inout vec3 arr[9u], int d)
     }
 }
 
-vec4 getDenoised(in ivec2 coord, in ivec2 swapc){
-    //vec4 centerColor = getIndirect(swapc);
+vec4 getDenoised(in ivec2 coord) {
     vec4 centerNormal = getNormal(coord);
-    //vec4 sampleBlur = 0.f.xxxx;
+    vec4 centerOrigin = getPosition(coord);
     
     /*
     vec3 samples[9u]; int scount = 0;
@@ -61,9 +67,12 @@ vec4 getDenoised(in ivec2 coord, in ivec2 swapc){
     vec4 sampled = 0.f.xxxx; int scount = 0;
     for (uint x=0;x<5u;x++) {
         for (uint y=0;y<5u;y++) {
-            vec4 nsample = getNormal(coord+ivec2(x-1u,y-1u));
-            if (dot(nsample.xyz,centerNormal.xyz) > 0.5f || (x == 2u && y == 2u)) {
-                sampled += imageLoad(writeImages[DIFFUSED],ivec2(swapc)+ivec2(x,y)-2);
+            ivec2 map = coord+ivec2(x-2u,y-2u);
+            vec4 nsample = getNormal(map);
+            vec4 psample = getPosition(map);
+
+            if (dot(nsample.xyz,centerNormal.xyz) > 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.001f || (x == 2u && y == 2u)) {
+                sampled += getIndirect(map);
             };
         };
     };
@@ -75,7 +84,11 @@ vec4 getDenoised(in ivec2 coord, in ivec2 swapc){
 // 
 void main() {
     const ivec2 size = imageSize(writeImages[DIFFUSED]);
-    vec2 coord = gl_FragCoord.xy, swapc = gl_FragCoord.xy; coord.y = float(size.y) - coord.y;
-    vec4 samples = getDenoised(ivec2(coord),ivec2(swapc));
-    if (samples.w >= 0.001f) uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],ivec2(coord),0).xyz,1.f);
+    ivec2 samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
+     vec4 samples = getDenoised(samplep);
+    //vec4 samples = getDenoised(ivec2(gl_FragCoord.xy));
+    if (samples.w >= 0.001f) {
+        uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],samplep,0).xyz,1.f);
+        //uFragColor = vec4(samples.xyz*texelFetch(frameBuffers[COLORING],ivec2(gl_FragCoord.xy),0).xyz,1.f);
+    };
 };
