@@ -109,7 +109,7 @@ void main() { // Hi-DPI adaptation
             //float depth = ShadowsRay.fdata.z;
 
             float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-            if (depth >= (shdist-0.001f)) { gSignal += vec4(gEnergy * (2.f * (1.f - cos_a_max)) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * lightc * 2.f, 0.f); };
+            if (depth >= (shdist-0.001f)) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, lnormal ), 0.f, 1.f) * lightc, 0.f); };
         };
 
         // Primary Rays
@@ -137,6 +137,7 @@ void main() { // Hi-DPI adaptation
         } else 
         if (depth == sdepth) { // Light Sphere
             gEnergy *= 0.f;
+            //gSignal.xyz = fma(gEnergy.xyz, lightc.xyz, gSignal.xyz), gEnergy *= 0.f;
             gNormals.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
         } else 
         if (depth == pdepth) { // Plane
