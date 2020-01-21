@@ -45,7 +45,7 @@ void main() { // Hi-DPI adaptation
     const vec4 worldsSample = texture(frameBuffers[POSITION], pixel);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
 
-    {   // Path Traced Diffuse Global Illumination
+    [[unroll]] for (uint32_t I=0;I<2;I++) { // Path Traced Diffuse Global Illumination
 #ifdef ENABLE_RASTERIZE_STAGE
         vec3 raydir  = (modelview * normalize(cameraSample.xyz)).xyz;
         vec3 origin  = worldsSample.xyz;
@@ -66,7 +66,7 @@ void main() { // Hi-DPI adaptation
         vec3 gEnergy = 1.f.xxx;
 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
-        raydir.xyz = randomHemisphereCosine(gNormal.xyz,uvec2(packed,rdata.x));
+        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,uvec2(packed,rdata.x)) : reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
         origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f; // pre-correction
 
         uint i = 1u; if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
@@ -143,119 +143,15 @@ void main() { // Hi-DPI adaptation
         };
 
         // 
-        const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
-        const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
-        imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal + directSample);
-        //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal);
-        imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
-        imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
-    };
-    
-    memoryBarrier();
-
-    {   // Path Traced Reflections (WILL NOT denoised itself, but will use diffuse SSLR samples)
-#ifdef ENABLE_RASTERIZE_STAGE
-        vec3 raydir  = (modelview * normalize(cameraSample.xyz)).xyz;
-        vec3 origin  = worldsSample.xyz;
-        vec3 lnormal = normalSample.xyz;
-#else
-        vec3 origin = screen2world(vec3((pixel/sizPixel)*2.f-1.f,0.001f));
-        vec3 target = screen2world(vec3((pixel/sizPixel)*2.f-1.f,0.999f));
-        vec3 raydir = normalize(target - origin);
-        vec3 lnormal = vec3(0.f);
-#endif
-
-        vec3 forign = origin.xyz;
-        vec3 fnorml = lnormal.xyz;
-
-        //
-        vec4 gNormal = vec4(lnormal,0.f);
-        vec4 gSignal = vec4(0.f,0.f,0.f,1.f);
-        vec3 gEnergy = 1.f.xxx;
-
-#ifdef ENABLE_RASTERIZE_STAGE // complete first stage
-        raydir.xyz =  reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
-        origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f; // pre-correction
-
-        uint i = 1u; if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
-        for (i = 1u; i < ITERATION_COUNT; i++) { //
-#else // TODO: Continue From First Hit
-        uint i = 0u; if (true) //if (!isBackground) 
-        for (i = 0u; i < ITERATION_COUNT; i++) { //
-#endif
-            // Shadows Rays
-            if (i >= 1u) {
-                const vec3 lightp = sphere.xyz + randomSphere(uvec2(gl_LaunchIDNV.xy)) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
-                const vec3 lightd = normalize(lightp.xyz - origin.xyz);
-
-                traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
-                    0, 1, 0,
-                    origin.xyz, 0.0001f,
-                    lightd.xyz, 10000.f,
-                    1);
-
-                float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
-                const float depth = min(sdepth,ShadowsRay.fdata.z)+sphere.w;
-                const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-                if (depth >= (shdist-0.001f)) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };
-            };
-
-            // Primary Rays
-            traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
-                0, 1, 0,
-                origin.xyz, 0.0001f,
-                raydir.xyz, 10000.f,
-                0);
-
-            // 
-            gNormal = PrimaryRay.normals;
-
-            // 
-            float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
-            float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
-            float depth = min(PrimaryRay.fdata.z,sdepth);
-
-            // TODO: better depth system
-            bool couldReflection = false;
-            if (depth >= 9999.f) { BACKSKY_COLOR; } else 
-            if (depth == PrimaryRay.fdata.z) { // Primitive
-                gEnergy *= i > 0u ? DIFFUSE_COLOR : 1.f.xxx;
-            } else 
-            if (depth == sdepth) { // Light Sphere
-                gEnergy *= 0.f;
-                //gSignal.xyz = fma(gEnergy.xyz, lightc.xyz, gSignal.xyz), gEnergy *= 0.f;
-                gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
-            } else 
-            if (depth == pdepth) { // Plane
-                gEnergy *= vec3(0.8f);
-                gNormal.xyz = vec3(0.f,1.f,0.f);
-            } else { BACKSKY_COLOR; }; // Error as Skybox
-            origin.xyz += raydir.xyz * depth;
-
-            // 
-            gNormal.xyz = faceforward(gNormal.xyz,raydir.xyz,gNormal.xyz); // interverse into incoming ray
-            if (couldReflection) {
-                raydir.xyz = reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
-            } else {
-                raydir.xyz = randomHemisphereCosine(gNormal.xyz,uvec2(packed,rdata.x));
-            };
-            origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
-            gNormal.xyz = gNormal.xyz;
-
-            // 
-            if (i == 0u) { forign =  origin.xyz; fnorml = gNormal.xyz; };
-            if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f) { break; };
-        } else {
-            gSignal.xyz = fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz);
-            forign.xyz = 0.f.xxx;
+        if (I == 0) { // Store for Diffuse
+            const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
+            const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
+            imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal + directSample);
+            //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal);
+            imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
+            imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
         };
 
-        // 
-        //const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
-        //const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
-        //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal + directSample);
-        //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal);
-        //imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
-        //imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
+        memoryBarrier();
     };
 };
