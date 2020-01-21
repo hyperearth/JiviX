@@ -3,7 +3,7 @@
 #extension GL_GOOGLE_include_directive  : require
 #include "./driver.glsl"
 
-layout (location = 1) rayPayloadInNV RayPayloadData PrimaryRay;
+rayPayloadInNV RayPayloadData PrimaryRay;
 
 void main() {
     vec3 raydir = gl_WorldRayDirectionNV;

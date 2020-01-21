@@ -56,7 +56,7 @@ namespace lancer {
         std::shared_ptr<Context> createRenderPass() { // 
             vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
 
-            for (uint32_t b=0u;b<4u;b++) {
+            for (uint32_t b=0u;b<8u;b++) {
                 rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
@@ -154,12 +154,12 @@ namespace lancer {
 
         // 
         std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
-            std::array<VkImageView, 5u> deferredAttachments = {};
-            std::array<VkImageView, 5u> smpFlip0Attachments = {};
-            std::array<VkImageView, 5u> smpFlip1Attachments = {};
+            std::array<VkImageView, 9u> deferredAttachments = {};
+            std::array<VkImageView, 9u> smpFlip0Attachments = {};
+            std::array<VkImageView, 9u> smpFlip1Attachments = {};
 
             // 
-            for (uint32_t b=0u;b<4u;b++) { // 
+            for (uint32_t b=0u;b<8u;b++) { // 
                 deferredAttachments[b] = frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
                     .extent = {width,height,1u}, 
@@ -176,7 +176,7 @@ namespace lancer {
             };
 
             // 
-            for (uint32_t b=0u;b<4u;b++) { // 
+            for (uint32_t b=0u;b<8u;b++) { // 
                 smpFlip0Attachments[b] = smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
                     .extent = {width,height,1u}, 
@@ -204,9 +204,9 @@ namespace lancer {
             });
 
             // 5th attachment
-            deferredAttachments[4u] = depthImage;
-            smpFlip0Attachments[4u] = depthImage;
-            smpFlip1Attachments[4u] = depthImage;
+            deferredAttachments[8u] = depthImage;
+            smpFlip0Attachments[8u] = depthImage;
+            smpFlip1Attachments[8u] = depthImage;
 
             // 
             deferredFramebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
@@ -252,7 +252,7 @@ namespace lancer {
             // 
             thread->submitOnce([&,this](vk::CommandBuffer& cmd) {
                 vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage, .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = depthImage });
-                for (uint32_t i = 0u; i < 4u; i++) { // Definitely Not an Hotel
+                for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->frameBfImages[i] });
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip0Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip0Images[i] });
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip1Images[i], .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = this->smFlip1Images[i] });
@@ -294,11 +294,11 @@ namespace lancer {
             this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 6u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount =    1u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1 }); // Super-Instance
 
             // 
-            this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , .descriptorCount =   4u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
-            this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount =   4u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
+            this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , .descriptorCount =   8u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
+            this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount =   8u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
 
             // 
-            this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount =   4u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
+            this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount =   8u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
 
             // 
             this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 128u, .stageFlags = { .eVertex = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlagsEXT{ .ePartiallyBound = 1});
@@ -322,19 +322,19 @@ namespace lancer {
         std::shared_ptr<Context> createDescriptorSets() {
             if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
 
-            std::array<VkDescriptorImageInfo, 4u> descriptions = {};
-            { // For Deferred Rendering
-                for (uint32_t b = 0u; b < 4u; b++) { descriptions[b] = frameBfImages[b]; };
-
+            {
                 // 
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout, thread->getDescriptorPool());
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
-                    .descriptorCount = 4u,
+                    .descriptorCount = 8u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
-                //for (uint32_t i = 0u; i < descriptions.size(); i++) { handle.offset<VkDescriptorImageInfo>(i) = descriptions[i]; };
-                memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
+
+                // 
+                for (uint32_t i = 0; i < 8u; i++) {
+                    handle.offset<VkDescriptorImageInfo>(i) = frameBfImages[i];
+                };
 
                 // 
                 this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
@@ -343,17 +343,17 @@ namespace lancer {
             };
 
             { // For Reprojection Pipeline
-                for (uint32_t b = 0u; b < 4u; b++) { descriptions[b] = smFlip0Images[b]; };
-
-                // 
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
-                    .descriptorCount = 4u,
+                    .descriptorCount = 8u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                 });
-                //for (uint32_t i = 0u; i < descriptions.size(); i++) { handle.offset<VkDescriptorImageInfo>(i) = descriptions[i]; };
-                memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size()*sizeof(VkDescriptorImageInfo));
+
+                // 
+                for (uint32_t i = 0; i < 8u; i++) {
+                    handle.offset<VkDescriptorImageInfo>(i) = smFlip0Images[i];
+                };
 
                 // Reprojection WILL NOT write own depth... 
                 this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
@@ -362,17 +362,17 @@ namespace lancer {
             };
 
             { // For Reprojection Pipeline
-                for (uint32_t b = 0u; b < 4u; b++) { descriptions[b] = smFlip1Images[b]; };
-
-                // 
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
-                    .descriptorCount = 4u,
+                    .descriptorCount = 8u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                 });
-                //for (uint32_t i = 0u; i < descriptions.size(); i++) { handle.offset<VkDescriptorImageInfo>(i) = descriptions[i]; };
-                memcpy(&handle.offset<VkDescriptorImageInfo>(), descriptions.data(), descriptions.size() * sizeof(VkDescriptorImageInfo));
+
+                // 
+                for (uint32_t i = 0; i < 8u; i++) {
+                    handle.offset<VkDescriptorImageInfo>(i) = smFlip1Images[i];
+                };
 
                 // Reprojection WILL NOT write own depth... 
                 this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
@@ -416,10 +416,10 @@ namespace lancer {
         //Matrices uniformData = {};
 
         // Image Buffers
-        std::array<vkt::ImageRegion, 4u> smFlip0Images = {};
-        std::array<vkt::ImageRegion, 4u> smFlip1Images = {}; // Path Tracing
-        std::array<vkt::ImageRegion, 4u> frameBfImages = {}; // Rasterization
-        std::array<vk::DescriptorSet,5u> descriptorSets = {};
+        std::array<vkt::ImageRegion, 8u> smFlip0Images = {};
+        std::array<vkt::ImageRegion, 8u> smFlip1Images = {}; // Path Tracing
+        std::array<vkt::ImageRegion, 8u> frameBfImages = {}; // Rasterization
+        std::array<vk::DescriptorSet, 5u> descriptorSets = {};
         vkt::ImageRegion depthImage = {};
 
         // 

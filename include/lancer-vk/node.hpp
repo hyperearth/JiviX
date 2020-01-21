@@ -83,9 +83,9 @@ namespace lancer {
             this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
 
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
-            const uint32_t bindingCount = 4u;
+            const uint32_t bindingCount = 8u;
             for (uint32_t i=0;i<bindingCount;i++) {
-                for (uint32_t j=0;j<this->meshes.size();j++) { if (i < this->meshes[j]->bindings.size() && i < bindingCount) {
+                for (uint32_t j=0;j<this->meshes.size();j++) { if (i < this->meshes[j]->bindings.size() && i < bindingCount && this->meshes[j]->bindings[i].has()) {
                     this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                         .dstBinding = i,
                         .dstArrayElement = j,

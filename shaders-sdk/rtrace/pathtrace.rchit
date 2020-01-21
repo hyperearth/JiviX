@@ -3,7 +3,7 @@
 #extension GL_GOOGLE_include_directive  : require
 #include "./driver.glsl"
 
-layout (location = 0) rayPayloadInNV RayPayloadData PrimaryRay;
+rayPayloadInNV RayPayloadData PrimaryRay;
 hitAttributeNV vec2 baryCoord;
 
 void main() {
@@ -18,4 +18,12 @@ void main() {
     //PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/gl_InstanceID);
     PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/gl_HitKindNV);
     PrimaryRay.fdata.xyz = vec3(baryCoord, gl_HitTNV);
+
+    const mat3x4 mc = mat3x4(
+        get_vec4(idx3[0],0u, gl_InstanceCustomIndexNV),
+        get_vec4(idx3[1],0u, gl_InstanceCustomIndexNV),
+        get_vec4(idx3[2],0u, gl_InstanceCustomIndexNV)
+    );
+
+    PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
 };

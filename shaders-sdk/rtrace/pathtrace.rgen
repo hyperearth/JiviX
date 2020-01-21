@@ -99,7 +99,7 @@ void main() { // Hi-DPI adaptation
             vec3 lightd = normalize(lightp.xyz - origin.xyz);
 
             traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
-                1, 1, 1,
+                0, 1, 0,
                 origin.xyz, 0.0001f,
                 lightd.xyz, 10000.f,
                 1);
