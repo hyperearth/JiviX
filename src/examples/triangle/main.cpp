@@ -159,14 +159,6 @@ int main() {
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32_SFLOAT, uint32_t(attribute.byteOffset) });
-            }
-            else { // Assign from position data (temporary solution)
-                const auto& attribute = model.accessors[primitive.attributes.find("POSITION")->second];
-                const auto& bufferView = buffersViews[attribute.bufferView];
-
-                // 
-                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32_SFLOAT, uint32_t(attribute.byteOffset) });
             };
 
             if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) { // Normals
