@@ -5,7 +5,7 @@
 // 
 layout (location = 0) in vec4 gPosition;
 layout (location = 1) in vec4 gTexcoords;
-layout (location = 2) in vec4 gNormals;
+layout (location = 2) in vec4 gNormal;
 layout (location = 3) in vec4 gTangents;
 //layout (location = 4) flat in ivec4 gIndexes;
 
@@ -18,6 +18,6 @@ layout (location = TANGENTS) out vec4 tangent;
 // 
 void main() {
     colored = vec4(DIFFUSE_COLOR,1.f);
-    normals = vec4(gNormals.xyz,1.f);
+    normals = vec4(gNormal.xyz,1.f);
     samples = gPosition;
 };

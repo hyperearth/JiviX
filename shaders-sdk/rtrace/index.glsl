@@ -285,6 +285,10 @@ vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed) {
     return normalize(tangent * ph.x + bitangent * ph.y + n * ph.z);
 };
 
+vec3 reflectGlossy(in vec3 I, in vec3 n, in uvec3 seed, in float gloss){
+    return mix(reflect(I, n), randomHemisphereCosine(n,seed.xy), gloss*pow(random(seed.z),2.f));
+};
+
 bvec4 and(in bvec4 a, in bvec4 b){
     return bvec4(a.x&&b.x,a.y&&b.y,a.z&&b.z,a.w&&b.w);
 };
@@ -368,4 +372,5 @@ vec3 screen2world(in vec3 origin){
 
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
-#define DIFFUSE_COLOR (vec3(0.8f,0.8f,0.8f)*(gNormals.xyz*0.5f+0.5f))
+#define DIFFUSE_COLOR (vec3(0.8f,0.8f,0.8f)*(gNormal.xyz*0.5f+0.5f))
+#define BACKSKY_COLOR gSignal.xyz = fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz), gEnergy *= 0.f

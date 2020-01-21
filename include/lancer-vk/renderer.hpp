@@ -40,12 +40,6 @@ namespace lancer {
             });
 
             // 
-            this->bgStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
-                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/shadows.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
-                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/shadows.rmiss.spv"), vk::ShaderStageFlagBits::eMissNV)
-            });
-
-            // 
             this->resampStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)

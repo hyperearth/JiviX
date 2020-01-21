@@ -11,7 +11,7 @@ layout (location = 3) in vec4 iTangents;
 // Right Oriented
 layout (location = 0) out vec4 gPosition;
 layout (location = 1) out vec4 gTexcoords;
-layout (location = 2) out vec4 gNormals;
+layout (location = 2) out vec4 gNormal;
 layout (location = 3) out vec4 gTangents;
 
 // 
@@ -25,7 +25,7 @@ void main() { // Cross-Lake
     gTexcoords.xy = iTexcoords;
     //gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * rtxInstances[drawInfo.data.y].transform,1.f) * matras,1.f); // INVALID
       gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * rtxInstances[drawInfo.data.y].transform,1.f); // CORRECT
-    gNormals.xyz = iNormals;
+    gNormal.xyz = iNormals;
     gTangents = iTangents;
 
     // 

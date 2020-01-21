@@ -62,8 +62,6 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     BuildCompute "pathtrace.rgen"   "$INDIR$RTPU" "$HRDDIR$RTPU"
     BuildCompute "pathtrace.rchit"  "$INDIR$RTPU" "$HRDDIR$RTPU"
     BuildCompute "pathtrace.rmiss"  "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "shadows.rchit"  "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "shadows.rmiss"  "$INDIR$RTPU" "$HRDDIR$RTPU"
 
     # optimize built shaders
     OptimizeMainline $RTPU
