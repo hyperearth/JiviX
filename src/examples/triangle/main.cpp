@@ -61,7 +61,7 @@ int main() {
     std::string err = "";
     std::string warn = "";
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) {
@@ -132,13 +132,13 @@ int main() {
     // # * # // # # # // # # # //
     // #   # // # # # // #   # //
 
-
-    // Nodes
+    // Meshes (only one primitive supported)
     for (uint32_t i = 0; i < model.meshes.size(); i++) {
         const auto& meshData = model.meshes[i];
 
         // Make Instanced Primitives
-        for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
+        //for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
+        for (uint32_t v = 0; v < std::min(meshData.primitives.size(),1ull); v++) {
             const auto& primitive = meshData.primitives[v];
             auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
             instancedTransformPerMesh.push_back({});
@@ -178,80 +178,46 @@ int main() {
                 mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
             };
 
-            mesh->setMaterialID(primitive.material);
+            node->pushMesh(mesh->setMaterialID(primitive.material)->increaseInstanceCount());
         };
     };
 
-    // 
-    auto addMeshInstance = [&](const uint32_t meshID = 0u, const glm::mat4x4& T = glm::mat4x4(1.f)) {
-        //instancedTransformPerMesh[meshID].push_back(mat4_t(glm::transpose(T)));
-        //meshes[meshID]->increaseInstanceCount();
 
-        // 
-        //instancedTransformPerMesh[meshID].push_back(mat4_t(glm::transpose(T)));
-        node->pushInstance(vkh::VsGeometryInstance{
-            .transform = mat4_t(glm::transpose(T)),
-            .instanceId = meshID,
-            .mask = 0xff,
-            .instanceOffset = 0u,
-            .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
-        });
-    };
+    std::shared_ptr<std::function<void(const tinygltf::Node&, glm::dmat4, int)>> vertexLoader = {};
+    vertexLoader = std::make_shared<std::function<void(const tinygltf::Node&, glm::dmat4, int)>>([&](const tinygltf::Node& gnode, glm::dmat4 inTransform, int recursive)->void {
+        auto localTransform = glm::dmat4(1.0);
+        localTransform *= glm::dmat4(gnode.matrix.size() >= 16 ? glm::make_mat4(gnode.matrix.data()) : glm::dmat4(1.0));
+        localTransform *= glm::dmat4(gnode.translation.size() >= 3 ? glm::translate(glm::make_vec3(gnode.translation.data())) : glm::dmat4(1.0));
+        localTransform *= glm::dmat4(gnode.scale.size() >= 3 ? glm::scale(glm::make_vec3(gnode.scale.data())) : glm::dmat4(1.0));
+        localTransform *= glm::dmat4((gnode.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(gnode.rotation.data())) : glm::dmat4(1.0)));
 
+        auto transform = glm::dmat4(inTransform) * glm::dmat4(localTransform);
+        if (gnode.mesh >= 0) {
+            auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
+            node->pushInstance(vkh::VsGeometryInstance{
+                .transform = mat4_t(glm::transpose(transform)),
+                .instanceId = uint32_t(gnode.mesh),
+                .mask = 0xff,
+                .instanceOffset = 0u,
+                .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
+            }, gnode.mesh);
+        };
 
+        if (gnode.children.size() > 0 && gnode.mesh < 0) {
+            for (int n = 0; n < gnode.children.size(); n++) {
+                if (recursive >= 0) (*vertexLoader)(model.nodes[gnode.children[n]], transform, recursive - 1);
+            };
+        };
+    });
 
-    // add default SubInstance
-    for (uint32_t i = 0; i < 1u; i++) {
-        instancedTransformPerMesh[i].push_back(mat4_t(glm::transpose(
-            glm::translate(glm::vec3(0.f, 0.f, 0.f))
-            //glm::translate(glm::vec3(-1.f, -1.f, -1.f))
-        ))); // attemp for issues
-
-        node->pushMesh(meshes[i]->increaseInstanceCount());
-
-        const float unitScale = 1.f;
-      //addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f,  1.f)) * glm::scale(glm::vec3(unitScale)));
-        addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f,  1.f)) * glm::scale(glm::vec3(unitScale))); //!!! 
-      //addMeshInstance(i, glm::translate(glm::vec3(-1.f, -1.f, -1.f)) * glm::scale(glm::vec3(unitScale)));
-        addMeshInstance(i, glm::translate(glm::vec3( 1.f, -1.f, -1.f)) * glm::scale(glm::vec3(unitScale))); //!!! 
-      //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f,  1.f)) * glm::scale(glm::vec3(unitScale)));
-      //addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f,  1.f)) * glm::scale(glm::vec3(unitScale)));
-        addMeshInstance(i, glm::translate(glm::vec3(-1.f,  1.f, -1.f)) * glm::scale(glm::vec3(unitScale))); //!!! 
-      //addMeshInstance(i, glm::translate(glm::vec3( 1.f,  1.f, -1.f)) * glm::scale(glm::vec3(unitScale)));
-
-        // 
-        const auto matStride = sizeof(mat4_t);
-        const auto matSize = instancedTransformPerMesh[i].size() * matStride;
-
-        // 
-        cpuInstancedTransformPerMesh.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = matSize, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
-        }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
-
-        //
-        memcpy(cpuInstancedTransformPerMesh.back().data(), instancedTransformPerMesh[i].data(), matSize);
-
-        // 
-        gpuInstancedTransformPerMesh.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = matSize, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eRayTracing = 1 },
-        }, VMA_MEMORY_USAGE_GPU_ONLY)));
-
-        // 
-        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
-            cmd.copyBuffer(cpuInstancedTransformPerMesh.back(), gpuInstancedTransformPerMesh.back(), { vkh::VkBufferCopy{ .size = matSize } });
-        });
-
-        // 
-        meshes[i]->setTransformData(gpuInstancedTransformPerMesh.back(), matStride);
-
-        // 
-        //node->pushInstance(vkh::VsGeometryInstance{
-        //    .transform = mat4_t(1.f),
-        //    .instanceId = i,
-        //    .mask = 0xff,
-        //    .instanceOffset = 0u,
-        //    .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
-        //});
+    // load scene
+    uint32_t sceneID = 0; const float unitScale = 100.f;
+    if (model.scenes.size() > 0) {
+        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+        //uint32_t n = 0u; {
+            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+            (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 8);
+        };
     };
 
     // 

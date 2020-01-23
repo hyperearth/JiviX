@@ -14,16 +14,14 @@ void main() {
     PrimaryRay.position  = triangulate(idx3, 0u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord));
     PrimaryRay.texcoords = triangulate(idx3, 1u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord));
     PrimaryRay.normals   = triangulate(idx3, 2u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord));
-    //PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/int(meshInfo[gl_InstanceCustomIndexNV].prmCount));
-    //PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/gl_InstanceID);
-    PrimaryRay.udata     = uvec4(idx3,gl_PrimitiveID/gl_HitKindNV);
+    PrimaryRay.udata     = uvec4(idx3, gl_InstanceID);
     PrimaryRay.fdata.xyz = vec3(baryCoord, gl_HitTNV);
 
     const mat3x4 mc = mat3x4(
-        get_vec4(idx3[0],0u, gl_InstanceCustomIndexNV),
-        get_vec4(idx3[1],0u, gl_InstanceCustomIndexNV),
-        get_vec4(idx3[2],0u, gl_InstanceCustomIndexNV)
+        get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV),
+        get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV),
+        get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV)
     );
 
-    PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
+    //PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
 };

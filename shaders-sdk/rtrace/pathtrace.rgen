@@ -64,6 +64,7 @@ void main() { // Hi-DPI adaptation
         vec4 gNormal = vec4(lnormal,0.f);
         vec4 gSignal = vec4(0.f,0.f,0.f,1.f);
         vec3 gEnergy = 1.f.xxx;
+        vec2 gTexcoord = 0.f.xx;
 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
         raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,uvec2(packed,rdata.x)) : reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
@@ -102,6 +103,7 @@ void main() { // Hi-DPI adaptation
 
             // 
             gNormal = PrimaryRay.normals;
+            gTexcoord = PrimaryRay.texcoords.xy;
 
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;

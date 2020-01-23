@@ -4,7 +4,7 @@
 
 // 
 layout (location = 0) in vec4 gPosition;
-layout (location = 1) in vec4 gTexcoords;
+layout (location = 1) in vec4 gTexcoord;
 layout (location = 2) in vec4 gNormal;
 layout (location = 3) in vec4 gTangents;
 //layout (location = 4) flat in ivec4 gIndexes;

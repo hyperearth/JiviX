@@ -131,7 +131,9 @@ uint32_t load_u32(in uint offset, in uint binding, in uint meshID_) {
 // TODO: Add Uint16_t, Uint32_t, Float16_t Support
 vec4 get_vec4(in uint idx, in uint loc, in uint meshID_) {
     Attribute attrib = attributes[meshID].data[loc];
-    Binding binding = bindings[meshID].data[attrib.binding];
+    Binding  binding = bindings[meshID].data[attrib.binding];
+    //Attribute attrib = attributes[loc].data[meshID];
+    //Binding  binding = bindings[attrib.binding].data[meshID];
     uint32_t boffset = binding.stride * idx + attrib.offset;
     vec4 vec = vec4(0.f);
     
@@ -373,4 +375,5 @@ vec3 screen2world(in vec3 origin){
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 #define DIFFUSE_COLOR (vec3(0.8f,0.8f,0.8f)*(gNormal.xyz*0.5f+0.5f))
+//#define DIFFUSE_COLOR vec3(gTexcoord.xy,1.f)
 #define BACKSKY_COLOR gSignal.xyz = fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz), gEnergy *= 0.f
