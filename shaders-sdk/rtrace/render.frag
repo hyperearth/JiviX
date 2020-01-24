@@ -84,5 +84,7 @@ vec4 getDenoised(in ivec2 coord) {
 // 
 void main() {
     const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
-    uFragColor = vec4(getDenoised(samplep).xyz*texelFetch(frameBuffers[COLORING],samplep,0).xyz,1.f);
+    const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
+    const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
+    uFragColor = vec4(getDenoised(samplep).xyz*diffused.xyz+emission.xyz,1.f);
 };

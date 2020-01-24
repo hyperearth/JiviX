@@ -12,6 +12,144 @@
 #include "misc/tiny_gltf.h"
 
 
+struct Active {
+    std::vector<uint8_t> keys = {};
+    std::vector<uint8_t> mouse = {};
+
+    double mX = 1e-5, mY = 1e-5, dX = 0.0, dY = 0.0;
+    double tDiff = 0.0, tCurrent = 1e-5;
+};
+
+class Shared : public std::enable_shared_from_this<Shared> {
+public:
+    static Active active; // shared properties
+    static GLFWwindow* window; // in-bound GLFW window
+    //friend Renderer;
+
+    static void TimeCallback(double milliseconds = 1e-5) {
+        Shared::active.tDiff = milliseconds - Shared::active.tCurrent, Shared::active.tCurrent = milliseconds;
+    };
+
+    static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+        if (action == GLFW_PRESS) Shared::active.keys[key] = uint8_t(1u);
+        if (action == GLFW_RELEASE) Shared::active.keys[key] = uint8_t(0u);
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) { glfwTerminate(); exit(0); };
+    };
+
+    static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+        if (action == GLFW_PRESS) Shared::active.mouse[button] = uint8_t(1u);
+        if (action == GLFW_RELEASE) Shared::active.mouse[button] = uint8_t(0u);
+    };
+
+    static void MouseMoveCallback(GLFWwindow* window, double xpos = 1e-5, double ypos = 1e-5) {
+        Shared::active.dX = xpos - Shared::active.mX, Shared::active.dY = ypos - Shared::active.mY; // get diff with previous position
+        Shared::active.mX = xpos, Shared::active.mY = ypos; // set current mouse position
+    };
+};
+
+// 
+Active Shared::active; // shared properties
+GLFWwindow* Shared::window; // in-bound GLFW window
+
+
+// camera binding control 
+class CameraController : public std::enable_shared_from_this<CameraController> {
+public:
+    // use pointers
+    glm::vec3* viewVector = nullptr;
+    glm::vec3* eyePos = nullptr;
+    glm::vec3* upVector = nullptr;
+    glm::uvec2* canvasSize = nullptr;
+
+    // create relative control matrice
+    auto project() { return glm::lookAt(*eyePos, (*eyePos + *viewVector), *upVector); };
+
+    // event handler
+    CameraController& handle() {
+        //auto mPtr = (glm::dvec2*)&Shared::active.mX, mDiff = *mPtr - mousePosition;
+        auto mDiff = glm::dvec2(Shared::active.dX, Shared::active.dY);
+        auto tDiff = Shared::active.tDiff;
+
+        glm::mat4 viewm = this->project();
+        glm::mat4 unviewm = glm::inverse(viewm);
+        glm::vec3 ca = (viewm * glm::vec4(*eyePos, 1.0f)).xyz(), vi = glm::normalize((glm::vec4(*viewVector, 0.0) * unviewm)).xyz();
+        bool isFocus = true;
+
+        if (Shared::active.mouse.size() > 0 && Shared::active.mouse[GLFW_MOUSE_BUTTON_LEFT] && isFocus)
+        {
+            if (glm::abs(mDiff.x) > 0.0) this->rotateX(vi, mDiff.x);
+            if (glm::abs(mDiff.y) > 0.0) this->rotateY(vi, mDiff.y);
+        }
+
+        if (Shared::active.keys.size() > 0 && Shared::active.keys[GLFW_KEY_W] && isFocus)
+        {
+            this->forwardBackward(ca, -tDiff);
+        }
+
+        if (Shared::active.keys.size() > 0 && Shared::active.keys[GLFW_KEY_S] && isFocus)
+        {
+            this->forwardBackward(ca, tDiff);
+        }
+
+        if (Shared::active.keys.size() > 0 && Shared::active.keys[GLFW_KEY_A] && isFocus)
+        {
+            this->leftRight(ca, -tDiff);
+        }
+
+        if (Shared::active.keys.size() > 0 && Shared::active.keys[GLFW_KEY_D] && isFocus)
+        {
+            this->leftRight(ca, tDiff);
+        }
+
+        if (Shared::active.keys.size() > 0 && (Shared::active.keys[GLFW_KEY_SPACE] || Shared::active.keys[GLFW_KEY_E]) && isFocus)
+        {
+            this->topBottom(ca, tDiff);
+        }
+
+        if (Shared::active.keys.size() > 0 && (Shared::active.keys[GLFW_KEY_LEFT_SHIFT] || Shared::active.keys[GLFW_KEY_C] || Shared::active.keys[GLFW_KEY_Q]) && isFocus)
+        {
+            this->topBottom(ca, -tDiff);
+        }
+
+        *viewVector = glm::normalize((glm::vec4(vi, 0.0) * viewm).xyz());
+        *eyePos = (unviewm * glm::vec4(ca, 1.0f)).xyz();
+
+        return *this;
+    }
+
+
+    // sub-contollers
+    CameraController& leftRight(glm::vec3& ca, const float& diff) {
+        ca.x += diff / 100.0f;
+        return *this;
+    }
+
+    CameraController& topBottom(glm::vec3& ca, const float& diff) {
+        ca.y += diff / 100.0f;
+        return *this;
+    }
+
+    CameraController& forwardBackward(glm::vec3& ca, const float& diff) {
+        ca.z += diff / 100.0f;
+        return *this;
+    }
+
+    CameraController& rotateY(glm::vec3& vi, const float& diff) {
+        glm::mat4 rot = glm::rotate(diff / float(canvasSize->y) * 2.f, glm::vec3(-1.0f, 0.0f, 0.0f));
+        vi = (rot * glm::vec4(vi, 1.0f)).xyz();
+        return *this;
+    }
+
+    CameraController& rotateX(glm::vec3& vi, const float& diff) {
+        glm::mat4 rot = glm::rotate(diff / float(canvasSize->x) * 2.f, glm::vec3(0.0f, -1.0f, 0.0f));
+        vi = (rot * glm::vec4(vi, 1.0f)).xyz();
+        return *this;
+    }
+};
+
+
+
+
 std::shared_ptr<vkt::GPUFramework> fw = {};
 
 int main() {
@@ -61,7 +199,9 @@ int main() {
     std::string err = "";
     std::string warn = "";
 
+
     bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) {
@@ -120,6 +260,82 @@ int main() {
         buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, BV.byteLength));
         if (BV.byteStride) { buffersViews.back().stride = BV.byteStride; };
     };
+
+    // 
+    std::vector<vk::Sampler> samplers = {};
+    std::vector<vkt::ImageRegion> images = {};
+    for (uint32_t i = 0; i < model.images.size(); i++) {
+        const auto& img = model.images[i];
+
+        // 
+        auto image = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw->getAllocator(), vkh::VkImageCreateInfo{
+            .format = VK_FORMAT_R8G8B8A8_UNORM,
+            .extent = {uint32_t(img.width),uint32_t(img.height),1u},
+            .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+        }), vkh::VkImageViewCreateInfo{
+            .format = VK_FORMAT_R8G8B8A8_UNORM,
+        }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
+            .magFilter = VK_FILTER_LINEAR,
+            .minFilter = VK_FILTER_LINEAR,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        }));
+
+        // 
+        vkt::Vector<> imageBuf = {};
+        if (img.image.size() > 0u) {
+            imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+                .size = img.image.size(),
+                .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+            }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            memcpy(imageBuf.data(), &img.image[0u], img.image.size());
+        };
+
+        // 
+        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+            vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = image, .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = image.getImageSubresourceRange() });
+
+            auto buffer = img.bufferView >= 0 ? buffersViews[img.bufferView] : imageBuf;
+            cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{
+                .bufferOffset = buffer.offset(),
+                .bufferRowLength = uint32_t(img.width),
+                .bufferImageHeight = uint32_t(img.height),
+                .imageSubresource = image.subresourceLayers(),
+                .imageOffset = {0u,0u,0u},
+                .imageExtent = {uint32_t(img.width),uint32_t(img.height),1u},
+            } });
+        });
+
+        images.push_back(image);
+        material->pushSampledImage(image);
+    };
+
+    // TODO: GLTF Samplers Support
+    for (uint32_t i = 0; i < model.samplers.size(); i++) {
+        const auto& smp = model.samplers[i];
+
+        samplers.push_back(device.createSampler(vkh::VkSamplerCreateInfo{
+            .magFilter = VK_FILTER_LINEAR,
+            .minFilter = VK_FILTER_LINEAR,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT
+        }));
+    };
+
+    // Material 
+    for (uint32_t i = 0; i < model.materials.size(); i++) {
+        const auto& mat = model.materials[i];
+        lancer::MaterialUnit mdk = {};
+        mdk.diffuseTexture = mat.pbrMetallicRoughness.baseColorTexture.index;
+        mdk.normalsTexture = mat.normalTexture.index;
+        mdk.emissionTexture = mat.emissiveTexture.index;
+        if (mat.emissiveFactor.size() > 0) {
+            mdk.emission = glm::vec4(mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2], 0.f);
+        };
+        mdk.diffuse = mdk.diffuse;
+        material->pushMaterial(mdk);
+    };
+
 
     // Gonki //
     //   #   //
@@ -191,11 +407,10 @@ int main() {
         localTransform *= glm::dmat4(gnode.scale.size() >= 3 ? glm::scale(glm::make_vec3(gnode.scale.data())) : glm::dmat4(1.0));
         localTransform *= glm::dmat4((gnode.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(gnode.rotation.data())) : glm::dmat4(1.0)));
 
-        auto transform = glm::dmat4(inTransform) * glm::dmat4(localTransform);
         if (gnode.mesh >= 0) {
             auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
             node->pushInstance(vkh::VsGeometryInstance{
-                .transform = mat4_t(glm::transpose(transform)),
+                .transform = mat4_t(glm::mat4(glm::transpose(glm::dmat4(inTransform) * glm::dmat4(localTransform)))),
                 .instanceId = uint32_t(gnode.mesh),
                 .mask = 0xff,
                 .instanceOffset = 0u,
@@ -205,7 +420,7 @@ int main() {
 
         if (gnode.children.size() > 0 && gnode.mesh < 0) {
             for (int n = 0; n < gnode.children.size(); n++) {
-                if (recursive >= 0) (*vertexLoader)(model.nodes[gnode.children[n]], transform, recursive - 1);
+                if (recursive >= 0) (*vertexLoader)(model.nodes[gnode.children[n]], glm::dmat4(inTransform) * glm::dmat4(localTransform), recursive - 1);
             };
         };
     });
@@ -214,15 +429,28 @@ int main() {
     uint32_t sceneID = 0; const float unitScale = 100.f;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-        //uint32_t n = 0u; {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 8);
+            (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
         };
+        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+        //    (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))*glm::translate(glm::vec3(1.f,1.f,1.f))), 16);
+        //};
     };
 
     // 
     glm::vec3 eye = glm::vec3(5.f, 2.f, 2.f);
     glm::vec3 foc = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 evc = foc - eye;
+    glm::vec3 upv = glm::vec3(0.f, 1.f, 0.f);
+    glm::uvec2 canvasSize = { canvasWidth, canvasHeight };
+
+    // 
+    auto cameraController = std::make_shared<CameraController>();
+    cameraController->canvasSize = &canvasSize;
+    cameraController->eyePos = &eye;
+    cameraController->upVector = &upv;
+    cameraController->viewVector = &evc;
 
     // 
     //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
@@ -252,6 +480,19 @@ int main() {
 	uint32_t currentBuffer = 0u;
     uint32_t frameCount = 0u;
 
+    // set GLFW callbacks
+    glfwSetMouseButtonCallback(fw->window(), &Shared::MouseButtonCallback);
+    glfwSetCursorPosCallback(fw->window(), &Shared::MouseMoveCallback);
+    glfwSetKeyCallback(fw->window(), &Shared::KeyCallback);
+
+    // 
+    Shared::active = Active{};
+    Shared::window = fw->window(); // set GLFW window
+    Shared::active.tDiff = 0.0; // reset diff to near-zero (avoid critical math errors)
+    Shared::active.keys.resize(1024, uint8_t(0u));
+    Shared::active.mouse.resize(128, uint8_t(0u));
+    Shared::TimeCallback(double(context->registerTime()->setDrawCount(frameCount++)->drawTime()));
+
 	// 
 	while (!glfwWindowShouldClose(manager.window)) {
         glfwPollEvents();
@@ -267,7 +508,7 @@ int main() {
 
         { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.f}), vk::ClearDepthStencilValue(1.0f, 0) };
-            context->registerTime()->setDrawCount(frameCount++);
+            Shared::TimeCallback(double(context->registerTime()->setModelView(cameraController->handle().project())->setDrawCount(frameCount++)->drawTime()));
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
@@ -282,11 +523,6 @@ int main() {
                 commandBuffer.endRenderPass();
                 commandBuffer.end();
             };
-
-            // Drunk Debug Camera Animation
-            eye.x -= float(context->timeDiff()) / 1000.f * 0.1f;
-            foc.x -= float(context->timeDiff()) / 1000.f * 0.1f;
-            context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
 
             // Create render submission 
             std::vector<vk::Semaphore> waitSemaphores = { framebuffers[n_semaphore].semaphore }, signalSemaphores = { framebuffers[c_semaphore].semaphore };

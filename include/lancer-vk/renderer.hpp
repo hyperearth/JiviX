@@ -215,7 +215,7 @@ namespace lancer {
             this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
 
             // copy resampled data into ray tracing samples
-            for (uint32_t i = 0; i < 2; i++) {
+            for (uint32_t i = 0; i < 8; i++) {
                 rayTraceCommand.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
                     this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
                 ) });

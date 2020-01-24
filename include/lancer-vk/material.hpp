@@ -8,7 +8,17 @@ namespace lancer {
 
     // 
     struct MaterialUnit {
-        glm::vec4 diffuse = {1.f,1.f,1.f,1.f};
+        glm::vec4 diffuse = { 1.f,1.f,1.f,1.f };
+        glm::vec4 specular = { 0.f,0.f,0.f,1.f };
+        glm::vec4 normals = { 0.5f,0.5f,1.f,1.f };
+        glm::vec4 emission = { 0.0f,0.0f,0.f,1.f };
+
+        int diffuseTexture = -1;
+        int specularTexture = -1;
+        int normalsTexture = -1;
+        int emissionTexture = -1;
+
+        glm::uvec4 udata = glm::uvec4(0u);
     };
 
     // WIP Materials
@@ -69,7 +79,7 @@ namespace lancer {
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = uint32_t(sampledImages.size()),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
                 memcpy(&imagesHandle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(VkDescriptorImageInfo));
                 //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<VkDescriptorImageInfo>(i) = sampledImages[i]; };

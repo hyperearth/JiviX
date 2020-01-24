@@ -4,6 +4,7 @@
 #define SAMPLING 1
 //#define DIFFUSED_FLIP1 0//2
 //#define SAMPLING_FLIP1 1//3
+#define EMISSION 4
 
 // Rasterization or First Step
 #define COLORING 0
@@ -36,7 +37,17 @@ struct Attribute {
 };
 
 struct MaterialUnit {
-    f32vec4 diffuse;
+    vec4 diffuse;
+    vec4 specular;
+    vec4 normals;
+    vec4 emission;
+
+    int diffuseTexture;
+    int specularTexture;
+    int normalsTexture;
+    int emissionTexture;
+
+    uvec4 udata;
 };
 
 // Mesh Data Buffers
@@ -245,6 +256,14 @@ vec2 random2(            ) { return halfConstruct(hash(clockRealtime2x32EXT()));
 vec2 random2( in uvec2 s ) { return halfConstruct(hash(uvec4(clockRealtime2x32EXT(),s))); }
 vec2 random2( in uint  s ) { return halfConstruct(hash(uvec3(clockRealtime2x32EXT(),s))); }
 
+
+float rand( inout uvec2 seed ) {
+	seed += uvec2(1);
+    uvec2 q = 1103515245U * ( (seed >> 1U) ^ (seed.yx) );
+    uint  n = 1103515245U * ( (q.x) ^ (q.y >> 3U) );
+	return float(n) * (1.0 / float(0xffffffffU));
+};
+
 vec2 lcts(in vec3 direct) { return vec2(fma(atan(direct.z,direct.x),INV_TWO_PI,0.5f),acos(-direct.y)*INV_PI); };
 vec3 dcts(in vec2 hr) { 
     hr = fma(hr,vec2(TWO_PI,PI),vec2(-PI,0.f)); 
@@ -253,10 +272,17 @@ vec3 dcts(in vec2 hr) {
 };
 
 // geometric random generators
-vec3 randomSphere() { return dcts(random2()); };
-vec3 randomSphere(in uint  s) { return dcts(random2(s)); };
-vec3 randomSphere(in uvec2 s) { return dcts(random2(s)); };
+//vec3 randomSphere() { return dcts(random2()); };
+//vec3 randomSphere(in uint  s) { return dcts(random2(s)); };
+//vec3 randomSphere(in uvec2 s) { return dcts(random2(s)); };
 
+
+vec3 randomSphere( inout uvec2 seed ) {
+    float up = rand(seed) * 2.0 - 1.0; // range: -1 to +1
+    float over = sqrt( max(0.0, 1.0 - up * up) );
+    float around = rand(seed) * TWO_PI;
+    return normalize(vec3(cos(around) * over, up, sin(around) * over));	
+}
 
 vec3 randomHemisphereCosine(in uvec2 seed) {
     const vec2 hmsm = random2(seed);
@@ -265,16 +291,15 @@ vec3 randomHemisphereCosine(in uvec2 seed) {
 };
 
 /*
-vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed) {
+vec3 randomHemisphereCosineA(in vec3 n, in uvec2 seed) {
     vec3 up = abs(n.z) < 0.999f ? vec3(0.f, 0.f, 1.f) : vec3(1.f, 0.f, 0.f);
 	vec3 tan_x = normalize(cross(up, n));
 	vec3 tan_y = cross(n, tan_x);
     vec3 hemi = randomHemisphereCosine(seed);
     return normalize(hemi.x * tan_x + hemi.y * tan_y + n * hemi.z);
 };
-*/
 
-vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed) {
+vec3 randomHemisphereCosineB(in vec3 n, in uvec2 seed) {
     vec3 rand = vec3(random(seed),random2(seed))*2.f-1.f;
     float r = rand.x * 0.5 + 0.5; // [-1..1) -> [0..1)
     float angle = (rand.y + 1.0) * PI; // [-1..1] -> [0..2*PI)
@@ -286,6 +311,25 @@ vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed) {
     tangent = cross(bitangent, n);
     return normalize(tangent * ph.x + bitangent * ph.y + n * ph.z);
 };
+
+vec3 randomHemisphereCosine(in vec3 n, in uvec2 seed){
+    return normalize(mix(randomHemisphereCosineA(n,seed),randomHemisphereCosineB(n,seed),0.f));
+};*/
+
+vec3 randomHemisphereCosine( in vec3 nl, inout uvec2 seed )
+{
+    float up = rand(seed); // uniform distribution in hemisphere
+    float over = sqrt(max(0.0, 1.0 - up * up));
+    float around = rand(seed) * TWO_PI;
+    // from "Building an Orthonormal Basis, Revisited" http://jcgt.org/published/0006/01/01/
+    float signf = nl.z >= 0.0 ? 1.0 : -1.0;
+    float a = -1.0 / (signf + nl.z);
+    float b = nl.x * nl.y * a;
+    vec3 T = vec3( 1.0 + signf * nl.x * nl.x * a, signf * b, -signf * nl.x );
+    vec3 B = vec3( b, signf + nl.y * nl.y * a, -nl.y );
+    return normalize(cos(around) * over * T + sin(around) * over * B + up * nl);
+};
+
 
 vec3 reflectGlossy(in vec3 I, in vec3 n, in uvec3 seed, in float gloss){
     return mix(reflect(I, n), randomHemisphereCosine(n,seed.xy), gloss*pow(random(seed.z),2.f));
@@ -374,6 +418,7 @@ vec3 screen2world(in vec3 origin){
 
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
-#define DIFFUSE_COLOR (vec3(0.8f,0.8f,0.8f)*(gNormal.xyz*0.5f+0.5f))
+//#define DIFFUSE_COLOR (vec3(0.8f,0.8f,0.8f)*(gNormal.xyz*0.5f+0.5f))
 //#define DIFFUSE_COLOR vec3(gTexcoord.xy,1.f)
+#define DIFFUSE_COLOR diffuseColor.xyz
 #define BACKSKY_COLOR gSignal.xyz = fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz), gEnergy *= 0.f

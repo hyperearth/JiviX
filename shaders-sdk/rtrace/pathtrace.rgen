@@ -43,7 +43,9 @@ void main() { // Hi-DPI adaptation
     const vec4 colourSample = texture(frameBuffers[COLORING], pixel);
     const vec4 normalSample = texture(frameBuffers[NORMALED], pixel);
     const vec4 worldsSample = texture(frameBuffers[POSITION], pixel);
+    const vec4 emitedSample = texture(frameBuffers[EMISSION], pixel);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
+    uvec2 seed = uvec2(packed,rdata.x);
 
     [[unroll]] for (uint32_t I=0;I<2;I++) { // Path Traced Diffuse Global Illumination
 #ifdef ENABLE_RASTERIZE_STAGE
@@ -62,12 +64,12 @@ void main() { // Hi-DPI adaptation
 
         //
         vec4 gNormal = vec4(lnormal,0.f);
-        vec4 gSignal = vec4(0.f,0.f,0.f,1.f);
+        vec4 gSignal = vec4(0.f.xxx,1.f);
         vec3 gEnergy = 1.f.xxx;
         vec2 gTexcoord = 0.f.xx;
 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
-        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,uvec2(packed,rdata.x)) : reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
+        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
         origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f; // pre-correction
 
         uint i = 1u; if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
@@ -79,7 +81,7 @@ void main() { // Hi-DPI adaptation
 
             // Shadows Rays
             if (i >= 1u) {
-                const vec3 lightp = sphere.xyz + randomSphere(uvec2(gl_LaunchIDNV.xy)) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
+                const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
                 const vec3 lightd = normalize(lightp.xyz - origin.xyz);
 
                 traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
@@ -91,7 +93,7 @@ void main() { // Hi-DPI adaptation
                 float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
                 const float depth = min(sdepth,ShadowsRay.fdata.z)+sphere.w;
                 const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-                if (depth >= (shdist-0.001f)) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };
+                if (depth >= (shdist-0.0001f)) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };
             };
 
             // Primary Rays
@@ -106,6 +108,13 @@ void main() { // Hi-DPI adaptation
             gTexcoord = PrimaryRay.texcoords.xy;
 
             // 
+            const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
+            vec4 diffuseColor = unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],gTexcoord.xy) : unit.diffuse;
+            vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],gTexcoord.xy) : unit.normals;
+            vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
+            vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission;
+
+            // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
             float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
             float depth = min(PrimaryRay.fdata.z,sdepth);
@@ -113,8 +122,9 @@ void main() { // Hi-DPI adaptation
             // TODO: better depth system
             bool couldReflection = false;
             if (depth >= 9999.f) { BACKSKY_COLOR; } else // Skybox
-            if (depth == PrimaryRay.fdata.z) { 
-                gEnergy *= i > 0u ? DIFFUSE_COLOR : 1.f.xxx;
+            if (depth == PrimaryRay.fdata.z) {
+                gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
+                gEnergy *= i > 0 ? max(diffuseColor.xyz - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx;
             } else // Primitive
             if (depth == sdepth) { // Light Sphere
                 gEnergy *= 0.f;
@@ -124,7 +134,7 @@ void main() { // Hi-DPI adaptation
             if (depth == pdepth) { // Plane
                 gEnergy *= vec3(0.8f);
                 gNormal.xyz = vec3(0.f,1.f,0.f);
-            } else { BACKSKY_COLOR; }; // Error as Skybox
+            } else { gEnergy.xyz *= 0.f; }; // Error as Skybox
             origin.xyz += raydir.xyz * depth;
 
             // 
@@ -132,7 +142,7 @@ void main() { // Hi-DPI adaptation
             if (couldReflection) {
                 raydir.xyz = reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
             } else {
-                raydir.xyz = randomHemisphereCosine(gNormal.xyz,uvec2(packed,rdata.x));
+                raydir.xyz = randomHemisphereCosine(gNormal.xyz,seed);
             };
             origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
             gNormal.xyz = gNormal.xyz;
@@ -140,7 +150,7 @@ void main() { // Hi-DPI adaptation
             if (i == 0u) { forign =  origin.xyz, fnorml = gNormal.xyz; };
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f) { break; }; // 
         } else {
-            gSignal.xyz = fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz);
+            gSignal.xyz = fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
             forign.xyz = 0.f.xxx;
         };
 
@@ -149,7 +159,6 @@ void main() { // Hi-DPI adaptation
             const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
             const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
             imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal + directSample);
-            //imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal);
             imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
             imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
         };
