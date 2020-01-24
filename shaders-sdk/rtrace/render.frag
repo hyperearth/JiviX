@@ -14,6 +14,11 @@ vec4 getIndirect(in ivec2 map){
     return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1));
 };
 
+vec4 getReflection(in ivec2 map){
+    const ivec2 size = imageSize(writeImages[REFLECTS]);
+    return imageLoad(writeImages[REFLECTS],ivec2(map.x,size.y-map.y-1));
+};
+
 vec4 getNormal(in ivec2 coord){
     vec4 normals = vec4(texelFetch(frameBuffers[NORMALED],ivec2(coord),0).xyz, 0.f);
     return normals;
@@ -71,7 +76,7 @@ vec4 getDenoised(in ivec2 coord) {
             vec4 nsample = getNormal(map);
             vec3 psample = world2screen(getPosition(map).xyz);
 
-            if (dot(nsample.xyz,centerNormal.xyz) > 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == 2u && y == 2u)) {
+            if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == 2u && y == 2u)) {
                 sampled += getIndirect(map);
             };
         };
@@ -86,5 +91,7 @@ void main() {
     const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
     const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
     const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
-    uFragColor = vec4(getDenoised(samplep).xyz*diffused.xyz+emission.xyz,1.f);
+    const vec4 reflects = getReflection(samplep);
+
+    uFragColor = vec4(mix(getDenoised(samplep).xyz*diffused.xyz+emission.xyz,reflects.xyz,reflects.w),1.f);
 };

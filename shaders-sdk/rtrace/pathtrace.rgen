@@ -10,9 +10,9 @@ layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
 
 
-vec4 shiftByPixel(in vec4 wpos, in uint packed){
+vec4 shiftByPixel(in vec4 wpos, inout uvec2 seed){
     vec2 sizpx = vec2(gl_LaunchSizeNV.xy);
-    vec2 shift = random2(uvec2(rdata[0],packed));
+    vec2 shift = random2(seed);
     vec4 sspos = vec4(vec4(divW(wpos * projectionInv),1.f) * modelviewInv, 1.f);
     sspos.xy += shift/sizpx;
     return vec4(divW(vec4(sspos * modelview, 1.f) * projection), 1.f);
@@ -36,7 +36,7 @@ void main() { // Hi-DPI adaptation
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const vec4 sphere = vec4(vec3(8.f,8.f,4.f), 4.f); 
     const vec3 lightc = 10.f.xxx;
-    const uint ITERATION_COUNT = 4u;
+    const uint ITERATION_COUNT = 3u;
 
     //const vec2 shift = random2(uvec2(rdata[0],packed)), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
     const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
@@ -69,6 +69,7 @@ void main() { // Hi-DPI adaptation
         vec2 gTexcoord = 0.f.xx;
 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
+        gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz,gNormal.xyz); 
         raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
         origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f; // pre-correction
 
@@ -80,7 +81,7 @@ void main() { // Hi-DPI adaptation
 #endif
 
             // Shadows Rays
-            if (i >= 1u) {
+            if (I == 0 ? i >= 1u : i >= 2) {
                 const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
                 const vec3 lightd = normalize(lightp.xyz - origin.xyz);
 
@@ -108,7 +109,7 @@ void main() { // Hi-DPI adaptation
             gTexcoord = PrimaryRay.texcoords.xy;
 
             // 
-            const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
+            const MaterialUnit unit = materials[0u].data[meshInfo[PrimaryRay.udata.w].materialID];
             vec4 diffuseColor = unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],gTexcoord.xy) : unit.diffuse;
             vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],gTexcoord.xy) : unit.normals;
             vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
@@ -127,7 +128,8 @@ void main() { // Hi-DPI adaptation
                 gEnergy *= i > 0 ? max(diffuseColor.xyz - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx;
             } else // Primitive
             if (depth == sdepth) { // Light Sphere
-                gEnergy *= 0.f;
+                BACKSKY_COLOR;
+                //gEnergy *= 0.f;
                 //gSignal.xyz = fma(gEnergy.xyz, lightc.xyz, gSignal.xyz), gEnergy *= 0.f;
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             } else 
@@ -153,7 +155,7 @@ void main() { // Hi-DPI adaptation
             gSignal.xyz = fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
             forign.xyz = 0.f.xxx;
         };
-
+        
         // 
         if (I == 0) { // Store for Diffuse
             const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
@@ -161,6 +163,10 @@ void main() { // Hi-DPI adaptation
             imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal + directSample);
             imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
             imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
+        };
+
+        if (I == 1) { // Titanic OS
+            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(gSignal.xyz,0.1f));
         };
 
         memoryBarrier();
