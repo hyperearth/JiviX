@@ -28,6 +28,7 @@ public:
 
     static void TimeCallback(double milliseconds = 1e-5) {
         Shared::active.tDiff = milliseconds - Shared::active.tCurrent, Shared::active.tCurrent = milliseconds;
+        Shared::active.dX = 0.0, Shared::active.dY = 0.0;
     };
 
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -200,8 +201,8 @@ int main() {
     std::string warn = "";
 
 
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
     bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) {

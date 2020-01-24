@@ -132,6 +132,14 @@ namespace lancer {
 
                 // 
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 7u,
+                    .dstArrayElement = i,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[i]->gpuInstanceMap;
+
+                // 
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .dstArrayElement = i,
                     .descriptorCount = 1u,

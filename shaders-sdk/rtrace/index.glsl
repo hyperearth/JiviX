@@ -95,6 +95,7 @@ struct RTXInstance {
 };
 
 layout (binding = 6, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
+layout (binding = 7, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[];  // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
 
 // 
 layout(push_constant) uniform pushConstants { uvec4 data; } drawInfo;

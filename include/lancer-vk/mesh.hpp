@@ -32,6 +32,10 @@ namespace lancer {
             this->rawMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
+            // Internal Instance Map Per Global Node
+            this->rawInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 128u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 128u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+
             // for faster code, pre-initialize
             this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vk::ShaderStageFlagBits::eVertex),
@@ -144,7 +148,8 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Mesh> increaseInstanceCount(const uint32_t& instanceCount = 1u) {
+        std::shared_ptr<Mesh> increaseInstanceCount(const uint32_t& mapID = 0u, const uint32_t& instanceCount = 1u) {
+            this->rawInstanceMap[this->instanceCount] = mapID;
             this->instanceCount += instanceCount;
             return shared_from_this();
         };
@@ -250,9 +255,10 @@ namespace lancer {
 
         // 
         std::shared_ptr<Mesh> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
-            buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
-            buildCommand.copyBuffer(this->rawBindings  , this->gpuBindings  , { vk::BufferCopy{ this->rawBindings  .offset(), this->gpuBindings  .offset(), this->gpuBindings  .range() } });
-            buildCommand.copyBuffer(this->rawMeshInfo  , this->gpuMeshInfo  , { vk::BufferCopy{ this->rawMeshInfo  .offset(), this->gpuMeshInfo  .offset(), this->gpuMeshInfo  .range() } });
+            buildCommand.copyBuffer(this->rawAttributes , this->gpuAttributes , { vk::BufferCopy{ this->rawAttributes .offset(), this->gpuAttributes .offset(), this->gpuAttributes .range() } });
+            buildCommand.copyBuffer(this->rawBindings   , this->gpuBindings   , { vk::BufferCopy{ this->rawBindings   .offset(), this->gpuBindings   .offset(), this->gpuBindings   .range() } });
+            buildCommand.copyBuffer(this->rawMeshInfo   , this->gpuMeshInfo   , { vk::BufferCopy{ this->rawMeshInfo   .offset(), this->gpuMeshInfo   .offset(), this->gpuMeshInfo   .range() } });
+            buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
             return shared_from_this();
         };
 
@@ -268,9 +274,10 @@ namespace lancer {
 
             // Pre-Initialize Geometries
             // Use Same Geometry for Sub-Instances
-            this->geometries.resize(this->instanceCount);
+            //this->geometries.resize(this->instanceCount);
             //this->geometries = {};
-            for (uint32_t i = 0u; i < this->instanceCount; i++) {
+            this->geometries.resize(1u);
+            for (uint32_t i = 0u; i < this->geometries.size(); i++) {
                 //this->geometries.push_back(this->geometryTemplate);
                 this->geometries[i] = this->geometryTemplate;
                 this->geometries[i].flags = { .eOpaque = 1 };
@@ -365,8 +372,11 @@ namespace lancer {
         vkt::Vector<vkh::VkVertexInputBindingDescription> gpuBindings = {};
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
 
+        // 
         vkt::Vector<glm::uvec4> rawMeshInfo = {};
         vkt::Vector<glm::uvec4> gpuMeshInfo = {};
+        vkt::Vector<uint32_t> rawInstanceMap = {};
+        vkt::Vector<uint32_t> gpuInstanceMap = {};
 
         // 
         vk::AccelerationStructureNV accelerationStructure = {};
