@@ -47,7 +47,7 @@ void sort(inout vec3 arr[9u], int d)
     }
 }
 
-vec4 getDenoised(in ivec2 coord) {
+vec4 getDenoised(in ivec2 coord, in bool reflection) {
     vec4 centerNormal = getNormal(coord);
     vec3 centerOrigin = world2screen(getPosition(coord).xyz);
     
@@ -70,6 +70,7 @@ vec4 getDenoised(in ivec2 coord) {
     */
 
     vec4 sampled = 0.f.xxxx; int scount = 0;
+    
     for (uint x=0;x<5u;x++) {
         for (uint y=0;y<5u;y++) {
             ivec2 map = coord+ivec2(x-2u,y-2u);
@@ -77,13 +78,21 @@ vec4 getDenoised(in ivec2 coord) {
             vec3 psample = world2screen(getPosition(map).xyz);
 
             if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == 2u && y == 2u)) {
-                sampled += getIndirect(map);
+                if (reflection) {
+                    sampled += vec4(getReflection(map).xyz,1.f);
+                } else {
+                    sampled += getIndirect(map);
+                };
             };
         };
     };
 
-    sampled = max(sampled, 0.001f);
-    return sampled /= sampled.w;
+    if (reflection) {
+        sampled.xyz /= sampled.w;
+        sampled.w = getReflection(coord).w;
+    };
+
+    return sampled;
 };
 
 // 
@@ -91,7 +100,13 @@ void main() {
     const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
     const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
     const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
-    const vec4 reflects = getReflection(samplep);
+    
+    vec4 coloring = getDenoised(samplep,false);
+    vec4 reflects = getDenoised(samplep, true);
+    if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,1.f); };
+    if (coloring.w <= 0.f) { coloring = vec4(0.f.xxx,1.f); };
+    coloring = max(coloring, 0.f.xxxx);
+    reflects = max(reflects, 0.f.xxxx);
 
-    uFragColor = vec4(mix(getDenoised(samplep).xyz*diffused.xyz+emission.xyz,reflects.xyz,reflects.w),1.f);
+    uFragColor = vec4(mix(diffused.xyz*coloring.xyz/coloring.w+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
 };

@@ -422,5 +422,5 @@ vec3 screen2world(in vec3 origin){
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 //#define DIFFUSE_COLOR (vec3(0.8f,0.8f,0.8f)*(gNormal.xyz*0.5f+0.5f))
 //#define DIFFUSE_COLOR vec3(gTexcoord.xy,1.f)
-#define DIFFUSE_COLOR diffuseColor.xyz
+#define DIFFUSE_COLOR (diffuseColor.xyz * (gNormal.xyz*0.5f+0.5f))
 #define BACKSKY_COLOR gSignal.xyz = fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz), gEnergy *= 0.f

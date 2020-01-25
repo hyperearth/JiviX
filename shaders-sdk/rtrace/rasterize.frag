@@ -25,7 +25,7 @@ void main() {
     vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy,0) : unit.specular;
     vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy,0) : unit.emission;
 
-    colored = max(diffuseColor - vec4(emissionColor.xyz*emissionColor.w,0.f),0.f.xxxx);//vec4(mix(diffuseColor.xyz,1.f.xxx,emissionColor.xyz*emissionColor.w),diffuseColor.a);
+    colored = max(vec4(DIFFUSE_COLOR,diffuseColor.w) - vec4(emissionColor.xyz*emissionColor.w,0.f),0.f.xxxx);//vec4(mix(diffuseColor.xyz,1.f.xxx,emissionColor.xyz*emissionColor.w),diffuseColor.a);
     normals = vec4(gNormal.xyz,1.f);
     samples = gPosition;
     emission = vec4(emissionColor.xyz,emissionColor.w);

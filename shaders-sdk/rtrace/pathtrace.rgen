@@ -125,12 +125,14 @@ void main() { // Hi-DPI adaptation
             if (depth >= 9999.f) { BACKSKY_COLOR; } else // Skybox
             if (depth == PrimaryRay.fdata.z) {
                 gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
-                gEnergy *= i > 0 ? max(diffuseColor.xyz - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx;
+                gEnergy *= i > 0 ? max(DIFFUSE_COLOR - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx;
             } else // Primitive
             if (depth == sdepth) { // Light Sphere
-                BACKSKY_COLOR;
-                //gEnergy *= 0.f;
-                //gSignal.xyz = fma(gEnergy.xyz, lightc.xyz, gSignal.xyz), gEnergy *= 0.f;
+                if (I == 1 || couldReflection) {
+                    gSignal.xyz = fma(gEnergy.xyz, lightc.xyz, gSignal.xyz), gEnergy *= 0.f;
+                } else {
+                    gEnergy *= 0.f;
+                };
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             } else 
             if (depth == pdepth) { // Plane
@@ -166,7 +168,7 @@ void main() { // Hi-DPI adaptation
         };
 
         if (I == 1) { // Titanic OS
-            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(gSignal.xyz,0.1f));
+            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(gSignal.xyz,0.01f));
         };
 
         memoryBarrier();

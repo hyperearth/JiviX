@@ -202,7 +202,7 @@ int main() {
 
 
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) {
@@ -427,16 +427,16 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 100.f;
+    uint32_t sceneID = 0; const float unitScale = 10.f;
     if (model.scenes.size() > 0) {
-        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
-        };
         //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
         //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))*glm::translate(glm::vec3(1.f,1.f,1.f))), 16);
+        //    (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
         //};
+        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+            (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))*glm::translate(glm::vec3(1.f,1.f,1.f))), 16);
+        };
     };
 
     // 
