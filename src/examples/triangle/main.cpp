@@ -235,7 +235,7 @@ int main() {
     // 
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = model.buffers[i].data.size(),
+            .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
             .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
@@ -244,7 +244,7 @@ int main() {
 
         // 
         gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = model.buffers[i].data.size(),
+            .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
             .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
@@ -258,7 +258,7 @@ int main() {
     std::vector<vkt::Vector<uint8_t>> buffersViews = {};
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
         const auto& BV = model.bufferViews[i];
-        buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, BV.byteLength));
+        buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull));
         if (BV.byteStride) { buffersViews.back().stride = BV.byteStride; };
     };
 
@@ -399,7 +399,7 @@ int main() {
         };
     };
 
-
+    // 
     std::shared_ptr<std::function<void(const tinygltf::Node&, glm::dmat4, int)>> vertexLoader = {};
     vertexLoader = std::make_shared<std::function<void(const tinygltf::Node&, glm::dmat4, int)>>([&](const tinygltf::Node& gnode, glm::dmat4 inTransform, int recursive)->void {
         auto localTransform = glm::dmat4(1.0);
@@ -427,12 +427,12 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 10.f;
+    uint32_t sceneID = 0; const float unitScale = 1.f;
     if (model.scenes.size() > 0) {
-        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
-        //};
+        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+            (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
+        };
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
             (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))*glm::translate(glm::vec3(1.f,1.f,1.f))), 16);

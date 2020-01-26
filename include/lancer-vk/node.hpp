@@ -90,8 +90,8 @@ namespace lancer {
                         .dstBinding = i,
                         .dstArrayElement = j,
                         .descriptorCount = 1u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                    }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[j]->bindings[i];
+                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
+                    }).offset<vk::BufferView>(0u) = this->meshes[j]->bindings[i].createBufferView(vk::Format::eR8Uint);
                 };};
             };
 
@@ -169,7 +169,7 @@ namespace lancer {
                     .dstBinding = 5u,
                     .dstArrayElement = i,
                     .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[i]->gpuMeshInfo;
             };
 

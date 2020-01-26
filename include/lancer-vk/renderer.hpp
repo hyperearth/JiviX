@@ -252,10 +252,12 @@ namespace lancer {
             vkt::commandBarrier(this->cmdbuf);
 
             // prepare meshes for ray-tracing
-            for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); }; // copy concurrently
-            vkt::commandBarrier(this->cmdbuf);
-            for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf); }; // build concurrently
-            vkt::commandBarrier(this->cmdbuf);
+            //for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); vkt::commandBarrier(this->cmdbuf); }; // copy concurrently
+            //for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf); vkt::commandBarrier(this->cmdbuf); }; // build concurrently
+            for (auto& M : this->node->meshes) {
+                M->copyBuffers(this->cmdbuf)->buildAccelerationStructure(this->cmdbuf);
+                vkt::commandBarrier(this->cmdbuf);
+            };
 
             // setup instanced and material data
             this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
@@ -273,8 +275,11 @@ namespace lancer {
 
             // 
             auto I = 0u; // 
-            for (auto& M : this->node->meshes) { M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); };
-            vkt::commandBarrier(this->cmdbuf);
+            for (auto& M : this->node->meshes) { 
+                M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
+                vkt::commandBarrier(this->cmdbuf);
+            };
+            //vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);

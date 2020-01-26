@@ -53,14 +53,24 @@ struct MaterialUnit {
 };
 
 // Mesh Data Buffers
-layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
-layout (binding = 1, set = 0, scalar) buffer Data1 { uint8_t data[]; } mesh1[];
-layout (binding = 2, set = 0, scalar) buffer Data2 { uint8_t data[]; } mesh2[];
-layout (binding = 3, set = 0, scalar) buffer Data3 { uint8_t data[]; } mesh3[];
-layout (binding = 4, set = 0, scalar) buffer Data4 { uint8_t data[]; } mesh4[];
-layout (binding = 5, set = 0, scalar) buffer Data5 { uint8_t data[]; } mesh5[];
-layout (binding = 6, set = 0, scalar) buffer Data6 { uint8_t data[]; } mesh6[];
-layout (binding = 7, set = 0, scalar) buffer Data7 { uint8_t data[]; } mesh7[];
+//layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
+//layout (binding = 1, set = 0, scalar) buffer Data1 { uint8_t data[]; } mesh1[];
+//layout (binding = 2, set = 0, scalar) buffer Data2 { uint8_t data[]; } mesh2[];
+//layout (binding = 3, set = 0, scalar) buffer Data3 { uint8_t data[]; } mesh3[];
+//layout (binding = 4, set = 0, scalar) buffer Data4 { uint8_t data[]; } mesh4[];
+//layout (binding = 5, set = 0, scalar) buffer Data5 { uint8_t data[]; } mesh5[];
+//layout (binding = 6, set = 0, scalar) buffer Data6 { uint8_t data[]; } mesh6[];
+//layout (binding = 7, set = 0, scalar) buffer Data7 { uint8_t data[]; } mesh7[];
+
+// 
+layout (binding = 0, set = 0, r32ui) readonly uniform uimageBuffer mesh0[];
+layout (binding = 1, set = 0, r32ui) readonly uniform uimageBuffer mesh1[];
+layout (binding = 2, set = 0, r32ui) readonly uniform uimageBuffer mesh2[];
+layout (binding = 3, set = 0, r32ui) readonly uniform uimageBuffer mesh3[];
+layout (binding = 4, set = 0, r32ui) readonly uniform uimageBuffer mesh4[];
+layout (binding = 5, set = 0, r32ui) readonly uniform uimageBuffer mesh5[];
+layout (binding = 6, set = 0, r32ui) readonly uniform uimageBuffer mesh6[];
+layout (binding = 7, set = 0, r32ui) readonly uniform uimageBuffer mesh7[];
 layout (binding = 8, set = 0, r32ui) readonly uniform uimageBuffer indices; // indices compatible 
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
@@ -80,7 +90,7 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
 // 
 //layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { mat4x4 transform[]; } instances[];
 layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
-layout (binding = 5, set = 1, scalar) uniform MeshData {
+layout (binding = 5, set = 1, scalar) readonly buffer MeshData {
     uint materialID;
     uint hasIndex;
     uint prmCount;
@@ -105,41 +115,35 @@ layout(push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // System Specified
 uint8_t load_u8(in uint offset, in uint binding, in uint meshID_) {
-    if (binding == 0u) { return mesh0[meshID].data[offset]; };
-    if (binding == 1u) { return mesh1[meshID].data[offset]; };
-    if (binding == 2u) { return mesh2[meshID].data[offset]; };
-    if (binding == 3u) { return mesh3[meshID].data[offset]; };
-    if (binding == 4u) { return mesh4[meshID].data[offset]; };
-    if (binding == 5u) { return mesh5[meshID].data[offset]; };
-    if (binding == 6u) { return mesh6[meshID].data[offset]; };
-    if (binding == 7u) { return mesh7[meshID].data[offset]; };
+    //if (binding == 0u) { return mesh0[meshID].data[offset]; };
+    //if (binding == 1u) { return mesh1[meshID].data[offset]; };
+    //if (binding == 2u) { return mesh2[meshID].data[offset]; };
+    //if (binding == 3u) { return mesh3[meshID].data[offset]; };
+    //if (binding == 4u) { return mesh4[meshID].data[offset]; };
+    //if (binding == 5u) { return mesh5[meshID].data[offset]; };
+    //if (binding == 6u) { return mesh6[meshID].data[offset]; };
+    //if (binding == 7u) { return mesh7[meshID].data[offset]; };
+
+    if (binding == 0u) { return uint8_t(imageLoad(mesh0[meshID], int(offset)).x); };
+    if (binding == 1u) { return uint8_t(imageLoad(mesh1[meshID], int(offset)).x); };
+    if (binding == 2u) { return uint8_t(imageLoad(mesh2[meshID], int(offset)).x); };
+    if (binding == 3u) { return uint8_t(imageLoad(mesh3[meshID], int(offset)).x); };
+    if (binding == 4u) { return uint8_t(imageLoad(mesh4[meshID], int(offset)).x); };
+    if (binding == 5u) { return uint8_t(imageLoad(mesh5[meshID], int(offset)).x); };
+    if (binding == 6u) { return uint8_t(imageLoad(mesh6[meshID], int(offset)).x); };
+    if (binding == 7u) { return uint8_t(imageLoad(mesh7[meshID], int(offset)).x); };
+
     return uint8_t(0u);
 };
 
 // System Specified
 uint16_t load_u16(in uint offset, in uint binding, in uint meshID_) {
-    if (binding == 0u) { return pack16(u8vec2(mesh0[meshID].data[offset], mesh0[meshID].data[offset+1])); };
-    if (binding == 1u) { return pack16(u8vec2(mesh1[meshID].data[offset], mesh1[meshID].data[offset+1])); };
-    if (binding == 2u) { return pack16(u8vec2(mesh2[meshID].data[offset], mesh2[meshID].data[offset+1])); };
-    if (binding == 3u) { return pack16(u8vec2(mesh3[meshID].data[offset], mesh3[meshID].data[offset+1])); };
-    if (binding == 4u) { return pack16(u8vec2(mesh4[meshID].data[offset], mesh4[meshID].data[offset+1])); };
-    if (binding == 5u) { return pack16(u8vec2(mesh5[meshID].data[offset], mesh5[meshID].data[offset+1])); };
-    if (binding == 6u) { return pack16(u8vec2(mesh6[meshID].data[offset], mesh6[meshID].data[offset+1])); };
-    if (binding == 7u) { return pack16(u8vec2(mesh7[meshID].data[offset], mesh7[meshID].data[offset+1])); };
-    return uint16_t(0u);
+    return pack16(u8vec2(load_u8(offset,binding,meshID_),load_u8(offset+1u,binding,meshID_)));
 };
 
 // System Specified
 uint32_t load_u32(in uint offset, in uint binding, in uint meshID_) {
-    if (binding == 0u) { return pack32(u8vec4(mesh0[meshID].data[offset], mesh0[meshID].data[offset+1], mesh0[meshID].data[offset+2], mesh0[meshID].data[offset+3])); };
-    if (binding == 1u) { return pack32(u8vec4(mesh1[meshID].data[offset], mesh1[meshID].data[offset+1], mesh1[meshID].data[offset+2], mesh1[meshID].data[offset+3])); };
-    if (binding == 2u) { return pack32(u8vec4(mesh2[meshID].data[offset], mesh2[meshID].data[offset+1], mesh2[meshID].data[offset+2], mesh2[meshID].data[offset+3])); };
-    if (binding == 3u) { return pack32(u8vec4(mesh3[meshID].data[offset], mesh3[meshID].data[offset+1], mesh3[meshID].data[offset+2], mesh3[meshID].data[offset+3])); };
-    if (binding == 4u) { return pack32(u8vec4(mesh4[meshID].data[offset], mesh4[meshID].data[offset+1], mesh4[meshID].data[offset+2], mesh4[meshID].data[offset+3])); };
-    if (binding == 5u) { return pack32(u8vec4(mesh5[meshID].data[offset], mesh5[meshID].data[offset+1], mesh5[meshID].data[offset+2], mesh5[meshID].data[offset+3])); };
-    if (binding == 6u) { return pack32(u8vec4(mesh6[meshID].data[offset], mesh6[meshID].data[offset+1], mesh6[meshID].data[offset+2], mesh6[meshID].data[offset+3])); };
-    if (binding == 7u) { return pack32(u8vec4(mesh7[meshID].data[offset], mesh7[meshID].data[offset+1], mesh7[meshID].data[offset+2], mesh7[meshID].data[offset+3])); };
-    return uint32_t(0u);
+    return pack32(u16vec2(load_u16(offset,binding,meshID_),load_u16(offset+2u,binding,meshID_)));
 };
 
 // TODO: Add Uint16_t, Uint32_t, Float16_t Support
