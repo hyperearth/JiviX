@@ -311,10 +311,9 @@ int main() {
         material->pushSampledImage(image);
     };
 
-    // TODO: GLTF Samplers Support
+    // GLTF Samplers Support
     for (uint32_t i = 0; i < model.samplers.size(); i++) {
         const auto& smp = model.samplers[i];
-
         samplers.push_back(device.createSampler(vkh::VkSamplerCreateInfo{
             .magFilter = VK_FILTER_LINEAR,
             .minFilter = VK_FILTER_LINEAR,
@@ -411,7 +410,7 @@ int main() {
         if (gnode.mesh >= 0) {
             auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
             node->pushInstance(vkh::VsGeometryInstance{
-                .transform = mat4_t(glm::mat4(glm::transpose(glm::dmat4(inTransform) * glm::dmat4(localTransform)))),
+                .transform = mat4_t(glm::transpose(glm::dmat4(inTransform) * glm::dmat4(localTransform))),
                 .instanceId = uint32_t(gnode.mesh),
                 .mask = 0xff,
                 .instanceOffset = 0u,
