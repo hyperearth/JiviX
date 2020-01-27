@@ -62,6 +62,7 @@ namespace lancer {
         std::shared_ptr<Renderer> setupRayTracingPipeline() { // 
             this->rayTraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper();
             this->rayTraceInfo.vkInfo.layout = this->context->unifiedPipelineLayout;
+            this->rayTraceInfo.vkInfo.maxRecursionDepth = 4u;
             this->rayTraceInfo.addShaderStages(this->rtStages);
             this->rayTraceInfo.addShaderStages(this->bgStages);
             this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo,nullptr,this->driver->getDispatch());

@@ -89,6 +89,7 @@ namespace vkh {
             vkInfo.pStages = stages.data();
             vkInfo.stageCount = stages.size();
             vkInfo.groupCount = groups.size();
+            //vkInfo.maxRecursionDepth = 4u;
             return vkInfo;
         };
 

@@ -3,8 +3,8 @@
 #extension GL_GOOGLE_include_directive          : require
 #include "./driver.glsl"
 
-#define ENABLE_RASTERIZE_STAGE
 
+#define ENABLE_RASTERIZE_STAGE
 layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
 layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
@@ -53,8 +53,8 @@ void main() { // Hi-DPI adaptation
         vec3 origin  = worldsSample.xyz;
         vec3 lnormal = normalSample.xyz;
 #else
-        vec3 origin = screen2world(vec3((pixel/sizPixel)*2.f-1.f,0.001f));
-        vec3 target = screen2world(vec3((pixel/sizPixel)*2.f-1.f,0.999f));
+        vec3 origin = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.001f));
+        vec3 target = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.999f));
         vec3 raydir = normalize(target - origin);
         vec3 lnormal = vec3(0.f);
 #endif
@@ -76,12 +76,12 @@ void main() { // Hi-DPI adaptation
         uint i = 1u; if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
         for (i = 1u; i < ITERATION_COUNT; i++) { //
 #else
-        uint i = 0u; if (true) //if (!isBackground) 
+        uint i = 0u; if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
         for (i = 0u; i < ITERATION_COUNT; i++) { //
 #endif
 
             // Shadows Rays
-            if (I == 0 ? i >= 1u : i >= 2) {
+            if (i >= 1u) {
                 const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
                 const vec3 lightd = normalize(lightp.xyz - origin.xyz);
 
