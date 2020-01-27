@@ -28,6 +28,7 @@ void main() {
     PrimaryRay.normals      = vec4(triangulate(idx3, 2u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f) * normalTransform * normInTransform;
     PrimaryRay.fdata.xyz    = vec3(baryCoord, gl_HitTNV);
     PrimaryRay.udata        = uvec4(idx3, gl_InstanceCustomIndexNV);
+    PrimaryRay.normals.xyz  = normalize(PrimaryRay.normals.xyz);
 
     const mat3x4 mc = mat3x4(
         get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV),
