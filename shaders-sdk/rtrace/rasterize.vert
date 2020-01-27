@@ -32,8 +32,8 @@ void main() { // Cross-Lake
 
     // 
       gTexcoord.xy = iTexcoord;
-    //gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * rtxInstances[globalInstanceID].transform,1.f) * matras,1.f); // INVALID
-      gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * rtxInstances[globalInstanceID].transform,1.f); // CORRECT
+    //gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * transp,1.f) * matras,1.f); // INVALID
+      gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * transp,1.f); // CORRECT
       gNormal = vec4(iNormals.xyz,1.f) * normalTransform * normInTransform;
       gNormal.xyz = normalize(gNormal.xyz);
       gTangents = iTangents;

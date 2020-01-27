@@ -427,7 +427,7 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 100.f;
+    uint32_t sceneID = 0; const float unitScale = 100.;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
@@ -435,7 +435,7 @@ int main() {
         };
         //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
         //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))*glm::translate(glm::vec3(1.f,1.f,1.f))), 16);
+        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(1., 1., 1.))*glm::scale(glm::dvec3(unitScale))), 16);
         //};
     };
 
