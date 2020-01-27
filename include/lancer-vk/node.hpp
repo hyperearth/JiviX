@@ -22,6 +22,9 @@ namespace lancer {
             // 
             this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance)*8u, .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance)*8u, .usage = { .eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+
+            // 
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u*64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
         };
 
         // 
@@ -200,16 +203,16 @@ namespace lancer {
             };
 
             { // [7] Mesh Data Info (Has Indices, Material ID, etc.)
-                auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 5u,
                     .dstArrayElement = 0u,
-                    .descriptorCount = uint32_t(meshCount),
+                    .descriptorCount = 1u,//uint32_t(meshCount),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                });
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = gpuMeshInfo;
 
-                for (uint32_t i = 0; i < meshCount; i++) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuMeshInfo;
-                };
+                //for (uint32_t i = 0; i < meshCount; i++) {
+                //    handle.offset<vkh::VkDescriptorBufferInfo>(i) = gpuMeshInfo;
+                //};
             };
 
             { // [8] 
@@ -245,6 +248,12 @@ namespace lancer {
         std::shared_ptr<Node> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
             buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
+
+            for (uint32_t i = 0; i < this->meshes.size(); i++) {
+                auto& mesh = this->meshes[i];
+                buildCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { vk::BufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + sizeof(glm::uvec4)*i, mesh->rawMeshInfo.range() } });
+            };
+
             vkt::commandBarrier(buildCommand);
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(), this->driver->getDispatch());
             vkt::commandBarrier(buildCommand);
@@ -317,6 +326,9 @@ namespace lancer {
         vkh::VsDescriptorSetCreateInfoHelper meshDataDescriptorSetInfo = {};
         vkh::VsDescriptorSetCreateInfoHelper bindingsDescriptorSetInfo = {};
         vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
+
+        // 
+        vkt::Vector<glm::uvec4> gpuMeshInfo = {};
 
         // 
         vk::DescriptorSet meshDataDescriptorSet = {};

@@ -30,7 +30,7 @@ namespace lancer {
 
             // 
             this->rawMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            //this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // Internal Instance Map Per Global Node
             this->rawInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 128u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
@@ -236,7 +236,7 @@ namespace lancer {
             rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
-            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1 }.hpp(), 0u, { meshData });
+            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
 
             // Make Draw Instanced
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
@@ -257,7 +257,7 @@ namespace lancer {
         std::shared_ptr<Mesh> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
             buildCommand.copyBuffer(this->rawAttributes , this->gpuAttributes , { vk::BufferCopy{ this->rawAttributes .offset(), this->gpuAttributes .offset(), this->gpuAttributes .range() } });
             buildCommand.copyBuffer(this->rawBindings   , this->gpuBindings   , { vk::BufferCopy{ this->rawBindings   .offset(), this->gpuBindings   .offset(), this->gpuBindings   .range() } });
-            buildCommand.copyBuffer(this->rawMeshInfo   , this->gpuMeshInfo   , { vk::BufferCopy{ this->rawMeshInfo   .offset(), this->gpuMeshInfo   .offset(), this->gpuMeshInfo   .range() } });
+            //buildCommand.copyBuffer(this->rawMeshInfo   , this->gpuMeshInfo   , { vk::BufferCopy{ this->rawMeshInfo   .offset(), this->gpuMeshInfo   .offset(), this->gpuMeshInfo   .range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
             return shared_from_this();
         };
@@ -374,7 +374,6 @@ namespace lancer {
 
         // 
         vkt::Vector<glm::uvec4> rawMeshInfo = {};
-        vkt::Vector<glm::uvec4> gpuMeshInfo = {};
         vkt::Vector<uint32_t> rawInstanceMap = {};
         vkt::Vector<uint32_t> gpuInstanceMap = {};
 

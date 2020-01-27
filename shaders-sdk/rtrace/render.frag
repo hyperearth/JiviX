@@ -101,6 +101,7 @@ void main() {
     const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
     const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
     
+    
     vec4 coloring = getDenoised(samplep,false);
     vec4 reflects = getDenoised(samplep, true);
     if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,1.f); };
@@ -109,4 +110,7 @@ void main() {
     reflects = max(reflects, 0.f.xxxx);
 
     uFragColor = vec4(mix(diffused.xyz*coloring.xyz/coloring.w+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
+    
+    
+    //uFragColor = vec4(1.f,0.f,1.f,1.f);
 };

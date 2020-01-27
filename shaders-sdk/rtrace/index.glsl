@@ -52,6 +52,13 @@ struct MaterialUnit {
     uvec4 udata;
 };
 
+struct MeshInfo {
+    uint materialID;
+    uint hasIndex;
+    uint prmCount;
+    uint hasTransform;
+};
+
 // Mesh Data Buffers
 //layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
 //layout (binding = 1, set = 0, scalar) buffer Data1 { uint8_t data[]; } mesh1[];
@@ -90,12 +97,7 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
 // 
 //layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { mat4x4 transform[]; } instances[];
 layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
-layout (binding = 5, set = 1, scalar) readonly buffer MeshData {
-    uint materialID;
-    uint hasIndex;
-    uint prmCount;
-    uint hasTransform;
-} meshInfo[];
+layout (binding = 5, set = 1, scalar) readonly buffer MeshData { MeshInfo meshInfo[]; };
 
 struct RTXInstance {
     mat3x4 transform;
@@ -188,7 +190,7 @@ layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
 
 // Material Set
 layout (binding = 0, set = 4) uniform sampler2D textures[];
-layout (binding = 1, set = 4, scalar) buffer Materials { MaterialUnit data[]; } materials[];
+layout (binding = 1, set = 4, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
 
 // 
 float raySphereIntersect(in vec3 r0, in vec3 rd, in vec3 s0, in float sr) {
@@ -255,13 +257,16 @@ highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03F
 //float random( vec2  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 //float random( vec3  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 //float random( vec4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
-float random(               ) {         return floatConstruct(hash(clockRealtime2x32EXT())); }
-float random( inout uvec2 s ) { s += 1; return floatConstruct(hash(uvec4(clockRealtime2x32EXT(),s))); }
-float random( inout uint  s ) { s += 1; return floatConstruct(hash(uvec3(clockRealtime2x32EXT(),s))); }
+//#define QLOCK2 clockRealtime2x32EXT()
+  #define QLOCK2 uvec2(0u,0u)
 
-vec2 random2(               ) {         return halfConstruct(hash(clockRealtime2x32EXT())); }
-vec2 random2( inout uvec2 s ) { s += 1; return halfConstruct(hash(uvec4(clockRealtime2x32EXT(),s))); }
-vec2 random2( inout uint  s ) { s += 1; return halfConstruct(hash(uvec3(clockRealtime2x32EXT(),s))); }
+float random(               ) {         return floatConstruct(hash(QLOCK2)); }
+float random( inout uvec2 s ) { s += 1; return floatConstruct(hash(uvec4(QLOCK2,s))); }
+float random( inout uint  s ) { s += 1; return floatConstruct(hash(uvec3(QLOCK2,s))); }
+
+vec2 random2(               ) {         return halfConstruct(hash(QLOCK2)); }
+vec2 random2( inout uvec2 s ) { s += 1; return halfConstruct(hash(uvec4(QLOCK2,s))); }
+vec2 random2( inout uint  s ) { s += 1; return halfConstruct(hash(uvec3(QLOCK2,s))); }
 
 /*
 float rand( inout uvec2 seed ) {
@@ -425,4 +430,4 @@ vec3 screen2world(in vec3 origin){
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
-#define BACKSKY_COLOR gSignal.xyz = fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz), gEnergy *= 0.f
+#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f

@@ -68,17 +68,15 @@ void main() { // Hi-DPI adaptation
         vec3 gEnergy = 1.f.xxx;
         vec2 gTexcoord = 0.f.xx;
 
+        uint i = 0u; 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
         gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz,gNormal.xyz); 
         raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
-        origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f; // pre-correction
-
-        uint i = 1u; if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
-        for (i = 1u; i < ITERATION_COUNT; i++) { //
-#else
-        uint i = 0u; if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
-        for (i = 0u; i < ITERATION_COUNT; i++) { //
+        origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f, i++; // pre-correction
 #endif
+
+        if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
+        for (;i < ITERATION_COUNT; i++) { //
 
             // Shadows Rays
             if (i >= 1u) {
@@ -120,26 +118,20 @@ void main() { // Hi-DPI adaptation
             float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
             float depth = min(PrimaryRay.fdata.z,sdepth);
 
+
             // TODO: better depth system
             bool couldReflection = false;
-            if (depth >= 9999.f) { BACKSKY_COLOR; } else // Skybox
-            if (depth == PrimaryRay.fdata.z) {
+
+            [[flatten]] if (depth >= 9999.f) { BACKSKY_COLOR; };
+            [[flatten]] if (depth == PrimaryRay.fdata.z) {
                 gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
-                gEnergy *= i > 0 ? max(DIFFUSE_COLOR - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx;
-            } else // Primitive
-            if (depth == sdepth) { // Light Sphere
-                //if (I == 1 || couldReflection) {
-                //    gSignal.xyz = fma(gEnergy.xyz, lightc.xyz, gSignal.xyz), gEnergy *= 0.f;
-                //} else {
-                //    gEnergy *= 0.f;
-                //};
+                gEnergy *= max(i > 0 ? max(DIFFUSE_COLOR - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx, 0.f.xxx);
+            };
+            [[flatten]] if (depth == sdepth) { // Light Sphere
                 BACKSKY_COLOR;
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
-            } else 
-            if (depth == pdepth) { // Plane
-                gEnergy *= vec3(0.8f);
-                gNormal.xyz = vec3(0.f,1.f,0.f);
-            } else { gEnergy.xyz *= 0.f; }; // Error as Skybox
+            };
+
             origin.xyz += raydir.xyz * depth;
 
             // 
@@ -158,7 +150,7 @@ void main() { // Hi-DPI adaptation
             gSignal.xyz = fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
             forign.xyz = 0.f.xxx;
         };
-        
+
         // 
         if (I == 0) { // Store for Diffuse
             const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));

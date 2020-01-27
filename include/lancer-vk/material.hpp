@@ -7,6 +7,7 @@
 namespace lancer {
 
     // 
+#pragma pack(push, 1)
     struct MaterialUnit {
         glm::vec4 diffuse = { 1.f,1.f,1.f,1.f };
         glm::vec4 specular = { 0.f,0.f,0.f,1.f };
@@ -20,6 +21,7 @@ namespace lancer {
 
         glm::uvec4 udata = glm::uvec4(0u);
     };
+#pragma pack(pop)
 
     // WIP Materials
     class Material : public std::enable_shared_from_this<Material> { public: 
