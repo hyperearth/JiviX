@@ -57,8 +57,8 @@ namespace lancer {
 
         // 
         std::shared_ptr<Mesh> addBinding(const vkt::Vector<uint8_t>& vector, const vkh::VkVertexInputBindingDescription& binding = {}) {
-            const uintptr_t bindingID = binding.binding;
-            //const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
+            //const uintptr_t bindingID = binding.binding;
+            const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID+1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
             this->vertexInputBindingDescriptions[bindingID].binding = bindingID;
@@ -73,10 +73,10 @@ namespace lancer {
 
         // 
         std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& isVertex = false) {
-            const uintptr_t locationID = attribute.location;
-            const uintptr_t bindingID = attribute.binding;
+            //const uintptr_t bindingID = attribute.binding;
             //const uintptr_t locationID = this->locationCounter++;
-            //const uintptr_t bindingID = this->lastBindID;
+            const uintptr_t bindingID = this->lastBindID;
+            const uintptr_t locationID = attribute.location;
             this->vertexInputAttributeDescriptions.resize(locationID+1u);
             this->vertexInputAttributeDescriptions[locationID] = attribute;
             this->vertexInputAttributeDescriptions[locationID].binding = bindingID;

@@ -364,8 +364,8 @@ int main() {
                 const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // 
-                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 0u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 0u, 0u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) }, true);
+                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = uint32_t(attribute.byteOffset) }, true);
             };
 
             if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) { // Texcoord
@@ -373,8 +373,8 @@ int main() {
                 const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // 
-                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 1u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 1u, 1u, VK_FORMAT_R32G32_SFLOAT, uint32_t(attribute.byteOffset) });
+                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32_SFLOAT, .offset = uint32_t(attribute.byteOffset) });
             };
 
             if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) { // Normals
@@ -382,8 +382,8 @@ int main() {
                 const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // 
-                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ 2u, uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ 2u, 2u, VK_FORMAT_R32G32B32_SFLOAT, uint32_t(attribute.byteOffset) });
+                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = uint32_t(attribute.byteOffset) });
             };
 
             if (primitive.indices >= 0) {
