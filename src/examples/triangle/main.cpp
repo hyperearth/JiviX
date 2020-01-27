@@ -432,10 +432,10 @@ int main() {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
             (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
         };
-        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(1., 1., 1.))*glm::scale(glm::dvec3(unitScale))), 16);
-        //};
+        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(1., 1., 1.))*glm::scale(glm::dvec3(unitScale))), 16);
+        };
     };
 
     // 

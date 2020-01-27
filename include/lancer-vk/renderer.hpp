@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
@@ -275,9 +275,9 @@ namespace lancer {
             };
 
             // 
-            auto I = 0u; // 
+            auto I = 0u; // БЛЯТЬ, "createRasterizeCommand" ОЧЕРЕДНАЯ ОШИБКА НОМЕР #ХУЙ!
             for (auto& M : this->node->meshes) { 
-                M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
+                //M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
                 vkt::commandBarrier(this->cmdbuf);
             };
             //vkt::commandBarrier(this->cmdbuf);

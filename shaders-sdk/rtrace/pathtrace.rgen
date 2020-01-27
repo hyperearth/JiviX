@@ -102,14 +102,15 @@ void main() { // Hi-DPI adaptation
                 raydir.xyz, 10000.f,
                 0);
 
+
             // 
             gNormal = PrimaryRay.normals;
             gTexcoord = PrimaryRay.texcoords.xy;
 
             // 
             const MaterialUnit unit = materials[0u].data[meshInfo[PrimaryRay.udata.w].materialID];
-            vec4 diffuseColor = unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],gTexcoord.xy) : unit.diffuse;
-            vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],gTexcoord.xy) : unit.normals;
+            vec4  diffuseColor = unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse;
+            vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
             vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
             vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission;
 
@@ -146,6 +147,7 @@ void main() { // Hi-DPI adaptation
 
             if (i == 0u) { forign =  origin.xyz, fnorml = gNormal.xyz; };
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f) { break; }; // 
+
         } else {
             gSignal.xyz = fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
             forign.xyz = 0.f.xxx;
