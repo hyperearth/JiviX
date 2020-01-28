@@ -1,4 +1,4 @@
-
+// #
 // Re-Sampling
 #define DIFFUSED 0
 #define SAMPLING 1

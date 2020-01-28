@@ -1,4 +1,4 @@
-#pragma once
+#pragma once // #
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
@@ -17,7 +17,7 @@ namespace lancer {
 
             // 
             this->accelerationStructureInfo.instanceCount = 0u;
-            this->accelerationStructureInfo.geometryCount = this->instanceCount;
+            this->accelerationStructureInfo.geometryCount = 1u;//this->instanceCount;
             this->accelerationStructureInfo.pGeometries = &this->geometryTemplate;
             this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_NV;
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
@@ -242,9 +242,11 @@ namespace lancer {
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
                 this->rawMeshInfo[0u][2u] = this->indexCount / 3u;
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                //rasterCommand.drawIndexed(this->indexCount, 1u, 0u, 0u, 0u);
                 rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
             } else { // VAL Mode
                 this->rawMeshInfo[0u][2u] = this->vertexCount / 3u;
+                //rasterCommand.draw(this->vertexCount, 1u, 0u, 0u);
                 rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
             rasterCommand.endRenderPass();

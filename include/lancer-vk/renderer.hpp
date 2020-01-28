@@ -1,4 +1,4 @@
-﻿#pragma once
+﻿#pragma once // #
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
@@ -271,20 +271,22 @@ namespace lancer {
             // draw concurrently
             for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
                 const auto I = this->node->rawInstances[i].instanceId;
-                this->node->meshes[I]->increaseInstanceCount(i);
+                auto& M = this->node->meshes[I];
+                M->increaseInstanceCount(i);//->createRasterizeCommand(this->cmdbuf, glm::uvec4(I, i, 0u, 0u));
             };
+            vkt::commandBarrier(this->cmdbuf);
 
             // 
-            auto I = 0u; // БЛЯТЬ, "createRasterizeCommand" ОЧЕРЕДНАЯ ОШИБКА НОМЕР #ХУЙ!
+            auto I = 0u; // 
             for (auto& M : this->node->meshes) { 
-                //M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
-                vkt::commandBarrier(this->cmdbuf);
+                M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
+                //vkt::commandBarrier(this->cmdbuf);
             };
-            //vkt::commandBarrier(this->cmdbuf);
+            vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
-            this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf);
+            this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // STILL UNABLE TO FIX THAT ISSUE (ОШИБКА НОМЕР #ХУЙ)
 
             // 
             this->cmdbuf.end();

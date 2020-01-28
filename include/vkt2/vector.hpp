@@ -1,4 +1,4 @@
-#pragma once
+#pragma once // #
 
 #ifdef VKT_FORCE_VMA_IMPLEMENTATION
 #ifndef VMA_IMPLEMENTATION

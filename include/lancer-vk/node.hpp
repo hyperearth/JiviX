@@ -1,4 +1,4 @@
-#pragma once
+#pragma once // #
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
@@ -251,7 +251,7 @@ namespace lancer {
 
             for (uint32_t i = 0; i < this->meshes.size(); i++) {
                 auto& mesh = this->meshes[i];
-                buildCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { vk::BufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + sizeof(glm::uvec4)*i, mesh->rawMeshInfo.range() } });
+                buildCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { vk::BufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() } });
             };
 
             vkt::commandBarrier(buildCommand);

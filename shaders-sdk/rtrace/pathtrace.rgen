@@ -1,4 +1,4 @@
-#version 460 core
+#version 460 core // #
 #extension GL_NV_ray_tracing : require
 #extension GL_GOOGLE_include_directive          : require
 #include "./driver.glsl"
@@ -113,6 +113,11 @@ void main() { // Hi-DPI adaptation
             vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
             vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
             vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission;
+
+            //vec4  diffuseColor = vec4(1.f.xxx,1.f);
+            //vec4  normalsColor = vec4(0.f.xx,1.f,1.f);
+            //vec4 specularColor = vec4(0.f.xxx,1.f);
+            //vec4 emissionColor = vec4(0.f.xxx,1.f);
 
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
