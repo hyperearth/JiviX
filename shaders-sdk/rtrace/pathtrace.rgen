@@ -51,19 +51,19 @@ void main() { // Hi-DPI adaptation
 #ifdef ENABLE_RASTERIZE_STAGE
         vec3 raydir  = (modelview * normalize(cameraSample.xyz)).xyz;
         vec3 origin  = worldsSample.xyz;
-        vec3 lnormal = normalSample.xyz;
+        vec3 normal = normalSample.xyz;
 #else
         vec3 origin = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.001f));
         vec3 target = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.999f));
         vec3 raydir = normalize(target - origin);
-        vec3 lnormal = vec3(0.f);
+        vec3 normal = vec3(0.f);
 #endif
 
         vec3 forign = origin.xyz;
-        vec3 fnorml = lnormal.xyz;
+        vec3 fnorml = normal.xyz;
 
         //
-        vec4 gNormal = vec4(lnormal,0.f);
+        vec4 gNormal = vec4(normal,0.f);
         vec4 gSignal = vec4(0.f.xxx,1.f);
         vec3 gEnergy = 1.f.xxx;
         vec2 gTexcoord = 0.f.xx;
@@ -71,7 +71,7 @@ void main() { // Hi-DPI adaptation
         uint i = 0u; 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
         gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz,gNormal.xyz); 
-        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
+        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f);
         origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f, i++; // pre-correction
 #endif
 
@@ -102,7 +102,6 @@ void main() { // Hi-DPI adaptation
                 raydir.xyz, 10000.f,
                 0);
 
-
             // 
             gNormal = PrimaryRay.normals;
             gTexcoord = PrimaryRay.texcoords.xy;
@@ -114,15 +113,10 @@ void main() { // Hi-DPI adaptation
             vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
             vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission;
 
-            //vec4  diffuseColor = vec4(1.f.xxx,1.f);
-            //vec4  normalsColor = vec4(0.f.xx,1.f,1.f);
-            //vec4 specularColor = vec4(0.f.xxx,1.f);
-            //vec4 emissionColor = vec4(0.f.xxx,1.f);
-
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
             float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
-            float depth = min(PrimaryRay.fdata.z,sdepth);
+            float  depth = min(PrimaryRay.fdata.z,sdepth);
 
 
             // TODO: better depth system
@@ -143,7 +137,7 @@ void main() { // Hi-DPI adaptation
             // 
             gNormal.xyz = faceforward(gNormal.xyz,raydir.xyz,gNormal.xyz); // interverse into incoming ray
             if (couldReflection) {
-                raydir.xyz = reflectGlossy(raydir.xyz, gNormal.xyz, uvec3(packed,rdata.x,rdata.x+tdata.x), 0.f);
+                raydir.xyz = reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f);
             } else {
                 raydir.xyz = randomHemisphereCosine(gNormal.xyz,seed);
             };

@@ -202,8 +202,7 @@ int main() {
     std::string warn = "";
 
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf"); // Fixed Last Issue
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf"); // Fixed Last Issue
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) {
@@ -392,7 +391,7 @@ int main() {
                 const auto& bufferView = buffersViews[attribute.bufferView];
 
                 // determine index type
-                mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : vk::IndexType::eUint32);
+                mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
             };
 
             node->pushMesh(mesh->setMaterialID(primitive.material)->increaseInstanceCount());
@@ -427,7 +426,7 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 100.;
+    uint32_t sceneID = 0; const float unitScale = 1.; //100.;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
@@ -435,7 +434,7 @@ int main() {
         };
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-2., -2., -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-1., -1., -1.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
     };
 
