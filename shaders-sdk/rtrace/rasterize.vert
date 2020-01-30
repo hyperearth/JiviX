@@ -17,6 +17,8 @@ layout (location = 3) out vec4 gTangents;
 // 
 void main() { // Cross-Lake
     const uint globalInstanceID = meshIDs[drawInfo.data.x].instanceID[gl_InstanceIndex];
+    //const uint globalInstanceID = drawInfo.data.y;
+    
     //mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
     //if (meshInfo[drawInfo.data.x].hasTransform == 0) {
     //    matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));

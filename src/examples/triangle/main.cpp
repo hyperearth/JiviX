@@ -412,11 +412,11 @@ int main() {
             auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
             node->pushInstance(vkh::VsGeometryInstance{
                 .transform = mat4_t(glm::transpose(glm::dmat4(inTransform) * glm::dmat4(localTransform))),
-                .instanceId = uint32_t(gnode.mesh),
+                .instanceId = uint32_t(gnode.mesh), // MeshID
                 .mask = 0xff,
                 .instanceOffset = 0u,
                 .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
-            }, gnode.mesh);
+            });
         };
 
         if (gnode.children.size() > 0 && gnode.mesh < 0) {
@@ -433,10 +433,10 @@ int main() {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
             (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
         };
-        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(1., 1., 1.)) * glm::scale(glm::dvec3(unitScale))), 16);
-        //};
+        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(2., 2., 2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+        };
     };
 
     // 

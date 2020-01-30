@@ -249,15 +249,10 @@ namespace lancer {
             // 
             this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
             this->cmdbuf.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
-            //this->cmdbuf.updateBuffer<Matrices>(context->uniformGPUData, context->uniformGPUData.offset(), context->uniformData);
-            vkt::commandBarrier(this->cmdbuf);
 
             // prepare meshes for ray-tracing
-            //for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); vkt::commandBarrier(this->cmdbuf); }; // copy concurrently
-            //for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf); vkt::commandBarrier(this->cmdbuf); }; // build concurrently
             for (auto& M : this->node->meshes) {
                 M->copyBuffers(this->cmdbuf)->buildAccelerationStructure(this->cmdbuf);
-                vkt::commandBarrier(this->cmdbuf);
             };
 
             // setup instanced and material data
@@ -271,22 +266,17 @@ namespace lancer {
             // draw concurrently
             for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
                 const auto I = this->node->rawInstances[i].instanceId;
-                auto& M = this->node->meshes[I];
-                M->increaseInstanceCount(i);//->createRasterizeCommand(this->cmdbuf, glm::uvec4(I, i, 0u, 0u));
+                this->node->meshes[I]->increaseInstanceCount(i);
             };
-            vkt::commandBarrier(this->cmdbuf);
 
             // 
-            auto I = 0u; // 
-            for (auto& M : this->node->meshes) { 
-                M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
-                //vkt::commandBarrier(this->cmdbuf);
+            auto I = 0u; for (auto& M : this->node->meshes) { 
+                M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); // FIXED FINALLY
             };
-            vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
-            this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // STILL UNABLE TO FIX THAT ISSUE (ОШИБКА НОМЕР #ХУЙ)
+            this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // FIXED FINALLY 
 
             // 
             this->cmdbuf.end();
