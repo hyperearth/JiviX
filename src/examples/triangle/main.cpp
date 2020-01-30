@@ -202,7 +202,7 @@ int main() {
     std::string warn = "";
 
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf"); // Fixed Last Issue
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
