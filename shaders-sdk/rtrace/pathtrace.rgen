@@ -133,22 +133,19 @@ void main() { // Hi-DPI adaptation
             };
 
             origin.xyz += raydir.xyz * depth;
+            if (i == 0u) { 
+                forign =  origin.xyz, 
+                fnorml = gNormal.xyz; 
+            };
 
             // 
             gNormal.xyz = faceforward(gNormal.xyz,raydir.xyz,gNormal.xyz); // interverse into incoming ray
-            if (couldReflection) {
-                raydir.xyz = reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f);
-            } else {
-                raydir.xyz = randomHemisphereCosine(gNormal.xyz,seed);
-            };
+            raydir.xyz = i == 0 ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f) : randomHemisphereCosine(gNormal.xyz,seed);
             origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
-            gNormal.xyz = gNormal.xyz;
-
-            if (i == 0u) { forign =  origin.xyz, fnorml = gNormal.xyz; };
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f) { break; }; // 
 
         } else {
-            gSignal.xyz = fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
+            gSignal.xyz += fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
             forign.xyz = 0.f.xxx;
         };
 
