@@ -361,6 +361,10 @@ namespace vkt {
         inline const VmaBufferAllocation* operator->() const { return &(*allocation); };
         inline const VmaBufferAllocation& operator*() const { return (*allocation); };
 
+        // 
+        vk::DeviceSize& rangeInfo() { return bufInfo.range; };
+        const vk::DeviceSize& rangeInfo() const { return bufInfo.range; };
+
         //
         protected: friend Vector<T>; // 
         protected: vk::DescriptorBufferInfo bufInfo = {};

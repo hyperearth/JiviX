@@ -202,7 +202,7 @@ int main() {
     std::string warn = "";
 
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBox.gltf"); // Fixed Last Issue
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf"); // Fixed Last Issue
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) {
@@ -245,7 +245,7 @@ int main() {
         // 
         gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
-            .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+            .usage = { .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
         // 
@@ -360,8 +360,9 @@ int main() {
             instancedTransformPerMesh.push_back({});
 
             if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
-                const auto& attribute = model.accessors[primitive.attributes.find("POSITION")->second];
-                const auto& bufferView = buffersViews[attribute.bufferView];
+                auto& attribute = model.accessors[primitive.attributes.find("POSITION")->second];
+                auto& bufferView = buffersViews[attribute.bufferView];
+                bufferView.rangeInfo() = attribute.ByteStride(model.bufferViews[attribute.bufferView]) * attribute.count;
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
@@ -369,8 +370,9 @@ int main() {
             };
 
             if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) { // Texcoord
-                const auto& attribute = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
-                const auto& bufferView = buffersViews[attribute.bufferView];
+                auto& attribute = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+                auto& bufferView = buffersViews[attribute.bufferView];
+                bufferView.rangeInfo() = attribute.ByteStride(model.bufferViews[attribute.bufferView]) * attribute.count;
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
@@ -378,8 +380,9 @@ int main() {
             };
 
             if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) { // Normals
-                const auto& attribute = model.accessors[primitive.attributes.find("NORMAL")->second];
-                const auto& bufferView = buffersViews[attribute.bufferView];
+                auto& attribute = model.accessors[primitive.attributes.find("NORMAL")->second];
+                auto& bufferView = buffersViews[attribute.bufferView];
+                bufferView.rangeInfo() = attribute.ByteStride(model.bufferViews[attribute.bufferView]) * attribute.count;
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(attribute.ByteStride(model.bufferViews[attribute.bufferView])) });
@@ -387,8 +390,9 @@ int main() {
             };
 
             if (primitive.indices >= 0) {
-                const auto& attribute = model.accessors[primitive.indices];
-                const auto& bufferView = buffersViews[attribute.bufferView];
+                auto& attribute = model.accessors[primitive.indices];
+                auto& bufferView = buffersViews[attribute.bufferView];
+                bufferView.rangeInfo() = attribute.ByteStride(model.bufferViews[attribute.bufferView]) * attribute.count;
 
                 // determine index type
                 mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
@@ -426,16 +430,16 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 100.;
+    uint32_t sceneID = 0; const float unitScale = 1.;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
             (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
         };
-        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-2., -2., -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
-        };
+        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-2., -2., -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+        //};
     };
 
     // 
