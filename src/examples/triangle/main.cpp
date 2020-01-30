@@ -435,7 +435,7 @@ int main() {
         };
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(2., 2., 2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-2., -2., -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
     };
 
