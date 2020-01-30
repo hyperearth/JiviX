@@ -1,6 +1,6 @@
 #version 460 core // #
-#extension GL_NV_ray_tracing : require
-#extension GL_GOOGLE_include_directive  : require
+#extension GL_GOOGLE_include_directive : require
+#extension GL_NV_ray_tracing           : require
 #include "./driver.glsl"
 
 rayPayloadInNV RayPayloadData PrimaryRay;

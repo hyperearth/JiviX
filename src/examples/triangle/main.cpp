@@ -206,7 +206,7 @@ int main() {
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
-    if (!err.empty()) { printf("Err: %s\n", err.c_str()); }
+    if (! err.empty()) { printf("Err: %s\n", err.c_str()); }
     if (!ret) { printf("Failed to parse glTF\n"); return -1; }
 
     using mat4_t = glm::mat3x4;
@@ -328,16 +328,16 @@ int main() {
     };
 
 
-    // Gonki //
-    //   #   //
-    // # # # //
-    //   #   //
-    // # # # //
+    // Gonki  //
+    //   ##   //
+    // ###### //
+    //   ##   //
+    // ###### //
 
-    // Tanki //       //       // 
-    //   #   //   #   //   #   //
-    // # * # // # # # // # # # //
-    // #   # // # # # // #   # //
+    // Tanki  //        //        // 
+    //   ##   //   ##   //   ##   //
+    // ##&&## // ###### // ###### //
+    // ##  ## // ###### // ##  ## //
 
     // Meshes (only one primitive supported)
     for (uint32_t i = 0; i < model.meshes.size(); i++) {

@@ -1,6 +1,6 @@
 #version 460 core // #
-#extension GL_NV_ray_tracing : require
-#extension GL_GOOGLE_include_directive          : require
+#extension GL_GOOGLE_include_directive : require
+#extension GL_NV_ray_tracing           : require
 #include "./driver.glsl"
 
 
@@ -116,7 +116,8 @@ void main() { // Hi-DPI adaptation
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
             float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
-            float  depth = min(PrimaryRay.fdata.z,sdepth);
+            float  depth = PrimaryRay.fdata.z;
+            //float  depth = min(PrimaryRay.fdata.z,sdepth);
 
 
             // TODO: better depth system
