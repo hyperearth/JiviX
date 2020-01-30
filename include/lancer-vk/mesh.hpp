@@ -114,12 +114,12 @@ namespace lancer {
                 this->indexData = indices;
                 this->indexType = type;
                 this->indexCount = count;
-                this->rawMeshInfo[0u][1u] = 1u;
+                this->rawMeshInfo[0u][1u] = uint32_t(type) + 1u;
             } else {
                 this->indexData = {};
                 this->indexType = vk::IndexType::eNoneNV;
                 this->indexCount = 0u;
-                this->rawMeshInfo[0u][1u] = 0u;
+                this->rawMeshInfo[0u][1u] = uint32_t(type) + 1u;
             };
 
             // 

@@ -54,7 +54,8 @@ struct MaterialUnit {
 
 struct MeshInfo {
     uint materialID;
-    uint hasIndex;
+    uint indexType;
+    //uint hasIndex;
     uint prmCount;
     uint hasTransform;
 };
@@ -70,15 +71,15 @@ struct MeshInfo {
 //layout (binding = 7, set = 0, scalar) buffer Data7 { uint8_t data[]; } mesh7[];
 
 // 
-layout (binding = 0, set = 0, r32ui) readonly uniform uimageBuffer mesh0[];
-layout (binding = 1, set = 0, r32ui) readonly uniform uimageBuffer mesh1[];
-layout (binding = 2, set = 0, r32ui) readonly uniform uimageBuffer mesh2[];
-layout (binding = 3, set = 0, r32ui) readonly uniform uimageBuffer mesh3[];
-layout (binding = 4, set = 0, r32ui) readonly uniform uimageBuffer mesh4[];
-layout (binding = 5, set = 0, r32ui) readonly uniform uimageBuffer mesh5[];
-layout (binding = 6, set = 0, r32ui) readonly uniform uimageBuffer mesh6[];
-layout (binding = 7, set = 0, r32ui) readonly uniform uimageBuffer mesh7[];
-layout (binding = 8, set = 0, r32ui) readonly uniform uimageBuffer indices; // indices compatible 
+layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
+layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer mesh1[];
+layout (binding = 2, set = 0, r8ui) readonly uniform uimageBuffer mesh2[];
+layout (binding = 3, set = 0, r8ui) readonly uniform uimageBuffer mesh3[];
+layout (binding = 4, set = 0, r8ui) readonly uniform uimageBuffer mesh4[];
+layout (binding = 5, set = 0, r8ui) readonly uniform uimageBuffer mesh5[];
+layout (binding = 6, set = 0, r8ui) readonly uniform uimageBuffer mesh6[];
+layout (binding = 7, set = 0, r8ui) readonly uniform uimageBuffer mesh7[];
+layout (binding = 8, set = 0, r8ui) readonly uniform uimageBuffer index[]; // indices compatible 
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
 layout (binding = 0, set = 1, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
@@ -134,6 +135,7 @@ uint8_t load_u8(in uint offset, in uint binding, in uint meshID_) {
     if (binding == 5u) { return uint8_t(imageLoad(mesh5[meshID], int(offset)).x); };
     if (binding == 6u) { return uint8_t(imageLoad(mesh6[meshID], int(offset)).x); };
     if (binding == 7u) { return uint8_t(imageLoad(mesh7[meshID], int(offset)).x); };
+    if (binding == 8u) { return uint8_t(imageLoad(index[meshID], int(offset)).x); };
 
     return uint8_t(0u);
 };

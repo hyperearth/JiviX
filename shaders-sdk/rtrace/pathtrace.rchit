@@ -6,6 +6,10 @@
 rayPayloadInNV RayPayloadData PrimaryRay;
 hitAttributeNV vec2 baryCoord;
 
+#define IndexU8 1000265000
+#define IndexU16 0
+#define IndexU32 1
+
 void main() {
     const uint globalInstanceID = gl_InstanceID;
     
@@ -19,10 +23,14 @@ void main() {
     const mat4x4 normInTransform = (inverse(transpose(trans4)));
 
     uvec3 idx3 = uvec3(gl_PrimitiveID*3u+0u,gl_PrimitiveID*3u+1u,gl_PrimitiveID*3u+2u);
-    if (meshInfo[gl_InstanceCustomIndexNV].hasIndex == 1) {
-        idx3 = uvec3(imageLoad(indices,int(gl_PrimitiveID*3u+0u)).r, imageLoad(indices,int(gl_PrimitiveID*3u+1u)).r, imageLoad(indices,int(gl_PrimitiveID*3u+2u)).r);
-    };
 
+    // type definition
+    int IdxType = int(meshInfo[gl_InstanceCustomIndexNV].indexType)-1;
+    if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.y*1u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.z*1u, 8u, gl_InstanceCustomIndexNV)); };
+    if (IdxType == IndexU16) { idx3 = uvec3(load_u16(idx3.x*2u, 8u, gl_InstanceCustomIndexNV),load_u16(idx3.y*2u, 8u, gl_InstanceCustomIndexNV),load_u16(idx3.z*2u, 8u, gl_InstanceCustomIndexNV)); };
+    if (IdxType == IndexU32) { idx3 = uvec3(load_u32(idx3.x*4u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.y*4u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.z*4u, 8u, gl_InstanceCustomIndexNV)); };
+
+    // mesh definition 
     PrimaryRay.position.xyz = vec4(triangulate(idx3, 0u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,1.f) * transp;
     PrimaryRay.texcoords    = vec4(triangulate(idx3, 1u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
     PrimaryRay.normals      = vec4(triangulate(idx3, 2u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f) * normalTransform * normInTransform;

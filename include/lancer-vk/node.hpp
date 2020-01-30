@@ -123,7 +123,7 @@ namespace lancer {
 
                 for (uint32_t i = 0; i < meshCount; i++) {
                     if (this->meshes[i]->indexData.has()) {
-                        handle.offset<vk::BufferView>(i) = this->meshes[i]->indexData.createBufferView(this->meshes[i]->indexType == vk::IndexType::eUint16 ? vk::Format::eR16Uint : vk::Format::eR32Uint);
+                        handle.offset<vk::BufferView>(i) = this->meshes[i]->indexData.createBufferView(vk::Format::eR8Uint);
                     };
                 };
             };
