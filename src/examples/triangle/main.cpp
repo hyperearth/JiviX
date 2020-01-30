@@ -202,7 +202,7 @@ int main() {
     std::string warn = "";
 
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf"); // Fixed Last Issue
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBox.gltf"); // Fixed Last Issue
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) {
@@ -426,7 +426,7 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 1.; //100.;
+    uint32_t sceneID = 0; const float unitScale = 100.;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
@@ -434,7 +434,7 @@ int main() {
         };
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-1., -1., -1.)) * glm::scale(glm::dvec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-2., -2., -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
     };
 
