@@ -124,10 +124,10 @@ void main() { // Hi-DPI adaptation
             bool couldReflection = false;
 
             [[flatten]] if (depth >= 9999.f) { BACKSKY_COLOR; };
-            [[flatten]] if (depth == PrimaryRay.fdata.z) {
+            [[flatten]] if (depth == PrimaryRay.fdata.z) { if (diffuseColor.w > 0.001f) {
                 gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
                 gEnergy *= max(i > 0 ? max(DIFFUSE_COLOR - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx, 0.f.xxx);
-            };
+            }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
                 BACKSKY_COLOR;
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
@@ -141,7 +141,11 @@ void main() { // Hi-DPI adaptation
 
             // 
             gNormal.xyz = faceforward(gNormal.xyz,raydir.xyz,gNormal.xyz); // interverse into incoming ray
-            raydir.xyz = i == 0 ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f) : randomHemisphereCosine(gNormal.xyz,seed);
+            if (diffuseColor.w > 0.001f) { // Reflection
+                raydir.xyz = i == 0 ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f) : randomHemisphereCosine(gNormal.xyz,seed);
+            } else { // Fully Transparent, Continue...
+                raydir.xyz = raydir.xyz;
+            };
             origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f) { break; }; // 
 
