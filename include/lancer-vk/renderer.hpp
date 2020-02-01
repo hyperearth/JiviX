@@ -251,9 +251,10 @@ namespace lancer {
             this->cmdbuf.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
 
             // prepare meshes for ray-tracing
-            for (auto& M : this->node->meshes) {
-                M->copyBuffers(this->cmdbuf)->buildAccelerationStructure(this->cmdbuf);
-            };
+            for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); };
+            vkt::commandBarrier(this->cmdbuf);
+            for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf); };
+            vkt::commandBarrier(this->cmdbuf);
 
             // setup instanced and material data
             this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
@@ -273,6 +274,7 @@ namespace lancer {
             auto I = 0u; for (auto& M : this->node->meshes) { 
                 M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); // FIXED FINALLY
             };
+            vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);

@@ -266,7 +266,7 @@ namespace lancer {
                 rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
             rasterCommand.endRenderPass();
-            vkt::commandBarrier(rasterCommand);
+            //vkt::commandBarrier(rasterCommand);
 
             // 
             return shared_from_this();
@@ -277,7 +277,7 @@ namespace lancer {
             buildCommand.copyBuffer(this->rawAttributes , this->gpuAttributes , { vk::BufferCopy{ this->rawAttributes .offset(), this->gpuAttributes .offset(), this->gpuAttributes .range() } });
             buildCommand.copyBuffer(this->rawBindings   , this->gpuBindings   , { vk::BufferCopy{ this->rawBindings   .offset(), this->gpuBindings   .offset(), this->gpuBindings   .range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
-            vkt::commandBarrier(buildCommand);
+            //vkt::commandBarrier(buildCommand);
             return shared_from_this();
         };
 
@@ -285,7 +285,7 @@ namespace lancer {
         std::shared_ptr<Mesh> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(),this->driver->getDispatch());
-            vkt::commandBarrier(buildCommand);
+            //vkt::commandBarrier(buildCommand);
             this->needsUpdate = true; return shared_from_this();
         };
 
