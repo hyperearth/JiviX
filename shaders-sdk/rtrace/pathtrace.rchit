@@ -43,7 +43,7 @@ void main() {
         vec4(get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp
     );
 
-    if (dot(PrimaryRay.normals.xyz,PrimaryRay.normals.xyz) < 0.001f && hasNormal(meshInfo[gl_InstanceCustomIndexNV])) {
+    if (dot(PrimaryRay.normals.xyz,PrimaryRay.normals.xyz) > 0.001f && hasNormal(meshInfo[gl_InstanceCustomIndexNV])) {
         PrimaryRay.normals.xyz = normalize((PrimaryRay.normals * normalTransform * normInTransform).xyz);
     } else {
         PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));

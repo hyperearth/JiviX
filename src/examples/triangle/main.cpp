@@ -201,7 +201,8 @@ int main() {
     std::string err = "";
     std::string warn = "";
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf"); // TODO: Generate Required Normals 
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "damagedHelmet.gltf");
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf"); // TODO: Generate Required Normals 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
@@ -233,7 +234,7 @@ int main() {
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
 
         // 
-        gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+        /*gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
             .usage = { .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
@@ -241,15 +242,24 @@ int main() {
         // 
         vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
             cmd.copyBuffer(cpuBuffers.back(), gpuBuffers.back(), { vkh::VkBufferCopy{.size = model.buffers[i].data.size()} });
-        });
+        });*/
     };
 
     // buffer views
     std::vector<vkt::Vector<uint8_t>> buffersViews = {};
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
         const auto& BV = model.bufferViews[i];
-        buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull));
+        const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
+        //buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull)); 
+
+        buffersViews.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            .size = range, .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+        }, VMA_MEMORY_USAGE_GPU_ONLY)));
         if (BV.byteStride) { buffersViews.back().stride = BV.byteStride; };
+
+        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+            cmd.copyBuffer(cpuBuffers.back(), buffersViews.back(), { vkh::VkBufferCopy{.srcOffset = BV.byteOffset, .dstOffset = 0ull, .size = range} });
+        });
     };
 
     // 
@@ -354,10 +364,11 @@ int main() {
                 auto& bufferView = buffersViews[attribute.bufferView];
                 auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
                 bufferView.rangeInfo() = stride * attribute.count;
+                bufferView.offset() = attribute.byteOffset; // Temp Solution 
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = uint32_t(attribute.byteOffset) }, true);
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = 0u }, true);
             };
 
             if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) { // Texcoord
@@ -365,10 +376,11 @@ int main() {
                 auto& bufferView = buffersViews[attribute.bufferView];
                 auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
                 bufferView.rangeInfo() = stride * attribute.count;
+                bufferView.offset() = attribute.byteOffset; // Temp Solution 
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32_SFLOAT, .offset = uint32_t(attribute.byteOffset) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32_SFLOAT, .offset = 0u });
             };
 
             if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) { // Normals
@@ -376,10 +388,11 @@ int main() {
                 auto& bufferView = buffersViews[attribute.bufferView];
                 auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
                 bufferView.rangeInfo() = stride * attribute.count;
+                bufferView.offset() = attribute.byteOffset; // Temp Solution 
 
                 // 
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = uint32_t(attribute.byteOffset) });
+                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = 0u });
             };
 
             if (primitive.indices >= 0) {
@@ -387,6 +400,7 @@ int main() {
                 auto& bufferView = buffersViews[attribute.bufferView];
                 auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
                 bufferView.rangeInfo() = stride * attribute.count;
+                bufferView.offset() = attribute.byteOffset; // Temp Solution 
 
                 // determine index type
                 mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
@@ -424,7 +438,7 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 100.;
+    uint32_t sceneID = 0; const float unitScale = 1.; //100.;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
@@ -490,6 +504,10 @@ int main() {
     Shared::active.keys.resize(1024, uint8_t(0u));
     Shared::active.mouse.resize(128, uint8_t(0u));
     Shared::TimeCallback(double(context->registerTime()->setDrawCount(frameCount++)->drawTime()));
+
+    // 
+    //auto sps = vkh::VkVertexInputBindingDescription{};
+    //auto spc = sizeof(sps);
 
 	// 
 	while (!glfwWindowShouldClose(manager.window)) {
