@@ -58,9 +58,9 @@ GLFWwindow* Shared::window; // in-bound GLFW window
 class CameraController : public std::enable_shared_from_this<CameraController> {
 public:
     // use pointers
-    glm::vec3* viewVector = nullptr;
-    glm::vec3* eyePos = nullptr;
-    glm::vec3* upVector = nullptr;
+    glm::dvec3* viewVector = nullptr;
+    glm::dvec3* eyePos = nullptr;
+    glm::dvec3* upVector = nullptr;
     glm::uvec2* canvasSize = nullptr;
 
     // create relative control matrice
@@ -72,9 +72,9 @@ public:
         auto mDiff = glm::dvec2(Shared::active.dX, Shared::active.dY);
         auto tDiff = Shared::active.tDiff;
 
-        glm::mat4 viewm = this->project();
-        glm::mat4 unviewm = glm::inverse(viewm);
-        glm::vec3 ca = (viewm * glm::vec4(*eyePos, 1.0f)).xyz(), vi = glm::normalize((glm::vec4(*viewVector, 0.0) * unviewm)).xyz();
+        glm::dmat4 viewm = this->project();
+        glm::dmat4 unviewm = glm::inverse(viewm);
+        glm::dvec3 ca = (viewm * glm::dvec4(*eyePos, 1.0)).xyz(), vi = glm::normalize((glm::dvec4(*viewVector, 0.0) * unviewm)).xyz();
         bool isFocus = true;
 
         if (Shared::active.mouse.size() > 0 && Shared::active.mouse[GLFW_MOUSE_BUTTON_LEFT] && isFocus)
@@ -113,38 +113,38 @@ public:
             this->topBottom(ca, -tDiff);
         }
 
-        *viewVector = glm::normalize((glm::vec4(vi, 0.0) * viewm).xyz());
-        *eyePos = (unviewm * glm::vec4(ca, 1.0f)).xyz();
+        *viewVector = glm::normalize((glm::dvec4(vi, 0.0) * viewm).xyz());
+        *eyePos = (unviewm * glm::dvec4(ca, 1.0)).xyz();
 
         return *this;
     }
 
 
     // sub-contollers
-    CameraController& leftRight(glm::vec3& ca, const float& diff) {
-        ca.x += diff / 100.0f;
+    CameraController& leftRight(glm::dvec3& ca, const double& diff) {
+        ca.x += diff / 100.0;
         return *this;
     }
 
-    CameraController& topBottom(glm::vec3& ca, const float& diff) {
-        ca.y += diff / 100.0f;
+    CameraController& topBottom(glm::dvec3& ca, const double& diff) {
+        ca.y += diff / 100.0;
         return *this;
     }
 
-    CameraController& forwardBackward(glm::vec3& ca, const float& diff) {
-        ca.z += diff / 100.0f;
+    CameraController& forwardBackward(glm::dvec3& ca, const double& diff) {
+        ca.z += diff / 100.0;
         return *this;
     }
 
-    CameraController& rotateY(glm::vec3& vi, const float& diff) {
-        glm::mat4 rot = glm::rotate(diff / float(canvasSize->y) * 2.f, glm::vec3(-1.0f, 0.0f, 0.0f));
-        vi = (rot * glm::vec4(vi, 1.0f)).xyz();
+    CameraController& rotateY(glm::dvec3& vi, const double& diff) {
+        glm::dmat4 rot = glm::rotate(diff / double(canvasSize->y) * 2., glm::dvec3(-1.0, 0.0, 0.0));
+        vi = (rot * glm::vec4(vi, 1.0)).xyz();
         return *this;
     }
 
-    CameraController& rotateX(glm::vec3& vi, const float& diff) {
-        glm::mat4 rot = glm::rotate(diff / float(canvasSize->x) * 2.f, glm::vec3(0.0f, -1.0f, 0.0f));
-        vi = (rot * glm::vec4(vi, 1.0f)).xyz();
+    CameraController& rotateX(glm::dvec3& vi, const double& diff) {
+        glm::dmat4 rot = glm::rotate(diff / double(canvasSize->x) * 2., glm::dvec3(0.0, -1.0, 0.0));
+        vi = (rot * glm::vec4(vi, 1.0)).xyz();
         return *this;
     }
 };
@@ -451,10 +451,10 @@ int main() {
     };
 
     // 
-    glm::vec3 eye = glm::vec3(5.f, 2.f, 2.f);
-    glm::vec3 foc = glm::vec3(0.f, 0.f, 0.f);
-    glm::vec3 evc = foc - eye;
-    glm::vec3 upv = glm::vec3(0.f, 1.f, 0.f);
+    glm::dvec3 eye = glm::dvec3(5.f, 2.f, 2.f);
+    glm::dvec3 foc = glm::dvec3(0.f, 0.f, 0.f);
+    glm::dvec3 evc = foc - eye;
+    glm::dvec3 upv = glm::dvec3(0.f, 1.f, 0.f);
     glm::uvec2 canvasSize = { canvasWidth, canvasHeight };
 
     // 
@@ -466,8 +466,8 @@ int main() {
 
     // 
     //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
-    context->setModelView(glm::lookAt(eye, foc, glm::vec3(0.f, 1.f, 0.f)));
-    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<float>(), float(canvasWidth) / float(canvasHeight), 0.0001f, 10000.f));
+    context->setModelView(glm::lookAt(eye, foc, glm::dvec3(0.f, 1.f, 0.f)));
+    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.0001, 10000.));
 
     // initialize program
     renderer->setupCommands();
