@@ -37,17 +37,18 @@ void main() {
     PrimaryRay.fdata.xyz    = vec3(baryCoord, gl_HitTNV);
     PrimaryRay.udata        = uvec4(idx3, gl_InstanceCustomIndexNV);
 
-    const mat3x4 mc = mat3x4(
-        get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV),
-        get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV),
-        get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV)
+    const mat3x3 mc = mat3x3(
+        vec4(get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp,
+        vec4(get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp,
+        vec4(get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp
     );
 
-    if (dot(PrimaryRay.normals.xyz,PrimaryRay.normals.xyz) < 0.001f) {
+    if (dot(PrimaryRay.normals.xyz,PrimaryRay.normals.xyz) < 0.001f && hasNormal(meshInfo[gl_InstanceCustomIndexNV])) {
         PrimaryRay.normals.xyz = normalize((PrimaryRay.normals * normalTransform * normInTransform).xyz);
     } else {
         PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
     };
 
+    
     //PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
 };

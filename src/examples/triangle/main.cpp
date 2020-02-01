@@ -201,7 +201,6 @@ int main() {
     std::string err = "";
     std::string warn = "";
 
-
     bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf"); // TODO: Generate Required Normals 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
