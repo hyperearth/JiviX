@@ -201,7 +201,7 @@ int main() {
     std::string err = "";
     std::string warn = "";
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "damagedHelmet.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf"); // TODO: Generate Required Normals 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
@@ -442,7 +442,7 @@ int main() {
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::scale(glm::vec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., -64., -0.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
         //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
         //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
