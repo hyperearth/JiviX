@@ -57,7 +57,20 @@ struct MeshInfo {
     uint indexType;
     //uint hasIndex;
     uint prmCount;
-    uint hasTransform;
+    uint flags;
+    //uint hasTransform;
+};
+
+bool hasTransform(in MeshInfo meshInfo){
+    return bool(bitfieldExtract(meshInfo.flags,0,1));
+};
+
+bool hasNormal(in MeshInfo meshInfo){
+    return bool(bitfieldExtract(meshInfo.flags,1,1));
+};
+
+bool hasTexcoord(in MeshInfo meshInfo){
+    return bool(bitfieldExtract(meshInfo.flags,2,1));
 };
 
 // Mesh Data Buffers

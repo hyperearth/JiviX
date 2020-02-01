@@ -6,6 +6,17 @@
 
 namespace lancer {
 
+    struct MeshInfo {
+        uint32_t materialID = 0u;
+        uint32_t indexType = 0u;
+        uint32_t prmCount = 0u;
+        //uint32_t flags = 0u;
+        uint32_t
+            hasTransform : 1,
+            hasNormal : 1,
+            hasTexcoord : 1;
+    };
+
     // WIP Mesh Object
     // Sub-Instances Can Be Supported
     // TODO: Descriptor Sets
@@ -29,8 +40,8 @@ namespace lancer {
             this->gpuAttributes = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // 
-            //this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
-              this->rawMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            //this->gpuMeshInfo = vkt::Vector<MeshInfo>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+              this->rawMeshInfo = vkt::Vector<MeshInfo>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
 
             // Internal Instance Map Per Global Node
             this->rawInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 4u * 64u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
@@ -45,7 +56,7 @@ namespace lancer {
 
         // 
         std::shared_ptr<Mesh> setMaterialID(const uint32_t& materialID = 0u) {
-            this->rawMeshInfo[0u][0u] = materialID;
+            this->rawMeshInfo[0u].materialID = materialID;
             return shared_from_this();
         };
 
@@ -114,12 +125,12 @@ namespace lancer {
                 this->indexData = indices;
                 this->indexType = type;
                 this->indexCount = count;
-                this->rawMeshInfo[0u][1u] = uint32_t(type) + 1u;
+                this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
             } else {
                 this->indexData = {};
                 this->indexType = vk::IndexType::eNoneNV;
                 this->indexCount = 0u;
-                this->rawMeshInfo[0u][1u] = uint32_t(type) + 1u;
+                this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
             };
 
             // 
@@ -166,7 +177,7 @@ namespace lancer {
             this->geometryTemplate.geometry.triangles.transformData = transformData;
             this->gpuTransformData = transformData;
             this->transformStride = stride; // used for instanced correction
-            this->rawMeshInfo[0u][3u] = 1u;
+            this->rawMeshInfo[0u].hasTransform = 1u;
             return shared_from_this();
         };
 
@@ -240,12 +251,12 @@ namespace lancer {
 
             // Make Draw Instanced
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
-                this->rawMeshInfo[0u][2u] = this->indexCount / 3u;
+                this->rawMeshInfo[0u].prmCount = this->indexCount / 3u;
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
                 //rasterCommand.drawIndexed(this->indexCount, 1u, 0u, 0u, 0u);
                 rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
             } else { // VAL Mode
-                this->rawMeshInfo[0u][2u] = this->vertexCount / 3u;
+                this->rawMeshInfo[0u].prmCount = this->vertexCount / 3u;
                 //rasterCommand.draw(this->vertexCount, 1u, 0u, 0u);
                 rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
             };
@@ -377,7 +388,7 @@ namespace lancer {
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
 
         // 
-        vkt::Vector<glm::uvec4> rawMeshInfo = {};
+        vkt::Vector<MeshInfo> rawMeshInfo = {};
         vkt::Vector<uint32_t> rawInstanceMap = {};
         vkt::Vector<uint32_t> gpuInstanceMap = {};
 
