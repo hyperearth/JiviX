@@ -19,9 +19,13 @@ struct RayPayloadData {
     uvec4 udata;
     vec4 fdata;
     vec4 position;
-    vec4 texcoords;
+    //vec4 texcoords;
     vec4 normals;
-    vec4 tangents;
+    vec4 normalm;
+    vec4 diffuse;
+    vec4 specular;
+    vec4 emission;
+    //vec4 tangents;
 };
 
 struct Binding {

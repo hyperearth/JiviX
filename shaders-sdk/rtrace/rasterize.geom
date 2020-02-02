@@ -17,7 +17,8 @@ layout (location = 0) out vec4 fPosition;
 layout (location = 1) out vec4 fTexcoord;
 layout (location = 2) out vec4 fNormal;
 layout (location = 3) out vec4 fTangent;
-layout (location = 4) flat out uvec4 uData;
+layout (location = 4) out vec4 fBinormal;
+layout (location = 5) flat out uvec4 uData;
 
 // 
 void main() {
@@ -34,10 +35,17 @@ void main() {
         fNormal = gNormal[i];
 
         const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
-        const vec3 tangent = (dp1.xyz * tx2.yyy + dp2.xyz * tx1.yyy) * coef;
+        const vec3 tangent = (dp1.xyz * tx2.yyy - dp2.xyz * tx1.yyy) * coef;
+        const vec3 binorml = (dp1.xyz * tx2.xxx - dp2.xyz * tx1.xxx) * coef;
+        if (!hasNormal (meshInfo[drawInfo.data.x])) { fNormal  = vec4(normal, 0.f); };
 
-        if (!hasNormal (meshInfo[drawInfo.data.x])) { fNormal  = vec4(normal,0.f); };
-        if (!hasTangent(meshInfo[drawInfo.data.x])) { fTangent = vec4(normalize(cross(cross(fNormal.xyz, tangent.xyz), tangent.xyz)),0.f); };
+        if (!hasTangent(meshInfo[drawInfo.data.x])) { 
+            fTangent .xyz = tangent - dot(fNormal.xyz,tangent.xyz)*fNormal.xyz;
+            fBinormal.xyz = binorml - dot(fNormal.xyz,binorml.xyz)*fNormal.xyz;
+        } else {
+            fBinormal.xyz = cross(fNormal.xyz,fTangent.xyz);
+            //fBinormal.xyz = fBinormal.xyz - dot(fNormal.xyz,fBinormal.xyz)*fNormal.xyz;
+        };
 
         EmitVertex();
     };

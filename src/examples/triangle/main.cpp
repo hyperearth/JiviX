@@ -201,8 +201,8 @@ int main() {
     std::string err = "";
     std::string warn = "";
 
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf");
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf"); // TODO: Generate Required Normals 
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); // TODO: Generate Required Normals 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
@@ -331,6 +331,7 @@ int main() {
         mdk.specularTexture = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
         mdk.emissionTexture = mat.emissiveTexture.index;
         mdk.specular = glm::vec4(1.f, mat.pbrMetallicRoughness.roughnessFactor, mat.pbrMetallicRoughness.metallicFactor, 0.f);
+        mdk.normals = glm::vec4(0.5f,0.5f,1.0f,1.f);
 
         if (mat.emissiveFactor.size() > 0) {
             mdk.emission = glm::vec4(mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2], 0.f);
@@ -439,15 +440,15 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 1.; //100.;
+    uint32_t sceneID = 0; const float unitScale = 100.;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., -32., -0.)) * glm::scale(glm::dvec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(0., -0.f, 0.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
         //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
         //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-2., -2., -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-2., -2., -0.)) * glm::scale(glm::dvec3(unitScale))), 16);
         //};
     };
 

@@ -17,18 +17,26 @@ layout (location = TANGENTS) out vec4 tangent;
 layout (location = EMISSION) out vec4 emission;
 
 // 
-void main() {
+void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
-    vec4 diffuseColor = unit.diffuseTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse;
-    vec4 normalsColor = unit.normalsTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
-    vec4 specularColor = unit.specularTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
-    vec4 emissionColor = unit.emissionTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission;
+    vec4 diffuseColor = unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse;
+    vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
+    vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
+    vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission;
+
+    // 
+    vec3 gTangent = fTangent.xyz;
+    vec3 gBinormal = cross(fNormal.xyz,fTangent.xyz);
+    gBinormal -= dot(fNormal.xyz,gBinormal)*fNormal.xyz;
+    
+    mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal),normalize(fNormal.xyz));
+    vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
 
     if (diffuseColor.w > 0.001f) {
         colored = vec4(max(vec4(DIFFUSE_COLOR,diffuseColor.w) - vec4(emissionColor.xyz*emissionColor.w,0.f),0.f.xxxx).xyz,1.f);
-        normals = vec4(fNormal.xyz,1.f);
+        normals = vec4(gNormal.xyz,1.f);
         samples = vec4(fPosition.xyz,1.f);
-        emission = vec4(emissionColor.xyz,1.f);
+        emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
         gl_FragDepth = gl_FragCoord.z;
         //emission = vec4(emissionColor.xyz,emissionColor.w);
     } else {

@@ -36,8 +36,7 @@ void main() { // Cross-Lake
       gTexcoord.xy = iTexcoord;
     //gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * transp,1.f) * matras,1.f); // INVALID
       gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * transp,1.f); // CORRECT
-      gNormal = vec4(iNormals.xyz,0.f) * normalTransform * normInTransform;
-      gNormal.xyz = normalize(gNormal.xyz);
+      gNormal = vec4(normalize((vec4(iNormals.xyz,0.f) * normalTransform * normInTransform).xyz),0.f);
       gTangent = vec4(iTangent.xyz,0.f) * normalTransform * normInTransform;
 
     // 

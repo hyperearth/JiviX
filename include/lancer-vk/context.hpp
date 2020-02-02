@@ -238,14 +238,14 @@ namespace lancer {
             });
 
             // 
-            glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(width) / float(height), 0.0001f, 10000.f);
-            glm::mat4x4 modelview = glm::lookAt(glm::vec3(5.f, 2.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+            //glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(width) / float(height), 0.0001f, 10000.f);
+            //glm::mat4x4 modelview = glm::lookAt(glm::vec3(5.f, 2.f, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
             // 
-            uniformRawData[0].modelview = glm::transpose(modelview);
-            uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(modelview));
-            uniformRawData[0].projection = glm::transpose(projected);
-            uniformRawData[0].projectionInv = glm::transpose(glm::inverse(projected));
+            //uniformRawData[0].modelview = glm::transpose(modelview);
+            //uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(modelview));
+            //uniformRawData[0].projection = glm::transpose(projected);
+            //uniformRawData[0].projectionInv = glm::transpose(glm::inverse(projected));
 
             // 
             scissor = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(width, height) };
