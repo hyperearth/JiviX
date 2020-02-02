@@ -37,7 +37,7 @@ void main() {
         const vec3 tangent = (dp1.xyz * tx2.yyy + dp2.xyz * tx1.yyy) * coef;
 
         if (!hasNormal (meshInfo[drawInfo.data.x])) { fNormal  = vec4(normal,0.f); };
-        if (!hasTangent(meshInfo[drawInfo.data.x])) { fTangent = vec4(tangent,0.f); };
+        if (!hasTangent(meshInfo[drawInfo.data.x])) { fTangent = vec4(normalize(cross(cross(fNormal.xyz, tangent.xyz), tangent.xyz)),0.f); };
 
         EmitVertex();
     };

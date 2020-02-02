@@ -36,7 +36,6 @@ void main() { // Hi-DPI adaptation
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const vec4 sphere = vec4(vec3(8.f,8.f,4.f), 4.f); 
     const vec3 lightc = 10.f.xxx;
-    const uint ITERATION_COUNT = 3u;
 
     //const vec2 shift = random2(uvec2(rdata[0],packed)), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
     const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
@@ -48,6 +47,9 @@ void main() { // Hi-DPI adaptation
     uvec2 seed = uvec2(packed,rdata.x);
 
     [[unroll]] for (uint32_t I=0;I<2;I++) { // Path Traced Diffuse Global Illumination
+        int ITERATION_COUNT = 2;
+        int TRANSPARENT_COUNT = 1;
+
 #ifdef ENABLE_RASTERIZE_STAGE
         vec3 raydir  = (modelview * normalize(cameraSample.xyz)).xyz;
         vec3 origin  = worldsSample.xyz;
@@ -79,18 +81,33 @@ void main() { // Hi-DPI adaptation
         for (;i < ITERATION_COUNT; i++) { //
 
             // Shadows Rays
-            if (i >= 1u) {
-                const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
-                const vec3 lightd = normalize(lightp.xyz - origin.xyz);
-
-                traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
-                    0, 1, 0,
-                    origin.xyz, 0.0001f,
-                    lightd.xyz, 10000.f,
-                    1);
-
+            if (i >= (I == 0 ? 1u : 2u)) {
+                vec3 lorign = origin;
+                const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,lorign.xyz);
+                const vec3 lightd = normalize(lightp.xyz - lorign.xyz);
+                
                 float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
-                const float depth = min(sdepth,ShadowsRay.fdata.z)+sphere.w;
+                float depth = 0.f;
+                for (uint j=0;j<2u;j++) {
+                    traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
+                        0, 1, 0,
+                        lorign.xyz, 0.0001f,
+                        lightd.xyz, 10000.f,
+                        1);
+                    
+                    depth = min(sdepth,depth+ShadowsRay.fdata.z); // Generalize Shadow Depth
+
+                    const MaterialUnit unit = materials[0u].data[meshInfo[ShadowsRay.udata.w].materialID];
+                      vec4  diffuseColor = unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],ShadowsRay.texcoords.xy) : unit.diffuse;
+                    //vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],ShadowsRay.texcoords.xy) : unit.normals;
+                    //vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],ShadowsRay.texcoords.xy) : unit.specular;
+                    //vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],ShadowsRay.texcoords.xy) : unit.emission;
+
+                    lorign.xyz += lightd.xyz * ShadowsRay.fdata.z;
+                    if (diffuseColor.w > 0.001f || depth >= (shdist-0.0001f)) { break; };
+                    lorign.xyz += faceforward(ShadowsRay.normals.xyz,-lightd.xyz,ShadowsRay.normals.xyz) * 0.0001f;
+                };
+
                 const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
                 if (depth >= (shdist-0.0001f)) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };
             };
@@ -144,10 +161,11 @@ void main() { // Hi-DPI adaptation
             if (diffuseColor.w > 0.001f) { // Reflection
                 raydir.xyz = i == 0 ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f) : randomHemisphereCosine(gNormal.xyz,seed);
             } else { // Fully Transparent, Continue...
-                raydir.xyz = raydir.xyz;
+                raydir.xyz = normalize(raydir.xyz); 
+                if (TRANSPARENT_COUNT > 0) { TRANSPARENT_COUNT--; ITERATION_COUNT++; };
             };
             origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
-            if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f) { break; }; // 
+            if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f || depth >= 9999.f) { break; }; // 
 
         } else {
             gSignal.xyz += fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;

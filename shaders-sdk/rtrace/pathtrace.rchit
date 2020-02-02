@@ -66,7 +66,7 @@ void main() {
     if (dot(PrimaryRay.tangents.xyz,PrimaryRay.tangents.xyz) > 0.001f && hasTangent(meshInfo[gl_InstanceCustomIndexNV])) {
         PrimaryRay.tangents.xyz = normalize((PrimaryRay.tangents * normalTransform * normInTransform).xyz);
     } else {
-        PrimaryRay.tangents.xyz = tangent;
+        PrimaryRay.tangents.xyz = normalize(cross(cross(PrimaryRay.normals.xyz, tangent.xyz), tangent.xyz));
     };
 
     //PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));

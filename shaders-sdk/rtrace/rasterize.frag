@@ -29,12 +29,14 @@ void main() {
         normals = vec4(fNormal.xyz,1.f);
         samples = vec4(fPosition.xyz,1.f);
         emission = vec4(emissionColor.xyz,1.f);
+        gl_FragDepth = gl_FragCoord.z;
         //emission = vec4(emissionColor.xyz,emissionColor.w);
     } else {
         colored = 0.f.xxxx;
         normals = vec4(0.f.xx,0.f.xx);
         samples = vec4(0.f.xxx,0.f.x);
         emission = 0.f.xxxx;
+        gl_FragDepth = 1.f;
     };
     //ivec2 txd = ivec2(gl_FragCoord.xy), txs = imageSize(writeImages[DIFFUSED]);
     //const vec4 dEmi = imageLoad(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1));
