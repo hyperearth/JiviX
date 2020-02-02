@@ -7,7 +7,8 @@
 #define ENABLE_RASTERIZE_STAGE
 layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
 layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
-layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
+#define ShadowsRay PrimaryRay // re-direct
+//layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
 
 
 vec4 shiftByPixel(in vec4 wpos, inout uvec2 seed){
@@ -46,9 +47,11 @@ void main() { // Hi-DPI adaptation
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
     uvec2 seed = uvec2(packed,rdata.x);
 
+    const int ITERATION_COUNT = 2;
+    const int TRANSPARENT_COUNT = 2;
+
     [[unroll]] for (uint32_t I=0;I<2;I++) { // Path Traced Diffuse Global Illumination
-        int ITERATION_COUNT = 2;
-        int TRANSPARENT_COUNT = 2;
+        int TRANSPARENT_ITERATION = TRANSPARENT_COUNT;
 
 #ifdef ENABLE_RASTERIZE_STAGE
         vec3 raydir  = (modelview * normalize(cameraSample.xyz)).xyz;
@@ -88,7 +91,7 @@ void main() { // Hi-DPI adaptation
                 
                 float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
                 float depth = 0.f;
-                for (uint j=0;j<2u;j++) {
+                for (uint j=0;j<TRANSPARENT_COUNT;j++) {
                     traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
                         0, 1, 0,
                         lorign.xyz, 0.0001f,
@@ -162,7 +165,7 @@ void main() { // Hi-DPI adaptation
                 raydir.xyz = i == 0 ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f) : randomHemisphereCosine(gNormal.xyz,seed);
             } else { // Fully Transparent, Continue...
                 raydir.xyz = normalize(raydir.xyz); 
-                if (TRANSPARENT_COUNT > 0) { TRANSPARENT_COUNT--; i--; };
+                if (TRANSPARENT_ITERATION > 0) { TRANSPARENT_ITERATION--; i--; };
             };
             origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f || depth >= 9999.f) { break; }; // 

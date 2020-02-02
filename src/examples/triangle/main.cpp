@@ -367,7 +367,6 @@ int main() {
             instancedTransformPerMesh.push_back({});
 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
-
             for (uint32_t i = 0u; i < NM.size(); i++) {
                 if (primitive.attributes.find(NM[i]) != primitive.attributes.end()) { // Vertices
                     auto& attribute = model.accessors[primitive.attributes.find(NM[i])->second];
@@ -396,76 +395,6 @@ int main() {
                     mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u }, NM[i] == "POSITION");
                 };
             };
-
-
-            // 
-            /*for (auto& attr : primitive.attributes) {
-                auto& attribute = model.accessors[primitive.attributes.find(attr.first)->second];
-                auto& bufferView = buffersViews[attribute.bufferView];
-                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
-                bufferView.rangeInfo() = stride * attribute.count;
-                bufferView.offset() = attribute.byteOffset; // Temp Solution 
-
-                // 
-                uint32_t location = 0u;
-                auto type = VK_FORMAT_R32G32B32_SFLOAT;
-                if (attr.first == "POSITION") { type = VK_FORMAT_R32G32B32_SFLOAT, location = 0u; };
-                if (attr.first == "TEXCOORD_1") { type = VK_FORMAT_R32G32_SFLOAT, location = 1u; }; // TODO: 
-                if (attr.first == "TEXCOORD_0") { type = VK_FORMAT_R32G32_SFLOAT, location = 1u; };
-                if (attr.first == "NORMAL") { type = VK_FORMAT_R32G32B32_SFLOAT, location = 2u; };
-                //if (attr.first == "TANGENT") { type = VK_FORMAT_R32G32B32_SFLOAT, location = 3u; };
-
-                // TODO: Uint32_t support
-                //if (attribute.type == TINYGLTF_TYPE_VEC4  ) type = VK_FORMAT_R32G32B32A32_SFLOAT;
-                //if (attribute.type == TINYGLTF_TYPE_VEC3  ) type = VK_FORMAT_R32G32B32_SFLOAT;
-                //if (attribute.type == TINYGLTF_TYPE_VEC2  ) type = VK_FORMAT_R32G32_SFLOAT;
-                //if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
-
-                // 
-                if (attr.first == "POSITION" || attr.first == "TEXCOORD_0" || attr.first == "NORMAL") {
-                    mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u }, attr.first == "POSITION");
-                };
-            };*/
-
-            /*
-            if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
-                auto& attribute = model.accessors[primitive.attributes.find("POSITION")->second];
-                auto& bufferView = buffersViews[attribute.bufferView];
-                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
-                bufferView.rangeInfo() = stride * attribute.count;
-                bufferView.offset() = attribute.byteOffset; // Temp Solution 
-
-                // 
-                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = 0u }, true);
-            };
-
-            if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) { // Texcoord
-                auto& attribute = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
-                auto& bufferView = buffersViews[attribute.bufferView];
-                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
-                bufferView.rangeInfo() = stride * attribute.count;
-                bufferView.offset() = attribute.byteOffset; // Temp Solution 
-
-                // 
-                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32_SFLOAT, .offset = 0u });
-            };
-
-            if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) { // Normals
-                auto& attribute = model.accessors[primitive.attributes.find("NORMAL")->second];
-                auto& bufferView = buffersViews[attribute.bufferView];
-                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
-                bufferView.rangeInfo() = stride * attribute.count;
-                bufferView.offset() = attribute.byteOffset; // Temp Solution 
-
-                // 
-                mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = 0u });
-            };
-            */
-
 
             if (primitive.indices >= 0) {
                 auto& attribute = model.accessors[primitive.indices];
