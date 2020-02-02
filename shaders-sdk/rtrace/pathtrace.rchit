@@ -13,7 +13,11 @@ hitAttributeNV vec2 baryCoord;
 void main() {
     const uint globalInstanceID = gl_InstanceID;
 
-    const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    mat3x4 matras = mat3x4(instances[gl_InstanceCustomIndexNV].transform[gl_HitKindNV]);
+    if (!hasTransform(meshInfo[drawInfo.data.x])) {
+        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    };
+    //const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
     const mat4x4 matra4 = mat4x4(matras[0],matras[1],matras[2],vec4(0.f.xxx,1.f));
 
     const mat3x4 transp = rtxInstances[globalInstanceID].transform;
@@ -39,9 +43,9 @@ void main() {
     PrimaryRay.udata        = uvec4(idx3, gl_InstanceCustomIndexNV);
 
     const mat3x3 mc = mat3x3(
-        vec4(get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp,
-        vec4(get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp,
-        vec4(get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp
+        vec4(vec4(get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,
+        vec4(vec4(get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,
+        vec4(vec4(get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp
     );
 
     const mat3x3 tx = mat3x3(

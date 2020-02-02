@@ -18,12 +18,12 @@ layout (location = 3) out vec4 gTangent;
 void main() { // Cross-Lake
     const uint globalInstanceID = meshIDs[nonuniformEXT(drawInfo.data.x)].instanceID[gl_InstanceIndex];
     //const uint globalInstanceID = drawInfo.data.y;
-    
-    //mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
-    //if (meshInfo[drawInfo.data.x].hasTransform == 0) {
-    //    matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
-    //};
-    const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+
+    mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
+    if (!hasTransform(meshInfo[drawInfo.data.x])) {
+        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    };
+    //const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
     const mat4x4 matra4 = mat4x4(matras[0],matras[1],matras[2],vec4(0.f.xxx,1.f));
 
     const mat3x4 transp = rtxInstances[globalInstanceID].transform;
