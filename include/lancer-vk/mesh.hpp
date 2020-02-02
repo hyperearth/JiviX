@@ -14,7 +14,8 @@ namespace lancer {
         uint32_t
             hasTransform : 1,
             hasNormal : 1,
-            hasTexcoord : 1;
+            hasTexcoord : 1,
+            hasTangent : 1;
     };
 
     // WIP Mesh Object
@@ -108,8 +109,9 @@ namespace lancer {
                 if (attribute.format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
 
-            if (locationID == 2u) { rawMeshInfo[0u].hasNormal = 1; };
             if (locationID == 1u) { rawMeshInfo[0u].hasTexcoord = 1; };
+            if (locationID == 2u) { rawMeshInfo[0u].hasNormal = 1; };
+            if (locationID == 3u) { rawMeshInfo[0u].hasTangent = 1; };
 
             return shared_from_this();
         };

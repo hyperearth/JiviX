@@ -296,7 +296,7 @@ int main() {
         vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
             vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = image, .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = image.getImageSubresourceRange() });
 
-            auto buffer = img.bufferView >= 0 ? buffersViews[img.bufferView] : imageBuf;
+            auto buffer = imageBuf.has() ? imageBuf : buffersViews[img.bufferView];
             cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{
                 .bufferOffset = buffer.offset(),
                 .bufferRowLength = uint32_t(img.width),
@@ -328,25 +328,32 @@ int main() {
         lancer::MaterialUnit mdk = {};
         mdk.diffuseTexture = mat.pbrMetallicRoughness.baseColorTexture.index;
         mdk.normalsTexture = mat.normalTexture.index;
+        mdk.specularTexture = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
         mdk.emissionTexture = mat.emissiveTexture.index;
+        mdk.specular = glm::vec4(1.f, mat.pbrMetallicRoughness.roughnessFactor, mat.pbrMetallicRoughness.metallicFactor, 0.f);
+
         if (mat.emissiveFactor.size() > 0) {
             mdk.emission = glm::vec4(mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2], 0.f);
         };
-        mdk.diffuse = mdk.diffuse;
+        if (mat.pbrMetallicRoughness.baseColorFactor.size() > 0) {
+            mdk.diffuse = glm::vec4(mat.pbrMetallicRoughness.baseColorFactor[0], mat.pbrMetallicRoughness.baseColorFactor[1], mat.pbrMetallicRoughness.baseColorFactor[2], 1.f);
+        };
+
         material->pushMaterial(mdk);
     };
 
+    // BRICK GAME BANK
 
     // Gonki  //
-    //   ##   //
-    // ###### //
-    //   ##   //
-    // ###### //
+    //   []   //
+    // [][][] //
+    //   []   //
+    // [][][] //
 
-    // Tanki  //        //        // 
-    //   ##   //   ##   //   ##   //
-    // ##&&## // ###### // ###### //
-    // ##  ## // ###### // ##  ## //
+    // Tanki  //        //        //        //
+    //   []   //   []   //   []   //   [][] //
+    // []{}[] // [][][] // [][][] // [][]   //
+    // []  [] // [][][] // []  [] //   [][] //
 
     // Meshes (only one primitive supported)
     for (uint32_t i = 0; i < model.meshes.size(); i++) {
@@ -359,6 +366,69 @@ int main() {
             auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
             instancedTransformPerMesh.push_back({});
 
+            std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
+
+            for (uint32_t i = 0u; i < NM.size(); i++) {
+                if (primitive.attributes.find(NM[i]) != primitive.attributes.end()) { // Vertices
+                    auto& attribute = model.accessors[primitive.attributes.find(NM[i])->second];
+                    auto& bufferView = buffersViews[attribute.bufferView];
+                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
+                    bufferView.rangeInfo() = stride * attribute.count;
+                    bufferView.offset() = attribute.byteOffset; // Temp Solution 
+
+                    // 
+                    uint32_t location = 0u;
+                    if (NM[i] == "POSITION") { location = 0u; };
+                    //if (NM[i] == "TEXCOORD_1") { location = 1u; }; // TODO: 
+                    if (NM[i] == "TEXCOORD_0") { location = 1u; };
+                    if (NM[i] == "NORMAL") { location = 2u; };
+                    if (NM[i] == "TANGENT") { location = 3u; };
+
+                    // 
+                    auto type = VK_FORMAT_R32G32B32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC4  ) type = VK_FORMAT_R32G32B32A32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC3  ) type = VK_FORMAT_R32G32B32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC2  ) type = VK_FORMAT_R32G32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
+
+                    // 
+                    mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
+                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u }, NM[i] == "POSITION");
+                };
+            };
+
+
+            // 
+            /*for (auto& attr : primitive.attributes) {
+                auto& attribute = model.accessors[primitive.attributes.find(attr.first)->second];
+                auto& bufferView = buffersViews[attribute.bufferView];
+                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
+                bufferView.rangeInfo() = stride * attribute.count;
+                bufferView.offset() = attribute.byteOffset; // Temp Solution 
+
+                // 
+                uint32_t location = 0u;
+                auto type = VK_FORMAT_R32G32B32_SFLOAT;
+                if (attr.first == "POSITION") { type = VK_FORMAT_R32G32B32_SFLOAT, location = 0u; };
+                if (attr.first == "TEXCOORD_1") { type = VK_FORMAT_R32G32_SFLOAT, location = 1u; }; // TODO: 
+                if (attr.first == "TEXCOORD_0") { type = VK_FORMAT_R32G32_SFLOAT, location = 1u; };
+                if (attr.first == "NORMAL") { type = VK_FORMAT_R32G32B32_SFLOAT, location = 2u; };
+                //if (attr.first == "TANGENT") { type = VK_FORMAT_R32G32B32_SFLOAT, location = 3u; };
+
+                // TODO: Uint32_t support
+                //if (attribute.type == TINYGLTF_TYPE_VEC4  ) type = VK_FORMAT_R32G32B32A32_SFLOAT;
+                //if (attribute.type == TINYGLTF_TYPE_VEC3  ) type = VK_FORMAT_R32G32B32_SFLOAT;
+                //if (attribute.type == TINYGLTF_TYPE_VEC2  ) type = VK_FORMAT_R32G32_SFLOAT;
+                //if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
+
+                // 
+                if (attr.first == "POSITION" || attr.first == "TEXCOORD_0" || attr.first == "NORMAL") {
+                    mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
+                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u }, attr.first == "POSITION");
+                };
+            };*/
+
+            /*
             if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
                 auto& attribute = model.accessors[primitive.attributes.find("POSITION")->second];
                 auto& bufferView = buffersViews[attribute.bufferView];
@@ -394,6 +464,8 @@ int main() {
                 mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
                 mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = 0u });
             };
+            */
+
 
             if (primitive.indices >= 0) {
                 auto& attribute = model.accessors[primitive.indices];

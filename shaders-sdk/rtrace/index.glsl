@@ -14,7 +14,7 @@
 #define TANGENTS 3
 #define EMISSION 4
 
-// 
+// TODO: Materials
 struct RayPayloadData {
     uvec4 udata;
     vec4 fdata;
@@ -71,6 +71,10 @@ bool hasNormal(in MeshInfo meshInfo){
 
 bool hasTexcoord(in MeshInfo meshInfo){
     return bool(bitfieldExtract(meshInfo.flags,2,1));
+};
+
+bool hasTangent(in MeshInfo meshInfo){
+    return bool(bitfieldExtract(meshInfo.flags,3,1));
 };
 
 // Mesh Data Buffers

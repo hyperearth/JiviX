@@ -6,8 +6,8 @@
 layout (location = 0) in vec4 fPosition;
 layout (location = 1) in vec4 fTexcoord;
 layout (location = 2) in vec4 fNormal;
-layout (location = 3) in vec4 fTangents;
-//layout (location = 4) flat in ivec4 gIndexes;
+layout (location = 3) in vec4 fTangent;
+layout (location = 4) flat in uvec4 uData;
 
 // 
 layout (location = COLORING) out vec4 colored;
@@ -19,10 +19,10 @@ layout (location = EMISSION) out vec4 emission;
 // 
 void main() {
     const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
-    vec4 diffuseColor = unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse;
-    vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
-    vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
-    vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission;
+    vec4 diffuseColor = unit.diffuseTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse;
+    vec4 normalsColor = unit.normalsTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
+    vec4 specularColor = unit.specularTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
+    vec4 emissionColor = unit.emissionTexture >= 0 && hasTexcoord(meshInfo[drawInfo.data.x]) ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission;
 
     if (diffuseColor.w > 0.001f) {
         colored = vec4(max(vec4(DIFFUSE_COLOR,diffuseColor.w) - vec4(emissionColor.xyz*emissionColor.w,0.f),0.f.xxxx).xyz,1.f);

@@ -12,7 +12,7 @@ hitAttributeNV vec2 baryCoord;
 
 void main() {
     const uint globalInstanceID = gl_InstanceID;
-    
+
     const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
     const mat4x4 matra4 = mat4x4(matras[0],matras[1],matras[2],vec4(0.f.xxx,1.f));
 
@@ -34,6 +34,7 @@ void main() {
     PrimaryRay.position.xyz = vec4(triangulate(idx3, 0u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,1.f) * transp;
     PrimaryRay.texcoords    = vec4(triangulate(idx3, 1u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
     PrimaryRay.normals      = vec4(triangulate(idx3, 2u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+    PrimaryRay.tangents     = vec4(triangulate(idx3, 3u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
     PrimaryRay.fdata.xyz    = vec3(baryCoord, gl_HitTNV);
     PrimaryRay.udata        = uvec4(idx3, gl_InstanceCustomIndexNV);
 
@@ -43,12 +44,30 @@ void main() {
         vec4(get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*transp
     );
 
+    const mat3x3 tx = mat3x3(
+        vec4(get_vec4(idx3[0], 1u, gl_InstanceCustomIndexNV).xyz,1.f),
+        vec4(get_vec4(idx3[1], 1u, gl_InstanceCustomIndexNV).xyz,1.f),
+        vec4(get_vec4(idx3[2], 1u, gl_InstanceCustomIndexNV).xyz,1.f)
+    );
+
+    const vec3 dp1 = mc[1] - mc[0], dp2 = mc[2] - mc[0];
+    const vec3 tx1 = tx[1] - tx[0], tx2 = tx[2] - tx[0];
+    const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
+    const vec3 tangent = (dp1.xyz * tx2.yyy + dp2.xyz * tx1.yyy) * coef;
+
+    // normals 
     if (dot(PrimaryRay.normals.xyz,PrimaryRay.normals.xyz) > 0.001f && hasNormal(meshInfo[gl_InstanceCustomIndexNV])) {
         PrimaryRay.normals.xyz = normalize((PrimaryRay.normals * normalTransform * normInTransform).xyz);
     } else {
         PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
     };
 
-    
+    // tangents
+    if (dot(PrimaryRay.tangents.xyz,PrimaryRay.tangents.xyz) > 0.001f && hasTangent(meshInfo[gl_InstanceCustomIndexNV])) {
+        PrimaryRay.tangents.xyz = normalize((PrimaryRay.tangents * normalTransform * normInTransform).xyz);
+    } else {
+        PrimaryRay.tangents.xyz = tangent;
+    };
+
     //PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
 };

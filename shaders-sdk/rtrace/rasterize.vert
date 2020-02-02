@@ -6,13 +6,13 @@
 layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec2 iTexcoord;
 layout (location = 2) in vec3 iNormals;
-layout (location = 3) in vec4 iTangents;
+layout (location = 3) in vec4 iTangent;
 
 // Right Oriented
 layout (location = 0) out vec4 gPosition;
 layout (location = 1) out vec4 gTexcoord;
 layout (location = 2) out vec4 gNormal;
-layout (location = 3) out vec4 gTangents;
+layout (location = 3) out vec4 gTangent;
 
 // 
 void main() { // Cross-Lake
@@ -38,7 +38,7 @@ void main() { // Cross-Lake
       gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * transp,1.f); // CORRECT
       gNormal = vec4(iNormals.xyz,0.f) * normalTransform * normInTransform;
       gNormal.xyz = normalize(gNormal.xyz);
-      gTangents = iTangents;
+      gTangent = vec4(iTangent.xyz,0.f) * normalTransform * normInTransform;
 
     // 
     gl_Position = vec4(gPosition * modelview, 1.f) * projection;
