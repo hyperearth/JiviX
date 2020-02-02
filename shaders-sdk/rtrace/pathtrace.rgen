@@ -48,7 +48,7 @@ void main() { // Hi-DPI adaptation
 
     [[unroll]] for (uint32_t I=0;I<2;I++) { // Path Traced Diffuse Global Illumination
         int ITERATION_COUNT = 2;
-        int TRANSPARENT_COUNT = 1;
+        int TRANSPARENT_COUNT = 2;
 
 #ifdef ENABLE_RASTERIZE_STAGE
         vec3 raydir  = (modelview * normalize(cameraSample.xyz)).xyz;
@@ -70,7 +70,7 @@ void main() { // Hi-DPI adaptation
         vec3 gEnergy = 1.f.xxx;
         vec2 gTexcoord = 0.f.xx;
 
-        uint i = 0u; 
+        int i = 0; 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
         gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz,gNormal.xyz); 
         raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f);
@@ -162,7 +162,7 @@ void main() { // Hi-DPI adaptation
                 raydir.xyz = i == 0 ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f) : randomHemisphereCosine(gNormal.xyz,seed);
             } else { // Fully Transparent, Continue...
                 raydir.xyz = normalize(raydir.xyz); 
-                if (TRANSPARENT_COUNT > 0) { TRANSPARENT_COUNT--; ITERATION_COUNT++; };
+                if (TRANSPARENT_COUNT > 0) { TRANSPARENT_COUNT--; i--; };
             };
             origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f || depth >= 9999.f) { break; }; // 
