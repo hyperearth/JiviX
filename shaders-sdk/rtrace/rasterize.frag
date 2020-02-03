@@ -34,7 +34,7 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
 
     if (diffuseColor.w > 0.001f) {
-        colored = vec4(max(vec4(diffuseColor.xyz-emissionColor.xyz*emissionColor.w,0.f),0.f.xxxx).xyz,1.f);
+        colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
         normals = vec4(gNormal.xyz,1.f);
         samples = vec4(fPosition.xyz,1.f);
         emission = vec4(emissionColor.xyz*emissionColor.w,1.f);

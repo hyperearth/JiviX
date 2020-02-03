@@ -76,7 +76,7 @@ void main() { // Hi-DPI adaptation
         //
         vec4 gNormal = vec4(normal,0.f);
         vec4 gSignal = vec4(0.f.xxx,1.f);
-        vec3 gEnergy = I ==0 ? 1.f.xxx : mix(1.f.xxx, colourSample.xyz, speculSample.z);
+        vec3 gEnergy = I ==0 ? 1.f.xxx : mix(1.f.xxx, colourSample.xyz + emitedSample.xyz, speculSample.z);
         vec2 gTexcoord = 0.f.xx;
 
         int i = 0; 
@@ -141,7 +141,7 @@ void main() { // Hi-DPI adaptation
             [[flatten]] if (depth >= 9999.f) { BACKSKY_COLOR; };
             [[flatten]] if (depth == PrimaryRay.fdata.z) { if (diffuseColor.w > 0.001f) {
                 gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
-                gEnergy *= max(i > 0 ? max(diffuseColor.xyz - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx, 0.f.xxx);
+                gEnergy *= max(i > 0 ? max(diffuseColor.xyz - clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx), 0.f.xxx) : 1.f.xxx, 0.f.xxx);
             }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
                 //BACKSKY_COLOR;

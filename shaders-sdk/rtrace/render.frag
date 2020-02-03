@@ -109,7 +109,7 @@ void main() {
     coloring = max(coloring, 0.f.xxxx);
     reflects = max(reflects, 0.f.xxxx);
 
-    uFragColor = vec4(mix(diffused.xyz*coloring.xyz/coloring.w+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
+    uFragColor = vec4(mix(diffused.xyz*(coloring.xyz/coloring.w)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
     
     
     //uFragColor = vec4(1.f,0.f,1.f,1.f);
