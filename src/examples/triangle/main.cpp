@@ -201,8 +201,11 @@ int main() {
     std::string err = "";
     std::string warn = "";
 
+    const float unitScale = 1.;
+    const float unitHeight = -0.f;
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
     bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); // TODO: Generate Required Normals 
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
@@ -440,15 +443,15 @@ int main() {
     });
 
     // load scene
-    uint32_t sceneID = 0; const float unitScale = 1.;
+    uint32_t sceneID = 0;
     if (model.scenes.size() > 0) {
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(0., -1.f, 0.)) * glm::scale(glm::dvec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(0., unitHeight, 0.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
         //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
         //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-3., -2., -0.)) * glm::scale(glm::dvec3(unitScale))), 16);
+        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-3., unitHeight, -0.)) * glm::scale(glm::dvec3(unitScale))), 16);
         //};
     };
 

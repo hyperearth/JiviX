@@ -367,7 +367,7 @@ vec3 randomHemisphereCosine( in vec3 n, inout uvec2 seed ) {
 */
 
 vec3 reflectGlossy(in vec3 I, in vec3 n, inout uvec2 seed, in float gloss){
-    return mix(reflect(I, n), randomHemisphereCosine(n,seed), gloss*pow(random(seed),2.f));
+    return mix(reflect(I, n), randomHemisphereCosine(n,seed), gloss*sqrt(random(seed)));
 };
 
 bvec4 and(in bvec4 a, in bvec4 b){

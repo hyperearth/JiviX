@@ -68,15 +68,15 @@ void main() { // Hi-DPI adaptation
 #endif
 
         const float inIOR = 1.f;
-        const float outIOR = 1.1f;
+        const float outIOR = 1.333f;
         vec3 forign = origin.xyz;
         vec3 fnorml = normal.xyz;
-        float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f.x, 1.f),1.f,speculSample.z);
+        float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.5f, 1.f,speculSample.z);
 
         //
         vec4 gNormal = vec4(normal,0.f);
         vec4 gSignal = vec4(0.f.xxx,1.f);
-        vec3 gEnergy = I ==0 ? 1.f.xxx : mix(1.f.xxx, colourSample.xyz + emitedSample.xyz, speculSample.z);
+        vec3 gEnergy = I == 0 ? 1.f.xxx : mix(1.f.xxx, colourSample.xyz + emitedSample.xyz, speculSample.z);
         vec2 gTexcoord = 0.f.xx;
 
         int i = 0; 
@@ -134,17 +134,20 @@ void main() { // Hi-DPI adaptation
             float  depth = afterReflection && I == 0u ? min(PrimaryRay.fdata.z,sdepth) : PrimaryRay.fdata.z;
 
             // power of reflection
-            float reflectionPower = mix(clamp(pow(1.0f + dot(raydir.xyz, gNormal.xyz), inIOR/outIOR),0.f,1.f),1.f,specularColor.z);
+            float reflectionPower = mix(clamp(pow(1.0f + dot(raydir.xyz, gNormal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.5f, 1.f, specularColor.z);
+            bool couldReflection = random(seed) <= reflectionPower;
 
             // TODO: better depth system
-            bool couldReflection = random(seed) <= reflectionPower;//false;
             [[flatten]] if (depth >= 9999.f) { BACKSKY_COLOR; };
             [[flatten]] if (depth == PrimaryRay.fdata.z) { if (diffuseColor.w > 0.001f) {
-                gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
-                gEnergy *= max(i > 0 ? max(diffuseColor.xyz - clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx), 0.f.xxx) : 1.f.xxx, 0.f.xxx);
+                if (couldReflection) {
+                    gEnergy *= mix(1.f.xxx,diffuseColor.xyz,specularColor.zzz);
+                } else {
+                    gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
+                    gEnergy *= max(i > 0 ? max(diffuseColor.xyz - clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx), 0.f.xxx) : 1.f.xxx, 0.f.xxx);
+                };
             }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
-                //BACKSKY_COLOR;
                 gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx;
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             };
