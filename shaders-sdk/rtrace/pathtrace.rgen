@@ -88,7 +88,7 @@ void main() { // Hi-DPI adaptation
 
         bool afterReflection = false;
 
-        if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
+        if (!all(fequal(worldsSample.xyz,0.f.xxx)) && (I == 0u || frefl >= 0.001f)) 
         for (;i <= ITERATION_COUNT; i++) { //
 
             // Shadows Rays
