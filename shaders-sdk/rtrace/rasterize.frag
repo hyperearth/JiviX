@@ -15,6 +15,7 @@ layout (location = POSITION) out vec4 samples;
 layout (location = NORMALED) out vec4 normals;
 layout (location = TANGENTS) out vec4 tangent;
 layout (location = EMISSION) out vec4 emission;
+layout (location = SPECULAR) out vec4 specular;
 
 // 
 void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
@@ -23,7 +24,7 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
     vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
     vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission;
-
+    
     // 
     vec3 gTangent = fTangent.xyz;
     vec3 gBinormal = cross(fNormal.xyz,fTangent.xyz);
@@ -33,16 +34,18 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
 
     if (diffuseColor.w > 0.001f) {
-        colored = vec4(max(vec4(DIFFUSE_COLOR,diffuseColor.w) - vec4(emissionColor.xyz*emissionColor.w,0.f),0.f.xxxx).xyz,1.f);
+        colored = vec4(max(vec4(diffuseColor.xyz-emissionColor.xyz*emissionColor.w,0.f),0.f.xxxx).xyz,1.f);
         normals = vec4(gNormal.xyz,1.f);
         samples = vec4(fPosition.xyz,1.f);
         emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
+        specular = vec4(specularColor.xyz*specularColor.w,1.f);
         gl_FragDepth = gl_FragCoord.z;
         //emission = vec4(emissionColor.xyz,emissionColor.w);
     } else {
         colored = 0.f.xxxx;
         normals = vec4(0.f.xx,0.f.xx);
         samples = vec4(0.f.xxx,0.f.x);
+        specular = 0.f.xxxx;
         emission = 0.f.xxxx;
         gl_FragDepth = 1.f;
     };

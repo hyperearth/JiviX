@@ -18,6 +18,7 @@
 #extension GL_EXT_shader_subgroup_extended_types_float16   : require
 #extension GL_EXT_shader_16bit_storage                     : require
 #extension GL_EXT_shader_8bit_storage                      : require
+#extension GL_KHR_shader_subgroup_basic                    : require
 
 precision highp float;
 precision highp int;

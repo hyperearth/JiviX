@@ -13,6 +13,7 @@
 #define NORMALED 2
 #define TANGENTS 3
 #define EMISSION 4
+#define SPECULAR 5
 
 // TODO: Materials
 struct RayPayloadData {

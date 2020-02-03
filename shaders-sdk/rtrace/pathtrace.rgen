@@ -46,6 +46,7 @@ void main() { // Hi-DPI adaptation
     const vec4 normalSample = texture(frameBuffers[NORMALED], pixel);
     const vec4 worldsSample = texture(frameBuffers[POSITION], pixel);
     const vec4 emitedSample = texture(frameBuffers[EMISSION], pixel);
+    const vec4 speculSample = texture(frameBuffers[SPECULAR], pixel);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
     uvec2 seed = uvec2(packed,rdata.x);
 
@@ -66,21 +67,26 @@ void main() { // Hi-DPI adaptation
         vec3 normal = vec3(0.f);
 #endif
 
+        const float inIOR = 1.f;
+        const float outIOR = 1.1f;
         vec3 forign = origin.xyz;
         vec3 fnorml = normal.xyz;
+        float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f.x, 1.f),1.f,speculSample.z);
 
         //
         vec4 gNormal = vec4(normal,0.f);
         vec4 gSignal = vec4(0.f.xxx,1.f);
-        vec3 gEnergy = 1.f.xxx;
+        vec3 gEnergy = I ==0 ? 1.f.xxx : mix(1.f.xxx, colourSample.xyz, speculSample.z);
         vec2 gTexcoord = 0.f.xx;
 
         int i = 0; 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
         gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz,gNormal.xyz); 
-        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f);
+        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, seed, speculSample.y);
         origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f, i++; // pre-correction
 #endif
+
+        bool afterReflection = false;
 
         if (!all(fequal(worldsSample.xyz,0.f.xxx))) 
         for (;i <= ITERATION_COUNT; i++) { //
@@ -118,23 +124,28 @@ void main() { // Hi-DPI adaptation
                 0);
             
             gNormal = PrimaryRay.normalm;
-            vec4  diffuseColor = PrimaryRay.diffuse;
-            vec4 emissionColor = PrimaryRay.emission;
+            const vec4  diffuseColor = PrimaryRay.diffuse;
+            const vec4 emissionColor = PrimaryRay.emission;
+            const vec4 specularColor = PrimaryRay.specular;
 
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
             float pdepth = planeIntersect(origin.xyz,raydir.xyz,vec3(0.f,-5.f,0.f),vec3(0.f,1.f,0.f)); pdepth = pdepth <= 0.f ? 10000.f : pdepth;
-            float  depth = PrimaryRay.fdata.z;
+            float  depth = afterReflection && I == 0u ? min(PrimaryRay.fdata.z,sdepth) : PrimaryRay.fdata.z;
+
+            // power of reflection
+            float reflectionPower = mix(clamp(pow(1.0f + dot(raydir.xyz, gNormal.xyz), inIOR/outIOR),0.f,1.f),1.f,specularColor.z);
 
             // TODO: better depth system
-            bool couldReflection = false;
+            bool couldReflection = random(seed) <= reflectionPower;//false;
             [[flatten]] if (depth >= 9999.f) { BACKSKY_COLOR; };
             [[flatten]] if (depth == PrimaryRay.fdata.z) { if (diffuseColor.w > 0.001f) {
                 gSignal.xyz += i > 0 ? gEnergy.xyz * emissionColor.xyz * emissionColor.w : 0.f.xxx;
                 gEnergy *= max(i > 0 ? max(diffuseColor.xyz - emissionColor.xyz*emissionColor.w, 0.f.xxx) : 1.f.xxx, 0.f.xxx);
             }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
-                BACKSKY_COLOR;
+                //BACKSKY_COLOR;
+                gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx;
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             };
 
@@ -142,13 +153,17 @@ void main() { // Hi-DPI adaptation
             origin.xyz += raydir.xyz * depth;
             if (i == 0u) { 
                 forign = origin.xyz, 
-                fnorml = PrimaryRay.normals.xyz; 
+                fnorml = PrimaryRay.normals.xyz;
+                frefl = reflectionPower;
             };
+
+            // 
+            if (couldReflection) afterReflection = true;
 
             // 
             gNormal.xyz = faceforward(gNormal.xyz,raydir.xyz,gNormal.xyz); // interverse into incoming ray
             if (diffuseColor.w > 0.001f) { // Reflection
-                raydir.xyz = i == 0 && I == 1 ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, 0.1f) : randomHemisphereCosine(gNormal.xyz,seed);
+                raydir.xyz = (i == 0 && I == 1 || couldReflection) ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, specularColor.y) : randomHemisphereCosine(gNormal.xyz,seed);
             } else { // Fully Transparent, Continue...
                 raydir.xyz = normalize(raydir.xyz); 
                 if (TRANSPARENT_ITERATION > 0) { TRANSPARENT_ITERATION--; i--; };
@@ -171,9 +186,9 @@ void main() { // Hi-DPI adaptation
         };
 
         if (I == 1) { // Titanic OS
-            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(gSignal.xyz,0.1f));
+            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(gSignal.xyz,frefl));
         };
 
-        memoryBarrier();
+        subgroupBarrier();
     };
 };

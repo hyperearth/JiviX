@@ -221,9 +221,15 @@ namespace lancer {
                     this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
                 ) });
             };
-
-            // 
             rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount() * rtxp.shaderGroupHandleSize) });
+
+            vkt::commandBarrier(rayTraceCommand);
+            // Clear NO anymore needed data
+            for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
+                //rasterCommand.clearColorImage(this->context->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 1.f,1.f,1.f,1.f }), { this->context->smFlip1Images[i] });
+                rayTraceCommand.clearColorImage(this->context->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->smFlip0Images[i] });
+            };
+            
             vkt::commandBarrier(rayTraceCommand);
             rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
             rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
