@@ -183,7 +183,6 @@ int main() {
     auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
     auto viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
-
     // 
     auto context = std::make_shared<lancer::Context>(fw);
     auto mesh = std::make_shared<lancer::Mesh>(context);
@@ -195,23 +194,26 @@ int main() {
     context->initialize(canvasWidth, canvasHeight);
     renderer->linkMaterial(material)->linkNode(node);
 
-
+    // 
     tinygltf::Model model = {};
     tinygltf::TinyGLTF loader = {};
     std::string err = "";
     std::string warn = "";
 
-    const float unitScale = 1.;
+    // 
+    const float unitScale = 100.;
     const float unitHeight = -0.f;
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
+    // 
     if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
     if (! err.empty()) { printf("Err: %s\n", err.c_str()); }
     if (!ret) { printf("Failed to parse glTF\n"); return -1; }
 
+    // 
     using mat4_t = glm::mat3x4;
 
     // Every mesh will have transform buffer per internal instances
