@@ -171,8 +171,14 @@ namespace lancer {
             std::array<VkImageView, 9u> smpFlip1Attachments = {};
 
             // 
+            auto allocInfo = vkt::MemoryAllocationInfo{};
+            allocInfo.device = *driver;
+            allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
+            allocInfo.dispatch = driver->getDispatch();
+
+            // 
             for (uint32_t b=0u;b<8u;b++) { // 
-                deferredAttachments[b] = frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
+                deferredAttachments[b] = frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT, 
                     .extent = {width,height,1u}, 
                     .usage = { .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 }, 
