@@ -96,6 +96,20 @@ namespace lancer {
             });
         };
 
+        // 
+        auto submitCmd(const std::vector<vk::CommandBuffer>& cmds, vk::SubmitInfo smbi = {}) {
+            vkt::submitCmd(*this, *this, cmds, smbi);
+            return shared_from_this();
+        };
+
+        // Async Version
+        auto submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vk::SubmitInfo& smbi = {}) {
+            return std::async(std::launch::async | std::launch::deferred, [=, this]() {
+                vkt::submitCmdAsync(*this, *this, cmds, smbi).get();
+                return this->shared_from_this();
+            });
+        };
+
     // 
     protected: friend Thread; friend Driver; // 
         vk::Queue queue = {};

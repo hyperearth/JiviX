@@ -39,6 +39,16 @@ namespace lancer {
         };
 
         // 
+        std::shared_ptr<Thread>& getThread() {
+            return this->thread;
+        };
+
+        // 
+        const std::shared_ptr<Thread>& getThread() const {
+            return this->thread;
+        };
+
+        // 
         vk::Rect2D& refScissor() { return scissor; };
         vk::Viewport& refViewport() { return viewport; };
         vk::RenderPass& refRenderPass() { return renderPass; };

@@ -262,7 +262,8 @@ int main() {
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
         if (BV.byteStride) { buffersViews.back().stride = BV.byteStride; };
 
-        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+        // 
+        context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
             cmd.copyBuffer(cpuBuffers.back(), buffersViews.back(), { vkh::VkBufferCopy{.srcOffset = BV.byteOffset, .dstOffset = 0ull, .size = range} });
         });
     };
@@ -298,7 +299,7 @@ int main() {
         };
 
         // 
-        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+        context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
             vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = image, .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = image.getImageSubresourceRange() });
 
             auto buffer = imageBuf.has() ? imageBuf : buffersViews[img.bufferView];
@@ -553,7 +554,7 @@ int main() {
             std::array<vk::CommandBuffer, 2> XPEHb = { renderer->refCommandBuffer(), commandBuffer };
 
             // Submit command once
-            vkt::submitCmd(device, queue, { renderer->refCommandBuffer(), commandBuffer }, vk::SubmitInfo()
+            context->getThread()->submitCmd({ renderer->refCommandBuffer(), commandBuffer }, vk::SubmitInfo()
                 .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
                 .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));
