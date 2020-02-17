@@ -85,7 +85,7 @@ namespace lancer {
         };
 
         // 
-        std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& isVertex = false) {
+        std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& isVertex = true) {
             //const uintptr_t bindingID = attribute.binding;
             //const uintptr_t locationID = this->locationCounter++;
             const uintptr_t bindingID = this->lastBindID;
