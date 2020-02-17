@@ -254,7 +254,7 @@ int main() {
         }, VMA_MEMORY_USAGE_GPU_ONLY)));
 
         // 
-        vkt::submitOnce(device, queue, commandPool, [=](vk::CommandBuffer& cmd) {
+        context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
             cmd.copyBuffer(cpuBuffers.back(), gpuBuffers.back(), { vkh::VkBufferCopy{.size = model.buffers[i].data.size()} });
         });*/
     };
