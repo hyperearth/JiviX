@@ -95,7 +95,7 @@ namespace lancer {
             this->vertexInputAttributeDescriptions[locationID].binding = bindingID;
             this->vertexInputAttributeDescriptions[locationID].location = locationID;
             this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions[locationID];
-            if (isVertex) { // 
+            if (isVertex && locationID == 0) { // 
                 const auto& binding = this->vertexInputBindingDescriptions[bindingID];
                 this->vertexCount = this->bindings[bindingID].range() / binding.stride;
                 this->geometryTemplate.geometry.triangles.vertexOffset = attribute.offset + this->bindings[bindingID].offset();
