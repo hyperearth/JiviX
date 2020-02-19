@@ -6,8 +6,10 @@ layout (location = 0) in vec4 gColor;
 layout (location = 1) in vec4 gSample;
 layout (location = 2) in vec4 gNormal;
 layout (location = 3) in vec4 wPosition;
+layout (location = 4) in vec4 gSpecular;
 layout (location = DIFFUSED) out vec4 oDiffused;
 layout (location = SAMPLING) out vec4 oSampling;
+layout (location = REFLECTS) out vec4 oSpecular;
 
 
 // 
@@ -27,6 +29,7 @@ void main() { // Currently NO possible to compare
     const bool isBackground = all(fequal(texelFetch(frameBuffers[POSITION],i2fx.xy,0).xyz,0.f.xxx));
     if (abs(almostpos.z-positions.z) < 0.0001f && dot(gNormal.xyz,normaling.xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f && !isBackground) {
         oDiffused = gColor;
+        oSpecular = gSpecular;
     } else {
         discard;
     };

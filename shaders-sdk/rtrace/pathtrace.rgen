@@ -189,7 +189,8 @@ void main() { // Hi-DPI adaptation
         };
 
         if (I == 1) { // Titanic OS
-            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(gSignal.xyz,frefl));
+            const vec4 speculSample = imageLoad(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy));
+            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),gSignal.xyz,speculSample.w < 0.9999f ? 1.f : 0.5f),frefl));
         };
 
         subgroupBarrier();
