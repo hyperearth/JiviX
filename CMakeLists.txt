@@ -61,7 +61,7 @@ pkg_search_module(GLFW QUIET renderdoc)
 set (LIBS glfw3)
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
 set (INC_DIR 
-    "${DEP_DIR}/include/lancer-full/"
+    "${DEP_DIR}/include/lancer-vk/"
     "${DEP_DIR}/include/*/"
     "${DEP_DIR}/include/" 
     "${DEP_DIR}/src/" 
