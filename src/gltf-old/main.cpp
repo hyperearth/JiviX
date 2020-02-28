@@ -211,9 +211,9 @@ int main() {
     std::string warn = "";
 
     // 
-    const float unitScale = 1.f;
-    const float unitHeight = -1.f;
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
+    const float unitScale = 100.f;
+    const float unitHeight = 0.f;
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -367,14 +367,13 @@ int main() {
                 if (primitive.attributes.find(NM[i]) != primitive.attributes.end()) { // Vertices
                     auto& attribute = model.accessors[primitive.attributes.find(NM[i])->second];
                     //auto& bufferView = buffersViews[attribute.bufferView];
-                    const auto& BV = model.bufferViews[i];
+                    const auto& BV = model.bufferViews[attribute.bufferView];
                     const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
                     // 
                     auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride);
-                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                     vector.rangeInfo() = stride * attribute.count;
-                    vector.offset() += attribute.byteOffset; // Temp Solution 
 
                     // 
                     uint32_t location = 0u;
@@ -398,13 +397,17 @@ int main() {
 
             if (primitive.indices >= 0) {
                 auto& attribute = model.accessors[primitive.indices];
-                auto& bufferView = buffersViews[attribute.bufferView];
-                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
-                bufferView.rangeInfo() = stride * attribute.count;
-                bufferView.offset() = attribute.byteOffset; // Temp Solution 
+                //auto& bufferView = buffersViews[attribute.bufferView];
+                const auto& BV = model.bufferViews[attribute.bufferView];
+                const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
+
+                // 
+                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride);
+                auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                vector.rangeInfo() = stride * attribute.count;
 
                 // determine index type
-                mesh->setIndexData(bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
+                mesh->setIndexData(vector, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
             };
 
             node->pushMesh(mesh->setMaterialID(primitive.material)->increaseInstanceCount());
