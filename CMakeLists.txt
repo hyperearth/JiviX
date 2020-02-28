@@ -21,15 +21,15 @@ set (SOURCES_LIST
     "./include/*.h"
     "./include/*.hpp"
 
-    "./include/lancer-vk/*.hpp"
-    "./include/lancer-vk/*/*.hpp"
-    "./include/lancer-vk/*/vulkan.*"
-    "./include/lancer-vk/*/*/*.hpp"
-    "./include/lancer-vk/*/*/vulkan.*"
-    "./include/lancer-vk/*/*/*/*.hpp"
-    "./include/lancer-vk/*/*/*/vulkan.*"
-    "./include/lancer-vk/*/*/*/*/*.hpp"
-    "./include/lancer-vk/*/*/*/*/vulkan.*"
+    "./include/JiviX/*.hpp"
+    "./include/JiviX/*/*.hpp"
+    "./include/JiviX/*/vulkan.*"
+    "./include/JiviX/*/*/*.hpp"
+    "./include/JiviX/*/*/vulkan.*"
+    "./include/JiviX/*/*/*/*.hpp"
+    "./include/JiviX/*/*/*/vulkan.*"
+    "./include/JiviX/*/*/*/*/*.hpp"
+    "./include/JiviX/*/*/*/*/vulkan.*"
 
     "./include/radx/*"
     "./include/vulkan/*"
@@ -61,7 +61,7 @@ pkg_search_module(GLFW QUIET renderdoc)
 set (LIBS glfw3)
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
 set (INC_DIR 
-    "${DEP_DIR}/include/lancer-vk/"
+    "${DEP_DIR}/include/JiviX/"
     "${DEP_DIR}/include/*/"
     "${DEP_DIR}/include/" 
     "${DEP_DIR}/src/" 
