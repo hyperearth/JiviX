@@ -167,7 +167,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& isVertex = true) {
+        std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& NotStub = true) {
             //const uintptr_t bindingID = attribute.binding;
             //const uintptr_t locationID = this->locationCounter++;
             const uintptr_t bindingID = this->lastBindID;
@@ -177,8 +177,8 @@ namespace jvi {
             this->vertexInputAttributeDescriptions[locationID].binding = bindingID;
             this->vertexInputAttributeDescriptions[locationID].location = locationID;
             this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions[locationID];
-            
-            if (isVertex && locationID == 0) { // 
+
+            if (locationID == 0 && NotStub) { // 
                 const auto& binding = this->vertexInputBindingDescriptions[bindingID];
                 this->vertexCount = this->bindRange[bindingID] / binding.stride;
                 this->geometryTemplate.geometry.triangles.vertexOffset = attribute.offset + this->bindings[bindingID].offset();
@@ -191,10 +191,9 @@ namespace jvi {
                 if (attribute.format == VK_FORMAT_R32G32B32A32_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 if (attribute.format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
-
-            if (locationID == 1u) { rawMeshInfo[0u].hasTexcoord = 1; };
-            if (locationID == 2u) { rawMeshInfo[0u].hasNormal = 1; };
-            if (locationID == 3u) { rawMeshInfo[0u].hasTangent = 1; };
+            if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
+            if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
+            if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
 
             if (this->indexType == vk::IndexType::eNoneNV) {
                 this->currentUnitCount = this->vertexCount;

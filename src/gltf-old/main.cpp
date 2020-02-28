@@ -211,9 +211,9 @@ int main() {
     std::string warn = "";
 
     // 
-    const float unitScale = 100.f;
-    const float unitHeight = 0.f;
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    const float unitScale = 1.f;
+    const float unitHeight = -32.f;
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -359,14 +359,26 @@ int main() {
         //for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
         for (uint32_t v = 0; v < std::min(meshData.primitives.size(),1ull); v++) {
             const auto& primitive = meshData.primitives[v];
-            auto mesh = jvx::Mesh(context); meshes.push_back(mesh);
-            instancedTransformPerMesh.push_back({});
 
+            // 
+            uintptr_t vertexCount = 0u; bool ctype = false;
+            if (primitive.indices >= 0) {
+                vertexCount = model.accessors[primitive.indices].count;
+                ctype = model.accessors[primitive.indices].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
+            } else 
+            if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
+                vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
+            };
+
+            // 
+            meshes.push_back(jvx::Mesh(context, vertexCount<<uintptr_t(ctype)));
+            auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
+
+            // 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
             for (uint32_t i = 0u; i < NM.size(); i++) {
                 if (primitive.attributes.find(NM[i]) != primitive.attributes.end()) { // Vertices
                     auto& attribute = model.accessors[primitive.attributes.find(NM[i])->second];
-                    //auto& bufferView = buffersViews[attribute.bufferView];
                     const auto& BV = model.bufferViews[attribute.bufferView];
                     const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
@@ -384,14 +396,35 @@ int main() {
 
                     // 
                     auto type = VK_FORMAT_R32G32B32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC4  ) type = VK_FORMAT_R32G32B32A32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC3  ) type = VK_FORMAT_R32G32B32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC2  ) type = VK_FORMAT_R32G32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC4) type = VK_FORMAT_R32G32B32A32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC3) type = VK_FORMAT_R32G32B32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC2) type = VK_FORMAT_R32G32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
                     mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
-                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u }, NM[i] == "POSITION");
+                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u });
+                }
+                else if (NM[i] == "TANGENT") { // STUB for Tangents
+                    auto& attribute = primitive.attributes.find("NORMAL") != primitive.attributes.end() ? model.accessors[primitive.attributes.find("NORMAL")->second] : model.accessors[primitive.attributes.find("POSITION")->second];
+                    const auto& BV = model.bufferViews[attribute.bufferView];
+                    const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
+
+                    // 
+                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride);
+                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                    vector.rangeInfo() = stride * attribute.count;
+
+                    // 
+                    auto type = VK_FORMAT_R32G32B32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC4) type = VK_FORMAT_R32G32B32A32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC3) type = VK_FORMAT_R32G32B32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_VEC2) type = VK_FORMAT_R32G32_SFLOAT;
+                    if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
+
+                    // 
+                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
+                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = 0u }, false);
                 };
             };
 
