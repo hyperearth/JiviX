@@ -366,10 +366,15 @@ int main() {
             for (uint32_t i = 0u; i < NM.size(); i++) {
                 if (primitive.attributes.find(NM[i]) != primitive.attributes.end()) { // Vertices
                     auto& attribute = model.accessors[primitive.attributes.find(NM[i])->second];
-                    auto& bufferView = buffersViews[attribute.bufferView];
-                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), bufferView.stride);
-                    bufferView.rangeInfo() = stride * attribute.count;
-                    bufferView.offset() = attribute.byteOffset; // Temp Solution 
+                    //auto& bufferView = buffersViews[attribute.bufferView];
+                    const auto& BV = model.bufferViews[i];
+                    const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
+
+                    // 
+                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride);
+                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                    vector.rangeInfo() = stride * attribute.count;
+                    vector.offset() += attribute.byteOffset; // Temp Solution 
 
                     // 
                     uint32_t location = 0u;
@@ -386,7 +391,7 @@ int main() {
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
-                    mesh->addBinding(bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
+                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
                     mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u }, NM[i] == "POSITION");
                 };
             };
