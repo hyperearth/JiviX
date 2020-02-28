@@ -1,4 +1,6 @@
 #pragma once
+
+#include <memory>
 #include "JVI/mesh.hpp"
 
 namespace jvx { 

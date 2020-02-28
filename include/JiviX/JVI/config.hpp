@@ -1,5 +1,6 @@
 #pragma once // #
 
+#include <memory>
 #include <vkt2/fw.hpp>
 
 namespace jvi {

@@ -1,4 +1,6 @@
 #pragma once
+
+#include <memory>
 #include "JVI/context.hpp"
 
 namespace jvx { 

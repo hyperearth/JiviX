@@ -1,8 +1,10 @@
 #pragma once // #
+
+#include <memory>
+#include <chrono>
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
-#include <chrono>
 
 namespace jvi {
 
