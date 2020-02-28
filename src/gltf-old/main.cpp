@@ -14,7 +14,7 @@
 #define VKT_ENABLE_GLFW_SUPPORT
 
 #include <vkt2/fw.hpp>
-#include <lancer-vk/lancer.hpp>
+#include <JiviX/JiviX.hpp>
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -161,7 +161,8 @@ public:
 
 
 
-std::shared_ptr<vkt::GPUFramework> fw = {};
+//std::shared_ptr<vkt::GPUFramework> fw = {};
+jvx::Driver fw = {};
 
 int main() {
     glfwInit();
@@ -177,7 +178,7 @@ int main() {
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	// initialize Vulkan
-    auto fw = std::make_shared<vkt::GPUFramework>();
+    auto fw = jvx::Driver();
 	auto instance = fw->createInstance();
 	auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
 	auto physicalDevice = fw->getPhysicalDevice(0u);
@@ -193,11 +194,11 @@ int main() {
     auto viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
     // 
-    auto context = std::make_shared<lancer::Context>(fw);
-    auto mesh = std::make_shared<lancer::Mesh>(context);
-    auto node = std::make_shared<lancer::Node>(context);
-    auto material = std::make_shared<lancer::Material>(context);
-    auto renderer = std::make_shared<lancer::Renderer>(context);
+    auto context = jvx::Context(fw);
+    auto mesh = jvx::Mesh(context);
+    auto node = jvx::Node(context);
+    auto material = jvx::Material(context);
+    auto renderer = jvx::Renderer(context);
 
     // initialize renderer
     context->initialize(canvasWidth, canvasHeight);
@@ -212,7 +213,7 @@ int main() {
     // 
     const float unitScale = 100.f;
     const float unitHeight = -1.f;
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Cube.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -226,16 +227,16 @@ int main() {
     using mat4_t = glm::mat3x4;
 
     // Every mesh will have transform buffer per internal instances
-    std::vector<std::shared_ptr<lancer::Mesh>> meshes = {};
+    std::vector<jvx::Mesh> meshes = {};
     std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
 
     // Transform Data Buffer
-    std::vector<vkt::Vector<mat4_t>> gpuInstancedTransformPerMesh = {};
+    //std::vector<vkt::Vector<mat4_t>> gpuInstancedTransformPerMesh = {};
     std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
-    std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
+    //std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
 
     // 
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
@@ -246,17 +247,6 @@ int main() {
 
         // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
-
-        // 
-        /*gpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
-            .usage = { .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-        }, VMA_MEMORY_USAGE_GPU_ONLY)));
-
-        // 
-        context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
-            cmd.copyBuffer(cpuBuffers.back(), gpuBuffers.back(), { vkh::VkBufferCopy{.size = model.buffers[i].data.size()} });
-        });*/
     };
 
     // buffer views
@@ -264,17 +254,7 @@ int main() {
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
         const auto& BV = model.bufferViews[i];
         const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
-        //buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull)); 
-
-        buffersViews.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = range, .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-        }, VMA_MEMORY_USAGE_GPU_ONLY)));
-        if (BV.byteStride) { buffersViews.back().stride = BV.byteStride; };
-
-        // 
-        context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
-            cmd.copyBuffer(cpuBuffers.back(), buffersViews.back(), { vkh::VkBufferCopy{.srcOffset = BV.byteOffset, .dstOffset = 0ull, .size = range} });
-        });
+        buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull));
     };
 
     // 
@@ -340,7 +320,7 @@ int main() {
     // Material 
     for (uint32_t i = 0; i < model.materials.size(); i++) {
         const auto& mat = model.materials[i];
-        lancer::MaterialUnit mdk = {};
+        jvi::MaterialUnit mdk = {};
         mdk.diffuseTexture = mat.pbrMetallicRoughness.baseColorTexture.index;
         mdk.normalsTexture = mat.normalTexture.index;
         mdk.specularTexture = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
@@ -379,7 +359,7 @@ int main() {
         //for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
         for (uint32_t v = 0; v < std::min(meshData.primitives.size(),1ull); v++) {
             const auto& primitive = meshData.primitives[v];
-            auto mesh = std::make_shared<lancer::Mesh>(context); meshes.push_back(mesh);
+            auto mesh = jvx::Mesh(context); meshes.push_back(mesh);
             instancedTransformPerMesh.push_back({});
 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
@@ -394,7 +374,6 @@ int main() {
                     // 
                     uint32_t location = 0u;
                     if (NM[i] == "POSITION") { location = 0u; };
-                    //if (NM[i] == "TEXCOORD_1") { location = 1u; }; // TODO: 
                     if (NM[i] == "TEXCOORD_0") { location = 1u; };
                     if (NM[i] == "NORMAL") { location = 2u; };
                     if (NM[i] == "TANGENT") { location = 3u; };

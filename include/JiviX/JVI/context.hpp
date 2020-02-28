@@ -21,7 +21,7 @@ namespace jvi {
     };
 #pragma pack(pop)
 
-    // TODO: Full Context Support
+    // 
     class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend Node; friend Driver; friend Material; friend Renderer;
         Context() {};
         Context(const std::shared_ptr<Driver>& driver) {

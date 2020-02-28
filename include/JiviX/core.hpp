@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include "./JVI/JiviX.hpp"
 
 namespace jvx { 
 

@@ -144,7 +144,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 # Compute test 
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
-add_executable(${APPLICATION_NAME} src/examples/triangle/main.cpp ${RSOURCES})
+add_executable(${APPLICATION_NAME} src/gltf-old/main.cpp ${RSOURCES})
 target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
 
 # Add includes to MSVC explorer 

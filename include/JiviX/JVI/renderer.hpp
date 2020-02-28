@@ -104,6 +104,41 @@ namespace jvi {
         };
 
         // 
+        std::shared_ptr<Renderer> setupResamplingPipeline() {
+            const auto& viewport = this->context->refViewport();
+            const auto& renderArea = this->context->refScissor();
+
+            this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
+            for (uint32_t i = 0u; i < 8u; i++) { // 
+                this->pipelineInfo.colorBlendAttachmentStates.push_back(vkh::VkPipelineColorBlendAttachmentState{
+                    .blendEnable = true,
+                    .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                    .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                    });
+            };
+
+            this->pipelineInfo.stages = this->resampStages;
+            this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{
+                .depthTestEnable = false,
+                .depthWriteEnable = false
+            };
+            this->pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+            this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
+            this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
+            this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
+            this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+            this->resamplingState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
+
+            return shared_from_this();
+        };
+
+
+
+        // 
         std::shared_ptr<Renderer> setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
@@ -184,6 +219,39 @@ namespace jvi {
         };
 
         // 
+        std::shared_ptr<Renderer> setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+            const auto& viewport = this->context->refViewport();
+            const auto& renderArea = this->context->refScissor();
+            const auto clearValues = std::vector<vk::ClearValue>{
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearDepthStencilValue(1.0f, 0)
+            };
+
+            this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+
+            // 
+            resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->smpFlip0Framebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
+            resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            resampleCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 })), 0u, { meshData });
+            resampleCommand.setViewport(0, { viewport });
+            resampleCommand.setScissor(0, { renderArea });
+            resampleCommand.draw(renderArea.extent.width, renderArea.extent.height, 0u, 0u);
+            resampleCommand.endRenderPass();
+            vkt::commandBarrier(resampleCommand);
+
+            // 
+            return shared_from_this();
+        };
+
+        // 
         std::shared_ptr<Renderer> setupCommands() { // setup Commands
             if (!this->context->refRenderPass()) {
                 this->context->createRenderPass();
@@ -215,12 +283,12 @@ namespace jvi {
 
             // 
             auto I = 0u; for (auto& M : this->node->meshes) { 
-                //M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); // FIXED FINALLY
+                M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); // FIXED FINALLY
             };
             vkt::commandBarrier(this->cmdbuf);
 
             // 
-            //this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
+            this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
             this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // FIXED FINALLY 
 
             // 

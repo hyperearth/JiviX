@@ -2,7 +2,9 @@
 
 #include "./JVI/config.hpp"
 #include "./JVI/driver.hpp"
-#include "class-core.hpp"
+#include "./JVI/JiviX.hpp"
+#include "./core.hpp"
+#include "./driver.hpp"
 #include "./context.hpp"
 #include "./mesh.hpp"
 #include "./node.hpp"
