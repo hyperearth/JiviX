@@ -1,14 +1,16 @@
 #pragma once
 
 #include <memory>
+#include "JVI/context.hpp"
 #include "JVI/material.hpp"
 
 namespace jvx { 
     class Material {
     public:
         Material() {};
-        Material(const Material& material) : object(material.object) {};
         Material(const std::shared_ptr<jvi::Material>& object) : object(object) {};
+        Material(const Material& material) : object(material.object) {};
+        Material(const Context& context) { object = std::make_shared<jvi::Material>(context); };
 
         // 
         virtual Material& operator=(const std::shared_ptr<jvi::Material>& object) { this->object = object; return *this; };

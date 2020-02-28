@@ -7,8 +7,9 @@ namespace jvx {
     class Node {
     public:
         Node() {};
-        Node(const Node& node) : object(node.object) {};
         Node(const std::shared_ptr<jvi::Node>& object) : object(object) {};
+        Node(const Node& node) : object(node.object) {};
+        Node(const Context& context) { object = std::make_shared<jvi::Node>(context); };
 
         // 
         virtual Node& operator=(const std::shared_ptr<jvi::Node>& object) { this->object = object; return *this; };

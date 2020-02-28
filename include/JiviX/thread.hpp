@@ -7,8 +7,9 @@ namespace jvx {
     class Thread {
     public:
         Thread() {};
-        Thread(const Thread& thread) : object(thread.object) {};
         Thread(const std::shared_ptr<jvi::Thread>& object) : object(object) {};
+        Thread(const Thread& thread) : object(thread.object) {};
+        Thread(const Driver& driver) { object = std::make_shared<jvi::Thread>(driver); };
 
         // 
         virtual Thread& operator=(const std::shared_ptr<jvi::Thread>& object) { this->object = object; return *this; };

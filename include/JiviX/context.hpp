@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "JVI/context.hpp"
+#include "JVI/driver.hpp"
 
 namespace jvx { 
     class Context {
@@ -9,6 +10,7 @@ namespace jvx {
         Context() {};
         Context(const Context& context) : object(context.object) {};
         Context(const std::shared_ptr<jvi::Context>& object) : object(object) {};
+        Context(const Driver& driver) { object = std::make_shared<jvi::Context>(driver); };
 
         // 
         virtual Context& operator=(const std::shared_ptr<jvi::Context>& object) { this->object = object; return *this; };

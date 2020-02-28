@@ -7,8 +7,9 @@ namespace jvx {
     class Renderer {
     public:
         Renderer() {};
-        Renderer(const Renderer& renderer) : object(renderer.object) {};
         Renderer(const std::shared_ptr<jvi::Renderer>& object) : object(object) {};
+        Renderer(const Renderer& renderer) : object(renderer.object) {};
+        Renderer(const Context& context) { object = std::make_shared<jvi::Renderer>(context); };
 
         // 
         virtual Renderer& operator=(const std::shared_ptr<jvi::Renderer>& object) { this->object = object; return *this; };

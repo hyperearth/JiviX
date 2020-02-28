@@ -7,8 +7,9 @@ namespace jvx {
     class Mesh {
     public:
         Mesh() {};
-        Mesh(const Mesh& mesh) : object(mesh.object) {};
+        Mesh(const Context& context, vk::DeviceSize AllocationUnitCount = 32768) { object = std::make_shared<jvi::Mesh>(context, AllocationUnitCount); };
         Mesh(const std::shared_ptr<jvi::Mesh>& object) : object(object) {};
+        Mesh(const Mesh& mesh) : object(mesh.object) {};
 
         // 
         virtual Mesh& operator=(const std::shared_ptr<jvi::Mesh>& object) { this->object = object; return *this; };
