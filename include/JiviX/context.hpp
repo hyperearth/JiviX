@@ -1,32 +1,11 @@
 #pragma once
 
-#include <memory>
+#include "core.hpp"
 #include "JVI/context.hpp"
 #include "JVI/driver.hpp"
 
 namespace jvx { 
-    class Context {
-    public:
-        Context() {};
-        Context(const Context& context) : object(context.object) {};
-        Context(const std::shared_ptr<jvi::Context>& object) : object(object) {};
+    class Context : public Wrap<jvi::Context> { public:
         Context(const Driver& driver) { object = std::make_shared<jvi::Context>(driver); };
-
-        // 
-        virtual Context& operator=(const std::shared_ptr<jvi::Context>& object) { this->object = object; return *this; };
-        virtual Context& operator=(const Context& object) { this->object = object.object; return *this; };
-
-        // 
-        virtual operator std::shared_ptr<jvi::Context>& () { return object; };
-        virtual operator const std::shared_ptr<jvi::Context>& () const { return object; };
-
-        // 
-        virtual jvi::Context* operator->() { return &(*object); };
-        virtual jvi::Context& operator*() { return (*object); };
-        virtual const jvi::Context* operator->() const { return &(*object); };
-        virtual const jvi::Context& operator*() const { return (*object); };
-
-    protected: friend jvx::Context; friend jvi::Context; // 
-             std::shared_ptr<jvi::Context> object = {};
     };
 };

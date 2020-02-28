@@ -1,31 +1,10 @@
 #pragma once
 
-#include <memory>
+#include "core.hpp"
 #include "JVI/thread.hpp"
 
 namespace jvx { 
-    class Thread {
-    public:
-        Thread() {};
-        Thread(const std::shared_ptr<jvi::Thread>& object) : object(object) {};
-        Thread(const Thread& thread) : object(thread.object) {};
-        Thread(const Driver& driver) { object = std::make_shared<jvi::Thread>(driver); };
-
-        // 
-        virtual Thread& operator=(const std::shared_ptr<jvi::Thread>& object) { this->object = object; return *this; };
-        virtual Thread& operator=(const Thread& object) { this->object = object.object; return *this; };
-
-        // 
-        virtual operator std::shared_ptr<jvi::Thread>& () { return object; };
-        virtual operator const std::shared_ptr<jvi::Thread>& () const { return object; };
-
-        // 
-        virtual jvi::Thread* operator->() { return &(*object); };
-        virtual jvi::Thread& operator*() { return (*object); };
-        virtual const jvi::Thread* operator->() const { return &(*object); };
-        virtual const jvi::Thread& operator*() const { return (*object); };
-
-    protected: friend jvx::Thread; friend jvi::Thread; // 
-             std::shared_ptr<jvi::Thread> object = {};
+    class Thread : public Wrap<jvi::Thread> { public:
+        Thread(const Context& context) { object = std::make_shared<jvi::Thread>(context); };
     };
 };
