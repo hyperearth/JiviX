@@ -279,7 +279,7 @@ namespace jvi {
             for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
                 const auto I = this->node->rawInstances[i].instanceId;
                 this->node->meshes[I]->increaseInstanceCount(i);
-            };
+            }
 
             // 
             auto I = 0u; for (auto& M : this->node->meshes) { 

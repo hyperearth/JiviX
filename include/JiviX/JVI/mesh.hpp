@@ -216,6 +216,16 @@ namespace jvi {
         };
 
         // 
+        std::shared_ptr<Mesh> manifestIndex(const vk::IndexType& type, const vk::DeviceSize& indexCount = 0) {
+            this->indexType = type;
+            if (indexCount) {
+                this->indexCount = indexCount;
+                this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
+                this->currentUnitCount = this->indexCount;
+            };
+        };
+
+        // 
         template<class T = uint8_t>
         std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type){
             vk::DeviceSize count = 0u;
@@ -236,13 +246,13 @@ namespace jvi {
 
             // 
             if (rawIndices.has() && type != vk::IndexType::eNoneNV) {
-                this->indexData = rawIndices;
+                //this->indexData = rawIndices;
                 this->indexType = type;
                 this->indexCount = count;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
                 this->currentUnitCount = this->indexCount;
             } else {
-                this->indexData = {};
+                //this->indexData = {};
                 this->indexType = vk::IndexType::eNoneNV;
                 this->indexCount = 0u;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
