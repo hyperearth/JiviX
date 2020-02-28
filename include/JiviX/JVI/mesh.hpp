@@ -240,7 +240,7 @@ namespace jvi {
 
                 // 
                 this->thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
-                    cmd.copyBuffer(rawIndices, this->indexData, { vk::BufferCopy{ rawIndices.offset(),this->indexData.offset(),  std::min(this->indexData.range(), rawIndices.range()) } });
+                    cmd.copyBuffer(rawIndices, this->indexData, { vk::BufferCopy{ rawIndices.offset(), this->indexData.offset(), std::min(this->indexData.range(), rawIndices.range()) } });
                 });
             };
 
@@ -261,9 +261,9 @@ namespace jvi {
 
             // 
             this->geometryTemplate.geometry.triangles.indexOffset = this->indexData.offset();
-            this->geometryTemplate.geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometryTemplate.geometry.triangles.indexCount = this->indexCount;
-            this->geometryTemplate.geometry.triangles.indexData = this->indexData;
+            this->geometryTemplate.geometry.triangles.indexType   = VkIndexType(this->indexType);
+            this->geometryTemplate.geometry.triangles.indexCount  = this->indexCount;
+            this->geometryTemplate.geometry.triangles.indexData   = this->indexData;
 
             // 
             return shared_from_this();
