@@ -3,6 +3,8 @@
 #define GEN_QUAD_INDEX
 #include "./driver.glsl"
 
+layout (local_size_x = 256) in; 
+
 // THIS SHADER FOR Minecraft Compatibility
 void main(){
     const uvec4 quadIndices = uvec4(gl_GlobalInvocationID.x*4+0,gl_GlobalInvocationID.x*4+1,gl_GlobalInvocationID.x*4+2,gl_GlobalInvocationID.x*4+3);
