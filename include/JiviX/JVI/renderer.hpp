@@ -115,7 +115,7 @@ namespace jvi {
                     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
                     .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
                     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-                    });
+                });
             };
 
             // 
