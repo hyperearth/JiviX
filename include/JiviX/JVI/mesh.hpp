@@ -132,7 +132,7 @@ namespace jvi {
 
         // 
         template<class T = uint8_t>
-        std::shared_ptr<Mesh> addBinding(const std::vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
+        inline std::shared_ptr<Mesh> addBinding(const std::vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -227,7 +227,7 @@ namespace jvi {
 
         // 
         template<class T = uint8_t>
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type){
+        inline std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type){
             vk::DeviceSize count = 0u;
 
             if (rawIndices.has()) {
@@ -277,7 +277,7 @@ namespace jvi {
 
         // some type dependent
         template<class T = uint8_t>
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
+        inline std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
         virtual std::shared_ptr<Mesh> setDriver(const std::shared_ptr<Driver>& driver = {}){
