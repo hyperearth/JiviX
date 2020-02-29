@@ -1,0 +1,20 @@
+#version 460 core // #
+#extension GL_GOOGLE_include_directive : require
+#define GEN_QUAD_INDEX
+#include "./driver.glsl"
+#include "./index.glsl"
+
+// THIS SHADER FOR Minecraft Compatibility
+void main(){
+    const uvec4 quadIndices = uvec4(gl_GlobalInvocationID.x*4+0,gl_GlobalInvocationID.x*4+1,gl_GlobalInvocationID.x*4+2,gl_GlobalInvocationID.x*4+3);
+    
+    // CW triangle A
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+0), uvec4(quadIndices.x));
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+1), uvec4(quadIndices.y));
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+2), uvec4(quadIndices.z));
+
+    // CW triangle B
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+3), uvec4(quadIndices.y));
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+3), uvec4(quadIndices.w));
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+3), uvec4(quadIndices.z));
+};

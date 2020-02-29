@@ -101,7 +101,12 @@ layout (binding = 4, set = 0, r8ui) readonly uniform uimageBuffer mesh4[];
 layout (binding = 5, set = 0, r8ui) readonly uniform uimageBuffer mesh5[];
 layout (binding = 6, set = 0, r8ui) readonly uniform uimageBuffer mesh6[];
 layout (binding = 7, set = 0, r8ui) readonly uniform uimageBuffer mesh7[];
+
+#ifdef GEN_QUAD_INDEX // For Minecraft
+layout (binding = 8, set = 0, r8ui) writeonly uniform uimageBuffer index[]; // indices compatible 
+#else
 layout (binding = 8, set = 0, r8ui) readonly uniform uimageBuffer index[]; // indices compatible 
+#endif
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
 layout (binding = 0, set = 1, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
