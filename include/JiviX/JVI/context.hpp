@@ -27,8 +27,8 @@ namespace jvi {
         Context(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
             this->thread = std::make_shared<Thread>(this->driver);
-            this->uniformGPUData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
-            this->uniformRawData = vkt::Vector<Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->uniformGPUData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->uniformRawData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
             this->beginTime = std::chrono::high_resolution_clock::now();
             this->leastTime = std::chrono::high_resolution_clock::now();
             this->previTime = std::chrono::high_resolution_clock::now();
@@ -208,11 +208,11 @@ namespace jvi {
 
             // 
             for (uint32_t b = 0u; b < 8u; b++) { // 
-                deferredAttachments[b] = frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                deferredAttachments[b] = frameBfImages[b] = vkt::ImageRegion(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                }), vkh::VkImageViewCreateInfo{
+                }, vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
@@ -225,11 +225,11 @@ namespace jvi {
 
             // 
             for (uint32_t b=0u;b<8u;b++) { // 
-                smpFlip0Attachments[b] = smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                smpFlip0Attachments[b] = smFlip0Images[b] = vkt::ImageRegion(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                }), vkh::VkImageViewCreateInfo{
+                }, vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
@@ -239,11 +239,11 @@ namespace jvi {
                     .unnormalizedCoordinates = true,
                 }));
 
-                smpFlip1Attachments[b] = smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                smpFlip1Attachments[b] = smFlip1Images[b] = vkt::ImageRegion(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                }), vkh::VkImageViewCreateInfo{
+                }, vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
@@ -255,11 +255,11 @@ namespace jvi {
             };
 
             // 
-            depthImage = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(driver->getAllocator(), vkh::VkImageCreateInfo{
+            depthImage = vkt::ImageRegion(driver->getAllocator(), vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .extent = {width,height,1u},
                 .usage = { .eTransferDst = 1, .eDepthStencilAttachment = 1 },
-            }), vkh::VkImageViewCreateInfo{
+            }, VMA_MEMORY_USAGE_GPU_ONLY, vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .subresourceRange = { .aspectMask = { .eDepth = 1, .eStencil = 1 } },
             });
