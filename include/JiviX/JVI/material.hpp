@@ -39,45 +39,45 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Material> setContext(const std::shared_ptr<Context>& context) {
+        virtual std::shared_ptr<Material> setContext(const std::shared_ptr<Context>& context) {
             this->context = context;
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->materialDescriptorSetLayout,this->thread->getDescriptorPool());
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Material> setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
+        virtual std::shared_ptr<Material> setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
             this->rawMaterials = rawMaterials; this->materialCounter = materialCounter;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Material> setGpuMaterials(const vkt::Vector<MaterialUnit>& gpuMaterials = {}) {
+        virtual std::shared_ptr<Material> setGpuMaterials(const vkt::Vector<MaterialUnit>& gpuMaterials = {}) {
             this->gpuMaterials = gpuMaterials;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Material> pushMaterial(const MaterialUnit& material = {}) {
+        virtual std::shared_ptr<Material> pushMaterial(const MaterialUnit& material = {}) {
             const auto materialID = materialCounter++;
             this->rawMaterials[materialID] = material;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Material> pushSampledImage(const vkh::VkDescriptorImageInfo& info = {}) {
+        virtual std::shared_ptr<Material> pushSampledImage(const vkh::VkDescriptorImageInfo& info = {}) {
             this->sampledImages.push_back(info);
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Material> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
+        virtual std::shared_ptr<Material> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
             buildCommand.copyBuffer(this->rawMaterials, this->gpuMaterials, { vk::BufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() } });
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Material> createDescriptorSet() {
+        virtual std::shared_ptr<Material> createDescriptorSet() {
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(context->materialDescriptorSetLayout, driver->descriptorPool);
 
             if (sampledImages.size() > 0u) { // Setup Textures

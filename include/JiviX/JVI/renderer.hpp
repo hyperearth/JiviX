@@ -50,19 +50,19 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Renderer> linkMaterial(const std::shared_ptr<Material>& materials = {}) {
+        virtual std::shared_ptr<Renderer> linkMaterial(const std::shared_ptr<Material>& materials = {}) {
             this->materials = materials;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Renderer> linkNode(const std::shared_ptr<Node>& node = {}) {
+        virtual std::shared_ptr<Renderer> linkNode(const std::shared_ptr<Node>& node = {}) {
             this->node = node;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTracingPipeline() { // 
+        virtual std::shared_ptr<Renderer> setupRayTracingPipeline() { // 
             this->rayTraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper();
             this->rayTraceInfo.vkInfo.layout = this->context->unifiedPipelineLayout;
             this->rayTraceInfo.vkInfo.maxRecursionDepth = 4u;
@@ -76,7 +76,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Renderer> setupBackgroundPipeline() {
+        virtual std::shared_ptr<Renderer> setupBackgroundPipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -98,16 +98,17 @@ namespace jvi {
             this->skyboxedInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->skyboxedInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->skyboxedInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
-            this->backgroundStage = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->skyboxedInfo);
+            this->backgroundState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->skyboxedInfo);
 
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Renderer> setupResamplingPipeline() {
+        virtual std::shared_ptr<Renderer> setupResamplingPipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
+            // 
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
             for (uint32_t i = 0u; i < 8u; i++) { // 
                 this->pipelineInfo.colorBlendAttachmentStates.push_back(vkh::VkPipelineColorBlendAttachmentState{
@@ -119,11 +120,9 @@ namespace jvi {
                     });
             };
 
+            // 
             this->pipelineInfo.stages = this->resampStages;
-            this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{
-                .depthTestEnable = false,
-                .depthWriteEnable = false
-            };
+            this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{ .depthTestEnable = false, .depthWriteEnable = false };
             this->pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
             this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
@@ -133,13 +132,12 @@ namespace jvi {
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
             this->resamplingState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
 
+            // 
             return shared_from_this();
         };
 
-
-
         // 
-        std::shared_ptr<Renderer> setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
+        virtual std::shared_ptr<Renderer> setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{
@@ -171,7 +169,7 @@ namespace jvi {
             rasterCommand.setScissor(0, { renderArea });
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 })), 0u, { meshData });
             rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->backgroundStage);
+            rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->backgroundState);
             rasterCommand.draw(4u, 1u, 0u, 0u);
             rasterCommand.endRenderPass();
             vkt::commandBarrier(rasterCommand);
@@ -181,7 +179,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // get ray-tracing properties
+        virtual std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // get ray-tracing properties
             const auto& rtxp = this->rayTracingProperties;
             const auto& renderArea = this->context->refScissor();
 
@@ -219,7 +217,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Renderer> setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+        virtual std::shared_ptr<Renderer> setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{
@@ -252,7 +250,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Renderer> setupCommands() { // setup Commands
+        virtual std::shared_ptr<Renderer> setupCommands() { // setup Commands
             if (!this->context->refRenderPass()) {
                 this->context->createRenderPass();
             };
@@ -279,7 +277,7 @@ namespace jvi {
             for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
                 const auto I = this->node->rawInstances[i].instanceId;
                 this->node->meshes[I]->increaseInstanceCount(i);
-            }
+            };
 
             // 
             auto I = 0u; for (auto& M : this->node->meshes) { 
@@ -304,13 +302,6 @@ namespace jvi {
         //std::vector<vk::CommandBuffer> commands = {};
         vk::CommandBuffer cmdbuf = {};
 
-        // 
-        vk::Pipeline backgroundStage = {};
-        vk::Pipeline rayTracingStage = {};
-        vk::Pipeline resamplingStage = {};
-        //vk::Pipeline denoiseStage = {};
-        //vk::Pipeline compileStage = {};
-
         // binding data
         std::shared_ptr<Material> materials = {}; // materials
         std::shared_ptr<Node> node = {}; // currently only one node... 
@@ -329,6 +320,7 @@ namespace jvi {
         std::vector<vkh::VkPipelineShaderStageCreateInfo> bgStages = {};
 
         // 
+        vk::Pipeline backgroundState = {};
         vk::Pipeline resamplingState = {};
         vk::Pipeline rayTracingState = {};
 

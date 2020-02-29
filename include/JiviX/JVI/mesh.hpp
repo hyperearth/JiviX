@@ -89,43 +89,43 @@ namespace jvi {
         };
 
         // 
-        vkt::Vector<uint8_t> getBindingBuffer(const uintptr_t& i) {
+        virtual vkt::Vector<uint8_t> getBindingBuffer(const uintptr_t& i) {
             return this->bindings[i];
         };
 
         // 
-        vkt::Vector<uint8_t> getBindingBuffer() {
+        virtual vkt::Vector<uint8_t> getBindingBuffer() {
             return this->bindings[this->lastBindID];
         };
 
         //
-        vkt::Vector<uint8_t> getIndexBuffer() {
+        virtual vkt::Vector<uint8_t> getIndexBuffer() {
             return this->indexData;
         };
 
         // Win32 Only (currently)
-        HANDLE getBindingMemoryHandle(const uintptr_t& i = 0) {
+        virtual HANDLE getBindingMemoryHandle(const uintptr_t& i = 0) {
             return this->bindings[i]->info.handle;
         };
 
         // Win32 Only (currently)
-        HANDLE getBindingMemoryHandle() {
+        virtual HANDLE getBindingMemoryHandle() {
             return this->bindings[this->lastBindID]->info.handle;
         };
 
         // Win32 Only (currently)
-        HANDLE getIndexMemoryHandle() {
+        virtual HANDLE getIndexMemoryHandle() {
             return this->indexData->info.handle;
         };
 
         // 
-        std::shared_ptr<Mesh> setMaterialID(const uint32_t& materialID = 0u) {
+        virtual std::shared_ptr<Mesh> setMaterialID(const uint32_t& materialID = 0u) {
             this->rawMeshInfo[0u].materialID = materialID;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Mesh> setThread(const std::shared_ptr<Thread>& thread) {
+        virtual std::shared_ptr<Mesh> setThread(const std::shared_ptr<Thread>& thread) {
             this->thread = thread;
             return shared_from_this();
         };
@@ -151,7 +151,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> addBinding(const vkt::Vector<uint8_t>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}){
+        virtual std::shared_ptr<Mesh> addBinding(const vkt::Vector<uint8_t>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}){
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID+1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -167,7 +167,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& NotStub = true) {
+        virtual std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& NotStub = true) {
             //const uintptr_t bindingID = attribute.binding;
             //const uintptr_t locationID = this->locationCounter++;
             const uintptr_t bindingID = this->lastBindID;
@@ -203,7 +203,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> setVertexCount(const uint32_t& count = 32768u) {
+        virtual std::shared_ptr<Mesh> setVertexCount(const uint32_t& count = 32768u) {
             if (this->indexType == vk::IndexType::eNoneNV) {
                 this->vertexCount = this->geometryTemplate.geometry.triangles.vertexCount = count;
                 this-> indexCount = this->geometryTemplate.geometry.triangles.indexCount = 0;
@@ -215,13 +215,14 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> manifestIndex(const vk::IndexType& type, const vk::DeviceSize& indexCount = 0) {
+        virtual std::shared_ptr<Mesh> manifestIndex(const vk::IndexType& type, const vk::DeviceSize& indexCount = 0) {
             this->indexType = type;
             if (indexCount) {
                 this->indexCount = indexCount;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
                 this->currentUnitCount = this->indexCount;
             };
+            return shared_from_this();
         };
 
         // 
@@ -269,36 +270,36 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint32); };
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint16); };
-        std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint8EXT); };
-        std::shared_ptr<Mesh> setIndexData() { return this->setIndexData({},vk::IndexType::eNoneNV); };
+        virtual std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint32); };
+        virtual std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint16); };
+        virtual std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint8EXT); };
+        virtual std::shared_ptr<Mesh> setIndexData() { return this->setIndexData({},vk::IndexType::eNoneNV); };
 
         // some type dependent
         template<class T = uint8_t>
         std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
-        std::shared_ptr<Mesh> setDriver(const std::shared_ptr<Driver>& driver = {}){
+        virtual std::shared_ptr<Mesh> setDriver(const std::shared_ptr<Driver>& driver = {}){
             this->driver = driver;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Mesh> increaseInstanceCount(const uint32_t& mapID = 0u, const uint32_t& instanceCount = 1u) {
+        virtual std::shared_ptr<Mesh> increaseInstanceCount(const uint32_t& mapID = 0u, const uint32_t& instanceCount = 1u) {
             this->rawInstanceMap[this->instanceCount] = mapID;
             this->instanceCount += instanceCount;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Mesh> setInstanceCount(const uint32_t& instanceCount = 1u) {
+        virtual std::shared_ptr<Mesh> setInstanceCount(const uint32_t& instanceCount = 1u) {
             this->instanceCount = instanceCount;
             return shared_from_this();
         };
 
         // MORE useful for instanced data
-        std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::vec4>& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
+        virtual std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::vec4>& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
             this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset();
             this->geometryTemplate.geometry.triangles.transformData = transformData;
             this->gpuTransformData = transformData;
@@ -308,7 +309,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
+        virtual std::shared_ptr<Mesh> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
             buildCommand.copyBuffer(this->rawAttributes , this->gpuAttributes , { vk::BufferCopy{ this->rawAttributes .offset(), this->gpuAttributes .offset(), this->gpuAttributes .range() } });
             buildCommand.copyBuffer(this->rawBindings   , this->gpuBindings   , { vk::BufferCopy{ this->rawBindings   .offset(), this->gpuBindings   .offset(), this->gpuBindings   .range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
@@ -317,7 +318,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+        virtual std::shared_ptr<Mesh> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (this->geometryTemplate.geometry.triangles.indexType == VK_INDEX_TYPE_NONE_NV) { this->geometryTemplate.geometry.triangles.indexCount = 0; };
             if (this->accelerationStructure) { this->updateGeometry(); } else { this->createAccelerationStructure(); };
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(),this->driver->getDispatch());
@@ -325,7 +326,7 @@ namespace jvi {
         };
 
         //
-        std::shared_ptr<Mesh> updateGeometry() {
+        virtual std::shared_ptr<Mesh> updateGeometry() {
             this->geometries.resize(1u);
             for (uint32_t i = 0u; i < this->geometries.size(); i++) {
                 //this->geometries.push_back(this->geometryTemplate);
@@ -347,7 +348,7 @@ namespace jvi {
         };
 
         // Create Or Rebuild Acceleration Structure
-        std::shared_ptr<Mesh> createAccelerationStructure() {
+        virtual std::shared_ptr<Mesh> createAccelerationStructure() {
             bool Is2ndFormat = // TODO: more correct length detection
                 this->geometryTemplate.geometry.triangles.vertexFormat == VK_FORMAT_R32G32_SFLOAT ||
                 this->geometryTemplate.geometry.triangles.vertexFormat == VK_FORMAT_R16G16B16_SFLOAT ||
@@ -416,7 +417,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Mesh> createRasterizePipeline() {
+        virtual std::shared_ptr<Mesh> createRasterizePipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -451,7 +452,7 @@ namespace jvi {
         };
 
         // Create Secondary Command With Pipeline
-        std::shared_ptr<Mesh> createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
+        virtual std::shared_ptr<Mesh> createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
             if (this->instanceCount <= 0u) return shared_from_this();
 
             // 

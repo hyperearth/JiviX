@@ -45,37 +45,37 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Context> setThread(const std::shared_ptr<Thread>& thread) {
+        virtual std::shared_ptr<Context> setThread(const std::shared_ptr<Thread>& thread) {
             this->thread = thread;
             return shared_from_this();
         };
 
-        std::shared_ptr<Thread>& getThread() {
+        virtual std::shared_ptr<Thread>& getThread() {
             return this->thread;
         };
 
-        const std::shared_ptr<Thread>& getThread() const {
+        virtual const std::shared_ptr<Thread>& getThread() const {
             return this->thread;
         };
 
         // 
-        vk::Rect2D& refScissor() { return scissor; };
-        vk::Viewport& refViewport() { return viewport; };
-        vk::RenderPass& refRenderPass() { return renderPass; };
+        virtual vk::Rect2D& refScissor() { return scissor; };
+        virtual vk::Viewport& refViewport() { return viewport; };
+        virtual vk::RenderPass& refRenderPass() { return renderPass; };
         //vk::Framebuffer& refFramebuffer() { return framebuffer; };
 
         // 
-        const vk::Rect2D& refScissor() const { return scissor; };
-        const vk::Viewport& refViewport() const { return viewport; };
-        const vk::RenderPass& refRenderPass() const { return renderPass; };
+        virtual const vk::Rect2D& refScissor() const { return scissor; };
+        virtual const vk::Viewport& refViewport() const { return viewport; };
+        virtual const vk::RenderPass& refRenderPass() const { return renderPass; };
         //const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
 
         // 
-        std::shared_ptr<Driver>& getDriver() { return driver; };
-        const std::shared_ptr<Driver>& getDriver() const { return driver; };
+        virtual std::shared_ptr<Driver>& getDriver() { return driver; };
+        virtual const std::shared_ptr<Driver>& getDriver() const { return driver; };
 
         // 
-        std::shared_ptr<Context> createRenderPass() { // 
+        virtual std::shared_ptr<Context> createRenderPass() { // 
             vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
 
             for (uint32_t b=0u;b<8u;b++) {
@@ -131,17 +131,17 @@ namespace jvi {
         };
 
         // 
-        std::array<vk::DescriptorSet,5u>& getDescriptorSets() {
+        virtual std::array<vk::DescriptorSet,5u>& getDescriptorSets() {
             return descriptorSets;
         };
 
         // 
-        vk::PipelineLayout getPipelineLayout() {
+        virtual vk::PipelineLayout getPipelineLayout() {
             return unifiedPipelineLayout;
         };
 
         // 
-        std::shared_ptr<Context> registerTime() {
+        virtual std::shared_ptr<Context> registerTime() {
             this->previTime = this->leastTime;
             uniformRawData[0].tdata[0] = std::chrono::duration_cast<std::chrono::milliseconds>((this->leastTime = std::chrono::high_resolution_clock::now()) - this->beginTime).count(); // time from beginning
             uniformRawData[0].tdata[1] = std::chrono::duration_cast<std::chrono::milliseconds>(this->leastTime - this->previTime).count(); // difference 
@@ -149,53 +149,53 @@ namespace jvi {
         };
 
         // 
-        uint32_t& drawTime() { return uniformRawData[0].tdata[0u]; };
-        uint32_t& timeDiff() { return uniformRawData[0].tdata[1u]; };
-        const uint32_t& drawTime() const { return uniformRawData[0].tdata[0u]; };
-        const uint32_t& timeDiff() const { return uniformRawData[0].tdata[1u]; };
+        virtual uint32_t& drawTime() { return uniformRawData[0].tdata[0u]; };
+        virtual uint32_t& timeDiff() { return uniformRawData[0].tdata[1u]; };
+        virtual const uint32_t& drawTime() const { return uniformRawData[0].tdata[0u]; };
+        virtual const uint32_t& timeDiff() const { return uniformRawData[0].tdata[1u]; };
 
         // 
-        std::shared_ptr<Context> setDrawCount(const uint32_t& count = 0u) {
+        virtual std::shared_ptr<Context> setDrawCount(const uint32_t& count = 0u) {
             uniformRawData[0].rdata[0] = count;
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Context> setPerspective(const glm::mat4x4& persp = glm::mat4(1.f)) {
+        virtual std::shared_ptr<Context> setPerspective(const glm::mat4x4& persp = glm::mat4(1.f)) {
             uniformRawData[0].projection = glm::transpose(persp);
             uniformRawData[0].projectionInv = glm::transpose(glm::inverse(persp));
             return shared_from_this();
         };
 
         // 
-        std::shared_ptr<Context> setModelView(const glm::mat4x4& mv = glm::mat3x4(1.f)) {
+        virtual std::shared_ptr<Context> setModelView(const glm::mat4x4& mv = glm::mat3x4(1.f)) {
             uniformRawData[0].modelview = glm::transpose(mv);
             uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(mv));
             return shared_from_this();
         };
 
         // 
-        std::array<vkt::ImageRegion, 8u>& getFlip1Buffers() {
+        virtual std::array<vkt::ImageRegion, 8u>& getFlip1Buffers() {
             return this->smFlip1Images;
         }
 
         // 
-        const std::array<vkt::ImageRegion, 8u>& const getFlip1Buffers() const {
+        virtual const std::array<vkt::ImageRegion, 8u>& const getFlip1Buffers() const {
             return this->smFlip1Images;
         }
 
         // 
-        std::array<vkt::ImageRegion, 8u>& getFrameBuffers() {
+        virtual std::array<vkt::ImageRegion, 8u>& getFrameBuffers() {
             return this->frameBfImages;
         }
 
         // 
-        const std::array<vkt::ImageRegion, 8u>& const getFrameBuffers() const {
+        virtual const std::array<vkt::ImageRegion, 8u>& const getFrameBuffers() const {
             return this->frameBfImages;
         }
 
         // 
-        std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
+        virtual std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
             std::array<VkImageView, 9u> deferredAttachments = {};
             std::array<VkImageView, 9u> smpFlip0Attachments = {};
             std::array<VkImageView, 9u> smpFlip1Attachments = {};
@@ -318,7 +318,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Context> createDescriptorSetLayouts() { // reset layout descriptions
+        virtual std::shared_ptr<Context> createDescriptorSetLayouts() { // reset layout descriptions
             this->meshDataDescriptorSetLayoutHelper = {};
             this->bindingsDescriptorSetLayoutHelper = {};
             this->samplingDescriptorSetLayoutHelper = {};
@@ -371,7 +371,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Context> createDescriptorSets() {
+        virtual std::shared_ptr<Context> createDescriptorSets() {
             if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
 
             {
@@ -441,7 +441,7 @@ namespace jvi {
         };
 
         // 
-        std::shared_ptr<Context> initialize(const uint32_t& width = 800u, const uint32_t& height = 600u) {
+        virtual std::shared_ptr<Context> initialize(const uint32_t& width = 800u, const uint32_t& height = 600u) {
             this->createRenderPass();
             this->createFramebuffers(width,height);
             this->createDescriptorSetLayouts();
