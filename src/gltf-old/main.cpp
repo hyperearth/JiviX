@@ -159,7 +159,14 @@ public:
 };
 
 
-
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+#ifdef ENABLE_OPENGL_INTEROP
+    glViewport(0, 0, width, height);
+#endif
+}
 
 //std::shared_ptr<vkt::GPUFramework> fw = {};
 jvx::Driver fw = {};
@@ -188,6 +195,10 @@ int main() {
 	auto framebuffers = fw->createSwapchainFramebuffer(swapchain, renderPass);
 	auto queue = fw->getQueue();
 	auto commandPool = fw->getCommandPool();
+
+    // OpenGL Context
+    glfwMakeContextCurrent(manager.window);
+    glfwSetFramebufferSizeCallback(manager.window, framebuffer_size_callback);
 
     // 
     auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };

@@ -1,7 +1,5 @@
 #pragma once // #
 
-#include <memory>
-#include <chrono>
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
@@ -73,6 +71,15 @@ namespace jvi {
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1 },
                 });
                 this->rawMeshInfo[0u].indexType = uint32_t(vk::IndexType::eNoneNV) + 1u;
+
+                // TODO: other platforms memory handling
+                // create OpenGL version of buffers
+#ifdef ENABLE_OPENGL_INTEROP
+                glCreateBuffers(1u, &this->indexDataOGL.second);
+                glCreateMemoryObjectsEXT(1u, &this->indexDataOGL.first);
+                glImportMemoryWin32HandleEXT(this->indexDataOGL.first, this->indexData->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->indexData->getAllocationInfo().handle);
+                glNamedBufferStorageMemEXT(this->indexDataOGL.second, AllocationUnitCount * 2u * sizeof(uint32_t), this->indexDataOGL.first, 0u);
+#endif
             };
 
             // 
@@ -85,6 +92,15 @@ namespace jvi {
                     .size = AllocationUnitCount * 2 * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
                 }));
+
+                // TODO: other platforms memory handling
+                // create OpenGL version of buffers
+#ifdef ENABLE_OPENGL_INTEROP
+                glCreateBuffers(1u,&this->bindingsOGL[i].second);
+                glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
+                glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
+                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, AllocationUnitCount * 2u * sizeof(uint32_t), this->bindingsOGL[i].first, 0u);
+#endif
             };
         };
 
@@ -102,6 +118,23 @@ namespace jvi {
         virtual vkt::Vector<uint8_t> getIndexBuffer() {
             return this->indexData;
         };
+
+        // 
+#ifdef ENABLE_OPENGL_INTEROP
+        virtual GLuint getBindingBufferGL(const uintptr_t& i) {
+            return this->bindingsOGL[i].second;
+        };
+
+        // 
+        virtual GLuint getBindingBufferGL() {
+            return this->bindingsOGL[this->lastBindID].second;
+        };
+
+        // 
+        virtual GLuint getIndexBufferGL() {
+            return this->indexDataOGL.second;
+        };
+#endif
 
         // Win32 Only (currently)
         virtual HANDLE getBindingMemoryHandle(const uintptr_t& i = 0) {
@@ -506,14 +539,23 @@ namespace jvi {
     // 
     protected: friend Mesh; friend Node; friend Renderer; // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indexData = {}; 
+#ifdef ENABLE_OPENGL_INTEROP
+        std::pair<GLuint, GLuint> indexDataOGL = {};
+#endif
+
+        vk::DeviceSize currentUnitCount = 0u;
         vk::IndexType indexType = vk::IndexType::eNoneNV;
         const vk::DeviceSize AllocationUnitCount = 32768;
-        vk::DeviceSize currentUnitCount = 0u;
+
+        // 
         uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 0u;
         bool needsUpdate = false;
 
         // 
         std::array<vkt::Vector<uint8_t>, 8> bindings = {};
+#ifdef ENABLE_OPENGL_INTEROP
+        std::array<std::pair<GLuint, GLuint>, 8> bindingsOGL = {};
+#endif
         std::array<uint32_t, 8> bindRange = {0,0,0,0,0,0,0,0};
 
         // 
@@ -523,8 +565,8 @@ namespace jvi {
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
 
         // accumulated by "Instance" for instanced rendering
-        uint32_t transformStride = sizeof(glm::vec4);
         vkt::Vector<glm::vec4> gpuTransformData = {};
+        uint32_t transformStride = sizeof(glm::vec4);
         uint32_t lastBindID = 0u, locationCounter = 0u;
 
         // 

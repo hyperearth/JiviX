@@ -40,10 +40,22 @@ set (SOURCES_LIST
     "./include/volk/*"
     "./include/spirv/*"
     "./include/spirv/*/*"
+    
+    "./src/*.cpp"
     "./src/*.hpp"
+    "./src/*.c"
     "./src/*.h"
+    
+    "./src/*/*.cpp"
     "./src/*/*.hpp"
     "./src/*/*.h"
+    "./src/*/*.c"
+    
+    "./src/*/*/*.cpp"
+    "./src/*/*/*.hpp"
+    "./src/*/*/*.c"
+    "./src/*/*/*.h"
+    
     "./src/include/*.hpp"
     "./src/include/*.h"
     "./src/include/*/*.hpp"
@@ -51,9 +63,9 @@ set (SOURCES_LIST
 )
 
 # Find packages (Linux Prior)
-find_package (Vulkan QUIET)
-find_package (GLFW3 QUIET)
-find_package (PkgConfig QUIET)
+find_package(Vulkan QUIET)
+find_package(GLFW3 QUIET)
+find_package(PkgConfig QUIET)
 pkg_search_module(GLFW QUIET glfw3)
 pkg_search_module(GLFW QUIET renderdoc)
 

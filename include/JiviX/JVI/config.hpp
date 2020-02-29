@@ -1,6 +1,12 @@
 #pragma once // #
 
 #include <memory>
+#include <chrono>
+
+#ifdef ENABLE_OPENGL_INTEROP
+#include <glad/glad.h>
+#endif
+
 #include <vkt2/fw.hpp>
 
 namespace jvi {
