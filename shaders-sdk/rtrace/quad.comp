@@ -7,7 +7,7 @@ layout (local_size_x = 256) in;
 
 // THIS SHADER FOR Minecraft Compatibility
 void main(){
-    const uvec4 quadIndices = uvec4(gl_GlobalInvocationID.x*4+0,gl_GlobalInvocationID.x*4+1,gl_GlobalInvocationID.x*4+2,gl_GlobalInvocationID.x*4+3);
+    const uvec4 quadIndices = gl_GlobalInvocationID.x*4u + uvec4(0u,1u,2u,3u);
     
     // CW triangle A
     imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+0), uvec4(quadIndices.x));
@@ -16,6 +16,6 @@ void main(){
 
     // CW triangle B
     imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+3), uvec4(quadIndices.y));
-    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+3), uvec4(quadIndices.w));
-    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+3), uvec4(quadIndices.z));
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+4), uvec4(quadIndices.w));
+    imageStore(index[drawInfo.data.x], int(gl_GlobalInvocationID.x*6+5), uvec4(quadIndices.z));
 };
