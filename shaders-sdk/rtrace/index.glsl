@@ -103,7 +103,7 @@ layout (binding = 6, set = 0, r8ui) readonly uniform uimageBuffer mesh6[];
 layout (binding = 7, set = 0, r8ui) readonly uniform uimageBuffer mesh7[];
 
 #ifdef GEN_QUAD_INDEX // For Minecraft
-layout (binding = 8, set = 0, r8ui) writeonly uniform uimageBuffer index[]; // indices compatible 
+layout (binding = 8, set = 0, r32ui) uniform uimageBuffer index[]; // indices compatible 
 #else
 layout (binding = 8, set = 0, r8ui) readonly uniform uimageBuffer index[]; // indices compatible 
 #endif

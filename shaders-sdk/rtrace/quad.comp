@@ -2,7 +2,6 @@
 #extension GL_GOOGLE_include_directive : require
 #define GEN_QUAD_INDEX
 #include "./driver.glsl"
-#include "./index.glsl"
 
 // THIS SHADER FOR Minecraft Compatibility
 void main(){

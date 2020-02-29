@@ -7,7 +7,7 @@ layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec2 iTexcoord;
 layout (location = 2) in vec3 iNormals;
 layout (location = 3) in vec4 iTangent;
-layout (location = 4) in vec4 fBinormal;
+//layout (location = 4) in vec4 fBinormal;
 
 // Right Oriented
 layout (location = 0) out vec4 gPosition;

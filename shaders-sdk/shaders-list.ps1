@@ -51,18 +51,19 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     new-item -Name $HRDDIR$RDXO -itemtype directory  -Force | Out-Null
 
     # ray-tracing of vector graphics
-    BuildCompute "render.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "render.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "rasterize.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "rasterize.geom"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "rasterize.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "background.frag"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "background.vert"   "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "pathtrace.rgen"   "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "pathtrace.rchit"  "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "pathtrace.rmiss"  "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "render.frag"          "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "render.vert"          "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "rasterize.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "resample.frag"        "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "resample.vert"        "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "background.frag"      "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "background.vert"      "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "pathtrace.rgen"       "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "pathtrace.rchit"      "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "pathtrace.rmiss"      "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "quad.comp"            "$INDIR$RTPU" "$HRDDIR$RTPU"
 
     # optimize built shaders
     OptimizeMainline $RTPU
