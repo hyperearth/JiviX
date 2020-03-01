@@ -237,6 +237,10 @@ namespace jvi {
             };
             return uTHIS;
         };
+
+        // For JavaCPP compatibility (from LWJGL3 Pointer)
+        virtual uPTR(Mesh) addBinding(const GLuint& rawData, const vkh::VkVertexInputBindingDescription* binding) { return this->addBinding(rawData, *binding); };
+        virtual uPTR(Mesh) addBinding(const GLuint& rawData, const void* binding) { return this->addBinding(rawData, *(vkh::VkVertexInputBindingDescription*)binding); };
 #endif
 
         // 
@@ -259,6 +263,10 @@ namespace jvi {
             return uTHIS;
         };
 
+        // For JavaCPP compatibility (from LWJGL3 Pointer)
+        template<class T = uint8_t> inline uPTR(Mesh) addBinding(const std::vector<T>& rawData, const vkh::VkVertexInputBindingDescription* binding) { return this->addBinding(rawData, *binding); };
+        template<class T = uint8_t> inline uPTR(Mesh) addBinding(const std::vector<T>& rawData, const void* binding) { return this->addBinding(rawData, *(vkh::VkVertexInputBindingDescription*)binding); };
+
         // 
         template<class T = uint8_t>
         inline uPTR(Mesh) addBinding(const vkt::Vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}){
@@ -275,6 +283,10 @@ namespace jvi {
             };
             return uTHIS;
         };
+
+        // For JavaCPP compatibility (from LWJGL3 Pointer)
+        template<class T = uint8_t> inline uPTR(Mesh) addBinding(const vkt::Vector<T>& rawData, const vkh::VkVertexInputBindingDescription* binding) { return this->addBinding(rawData, *binding); };
+        template<class T = uint8_t> inline uPTR(Mesh) addBinding(const vkt::Vector<T>& rawData, const void* binding) { return this->addBinding(rawData, *(vkh::VkVertexInputBindingDescription*)binding); };
 
         // 
         virtual uPTR(Mesh) addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& NotStub = true) {
@@ -312,6 +324,10 @@ namespace jvi {
 
             return uTHIS;
         };
+
+        // For JavaCPP compatibility (from LWJGL3 Pointer)
+        virtual uPTR(Mesh) addAttribute(const vkh::VkVertexInputAttributeDescription* attribute, const bool& NotStub = true) { return this->addAttribute(*attribute, NotStub); };
+        virtual uPTR(Mesh) addAttribute(const void* attribute, const bool& NotStub = true) { return this->addAttribute(*(vkh::VkVertexInputAttributeDescription*)attribute, NotStub); };
 
         // 
         virtual uPTR(Mesh) setVertexCount(const uint32_t& count = 32768u) {
