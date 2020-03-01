@@ -13,34 +13,42 @@ namespace jvi {
             this->descriptorPool = *driver;
         };
 
+        Thread(Driver* driver) { // derrivate from driver framework
+            this->driver = std::shared_ptr<Driver>(driver);
+            this->queue = *driver;
+            this->commandPool = *driver;
+            this->descriptorPool = *driver;
+        };
+        ~Thread() {};
+
         // TODO: create dedicated thread pool
-        virtual std::shared_ptr<Thread> createThreadPool() {
+        virtual uPTR(Thread) createThreadPool() {
             
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Thread> setDriver(const std::shared_ptr<Driver>& driver) {
+        virtual uPTR(Thread) setDriver(const std::shared_ptr<Driver>& driver) {
             this->driver = driver;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Thread> createQueue() {
+        virtual uPTR(Thread) createQueue() {
 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Thread> createCommandPool() {
+        virtual uPTR(Thread) createCommandPool() {
             
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Thread> createDescriptorPool() {
+        virtual uPTR(Thread) createDescriptorPool() {
 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // Getter Operators
@@ -58,7 +66,7 @@ namespace jvi {
         virtual const vk::Device& getDevice() const { return driver->getDevice(); };
         virtual const std::shared_ptr<Driver>& getDriverPtr() const { return driver; };
         virtual const Driver& getDriver() const { return *driver; };
-    
+
         // Getter Operators
         virtual operator vk::CommandPool&() { return commandPool; };
         virtual operator vk::DescriptorPool&() { return descriptorPool; };
@@ -84,30 +92,30 @@ namespace jvi {
         virtual const Driver* operator->() const { return &(*driver); };
 
         // 
-        virtual std::shared_ptr<Thread> submitOnce(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
+        virtual uPTR(Thread) submitOnce(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
             vkt::submitOnce(*this, *this, *this, cmdFn, smbi);
-            return shared_from_this();
+            return uTHIS;
         };
 
         // Async Version
-        virtual std::future<std::shared_ptr<Thread>> submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
+        virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitOnceAsync(*this, *this, *this, cmdFn, smbi).get();
-                return this->shared_from_this();
+                return uTHIS;
             });
         };
 
         // 
-        virtual std::shared_ptr<Thread> submitCmd(const std::vector<vk::CommandBuffer>& cmds, vk::SubmitInfo smbi = {}) {
+        virtual uPTR(Thread) submitCmd(const std::vector<vk::CommandBuffer>& cmds, vk::SubmitInfo smbi = {}) {
             vkt::submitCmd(*this, *this, cmds, smbi);
-            return shared_from_this();
+            return uTHIS;
         };
 
         // Async Version
-        virtual std::future<std::shared_ptr<Thread>> submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vk::SubmitInfo& smbi = {}) {
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vk::SubmitInfo& smbi = {}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitCmdAsync(*this, *this, cmds, smbi).get();
-                return this->shared_from_this();
+                return uTHIS;
             });
         };
 

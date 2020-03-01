@@ -10,7 +10,17 @@ namespace jvi {
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Node : public std::enable_shared_from_this<Node> { public: friend Renderer;
-        Node(const std::shared_ptr<Context>& context) {
+        Node() {};
+        Node(const std::shared_ptr<Context>& context) : context(context) { 
+            this->construct();
+        };
+        Node(Context* context) : context(context) {
+            this->context = std::shared_ptr<Context>(context);
+            this->construct();
+        };
+        ~Node() {};
+
+        virtual uPTR(Node) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = context;
@@ -21,41 +31,42 @@ namespace jvi {
             this->accelerationStructureInfo.geometryCount = 0u;
 
             // DEATH POINT FIXED 
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance)*MaxInstanceCount, .usage = { .eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance)*MaxInstanceCount, .usage = { .eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // 
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u*64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Node> setContext(const std::shared_ptr<Context>& context) {
+        virtual uPTR(Node) setContext(const std::shared_ptr<Context>& context) {
             this->context = context;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Node> setThread(const std::shared_ptr<Thread>& thread) {
+        virtual uPTR(Node) setThread(const std::shared_ptr<Thread>& thread) {
             this->thread = thread;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Node> setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
+        virtual uPTR(Node) setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
             this->rawInstances = rawInstances; 
             this->instanceCounter = instanceCounter;
             this->mapMeshes.resize(instanceCounter);
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Node> setGpuInstance(const vkt::Vector<vkh::VsGeometryInstance>& gpuInstances = {}) {
+        virtual uPTR(Node) setGpuInstance(const vkt::Vector<vkh::VsGeometryInstance>& gpuInstances = {}) {
             this->gpuInstances = gpuInstances;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Node> pushInstance(const vkh::VsGeometryInstance& instance = {}) {
+        virtual uPTR(Node) pushInstance(const vkh::VsGeometryInstance& instance = {}) {
             const auto instanceID = this->instanceCounter++;
             const uint32_t meshID = instance.instanceId;
             this->rawInstances[instanceID] = instance;
@@ -64,16 +75,16 @@ namespace jvi {
             if (this->meshes[meshID]->accelerationStructure) {
                 this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle, this->driver->getDispatch());
             };
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Node> mapMeshData() {
+        virtual uPTR(Node) mapMeshData() {
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
                 this->driver->getDevice().getAccelerationStructureHandleNV(this->meshes[this->mapMeshes[i]]->accelerationStructure, sizeof(uint64_t), &this->rawInstances[i].accelerationStructureHandle, this->driver->getDispatch());
                 //std::cout << this->rawInstances[i].accelerationStructureHandle << std::endl;
             };
-            return shared_from_this();
+            return uTHIS;
         };
 
         // Push Mesh "Template" For Any Other Instances
@@ -82,8 +93,20 @@ namespace jvi {
             this->meshes.push_back(mesh); return ptr;
         };
 
+        // WARNING!!! NOT RECOMMENDED! 
+        virtual uintptr_t pushMesh(Mesh* mesh) {
+            const uintptr_t ptr = this->meshes.size();
+            this->meshes.push_back(std::shared_ptr<Mesh>(mesh)); return ptr;
+        };
+
+        // WARNING!!! NOT RECOMMENDED! 
+        virtual uintptr_t pushMesh(Mesh& mesh) {
+            const uintptr_t ptr = this->meshes.size();
+            this->meshes.push_back(std::shared_ptr<Mesh>(&mesh)); return ptr;
+        };
+
         // 
-        virtual std::shared_ptr<Node> createDescriptorSet() { // 
+        virtual uPTR(Node) createDescriptorSet() { // 
             this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
             this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
 
@@ -217,11 +240,11 @@ namespace jvi {
             this->mapMeshData();
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Node> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+        virtual uPTR(Node) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
             buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
 
@@ -233,11 +256,11 @@ namespace jvi {
             vkt::commandBarrier(buildCommand);
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,this->gpuInstances,this->gpuInstances.offset(),this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(), this->driver->getDispatch());
             vkt::commandBarrier(buildCommand);
-            this->needsUpdate = true; return shared_from_this();
+            this->needsUpdate = true; return uTHIS;
         };
 
         // Create Or Rebuild Acceleration Structure
-        virtual std::shared_ptr<Node> createAccelerationStructure() { // Re-assign instance count
+        virtual uPTR(Node) createAccelerationStructure() { // Re-assign instance count
             this->accelerationStructureInfo.instanceCount = MaxInstanceCount;
             this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
             this->accelerationStructureInfo.geometryCount = 0u;
@@ -284,7 +307,7 @@ namespace jvi {
             // 
             this->accelerationStructureInfo.instanceCount = instanceCounter;
             this->mapMeshData();
-            return shared_from_this();
+            return uTHIS;
         };
 
     protected: // 

@@ -12,10 +12,18 @@ namespace jvi {
     // TODO: Descriptor Sets
     class Renderer : public std::enable_shared_from_this<Renderer> { public: // 
         Renderer(){};
-        Renderer(const std::shared_ptr<Context>& context) {
+        Renderer(const std::shared_ptr<Context>& context) : context(context) {
+            this->construct();
+        };
+        Renderer(Context* context) {
+            this->context = std::shared_ptr<Context>(context);
+            this->construct();
+        };
+        ~Renderer() {};
+
+        virtual uPTR(Renderer) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
-            this->context = context;
 
             // get ray-tracing properties
             this->properties.pNext = &this->rayTracingProperties;
@@ -24,43 +32,45 @@ namespace jvi {
 
             // 
             const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize *8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuSBTBuffer = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize *8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawSBTBuffer = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuSBTBuffer = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // Pre-Initialize Stages For FASTER CODE
             this->skyboxStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/background.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/background.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-            });
+                });
 
             // 
             this->rtStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rgen.spv"), vk::ShaderStageFlagBits::eRaygenNV),
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
                 vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rmiss.spv"), vk::ShaderStageFlagBits::eMissNV)
-            });
+                });
 
             // 
             this->resampStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-            });
-        };
+                });
+
+            return uTHIS;
+        }
 
         // 
-        virtual std::shared_ptr<Renderer> linkMaterial(const std::shared_ptr<Material>& materials = {}) {
+        virtual uPTR(Renderer) linkMaterial(const std::shared_ptr<Material>& materials = {}) {
             this->materials = materials;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> linkNode(const std::shared_ptr<Node>& node = {}) {
+        virtual uPTR(Renderer) linkNode(const std::shared_ptr<Node>& node = {}) {
             this->node = node;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> setupRayTracingPipeline() { // 
+        virtual uPTR(Renderer) setupRayTracingPipeline() { // 
             this->rayTraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper();
             this->rayTraceInfo.vkInfo.layout = this->context->unifiedPipelineLayout;
             this->rayTraceInfo.vkInfo.maxRecursionDepth = 4u;
@@ -70,11 +80,11 @@ namespace jvi {
 
             // get ray-tracing properties
             this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u,this->rayTraceInfo.groupCount(),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupHandleSize,this->rawSBTBuffer.data(),this->driver->getDispatch());
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> setupBackgroundPipeline() {
+        virtual uPTR(Renderer) setupBackgroundPipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -98,11 +108,11 @@ namespace jvi {
             this->skyboxedInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
             this->backgroundState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->skyboxedInfo);
 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> setupResamplingPipeline() {
+        virtual uPTR(Renderer) setupResamplingPipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -131,11 +141,11 @@ namespace jvi {
             this->resamplingState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
+        virtual uPTR(Renderer) setupSkyboxedCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{
@@ -173,11 +183,11 @@ namespace jvi {
             vkt::commandBarrier(rasterCommand);
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // get ray-tracing properties
+        virtual uPTR(Renderer) setupRayTraceCommand(const vk::CommandBuffer& rayTraceCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // get ray-tracing properties
             const auto& rtxp = this->rayTracingProperties;
             const auto& renderArea = this->context->refScissor();
 
@@ -211,11 +221,11 @@ namespace jvi {
                 this->driver->getDispatch()
             );
             vkt::commandBarrier(rayTraceCommand);
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+        virtual uPTR(Renderer) setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto clearValues = std::vector<vk::ClearValue>{
@@ -244,11 +254,11 @@ namespace jvi {
             vkt::commandBarrier(resampleCommand);
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Renderer> setupCommands() { // setup Commands
+        virtual uPTR(Renderer) setupCommands() { // setup Commands
             if (!this->context->refRenderPass()) {
                 this->context->createRenderPass();
             };
@@ -289,7 +299,7 @@ namespace jvi {
 
             // 
             this->cmdbuf.end();
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 

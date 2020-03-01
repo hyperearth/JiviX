@@ -23,10 +23,19 @@ namespace jvi {
     // Sub-Instances Can Be Supported
     // TODO: Descriptor Sets
     class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Node; friend Renderer;
-        Mesh(const std::shared_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) {
+        Mesh() {};
+        Mesh(const std::shared_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768) : context(context), AllocationUnitCount(AllocationUnitCount) {
+            this->construct();
+        };
+        Mesh(Context* context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) {
+            this->context = std::shared_ptr<Context>(context);
+            this->construct();
+        };
+        ~Mesh() {};
+
+        virtual uPTR(Mesh) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
-            this->context = context;
 
             // 
             this->accelerationStructureInfo.instanceCount = 0u;
@@ -36,14 +45,14 @@ namespace jvi {
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
 
             // create required buffers
-            this->rawBindings = vkt::Vector<VkVertexInputBindingDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuBindings = vkt::Vector<VkVertexInputBindingDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
-            this->rawAttributes = vkt::Vector<VkVertexInputAttributeDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuAttributes = vkt::Vector<VkVertexInputAttributeDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription)*8u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 }}, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawBindings = vkt::Vector<VkVertexInputBindingDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuBindings = vkt::Vector<VkVertexInputBindingDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawAttributes = vkt::Vector<VkVertexInputAttributeDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuAttributes = vkt::Vector<VkVertexInputAttributeDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // 
             //this->gpuMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
-              this->rawMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->rawMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
 
             // Internal Instance Map Per Global Node
             this->rawInstanceMap = vkt::Vector<uint32_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 4u * 64u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
@@ -54,7 +63,7 @@ namespace jvi {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.geom.spv"), vk::ShaderStageFlagBits::eGeometry),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-            });
+                });
 
             // 
             auto allocInfo = vkt::MemoryAllocationInfo{};
@@ -69,7 +78,7 @@ namespace jvi {
                 this->indexData = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1 },
-                });
+                    });
                 this->rawMeshInfo[0u].indexType = uint32_t(vk::IndexType::eNoneNV) + 1u;
 
                 // TODO: other platforms memory handling
@@ -83,7 +92,7 @@ namespace jvi {
             };
 
             // 
-            for (uint32_t i=0;i<8;i++) {
+            for (uint32_t i = 0; i < 8; i++) {
                 this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount = AllocationUnitCount;
                 this->geometryTemplate.geometry.triangles.vertexOffset = 0u;
                 this->geometryTemplate.geometry.triangles.vertexStride = 8u;
@@ -91,18 +100,20 @@ namespace jvi {
                 this->bindings[i] = vkt::Vector<uint8_t>(std::make_shared<vkt::BufferAllocation>(allocInfo, vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * 2 * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
-                }));
+                    }));
 
                 // TODO: other platforms memory handling
                 // create OpenGL version of buffers
 #ifdef ENABLE_OPENGL_INTEROP
-                glCreateBuffers(1u,&this->bindingsOGL[i].second);
+                glCreateBuffers(1u, &this->bindingsOGL[i].second);
                 glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
                 glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
                 glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, AllocationUnitCount * 2u * sizeof(uint32_t), this->bindingsOGL[i].first, 0u);
 #endif
             };
-        };
+
+            return uTHIS;
+        }
 
         // 
         virtual vkt::Vector<uint8_t>& getBindingBuffer(const uintptr_t& i) {
@@ -195,21 +206,21 @@ namespace jvi {
         };
 
         // 
-        virtual std::shared_ptr<Mesh> setMaterialID(const uint32_t& materialID = 0u) {
+        virtual uPTR(Mesh) setMaterialID(const uint32_t& materialID = 0u) {
             this->rawMeshInfo[0u].materialID = materialID;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> setThread(const std::shared_ptr<Thread>& thread) {
+        virtual uPTR(Mesh) setThread(const std::shared_ptr<Thread>& thread) {
             this->thread = thread;
-            return shared_from_this();
+            return uTHIS;
         };
 
 
 #ifdef ENABLE_OPENGL_INTEROP
         // WARNING: OpenGL `rawData` SHOULD TO BE  `CPU_TO_GPU`  BUFFER FOR HIGHER PERFORMANCE!!!
-        virtual std::shared_ptr<Mesh> addBinding(const GLuint& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
+        virtual uPTR(Mesh) addBinding(const GLuint& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -222,13 +233,13 @@ namespace jvi {
             if (glsize > 0) {
                 glCopyNamedBufferSubData(rawData, this->bindingsOGL[bindingID].second, 0u, this->bindings[bindingID].offset(), range);
             };
-            return shared_from_this();
+            return uTHIS;
         };
 #endif
 
         // 
         template<class T = uint8_t>
-        inline std::shared_ptr<Mesh> addBinding(const std::vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
+        inline uPTR(Mesh) addBinding(const std::vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -243,12 +254,12 @@ namespace jvi {
                     };
                 });
             };
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
         template<class T = uint8_t>
-        inline std::shared_ptr<Mesh> addBinding(const vkt::Vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}){
+        inline uPTR(Mesh) addBinding(const vkt::Vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}){
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID+1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -260,11 +271,11 @@ namespace jvi {
                     cmd.copyBuffer(rawData, this->bindings[bindingID], { vk::BufferCopy{ rawData.offset(), this->bindings[bindingID].offset(), std::min(this->bindings[bindingID].range(), rawData.range()) } });
                 });
             };
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& NotStub = true) {
+        virtual uPTR(Mesh) addAttribute(const vkh::VkVertexInputAttributeDescription& attribute = {}, const bool& NotStub = true) {
             //const uintptr_t bindingID = attribute.binding;
             //const uintptr_t locationID = this->locationCounter++;
             const uintptr_t bindingID = this->lastBindID;
@@ -297,11 +308,11 @@ namespace jvi {
                 this->currentUnitCount = this->vertexCount;
             };
 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> setVertexCount(const uint32_t& count = 32768u) {
+        virtual uPTR(Mesh) setVertexCount(const uint32_t& count = 32768u) {
             if (this->indexType == vk::IndexType::eNoneNV) {
                 this->vertexCount = this->geometryTemplate.geometry.triangles.vertexCount = count;
                 this-> indexCount = this->geometryTemplate.geometry.triangles.indexCount = 0;
@@ -309,23 +320,23 @@ namespace jvi {
                 this-> indexCount = this->geometryTemplate.geometry.triangles.indexCount = count;
             };
             this->currentUnitCount = count;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> manifestIndex(const vk::IndexType& type, const vk::DeviceSize& indexCount = 0) {
+        virtual uPTR(Mesh) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& indexCount = 0) {
             this->indexType = type;
             if (indexCount) {
                 this->indexCount = indexCount;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
                 this->currentUnitCount = this->indexCount;
             };
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
         template<class T = uint8_t>
-        inline std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type){
+        inline uPTR(Mesh) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type){
             vk::DeviceSize count = 0u;
 
             if (rawIndices.has()) {
@@ -364,67 +375,67 @@ namespace jvi {
             this->geometryTemplate.geometry.triangles.indexData   = this->indexData;
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint32); };
-        virtual std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint16); };
-        virtual std::shared_ptr<Mesh> setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint8EXT); };
-        virtual std::shared_ptr<Mesh> setIndexData() { return this->setIndexData({},vk::IndexType::eNoneNV); };
+        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint32); };
+        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint16); };
+        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint8EXT); };
+        virtual uPTR(Mesh) setIndexData() { return this->setIndexData({},vk::IndexType::eNoneNV); };
 
         // some type dependent
         template<class T = uint8_t>
-        inline std::shared_ptr<Mesh> setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
+        inline uPTR(Mesh) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
-        virtual std::shared_ptr<Mesh> setDriver(const std::shared_ptr<Driver>& driver = {}){
+        virtual uPTR(Mesh) setDriver(const std::shared_ptr<Driver>& driver = {}){
             this->driver = driver;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> increaseInstanceCount(const uint32_t& mapID = 0u, const uint32_t& instanceCount = 1u) {
+        virtual uPTR(Mesh) increaseInstanceCount(const uint32_t& mapID = 0u, const uint32_t& instanceCount = 1u) {
             this->rawInstanceMap[this->instanceCount] = mapID;
             this->instanceCount += instanceCount;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> setInstanceCount(const uint32_t& instanceCount = 1u) {
+        virtual uPTR(Mesh) setInstanceCount(const uint32_t& instanceCount = 1u) {
             this->instanceCount = instanceCount;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // MORE useful for instanced data
-        virtual std::shared_ptr<Mesh> setTransformData(const vkt::Vector<glm::vec4>& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
+        virtual uPTR(Mesh) setTransformData(const vkt::Vector<glm::vec4>& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
             this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset();
             this->geometryTemplate.geometry.triangles.transformData = transformData;
             this->gpuTransformData = transformData;
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
+        virtual uPTR(Mesh) copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
             buildCommand.copyBuffer(this->rawAttributes , this->gpuAttributes , { vk::BufferCopy{ this->rawAttributes .offset(), this->gpuAttributes .offset(), this->gpuAttributes .range() } });
             buildCommand.copyBuffer(this->rawBindings   , this->gpuBindings   , { vk::BufferCopy{ this->rawBindings   .offset(), this->gpuBindings   .offset(), this->gpuBindings   .range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
             //vkt::commandBarrier(buildCommand);
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+        virtual uPTR(Mesh) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (this->geometryTemplate.geometry.triangles.indexType == VK_INDEX_TYPE_NONE_NV) { this->geometryTemplate.geometry.triangles.indexCount = 0; };
             if (this->accelerationStructure) { this->updateGeometry(); } else { this->createAccelerationStructure(); };
             buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(),this->driver->getDispatch());
-            this->needsUpdate = true; return shared_from_this();
+            this->needsUpdate = true; return uTHIS;
         };
 
         //
-        virtual std::shared_ptr<Mesh> updateGeometry() {
+        virtual uPTR(Mesh) updateGeometry() {
             this->geometries.resize(1u);
             for (uint32_t i = 0u; i < this->geometries.size(); i++) {
                 //this->geometries.push_back(this->geometryTemplate);
@@ -442,11 +453,11 @@ namespace jvi {
             this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_NV;
             this->accelerationStructureInfo.instanceCount = 0u;
             
-            return shared_from_this();
+            return uTHIS;
         };
 
         // Create Or Rebuild Acceleration Structure
-        virtual std::shared_ptr<Mesh> createAccelerationStructure() {
+        virtual uPTR(Mesh) createAccelerationStructure() {
             bool Is2ndFormat = // TODO: more correct length detection
                 this->geometryTemplate.geometry.triangles.vertexFormat == VK_FORMAT_R32G32_SFLOAT ||
                 this->geometryTemplate.geometry.triangles.vertexFormat == VK_FORMAT_R16G16B16_SFLOAT ||
@@ -511,11 +522,11 @@ namespace jvi {
             };
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Mesh> createRasterizePipeline() {
+        virtual uPTR(Mesh) createRasterizePipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -547,12 +558,12 @@ namespace jvi {
             this->rasterizationState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // Create Secondary Command With Pipeline
-        virtual std::shared_ptr<Mesh> createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
-            if (this->instanceCount <= 0u) return shared_from_this();
+        virtual uPTR(Mesh) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
+            if (this->instanceCount <= 0u) return uTHIS;
 
             // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -597,7 +608,7 @@ namespace jvi {
             //vkt::commandBarrier(rasterCommand);
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
     // 

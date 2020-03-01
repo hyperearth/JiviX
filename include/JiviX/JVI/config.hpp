@@ -18,4 +18,12 @@ namespace jvi {
     class Renderer;
     class Material;
 
+#ifdef NATIVE_SHARED_PTR
+#define uPTR(NAME) std::shared_ptr<NAME>
+#define uTHIS shared_from_this()
+#else // For Java Applications compatibility
+#define uPTR(NAME) NAME*
+#define uTHIS this
+#endif
+
 };

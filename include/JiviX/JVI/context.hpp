@@ -22,11 +22,21 @@ namespace jvi {
     // 
     class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend Node; friend Driver; friend Material; friend Renderer;
         Context() {};
-        Context(const std::shared_ptr<Driver>& driver) {
-            this->driver = driver;
+
+        Context(const std::shared_ptr<Driver>& driver) : driver(driver) {
+            this->construct();
+        };
+
+        Context(Driver* driver) : driver(std::shared_ptr<Driver>(driver)) {
+            this->construct();
+        };
+
+        ~Context() {};
+
+        virtual uPTR(Context) construct() {
             this->thread = std::make_shared<Thread>(this->driver);
-            this->uniformGPUData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
-            this->uniformRawData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->uniformGPUData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->uniformRawData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
             this->beginTime = std::chrono::high_resolution_clock::now();
             this->leastTime = std::chrono::high_resolution_clock::now();
             this->previTime = std::chrono::high_resolution_clock::now();
@@ -40,12 +50,13 @@ namespace jvi {
             uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(modelview));
             uniformRawData[0].projection = glm::transpose(projected);
             uniformRawData[0].projectionInv = glm::transpose(glm::inverse(projected));
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Context> setThread(const std::shared_ptr<Thread>& thread) {
+        virtual uPTR(Context) setThread(const std::shared_ptr<Thread>& thread) {
             this->thread = thread;
-            return shared_from_this();
+            return uTHIS;
         };
 
         virtual std::shared_ptr<Thread>& getThread() {
@@ -139,11 +150,11 @@ namespace jvi {
         };
 
         // 
-        virtual std::shared_ptr<Context> registerTime() {
+        virtual uPTR(Context) registerTime() {
             this->previTime = this->leastTime;
             uniformRawData[0].tdata[0] = std::chrono::duration_cast<std::chrono::milliseconds>((this->leastTime = std::chrono::high_resolution_clock::now()) - this->beginTime).count(); // time from beginning
             uniformRawData[0].tdata[1] = std::chrono::duration_cast<std::chrono::milliseconds>(this->leastTime - this->previTime).count(); // difference 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
@@ -153,23 +164,23 @@ namespace jvi {
         virtual const uint32_t& timeDiff() const { return uniformRawData[0].tdata[1u]; };
 
         // 
-        virtual std::shared_ptr<Context> setDrawCount(const uint32_t& count = 0u) {
+        virtual uPTR(Context) setDrawCount(const uint32_t& count = 0u) {
             uniformRawData[0].rdata[0] = count;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Context> setPerspective(const glm::mat4x4& persp = glm::mat4(1.f)) {
+        virtual uPTR(Context) setPerspective(const glm::mat4x4& persp = glm::mat4(1.f)) {
             uniformRawData[0].projection = glm::transpose(persp);
             uniformRawData[0].projectionInv = glm::transpose(glm::inverse(persp));
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Context> setModelView(const glm::mat4x4& mv = glm::mat3x4(1.f)) {
+        virtual uPTR(Context) setModelView(const glm::mat4x4& mv = glm::mat3x4(1.f)) {
             uniformRawData[0].modelview = glm::transpose(mv);
             uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(mv));
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
@@ -193,7 +204,7 @@ namespace jvi {
         }
 
         // 
-        virtual std::shared_ptr<Context> createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
+        virtual uPTR(Context) createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
             std::array<VkImageView, 9u> deferredAttachments = {};
             std::array<VkImageView, 9u> smpFlip0Attachments = {};
             std::array<VkImageView, 9u> smpFlip1Attachments = {};
@@ -312,11 +323,11 @@ namespace jvi {
             });
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Context> createDescriptorSetLayouts() { // reset layout descriptions
+        virtual uPTR(Context) createDescriptorSetLayouts() { // reset layout descriptions
             this->meshDataDescriptorSetLayoutHelper = {};
             this->bindingsDescriptorSetLayoutHelper = {};
             this->samplingDescriptorSetLayoutHelper = {};
@@ -365,11 +376,11 @@ namespace jvi {
             std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
             std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
             this->unifiedPipelineLayout = driver->getDevice().createPipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges));
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Context> createDescriptorSets() {
+        virtual uPTR(Context) createDescriptorSets() {
             if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
 
             {
@@ -435,16 +446,16 @@ namespace jvi {
             this->descriptorSets[3] = this->smpFlip0DescriptorSet;
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Context> initialize(const uint32_t& width = 800u, const uint32_t& height = 600u) {
+        virtual uPTR(Context) initialize(const uint32_t& width = 800u, const uint32_t& height = 600u) {
             this->createRenderPass();
             this->createFramebuffers(width,height);
             this->createDescriptorSetLayouts();
             this->createDescriptorSets();
-            return shared_from_this();
+            return uTHIS;
         };
 
     protected: // 

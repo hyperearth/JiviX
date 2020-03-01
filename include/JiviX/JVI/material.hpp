@@ -25,57 +25,68 @@ namespace jvi {
 #pragma pack(pop)
 
     // WIP Materials
-    class Material : public std::enable_shared_from_this<Material> { public: 
-        Material(const std::shared_ptr<Context>& context) {
+    class Material : public std::enable_shared_from_this<Material> { public: // 
+        Material() {};
+        Material(const std::shared_ptr<Context>& context) : context(context) {
+            this->construct();
+        };
+        Material(Context* context) {
+            this->context = std::shared_ptr<Context>(context);
+            this->construct();
+        };
+        ~Material() {};
+
+        // 
+        virtual uPTR(Material) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
-            this->context = context;
 
             // 
-            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit)*64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * 64u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * 64u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Material> setContext(const std::shared_ptr<Context>& context) {
+        virtual uPTR(Material) setContext(const std::shared_ptr<Context>& context) {
             this->context = context;
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->materialDescriptorSetLayout,this->thread->getDescriptorPool());
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Material> setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
+        virtual uPTR(Material) setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
             this->rawMaterials = rawMaterials; this->materialCounter = materialCounter;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Material> setGpuMaterials(const vkt::Vector<MaterialUnit>& gpuMaterials = {}) {
+        virtual uPTR(Material) setGpuMaterials(const vkt::Vector<MaterialUnit>& gpuMaterials = {}) {
             this->gpuMaterials = gpuMaterials;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Material> pushMaterial(const MaterialUnit& material = {}) {
+        virtual uPTR(Material) pushMaterial(const MaterialUnit& material = {}) {
             const auto materialID = materialCounter++;
             this->rawMaterials[materialID] = material;
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Material> pushSampledImage(const vkh::VkDescriptorImageInfo& info = {}) {
+        virtual uPTR(Material) pushSampledImage(const vkh::VkDescriptorImageInfo& info = {}) {
             this->sampledImages.push_back(info);
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Material> copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
+        virtual uPTR(Material) copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
             buildCommand.copyBuffer(this->rawMaterials, this->gpuMaterials, { vk::BufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() } });
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
-        virtual std::shared_ptr<Material> createDescriptorSet() {
+        virtual uPTR(Material) createDescriptorSet() {
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(context->materialDescriptorSetLayout, driver->descriptorPool);
 
             if (sampledImages.size() > 0u) { // Setup Textures
@@ -98,7 +109,7 @@ namespace jvi {
             // Reprojection WILL NOT write own depth... 
             this->context->descriptorSets[4] = this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
             this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)), {});
-            return shared_from_this();
+            return uTHIS;
         };
 
     protected: // 
