@@ -206,6 +206,26 @@ namespace jvi {
             return shared_from_this();
         };
 
+
+#ifdef ENABLE_OPENGL_INTEROP
+        // WARNING: OpenGL `rawData` SHOULD TO BE  `CPU_TO_GPU`  BUFFER FOR HIGHER PERFORMANCE!!!
+        virtual std::shared_ptr<Mesh> addBinding(const GLuint& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
+            const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
+            this->vertexInputBindingDescriptions.resize(bindingID + 1u);
+            this->vertexInputBindingDescriptions[bindingID] = binding;
+            this->vertexInputBindingDescriptions[bindingID].binding = bindingID;
+            this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
+
+            // 
+            GLint glsize = 0u; glGetNamedBufferParameteriv(rawData, GL_BUFFER_SIZE, &glsize);
+            const auto& range = this->bindRange[this->lastBindID = bindingID] = glsize;
+            if (glsize > 0) {
+                glCopyNamedBufferSubData(rawData, this->bindingsOGL[bindingID].second, 0u, this->bindings[bindingID].offset(), range);
+            };
+            return shared_from_this();
+        };
+#endif
+
         // 
         template<class T = uint8_t>
         inline std::shared_ptr<Mesh> addBinding(const std::vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}) {
@@ -227,7 +247,8 @@ namespace jvi {
         };
 
         // 
-        virtual std::shared_ptr<Mesh> addBinding(const vkt::Vector<uint8_t>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}){
+        template<class T = uint8_t>
+        inline std::shared_ptr<Mesh> addBinding(const vkt::Vector<T>& rawData, const vkh::VkVertexInputBindingDescription& binding = {}){
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID+1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
