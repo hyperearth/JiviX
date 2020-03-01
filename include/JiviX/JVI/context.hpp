@@ -33,6 +33,8 @@ namespace jvi {
 
         ~Context() {};
 
+        virtual std::shared_ptr<Context> sharedPtr() { return shared_from_this(); };
+
         virtual uPTR(Context) construct() {
             this->thread = std::make_shared<Thread>(this->driver);
             this->uniformGPUData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);

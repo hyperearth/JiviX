@@ -33,6 +33,8 @@ namespace jvi {
         };
         ~Mesh() {};
 
+        virtual std::shared_ptr<Mesh> sharedPtr() { return shared_from_this(); };
+
         virtual uPTR(Mesh) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);

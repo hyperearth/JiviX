@@ -454,8 +454,7 @@ int main() {
                 mesh->setIndexData(vector, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
             };
 
-            mesh->setMaterialID(primitive.material)->increaseInstanceCount();
-            node->pushMesh(mesh);
+            node->pushMesh(mesh->setMaterialID(primitive.material)->increaseInstanceCount()->sharedPtr());
         };
     };
 

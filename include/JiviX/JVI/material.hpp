@@ -36,6 +36,8 @@ namespace jvi {
         };
         ~Material() {};
 
+        virtual std::shared_ptr<Material> sharedPtr() { return shared_from_this(); };
+
         // 
         virtual uPTR(Material) construct() {
             this->driver = context->getDriver();

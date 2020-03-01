@@ -21,6 +21,8 @@ namespace jvi {
         };
         ~Renderer() {};
 
+        virtual std::shared_ptr<Renderer> sharedPtr() { return shared_from_this(); };
+
         virtual uPTR(Renderer) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);

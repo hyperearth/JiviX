@@ -21,6 +21,8 @@ namespace jvi {
         };
         ~Thread() {};
 
+        virtual std::shared_ptr<Thread> sharedPtr() { return shared_from_this(); };
+
         // TODO: create dedicated thread pool
         virtual uPTR(Thread) createThreadPool() {
             

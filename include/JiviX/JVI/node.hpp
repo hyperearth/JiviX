@@ -20,6 +20,8 @@ namespace jvi {
         };
         ~Node() {};
 
+        virtual std::shared_ptr<Node> sharedPtr() { return shared_from_this(); };
+
         virtual uPTR(Node) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
@@ -94,12 +96,14 @@ namespace jvi {
         };
 
         // WARNING!!! NOT RECOMMENDED! 
+        [[deprecated]]
         virtual uintptr_t pushMesh(Mesh* mesh) {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(std::shared_ptr<Mesh>(mesh)); return ptr;
         };
 
         // WARNING!!! NOT RECOMMENDED! 
+        [[deprecated]]
         virtual uintptr_t pushMesh(Mesh& mesh) {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(std::shared_ptr<Mesh>(&mesh)); return ptr;

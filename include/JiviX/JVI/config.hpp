@@ -17,6 +17,7 @@ namespace jvi {
     class Node;
     class Renderer;
     class Material;
+    class Context;
 
 #ifdef NATIVE_SHARED_PTR
 #define uPTR(NAME) std::shared_ptr<NAME>
