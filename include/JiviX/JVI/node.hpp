@@ -315,7 +315,7 @@ namespace jvi {
     protected: // 
         std::vector<vkt::uni_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
         std::vector<uint32_t> mapMeshes = {};
-        const uintptr_t MaxInstanceCount = 64;
+        uintptr_t MaxInstanceCount = 64;
 
         // 
         vkt::Vector<vkh::VsGeometryInstance> rawInstances = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...

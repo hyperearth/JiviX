@@ -58,13 +58,13 @@ namespace jvi {
         }
 
         // 
-        virtual uPTR(Renderer) linkMaterial(const vkt::uni_ptr<Material>& materials = {}) {
+        virtual uPTR(Renderer) linkMaterial(vkt::uni_ptr<Material>& materials) {
             this->materials = materials;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Renderer) linkNode(const vkt::uni_ptr<Node>& node = {}) {
+        virtual uPTR(Renderer) linkNode(vkt::uni_ptr<Node>& node) {
             this->node = node;
             return uTHIS;
         };
