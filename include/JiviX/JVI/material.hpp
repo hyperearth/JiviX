@@ -27,16 +27,13 @@ namespace jvi {
     // WIP Materials
     class Material : public std::enable_shared_from_this<Material> { public: // 
         Material() {};
-        Material(const std::shared_ptr<Context>& context) : context(context) {
-            this->construct();
-        };
-        Material(Context* context) {
-            this->context = std::shared_ptr<Context>(context);
-            this->construct();
-        };
+        Material(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        //Material(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Material() {};
 
+        // 
         virtual std::shared_ptr<Material> sharedPtr() { return shared_from_this(); };
+        virtual std::shared_ptr<const Material> sharedPtr() const { return shared_from_this(); };
 
         // 
         virtual uPTR(Material) construct() {
@@ -127,8 +124,8 @@ namespace jvi {
 
         // 
         vk::DeviceSize materialCounter = 0u;
-        std::shared_ptr<Driver> driver = {};
-        std::shared_ptr<Thread> thread = {};
-        std::shared_ptr<Context> context = {};
+        vkt::uni_ptr<Driver> driver = {};
+        vkt::uni_ptr<Thread> thread = {};
+        vkt::uni_ptr<Context> context = {};
     };
 };

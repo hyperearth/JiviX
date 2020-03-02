@@ -6,22 +6,17 @@
 namespace jvi {
     class Thread : public std::enable_shared_from_this<Thread> { public: 
         Thread() {};
-        Thread(const std::shared_ptr<Driver>& driver) { // derrivate from driver framework
+        Thread(const vkt::uni_ptr<Driver>& driver) { // derrivate from driver framework
             this->driver = driver;
-            this->queue = *driver;
-            this->commandPool = *driver;
-            this->descriptorPool = *driver;
-        };
-
-        Thread(Driver* driver) { // derrivate from driver framework
-            this->driver = std::shared_ptr<Driver>(driver);
             this->queue = *driver;
             this->commandPool = *driver;
             this->descriptorPool = *driver;
         };
         ~Thread() {};
 
+        // 
         virtual std::shared_ptr<Thread> sharedPtr() { return shared_from_this(); };
+        virtual std::shared_ptr<const Thread> sharedPtr() const { return shared_from_this(); };
 
         // TODO: create dedicated thread pool
         virtual uPTR(Thread) createThreadPool() {
@@ -30,7 +25,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Thread) setDriver(const std::shared_ptr<Driver>& driver) {
+        virtual uPTR(Thread) setDriver(const vkt::uni_ptr<Driver>& driver) {
             this->driver = driver;
             return uTHIS;
         };
@@ -58,7 +53,7 @@ namespace jvi {
         virtual vk::DescriptorPool& getDescriptorPool() { return descriptorPool; };
         virtual vk::Queue& getQueue() { return queue; };
         virtual vk::Device& getDevice() { return driver->getDevice(); };
-        virtual std::shared_ptr<Driver>& getDriverPtr() { return driver; };
+        virtual vkt::uni_ptr<Driver>& getDriverPtr() { return driver; };
         virtual Driver& getDriver() { return *driver; };
 
         // 
@@ -66,7 +61,7 @@ namespace jvi {
         virtual const vk::DescriptorPool& getDescriptorPool() const { return descriptorPool; };
         virtual const vk::Queue& getQueue() const { return queue; };
         virtual const vk::Device& getDevice() const { return driver->getDevice(); };
-        virtual const std::shared_ptr<Driver>& getDriverPtr() const { return driver; };
+        virtual const vkt::uni_ptr<Driver>& getDriverPtr() const { return driver; };
         virtual const Driver& getDriver() const { return *driver; };
 
         // Getter Operators
@@ -126,7 +121,7 @@ namespace jvi {
         vk::Queue queue = {};
         vk::CommandPool commandPool = {};
         vk::DescriptorPool descriptorPool = {};
-        std::shared_ptr<Driver> driver = {};
+        vkt::uni_ptr<Driver> driver = {};
     };
 
 };

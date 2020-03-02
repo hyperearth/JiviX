@@ -22,19 +22,15 @@ namespace jvi {
     // 
     class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend Node; friend Driver; friend Material; friend Renderer;
         Context() {};
-
-        Context(const std::shared_ptr<Driver>& driver) : driver(driver) {
-            this->construct();
-        };
-
-        Context(Driver* driver) : driver(std::shared_ptr<Driver>(driver)) {
-            this->construct();
-        };
-
+        Context(const vkt::uni_ptr<Driver>& driver) : driver(driver) { this->construct(); };
+        //Context(Driver* driver) : driver(vkt::uni_ptr(driver)) { this->construct(); };
         ~Context() {};
 
+        // 
         virtual std::shared_ptr<Context> sharedPtr() { return shared_from_this(); };
+        virtual std::shared_ptr<const Context> sharedPtr() const { return shared_from_this(); };
 
+        // 
         virtual uPTR(Context) construct() {
             this->thread = std::make_shared<Thread>(this->driver);
             this->uniformGPUData = vkt::Vector<Matrices>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
@@ -56,16 +52,16 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Context) setThread(const std::shared_ptr<Thread>& thread) {
+        virtual uPTR(Context) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
 
-        virtual std::shared_ptr<Thread>& getThread() {
+        virtual vkt::uni_ptr<Thread>& getThread() {
             return this->thread;
         };
 
-        virtual const std::shared_ptr<Thread>& getThread() const {
+        virtual const vkt::uni_ptr<Thread>& getThread() const {
             return this->thread;
         };
 
@@ -82,11 +78,11 @@ namespace jvi {
         //const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
 
         // 
-        virtual std::shared_ptr<Driver>& getDriver() { return driver; };
-        virtual const std::shared_ptr<Driver>& getDriver() const { return driver; };
+        virtual vkt::uni_ptr<Driver>& getDriver() { return driver; };
+        virtual const vkt::uni_ptr<Driver>& getDriver() const { return driver; };
 
         // 
-        virtual std::shared_ptr<Context> createRenderPass() { // 
+        virtual uPTR(Context) createRenderPass() { // 
             vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
 
             for (uint32_t b=0u;b<8u;b++) {
@@ -138,7 +134,7 @@ namespace jvi {
             this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
 
             // 
-            return shared_from_this();
+            return uTHIS;
         };
 
         // 
@@ -506,8 +502,8 @@ namespace jvi {
         vkh::VsDescriptorSetLayoutCreateInfoHelper bindingsDescriptorSetLayoutHelper = {};
         
         // 
-        std::shared_ptr<Driver> driver = {};
-        std::shared_ptr<Thread> thread = {};
+        vkt::uni_ptr<Driver> driver = {};
+        vkt::uni_ptr<Thread> thread = {};
 
         // 
         //glm::mat4 projected = glm::mat4(1.f);

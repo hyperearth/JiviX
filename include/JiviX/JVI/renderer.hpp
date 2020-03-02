@@ -12,17 +12,15 @@ namespace jvi {
     // TODO: Descriptor Sets
     class Renderer : public std::enable_shared_from_this<Renderer> { public: // 
         Renderer(){};
-        Renderer(const std::shared_ptr<Context>& context) : context(context) {
-            this->construct();
-        };
-        Renderer(Context* context) {
-            this->context = std::shared_ptr<Context>(context);
-            this->construct();
-        };
+        Renderer(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        //Renderer(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Renderer() {};
 
+        // 
         virtual std::shared_ptr<Renderer> sharedPtr() { return shared_from_this(); };
+        virtual std::shared_ptr<const Renderer> sharedPtr() const { return shared_from_this(); };
 
+        // 
         virtual uPTR(Renderer) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
@@ -60,13 +58,13 @@ namespace jvi {
         }
 
         // 
-        virtual uPTR(Renderer) linkMaterial(const std::shared_ptr<Material>& materials = {}) {
+        virtual uPTR(Renderer) linkMaterial(const vkt::uni_ptr<Material>& materials = {}) {
             this->materials = materials;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Renderer) linkNode(const std::shared_ptr<Node>& node = {}) {
+        virtual uPTR(Renderer) linkNode(const vkt::uni_ptr<Node>& node = {}) {
             this->node = node;
             return uTHIS;
         };
@@ -313,8 +311,8 @@ namespace jvi {
         vk::CommandBuffer cmdbuf = {};
 
         // binding data
-        std::shared_ptr<Material> materials = {}; // materials
-        std::shared_ptr<Node> node = {}; // currently only one node... 
+        vkt::uni_ptr<Material> materials = {}; // materials
+        vkt::uni_ptr<Node> node = {}; // currently only one node... 
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction skyboxedInfo = {};
@@ -339,16 +337,16 @@ namespace jvi {
         vkt::Vector<uint64_t> rawSBTBuffer = {};
 
         // 
-        std::shared_ptr<Context> context = {};
-        std::shared_ptr<Driver> driver = {};
-        std::shared_ptr<Thread> thread = {};
+        vkt::uni_ptr<Context> context = {};
+        vkt::uni_ptr<Driver> driver = {};
+        vkt::uni_ptr<Thread> thread = {};
         
         // 
         vk::PhysicalDeviceRayTracingPropertiesNV rayTracingProperties = {};
         vk::PhysicalDeviceProperties2 properties = {};
 
-        //std::vector<std::shared_ptr<Instance>> instances = {};
-        //std::vector<std::shared_ptr<Material>> materials = {};
+        //std::vector<vkt::uni_ptr<Instance>> instances = {};
+        //std::vector<vkt::uni_ptr<Material>> materials = {};
     };
 
 };

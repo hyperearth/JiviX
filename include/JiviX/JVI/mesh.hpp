@@ -24,17 +24,15 @@ namespace jvi {
     // TODO: Descriptor Sets
     class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Node; friend Renderer;
         Mesh() {};
-        Mesh(const std::shared_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768) : context(context), AllocationUnitCount(AllocationUnitCount) {
-            this->construct();
-        };
-        Mesh(Context* context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) {
-            this->context = std::shared_ptr<Context>(context);
-            this->construct();
-        };
+        Mesh(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768) : context(context), AllocationUnitCount(AllocationUnitCount) { this->construct(); };
+        //Mesh(Context* context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Mesh() {};
 
+        // 
         virtual std::shared_ptr<Mesh> sharedPtr() { return shared_from_this(); };
+        virtual std::shared_ptr<const Mesh> sharedPtr() const { return shared_from_this(); };
 
+        // 
         virtual uPTR(Mesh) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
@@ -99,10 +97,10 @@ namespace jvi {
                 this->geometryTemplate.geometry.triangles.vertexOffset = 0u;
                 this->geometryTemplate.geometry.triangles.vertexStride = 8u;
                 this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
-                this->bindings[i] = vkt::Vector<uint8_t>(std::make_shared<vkt::BufferAllocation>(allocInfo, vkh::VkBufferCreateInfo{
+                this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * 2 * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
-                    }));
+                });
 
                 // TODO: other platforms memory handling
                 // create OpenGL version of buffers
@@ -214,7 +212,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Mesh) setThread(const std::shared_ptr<Thread>& thread) {
+        virtual uPTR(Mesh) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
@@ -407,7 +405,7 @@ namespace jvi {
         inline uPTR(Mesh) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
-        virtual uPTR(Mesh) setDriver(const std::shared_ptr<Driver>& driver = {}){
+        virtual uPTR(Mesh) setDriver(const vkt::uni_ptr<Driver>& driver = {}){
             this->driver = driver;
             return uTHIS;
         };
@@ -525,10 +523,10 @@ namespace jvi {
                 }, this->driver->getDispatch());
 
                 // 
-                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
-                }, VMA_MEMORY_USAGE_GPU_ONLY));
+                }, VMA_MEMORY_USAGE_GPU_ONLY);
             };
 
             // 
@@ -691,10 +689,10 @@ namespace jvi {
         VmaAllocation allocation = {};
 
         // 
-        std::shared_ptr<Driver> driver = {};
-        std::shared_ptr<Thread> thread = {};
-        std::shared_ptr<Context> context = {};
-        //std::shared_ptr<Renderer> renderer = {};
+        vkt::uni_ptr<Driver> driver = {};
+        vkt::uni_ptr<Thread> thread = {};
+        vkt::uni_ptr<Context> context = {};
+        //vkt::uni_ptr<Renderer> renderer = {};
     };
 
 };

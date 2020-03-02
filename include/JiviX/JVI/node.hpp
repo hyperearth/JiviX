@@ -11,17 +11,15 @@ namespace jvi {
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Node : public std::enable_shared_from_this<Node> { public: friend Renderer;
         Node() {};
-        Node(const std::shared_ptr<Context>& context) : context(context) { 
-            this->construct();
-        };
-        Node(Context* context) : context(context) {
-            this->context = std::shared_ptr<Context>(context);
-            this->construct();
-        };
+        Node(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        //Node(Context* context) : context(context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Node() {};
 
+        // 
         virtual std::shared_ptr<Node> sharedPtr() { return shared_from_this(); };
+        virtual std::shared_ptr<const Node> sharedPtr() const { return shared_from_this(); };
 
+        //
         virtual uPTR(Node) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
@@ -42,13 +40,13 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) setContext(const std::shared_ptr<Context>& context) {
+        virtual uPTR(Node) setContext(const vkt::uni_ptr<Context>& context) {
             this->context = context;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Node) setThread(const std::shared_ptr<Thread>& thread) {
+        virtual uPTR(Node) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
@@ -90,7 +88,7 @@ namespace jvi {
         };
 
         // Push Mesh "Template" For Any Other Instances
-        virtual uintptr_t pushMesh(const std::shared_ptr<Mesh>& mesh = {}) {
+        virtual uintptr_t pushMesh(const vkt::uni_ptr<Mesh>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(mesh); return ptr;
         };
@@ -99,14 +97,14 @@ namespace jvi {
         [[deprecated]]
         virtual uintptr_t pushMesh(Mesh* mesh) {
             const uintptr_t ptr = this->meshes.size();
-            this->meshes.push_back(std::shared_ptr<Mesh>(mesh)); return ptr;
+            this->meshes.push_back(vkt::uni_ptr<Mesh>(mesh)); return ptr;
         };
 
         // WARNING!!! NOT RECOMMENDED! 
         [[deprecated]]
         virtual uintptr_t pushMesh(Mesh& mesh) {
             const uintptr_t ptr = this->meshes.size();
-            this->meshes.push_back(std::shared_ptr<Mesh>(&mesh)); return ptr;
+            this->meshes.push_back(vkt::uni_ptr<Mesh>(&mesh)); return ptr;
         };
 
         // 
@@ -302,10 +300,10 @@ namespace jvi {
                 }, this->driver->getDispatch());
 
                 // 
-                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(driver->getAllocator(), vkh::VkBufferCreateInfo{
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
-                }, VMA_MEMORY_USAGE_GPU_ONLY));
+                }, VMA_MEMORY_USAGE_GPU_ONLY);
             };
 
             // 
@@ -315,7 +313,7 @@ namespace jvi {
         };
 
     protected: // 
-        std::vector<std::shared_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
+        std::vector<vkt::uni_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
         std::vector<uint32_t> mapMeshes = {};
         const uintptr_t MaxInstanceCount = 64;
 
@@ -342,9 +340,9 @@ namespace jvi {
         VmaAllocation allocation = {};
         
         // 
-        std::shared_ptr<Driver> driver = {};
-        std::shared_ptr<Thread> thread = {};
-        std::shared_ptr<Context> context = {};
+        vkt::uni_ptr<Driver> driver = {};
+        vkt::uni_ptr<Thread> thread = {};
+        vkt::uni_ptr<Context> context = {};
     };
 
 };
