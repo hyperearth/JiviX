@@ -40,7 +40,7 @@ namespace jvi {
             this->previTime = std::chrono::high_resolution_clock::now();
 
             // 
-            glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(1600) / float(1200), 0.0001f, 10000.f);
+            glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(1600) / float(1200), 0.001f, 1000.f);
             glm::mat4x4 modelview = glm::lookAt(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
             // 

@@ -223,9 +223,9 @@ int main() {
 
     // 
     const float unitScale = 1.f;
-    const float unitHeight = -32.f;
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf");
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
+    const float unitHeight = -1.f;
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
@@ -372,10 +372,10 @@ int main() {
             const auto& primitive = meshData.primitives[v];
 
             // 
-            uintptr_t vertexCount = 0u; bool ctype = false;
+            uintptr_t vertexCount = 0u; bool ctype = true;//false;
             if (primitive.indices >= 0) {
                 vertexCount = model.accessors[primitive.indices].count;
-                ctype = model.accessors[primitive.indices].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT;
+                if (model.accessors[primitive.indices].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) { ctype = true; };
             } else 
             if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
                 vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
@@ -515,7 +515,7 @@ int main() {
     // 
     //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
     context->setModelView(glm::lookAt(eye, foc, glm::dvec3(0.f, 1.f, 0.f)));
-    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.0001, 10000.));
+    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 1000.));
 
     // initialize program
     renderer->setupCommands();

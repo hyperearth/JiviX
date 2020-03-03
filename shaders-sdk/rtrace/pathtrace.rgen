@@ -83,7 +83,7 @@ void main() { // Hi-DPI adaptation
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
         gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz,gNormal.xyz); 
         raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, seed, speculSample.y);
-        origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f, i++; // pre-correction
+        origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.001f, i++; // pre-correction
 #endif
 
         bool afterReflection = false;
@@ -148,7 +148,7 @@ void main() { // Hi-DPI adaptation
                 };
             }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
-                if (afterReflection) { gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx; };
+                //if (afterReflection) { gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx; }; TODO: Denoised Caustics Support
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             };
 
@@ -171,7 +171,7 @@ void main() { // Hi-DPI adaptation
                 raydir.xyz = normalize(raydir.xyz); 
                 if (TRANSPARENT_ITERATION > 0) { TRANSPARENT_ITERATION--; i--; };
             };
-            origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.0001f;
+            origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.001f;
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f || depth >= 9999.f) { break; }; // 
 
         } else {
