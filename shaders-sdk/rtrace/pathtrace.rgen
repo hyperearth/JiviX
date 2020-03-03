@@ -148,7 +148,7 @@ void main() { // Hi-DPI adaptation
                 };
             }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
-                //gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx;
+                if (afterReflection) { gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx; };
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             };
 

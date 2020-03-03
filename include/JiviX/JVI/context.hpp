@@ -261,15 +261,17 @@ namespace jvi {
                 }));
             };
 
+            // make depth image view
+            auto dview = vk::ImageViewCreateInfo(vkh::VkImageViewCreateInfo{});
+            dview.format = vk::Format::eD32SfloatS8Uint;
+            dview.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil, 0u, 1u, 0u, 1u);
+
             // 
             depthImage = vkt::ImageRegion(driver->getAllocator(), vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .extent = {width,height,1u},
-                .usage = { .eTransferDst = 1, .eDepthStencilAttachment = 1 },
-            }, VMA_MEMORY_USAGE_GPU_ONLY, vkh::VkImageViewCreateInfo{
-                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .subresourceRange = { .aspectMask = { .eDepth = 1, .eStencil = 1 } },
-            });
+                .usage = {.eTransferDst = 1, .eDepthStencilAttachment = 1 },
+            }, VMA_MEMORY_USAGE_GPU_ONLY, reinterpret_cast<vkh::VkImageViewCreateInfo&>(dview));
 
             // 5th attachment
             deferredAttachments[8u] = depthImage;

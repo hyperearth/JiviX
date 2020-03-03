@@ -47,7 +47,7 @@ void sort(inout vec3 arr[9u], int d)
     }
 }
 
-vec4 getDenoised(in ivec2 coord, in bool reflection) {
+vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
     vec4 centerNormal = getNormal(coord);
     vec3 centerOrigin = world2screen(getPosition(coord).xyz);
     
@@ -71,13 +71,13 @@ vec4 getDenoised(in ivec2 coord, in bool reflection) {
 
     vec4 sampled = 0.f.xxxx; int scount = 0;
     
-    for (uint x=0;x<5u;x++) {
-        for (uint y=0;y<5u;y++) {
-            ivec2 map = coord+ivec2(x-2u,y-2u);
+    for (uint x=0;x<maxc;x++) {
+        for (uint y=0;y<maxc;y++) {
+            ivec2 map = coord+ivec2(x-(maxc>>1),y-(maxc>>1));
             vec4 nsample = getNormal(map);
             vec3 psample = world2screen(getPosition(map).xyz);
 
-            if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == 2u && y == 2u)) {
+            if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == (maxc>>1) && y == (maxc>>1))) {
                 if (reflection) {
                     sampled += vec4(getReflection(map).xyz,1.f);
                 } else {
@@ -102,8 +102,8 @@ void main() {
     const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
     
     
-    vec4 coloring = getDenoised(samplep,false);
-    vec4 reflects = getDenoised(samplep, true);
+    vec4 coloring = getDenoised(samplep,false, 9);
+    vec4 reflects = getDenoised(samplep, true, 3);
     if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,1.f); };
     if (coloring.w <= 0.f) { coloring = vec4(0.f.xxx,1.f); };
     coloring = max(coloring, 0.f.xxxx);
