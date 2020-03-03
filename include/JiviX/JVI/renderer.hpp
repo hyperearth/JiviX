@@ -264,7 +264,7 @@ namespace jvi {
             };
 
             // 
-            this->cmdbuf = vkt::createCommandBuffer(*thread, *thread);
+            this->cmdbuf = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread));
             this->cmdbuf.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
 
             // prepare meshes for ray-tracing

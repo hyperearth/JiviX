@@ -251,10 +251,10 @@ int main() {
 
     // 
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
-        cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+        cpuBuffers.push_back(vkt::Vector<>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
             .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-        }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
+        }, VMA_MEMORY_USAGE_CPU_TO_GPU));
 
         // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
@@ -275,11 +275,11 @@ int main() {
         const auto& img = model.images[i];
 
         // 
-        auto image = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw->getAllocator(), vkh::VkImageCreateInfo{
+        auto image = vkt::ImageRegion(fw->getAllocator(), vkh::VkImageCreateInfo{
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .extent = {uint32_t(img.width),uint32_t(img.height),1u},
             .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-        }), vkh::VkImageViewCreateInfo{
+        }, VMA_MEMORY_USAGE_GPU_ONLY, vkh::VkImageViewCreateInfo{
             .format = VK_FORMAT_R8G8B8A8_UNORM,
         }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
             .magFilter = VK_FILTER_LINEAR,
@@ -291,10 +291,10 @@ int main() {
         // 
         vkt::Vector<> imageBuf = {};
         if (img.image.size() > 0u) {
-            imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            imageBuf = vkt::Vector<>(fw->getAllocator(), vkh::VkBufferCreateInfo{
                 .size = img.image.size(),
                 .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-            }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            }, VMA_MEMORY_USAGE_CPU_TO_GPU);
             memcpy(imageBuf.data(), &img.image[0u], img.image.size());
         };
 

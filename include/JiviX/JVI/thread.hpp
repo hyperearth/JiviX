@@ -90,28 +90,28 @@ namespace jvi {
 
         // 
         virtual uPTR(Thread) submitOnce(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
-            vkt::submitOnce(*this, *this, *this, cmdFn, smbi);
+            vkt::submitOnce(vk::Device(*this), vk::Queue(*this), vk::CommandPool(*this), cmdFn, smbi);
             return uTHIS;
         };
 
         // Async Version
         virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
-                vkt::submitOnceAsync(*this, *this, *this, cmdFn, smbi).get();
+                vkt::submitOnceAsync(vk::Device(*this), vk::Queue(*this), vk::CommandPool(*this), cmdFn, smbi).get();
                 return uTHIS;
             });
         };
 
         // 
         virtual uPTR(Thread) submitCmd(const std::vector<vk::CommandBuffer>& cmds, vk::SubmitInfo smbi = {}) {
-            vkt::submitCmd(*this, *this, cmds, smbi);
+            vkt::submitCmd(vk::Device(*this), vk::Queue(*this), cmds, smbi);
             return uTHIS;
         };
 
         // Async Version
         virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vk::SubmitInfo& smbi = {}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
-                vkt::submitCmdAsync(*this, *this, cmds, smbi).get();
+                vkt::submitCmdAsync(vk::Device(*this), vk::Queue(*this), cmds, smbi).get();
                 return uTHIS;
             });
         };
