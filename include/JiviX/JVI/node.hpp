@@ -66,9 +66,9 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) pushInstance(const vkh::VsGeometryInstance& instance = {}) {
+        virtual uPTR(Node) pushInstance(const vkt::uni_arg<vkh::VsGeometryInstance>& instance = vkh::VsGeometryInstance{}) {
             const auto instanceID = this->instanceCounter++;
-            const uint32_t meshID = instance.instanceId;
+            const uint32_t meshID = instance->instanceId;
             this->rawInstances[instanceID] = instance;
             //this->rawInstances[instanceID].instanceId = meshID; // Customize Per Mesh
             this->mapMeshes.push_back(meshID);

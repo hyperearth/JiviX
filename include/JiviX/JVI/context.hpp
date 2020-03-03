@@ -261,17 +261,21 @@ namespace jvi {
                 }));
             };
 
-            // make depth image view
-            auto dview = vk::ImageViewCreateInfo(vkh::VkImageViewCreateInfo{});
-            dview.format = vk::Format::eD32SfloatS8Uint;
-            dview.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil, 0u, 1u, 0u, 1u);
-
             // 
-            depthImage = vkt::ImageRegion(driver->getAllocator(), vkh::VkImageCreateInfo{
+            depthImage = vkt::ImageRegion(allocInfo, vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .extent = {width,height,1u},
-                .usage = {.eTransferDst = 1, .eDepthStencilAttachment = 1 },
-            }, VMA_MEMORY_USAGE_GPU_ONLY, reinterpret_cast<vkh::VkImageViewCreateInfo&>(dview));
+                .usage = {.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 },
+            }, vkh::VkImageViewCreateInfo{
+                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
+            }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
+                .magFilter = VK_FILTER_LINEAR,
+                .minFilter = VK_FILTER_LINEAR,
+                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .unnormalizedCoordinates = true,
+            }));
 
             // 5th attachment
             deferredAttachments[8u] = depthImage;

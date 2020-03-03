@@ -185,7 +185,7 @@ int main() {
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	// initialize Vulkan
-    auto fw = jvx::Driver();
+    fw = jvx::Driver();
 	auto instance = fw->createInstance();
 	auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
 	auto physicalDevice = fw->getPhysicalDevice(0u);
@@ -222,10 +222,10 @@ int main() {
     std::string warn = "";
 
     // 
-    const float unitScale = 1.f;
+    const float unitScale = 100.f;
     const float unitHeight = -1.f;
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf");
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
+    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
@@ -275,7 +275,7 @@ int main() {
         const auto& img = model.images[i];
 
         // 
-        auto image = vkt::ImageRegion(fw->getAllocator(), vkh::VkImageCreateInfo{
+        images.push_back(vkt::ImageRegion(fw->getAllocator(), vkh::VkImageCreateInfo{
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .extent = {uint32_t(img.width),uint32_t(img.height),1u},
             .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
@@ -286,7 +286,10 @@ int main() {
             .minFilter = VK_FILTER_LINEAR,
             .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
             .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        }));
+        })));
+
+        // 
+        auto image = images.back();
 
         // 
         vkt::Vector<> imageBuf = {};
@@ -300,7 +303,7 @@ int main() {
 
         // 
         context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
-            vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = image, .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = image.getImageSubresourceRange() });
+            vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = vk::Image(image), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = image.getImageSubresourceRange() });
 
             auto buffer = imageBuf.has() ? imageBuf : buffersViews[img.bufferView];
             cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{
@@ -313,7 +316,6 @@ int main() {
             } });
         });
 
-        images.push_back(image);
         material->pushSampledImage(image);
     };
 

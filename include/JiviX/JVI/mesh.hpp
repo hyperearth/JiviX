@@ -220,7 +220,7 @@ namespace jvi {
 
 #ifdef ENABLE_OPENGL_INTEROP
         // WARNING: OpenGL `rawData` SHOULD TO BE  `CPU_TO_GPU`  BUFFER FOR HIGHER PERFORMANCE!!!
-        virtual uPTR(Mesh) addBinding(const GLuint& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = {}) {
+        virtual uPTR(Mesh) addBinding(const GLuint& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -243,7 +243,7 @@ namespace jvi {
 
         // 
         template<class T = uint8_t>
-        inline uPTR(Mesh) addBinding(const std::vector<T>& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = {}) {
+        inline uPTR(Mesh) addBinding(const std::vector<T>& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -267,7 +267,7 @@ namespace jvi {
 
         // 
         template<class T = uint8_t>
-        inline uPTR(Mesh) addBinding(const vkt::Vector<T>& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = {}){
+        inline uPTR(Mesh) addBinding(const vkt::Vector<T>& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = vkh::VkVertexInputBindingDescription{}){
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID+1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -287,7 +287,7 @@ namespace jvi {
         //template<class T = uint8_t> inline uPTR(Mesh) addBinding(const vkt::Vector<T>& rawData, const void* binding) { return this->addBinding(rawData, *(vkh::VkVertexInputBindingDescription*)binding); };
 
         // 
-        virtual uPTR(Mesh) addAttribute(const vkt::uni_arg<vkh::VkVertexInputAttributeDescription>& attribute = {}, const bool& NotStub = true) {
+        virtual uPTR(Mesh) addAttribute(const vkt::uni_arg<vkh::VkVertexInputAttributeDescription>& attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
             //const uintptr_t bindingID = attribute.binding;
             //const uintptr_t locationID = this->locationCounter++;
             const uintptr_t bindingID = this->lastBindID;

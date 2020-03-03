@@ -89,13 +89,13 @@ namespace jvi {
         virtual const Driver* operator->() const { return &(*driver); };
 
         // 
-        virtual uPTR(Thread) submitOnce(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
+        virtual uPTR(Thread) submitOnce(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
             vkt::submitOnce(vk::Device(*this), vk::Queue(*this), vk::CommandPool(*this), cmdFn, smbi);
             return uTHIS;
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vk::SubmitInfo& smbi = {}) {
+        virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitOnceAsync(vk::Device(*this), vk::Queue(*this), vk::CommandPool(*this), cmdFn, smbi).get();
                 return uTHIS;
@@ -103,13 +103,13 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Thread) submitCmd(const std::vector<vk::CommandBuffer>& cmds, vk::SubmitInfo smbi = {}) {
+        virtual uPTR(Thread) submitCmd(const std::vector<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
             vkt::submitCmd(vk::Device(*this), vk::Queue(*this), cmds, smbi);
             return uTHIS;
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vk::SubmitInfo& smbi = {}) {
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitCmdAsync(vk::Device(*this), vk::Queue(*this), cmds, smbi).get();
                 return uTHIS;
