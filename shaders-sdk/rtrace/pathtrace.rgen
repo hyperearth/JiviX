@@ -37,8 +37,8 @@ void main() { // Hi-DPI adaptation
 
     // 
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
-    const vec4 sphere = vec4(vec3(8.f,8.f,4.f), 4.f); 
-    const vec3 lightc = 10.f.xxx;
+    const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f); 
+    const vec3 lightc = 16.f*4096.f.xxx/(sphere.w*sphere.w);
 
     //const vec2 shift = random2(uvec2(rdata[0],packed)), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
     const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
@@ -104,7 +104,7 @@ void main() { // Hi-DPI adaptation
                         0, 1, 0,
                         lorign.xyz, 0.0001f,
                         lightd.xyz, 10000.f,
-                        1);
+                        0);
                     
                     depth = min(sdepth,depth+ShadowsRay.fdata.z); // Generalize Shadow Depth
                     lorign.xyz += lightd.xyz * ShadowsRay.fdata.z;
@@ -113,7 +113,7 @@ void main() { // Hi-DPI adaptation
                 };
 
                 const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-                if (depth >= (shdist-sphere.w-0.0001f)) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };
+                if (depth >= shdist-0.0001f) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };
             };
 
             // Primary Rays
@@ -148,7 +148,7 @@ void main() { // Hi-DPI adaptation
                 };
             }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
-                gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx;
+                //gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx;
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             };
 
@@ -190,7 +190,7 @@ void main() { // Hi-DPI adaptation
 
         if (I == 1) { // Titanic OS
             const vec4 speculSample = imageLoad(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy));
-            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),gSignal.xyz,speculSample.w < 0.9999f ? 1.f : 0.5f),frefl));
+            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),gSignal.xyz,speculSample.w < 0.9999f ? 1.f : 0.333f),frefl));
         };
 
         subgroupBarrier();
