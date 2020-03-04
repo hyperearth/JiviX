@@ -17,8 +17,8 @@ namespace jvi {
         ~Renderer() {};
 
         // 
-        virtual std::shared_ptr<Renderer> sharedPtr() { return shared_from_this(); };
-        virtual std::shared_ptr<const Renderer> sharedPtr() const { return shared_from_this(); };
+        virtual vkt::uni_ptr<Renderer> sharedPtr() { return shared_from_this(); };
+        virtual vkt::uni_ptr<const Renderer> sharedPtr() const { return shared_from_this(); };
 
         // 
         virtual uPTR(Renderer) construct() {

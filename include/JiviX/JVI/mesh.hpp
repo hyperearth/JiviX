@@ -29,8 +29,8 @@ namespace jvi {
         ~Mesh() {};
 
         // 
-        virtual std::shared_ptr<Mesh> sharedPtr() { return shared_from_this(); };
-        virtual std::shared_ptr<const Mesh> sharedPtr() const { return shared_from_this(); };
+        virtual vkt::uni_ptr<Mesh> sharedPtr() { return shared_from_this(); };
+        virtual vkt::uni_ptr<const Mesh> sharedPtr() const { return shared_from_this(); };
 
         // 
         virtual uPTR(Mesh) construct() {

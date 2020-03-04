@@ -19,11 +19,12 @@ namespace jvi {
     class Material;
     class Context;
 
+#define uPTR(NAME) vkt::uni_ptr<NAME>
 #ifdef NATIVE_SHARED_PTR
-#define uPTR(NAME) std::shared_ptr<NAME>
+//#define uPTR(NAME) std::shared_ptr<NAME>
 #define uTHIS shared_from_this()
 #else // For Java Applications compatibility
-#define uPTR(NAME) NAME*
+//#define uPTR(NAME) NAME*
 #define uTHIS this
 #endif
 

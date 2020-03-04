@@ -15,8 +15,8 @@ namespace jvi {
         ~Thread() {};
 
         // 
-        virtual std::shared_ptr<Thread> sharedPtr() { return shared_from_this(); };
-        virtual std::shared_ptr<const Thread> sharedPtr() const { return shared_from_this(); };
+        virtual vkt::uni_ptr<Thread> sharedPtr() { return shared_from_this(); };
+        virtual vkt::uni_ptr<const Thread> sharedPtr() const { return shared_from_this(); };
 
         // TODO: create dedicated thread pool
         virtual uPTR(Thread) createThreadPool() {
@@ -98,7 +98,7 @@ namespace jvi {
         virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitOnceAsync(vk::Device(*this), vk::Queue(*this), vk::CommandPool(*this), cmdFn, smbi).get();
-                return uTHIS;
+                return uPTR(Thread)(uTHIS);
             });
         };
 
@@ -112,7 +112,7 @@ namespace jvi {
         virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitCmdAsync(vk::Device(*this), vk::Queue(*this), cmds, smbi).get();
-                return uTHIS;
+                return uPTR(Thread)(uTHIS);
             });
         };
 
