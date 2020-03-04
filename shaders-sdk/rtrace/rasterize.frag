@@ -21,10 +21,10 @@ layout (location = SPECULAR) out vec4 specular;
 // 
 void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
-    vec4 diffuseColor = unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse;
+    vec4 diffuseColor = pow(unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse,vec4(2.2f.xxx,1.f));
     vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
     vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
-    vec4 emissionColor = unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission;
+    vec4 emissionColor = pow(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission,vec4(2.2f.xxx,1.f));
     
     // 
     vec3 gTangent = fTangent.xyz;

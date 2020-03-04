@@ -100,17 +100,19 @@ void main() {
     const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
     const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
     const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
-    
-    
+    const vec4 specular = texelFetch(frameBuffers[SPECULAR],samplep,0);
+
+    int denDepth = 3;
+    if (specular.y > 0.3333f) denDepth = 5;
+    if (specular.y > 0.6666f) denDepth = 7;
+    if (specular.y > 0.9999f) denDepth = 9;
+
     vec4 coloring = getDenoised(samplep,false, 9);
-    vec4 reflects = getDenoised(samplep, true, 3);
+    vec4 reflects = getDenoised(samplep, true, denDepth);
     if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,1.f); };
     if (coloring.w <= 0.f) { coloring = vec4(0.f.xxx,1.f); };
     coloring = max(coloring, 0.f.xxxx);
     reflects = max(reflects, 0.f.xxxx);
 
-    uFragColor = vec4(mix(diffused.xyz*(coloring.xyz/coloring.w)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
-    
-    
-    //uFragColor = vec4(1.f,0.f,1.f,1.f);
+    uFragColor = vec4(pow(mix(diffused.xyz*(coloring.xyz/coloring.w)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f.xxx/2.2.xxx),1.f);
 };

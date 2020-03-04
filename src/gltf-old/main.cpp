@@ -224,16 +224,16 @@ int main() {
     // 
     const float unitScale = 1.f;
     const float unitHeight = -32.f;
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBox.gltf");
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
-    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
-    bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
-    //bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBox.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
+    //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     // 
-    if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
-    if (! err.empty()) { printf("Err: %s\n", err.c_str()); }
+    if (!err.empty()) { printf("Err: %s\n", err.c_str()); }
     if (!ret) { printf("Failed to parse glTF\n"); return -1; }
+    if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
 
     // 
     using mat4_t = glm::mat3x4;
