@@ -224,6 +224,7 @@ int main() {
     // 
     const float unitScale = 1.f;
     const float unitHeight = -1.f;
+    //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBox.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
     bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 

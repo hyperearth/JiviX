@@ -148,7 +148,7 @@ void main() { // Hi-DPI adaptation
                 };
             }};
             [[flatten]] if (depth == sdepth) { // Light Sphere
-                //if (afterReflection) { gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx; }; TODO: Denoised Caustics Support
+                if (afterReflection) { gSignal.xyz += lightc*gEnergy.xyz, gEnergy *= 0.f.xxx; }; // TODO: Denoised Caustics Support
                 gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
             };
 
@@ -183,14 +183,14 @@ void main() { // Hi-DPI adaptation
         if (I == 0) { // Store for Diffuse
             const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
             const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
-            imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), gSignal + directSample);
+            imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), clamp(gSignal,0.f.xxxx,1.f.xxxx) + directSample);
             imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
             imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
         };
 
         if (I == 1) { // Titanic OS
             const vec4 speculSample = imageLoad(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy));
-            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),gSignal.xyz,speculSample.w < 0.9999f ? 1.f : 0.333f),frefl));
+            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),clamp(gSignal,0.f.xxxx,1.f.xxxx).xyz,speculSample.w < 0.9999f ? 1.f : 0.333f),frefl));
         };
 
         subgroupBarrier();
