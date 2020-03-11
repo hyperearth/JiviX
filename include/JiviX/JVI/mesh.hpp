@@ -565,7 +565,7 @@ namespace jvi {
             {
                 this->quadInfo.layout = this->context->unifiedPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
-                vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
+                this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
             }
 
             // TODO: Add to main package
