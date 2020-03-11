@@ -66,7 +66,10 @@ namespace jvi {
             });
 
             // 
-            this->quadGenerator = vkt::createCompute(this->driver->getDevice(), std::string("./shaders/rtrace/quad.comp.spv"), this->context->getPipelineLayout(), this->driver->pipelineCache);
+            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vk::ShaderStageFlagBits::eCompute);
+            
+            // 
+            //this->quadGenerator = vkt::createCompute(this->driver->getDevice(), std::string("./shaders/rtrace/quad.comp.spv"), this->context->unifiedPipelineLayout, this->driver->pipelineCache);
 
             // 
             auto allocInfo = vkt::MemoryAllocationInfo{};
@@ -559,6 +562,12 @@ namespace jvi {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
+            {
+                this->quadInfo.layout = this->context->unifiedPipelineLayout;
+                this->quadInfo.stage = this->quadStage;
+                vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
+            }
+
             // TODO: Add to main package
             // Enable Conservative Rasterization For Fix Some Antialiasing Issues
             vk::PipelineRasterizationConservativeStateCreateInfoEXT conserv = {};
@@ -593,6 +602,8 @@ namespace jvi {
         // Create Secondary Command With Pipeline
         virtual uPTR(Mesh) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
             if (this->instanceCount <= 0u) return uTHIS;
+
+
 
             // 
             if (this->needsQuads) {
@@ -629,7 +640,7 @@ namespace jvi {
             rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
-            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
+            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
 
             // Make Draw Instanced
             if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
@@ -676,6 +687,9 @@ namespace jvi {
         std::vector<vkh::VkVertexInputBindingDescription> vertexInputBindingDescriptions = {};
         std::vector<vkh::VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
+
+        vkh::VkComputePipelineCreateInfo quadInfo = {};
+        vkh::VkPipelineShaderStageCreateInfo quadStage = {};
         vk::Pipeline quadGenerator = {};
 
         // accumulated by "Instance" for instanced rendering

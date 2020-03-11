@@ -222,12 +222,12 @@ int main() {
     std::string warn = "";
 
     // 
-    const float unitScale = 1.f;
-    const float unitHeight = -32.f;
+    const float unitScale = 100.f;
+    const float unitHeight = -1.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBox.gltf");
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     // 
