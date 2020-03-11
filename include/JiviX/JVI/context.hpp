@@ -377,7 +377,7 @@ namespace jvi {
             this->meshDataDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(meshDataDescriptorSetLayoutHelper);
 
             // 
-            std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
+            std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
             std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
             this->unifiedPipelineLayout = driver->getDevice().createPipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges));
             return uTHIS;

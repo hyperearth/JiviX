@@ -63,7 +63,10 @@ namespace jvi {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vk::ShaderStageFlagBits::eVertex),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.geom.spv"), vk::ShaderStageFlagBits::eGeometry),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-                });
+            });
+
+            // 
+            this->quadGenerator = vkt::createCompute(this->driver->getDevice(), std::string("./shaders/rtrace/quad.comp.spv"), this->context->getPipelineLayout(), this->driver->pipelineCache);
 
             // 
             auto allocInfo = vkt::MemoryAllocationInfo{};
@@ -279,6 +282,16 @@ namespace jvi {
                     cmd.copyBuffer(rawData, this->bindings[bindingID], { vk::BufferCopy{ rawData.offset(), this->bindings[bindingID].offset(), std::min(this->bindings[bindingID].range(), rawData.range()) } });
                 });
             };
+            return uTHIS;
+        };
+
+        // 
+        virtual uPTR(Mesh) genQuads(const vk::DeviceSize& primitiveCount = 0u) {
+            this->indexType = vk::IndexType::eUint32;
+            this->needsQuads = true;
+            this->indexCount = this->geometryTemplate.geometry.triangles.indexCount = primitiveCount * 6u;
+            this->vertexCount = this->geometryTemplate.geometry.triangles.vertexCount = primitiveCount * 4u;
+            this->currentUnitCount = this->indexCount;
             return uTHIS;
         };
 
@@ -582,6 +595,14 @@ namespace jvi {
             if (this->instanceCount <= 0u) return uTHIS;
 
             // 
+            if (this->needsQuads) {
+                rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+                rasterCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
+                rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
+                rasterCommand.dispatch(vkt::tiled(this->vertexCount>>2u, 256u) * 256u, 1u, 1u);
+            };
+
+            // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
             for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
@@ -641,6 +662,7 @@ namespace jvi {
         // 
         uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 0u;
         bool needsUpdate = false;
+        bool needsQuads = false;
 
         // 
         std::array<vkt::Vector<uint8_t>, 8> bindings = {};
@@ -654,6 +676,7 @@ namespace jvi {
         std::vector<vkh::VkVertexInputBindingDescription> vertexInputBindingDescriptions = {};
         std::vector<vkh::VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
+        vk::Pipeline quadGenerator = {};
 
         // accumulated by "Instance" for instanced rendering
         vkt::Vector<glm::vec4> gpuTransformData = {};
