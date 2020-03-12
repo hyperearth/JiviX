@@ -289,6 +289,23 @@ namespace jvi {
         };
 
         // 
+        template<class T = uint8_t>
+        inline uPTR(Mesh) addBinding(const vkt::uni_arg<vkh::VkDescriptorBufferInfo>& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = vkh::VkVertexInputBindingDescription{}) {
+            const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
+            this->vertexInputBindingDescriptions.resize(bindingID + 1u);
+            this->vertexInputBindingDescriptions[bindingID] = binding;
+            this->vertexInputBindingDescriptions[bindingID].binding = bindingID;
+            this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
+            this->bindRange[this->lastBindID = bindingID] = rawData->range;
+            if (rawData->buffer && rawData->range > 0) {
+                this->thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
+                    cmd.copyBuffer(rawData->buffer, this->bindings[bindingID], { vk::BufferCopy{ rawData->offset, this->bindings[bindingID].offset(), std::min(this->bindings[bindingID].range(), rawData->range) } });
+                });
+            };
+            return uTHIS;
+        };
+
+        // 
         virtual uPTR(Mesh) genQuads(const vk::DeviceSize& primitiveCount = 0u) {
             this->indexType = vk::IndexType::eUint32;
             this->needsQuads = true;
