@@ -1,3 +1,32 @@
+#version 460 core // #
+#extension GL_GOOGLE_include_directive  : require
+#extension GL_EXT_scalar_block_layout           : require
+#extension GL_EXT_shader_realtime_clock         : require
+#extension GL_EXT_samplerless_texture_functions : require
+#extension GL_EXT_nonuniform_qualifier          : require
+#extension GL_EXT_control_flow_attributes       : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types         : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int8    : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float64 : require
+#extension GL_EXT_shader_subgroup_extended_types_int8      : require
+#extension GL_EXT_shader_subgroup_extended_types_int16     : require
+#extension GL_EXT_shader_subgroup_extended_types_int64     : require
+#extension GL_EXT_shader_subgroup_extended_types_float16   : require
+#extension GL_EXT_shader_16bit_storage                     : require
+#extension GL_EXT_shader_8bit_storage                      : require
+#extension GL_KHR_shader_subgroup_basic                    : require
+
+precision highp float;
+precision highp int;
+#define GLSLIFY 1
+#define GLSLIFY 1
+#define GLSLIFY 1
 // #
 // Re-Sampling
 #define DIFFUSED 0
@@ -82,13 +111,25 @@ bool hasTangent(in MeshInfo meshInfo){
     return bool(bitfieldExtract(meshInfo.flags,3,1));
 };
 
-// color space utils
-const float HDR_GAMMA = 2.2f;
-vec3 fromLinear(in vec3 linearRGB) { return mix(vec3(1.055)*pow(linearRGB, vec3(1.0/2.4)) - vec3(0.055), linearRGB * vec3(12.92), lessThan(linearRGB, vec3(0.0031308))); }
-vec3 toLinear(in vec3 sRGB) { return mix(pow((sRGB + vec3(0.055))/vec3(1.055), vec3(2.4)), sRGB/vec3(12.92), lessThan(sRGB, vec3(0.04045))); }
-vec4 fromLinear(in vec4 linearRGB) { return vec4(fromLinear(linearRGB.xyz), linearRGB.w); }
-vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
+// Converts a color from linear light gamma to sRGB gamma
+vec4 fromLinear(in vec4 linearRGB)
+{
+    bvec4 cutoff = lessThan(linearRGB, vec4(0.0031308));
+    vec4 higher = vec4(1.055)*pow(linearRGB, vec4(1.0/2.4)) - vec4(0.055);
+    vec4 lower = linearRGB * vec4(12.92);
 
+    return mix(higher, lower, cutoff);
+}
+
+// Converts a color from sRGB gamma to linear light gamma
+vec4 toLinear(in vec4 sRGB)
+{
+    bvec4 cutoff = lessThan(sRGB, vec4(0.04045));
+    vec4 higher = pow((sRGB + vec4(0.055))/vec4(1.055), vec4(2.4));
+    vec4 lower = sRGB/vec4(12.92);
+
+    return mix(higher, lower, cutoff);
+}
 
 // Mesh Data Buffers
 //layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
@@ -214,10 +255,6 @@ vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycen
     return mc*barycenter;
 };
 
-
-
-
-
 // Deferred and Rasterization Set
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
 //layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
@@ -270,8 +307,6 @@ uint hash( uvec2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)           
 uint hash( uvec3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
 uint hash( uvec4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
-
-
 // Construct a float with half-open range [0:1] using low 23 bits.
 // All zeroes yields 0.0, all ones yields the next smallest representable value below 1.0.
 float floatConstruct( uint m ) {
@@ -286,8 +321,6 @@ float floatConstruct( uint m ) {
 };
 
 highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
-
-
 
 // Pseudo-random value in half-open range [0:1].
 //float random( float x ) { return floatConstruct(hash(floatBitsToUint(x))); }
@@ -325,7 +358,6 @@ vec3 dcts(in vec2 hr) {
 //vec3 randomSphere() { return dcts(random2()); };
 //vec3 randomSphere(in uint  s) { return dcts(random2(s)); };
 //vec3 randomSphere(in uvec2 s) { return dcts(random2(s)); };
-
 
 vec3 randomSphere( inout uvec2 seed ) {
     float up = random(seed) * 2.0 - 1.0; // range: -1 to +1
@@ -417,8 +449,6 @@ bvec3 fequal(in vec3 a, in vec3 b){
         greaterThanEqual(a, b - 0.0001f));
 };
 
-
-
 struct Box { vec3 min, max; };
 
 vec2 boxIntersect(in vec3 rayOrigin, in vec3 rayDir, in vec3 boxMin, in vec3 boxMax) {
@@ -463,8 +493,60 @@ vec3 screen2world(in vec3 origin){
     return vec4(divW(vec4(origin,1.f) * projectionInv),1.f)*modelviewInv;
 };
 
-
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
 #define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+
+// 
+layout (location = 0) in vec4 fPosition;
+layout (location = 1) in vec4 fTexcoord;
+layout (location = 2) in vec4 fNormal;
+layout (location = 3) in vec4 fTangent;
+layout (location = 4) in vec4 fBinormal;
+layout (location = 5) flat in uvec4 uData;
+
+// 
+layout (location = COLORING) out vec4 colored;
+layout (location = POSITION) out vec4 samples;
+layout (location = NORMALED) out vec4 normals;
+layout (location = TANGENTS) out vec4 tangent;
+layout (location = EMISSION) out vec4 emission;
+layout (location = SPECULAR) out vec4 specular;
+
+// 
+void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
+    const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
+    vec4 diffuseColor = toLinear(unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse);
+    vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
+    vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
+    vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission);
+    
+    // 
+    vec3 gTangent = fTangent.xyz;
+    vec3 gBinormal = fBinormal.xyz;//cross(fNormal.xyz,fTangent.xyz);
+    gBinormal -= dot(fNormal.xyz,gBinormal)*fNormal.xyz;
+    
+    mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal),normalize(fNormal.xyz));
+    vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
+
+    if (diffuseColor.w > 0.001f) {
+        colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
+        normals = vec4(gNormal.xyz,1.f);
+        samples = vec4(fPosition.xyz,1.f);
+        emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
+        specular = vec4(specularColor.xyz*specularColor.w,1.f);
+        gl_FragDepth = gl_FragCoord.z;
+        //emission = vec4(emissionColor.xyz,emissionColor.w);
+    } else {
+        colored = 0.f.xxxx;
+        normals = vec4(0.f.xx,0.f.xx);
+        samples = vec4(0.f.xxx,0.f.x);
+        specular = 0.f.xxxx;
+        emission = 0.f.xxxx;
+        gl_FragDepth = 1.f;
+    };
+    //ivec2 txd = ivec2(gl_FragCoord.xy), txs = imageSize(writeImages[DIFFUSED]);
+    //const vec4 dEmi = imageLoad(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1));
+    //imageStore(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1), vec4(emissionColor.xyz*emissionColor.w,0.f)+dEmi);
+};

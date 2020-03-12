@@ -219,21 +219,21 @@ int main() {
     tinygltf::Model model = {};
     tinygltf::TinyGLTF loader = {};
     std::string err = "";
-    std::string warn = "";
+    std::string wrn = "";
 
     // 
     const float unitScale = 100.f;
     const float unitHeight = -1.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBox.gltf");
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "BoomBoxWithAxes.gltf");
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     // 
-    if (!err.empty()) { printf("Err: %s\n", err.c_str()); }
+    if (!wrn.empty()) {  printf("Warn : %s\n", wrn.c_str()); }
+    if (!err.empty()) {  printf("Error: %s\n", err.c_str()); }
     if (!ret) { printf("Failed to parse glTF\n"); return -1; }
-    if (!warn.empty()) { printf("Warn: %s\n", warn.c_str()); }
 
     // 
     using mat4_t = glm::mat3x4;

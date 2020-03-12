@@ -1,3 +1,32 @@
+#version 460 core // #
+#extension GL_GOOGLE_include_directive          : require
+#extension GL_EXT_scalar_block_layout           : require
+#extension GL_EXT_shader_realtime_clock         : require
+#extension GL_EXT_samplerless_texture_functions : require
+#extension GL_EXT_nonuniform_qualifier          : require
+#extension GL_EXT_control_flow_attributes       : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types         : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int8    : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float64 : require
+#extension GL_EXT_shader_subgroup_extended_types_int8      : require
+#extension GL_EXT_shader_subgroup_extended_types_int16     : require
+#extension GL_EXT_shader_subgroup_extended_types_int64     : require
+#extension GL_EXT_shader_subgroup_extended_types_float16   : require
+#extension GL_EXT_shader_16bit_storage                     : require
+#extension GL_EXT_shader_8bit_storage                      : require
+#extension GL_KHR_shader_subgroup_basic                    : require
+
+precision highp float;
+precision highp int;
+#define GLSLIFY 1
+#define GLSLIFY 1
+#define GLSLIFY 1
 // #
 // Re-Sampling
 #define DIFFUSED 0
@@ -88,7 +117,6 @@ vec3 fromLinear(in vec3 linearRGB) { return mix(vec3(1.055)*pow(linearRGB, vec3(
 vec3 toLinear(in vec3 sRGB) { return mix(pow((sRGB + vec3(0.055))/vec3(1.055), vec3(2.4)), sRGB/vec3(12.92), lessThan(sRGB, vec3(0.04045))); }
 vec4 fromLinear(in vec4 linearRGB) { return vec4(fromLinear(linearRGB.xyz), linearRGB.w); }
 vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
-
 
 // Mesh Data Buffers
 //layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
@@ -214,10 +242,6 @@ vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycen
     return mc*barycenter;
 };
 
-
-
-
-
 // Deferred and Rasterization Set
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
 //layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
@@ -270,8 +294,6 @@ uint hash( uvec2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)           
 uint hash( uvec3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
 uint hash( uvec4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
-
-
 // Construct a float with half-open range [0:1] using low 23 bits.
 // All zeroes yields 0.0, all ones yields the next smallest representable value below 1.0.
 float floatConstruct( uint m ) {
@@ -286,8 +308,6 @@ float floatConstruct( uint m ) {
 };
 
 highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
-
-
 
 // Pseudo-random value in half-open range [0:1].
 //float random( float x ) { return floatConstruct(hash(floatBitsToUint(x))); }
@@ -325,7 +345,6 @@ vec3 dcts(in vec2 hr) {
 //vec3 randomSphere() { return dcts(random2()); };
 //vec3 randomSphere(in uint  s) { return dcts(random2(s)); };
 //vec3 randomSphere(in uvec2 s) { return dcts(random2(s)); };
-
 
 vec3 randomSphere( inout uvec2 seed ) {
     float up = random(seed) * 2.0 - 1.0; // range: -1 to +1
@@ -417,8 +436,6 @@ bvec3 fequal(in vec3 a, in vec3 b){
         greaterThanEqual(a, b - 0.0001f));
 };
 
-
-
 struct Box { vec3 min, max; };
 
 vec2 boxIntersect(in vec3 rayOrigin, in vec3 rayDir, in vec3 boxMin, in vec3 boxMax) {
@@ -463,8 +480,122 @@ vec3 screen2world(in vec3 origin){
     return vec4(divW(vec4(origin,1.f) * projectionInv),1.f)*modelviewInv;
 };
 
-
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
 #define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+
+// 
+layout ( location = 0 ) in vec2 vcoord;
+layout ( location = 0 ) out vec4 uFragColor;
+
+// 
+vec4 getIndirect(in ivec2 map){
+    const ivec2 size = imageSize(writeImages[DIFFUSED]);
+    //vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
+    //return samples;
+    return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1));
+};
+
+vec4 getReflection(in ivec2 map){
+    const ivec2 size = imageSize(writeImages[REFLECTS]);
+    return imageLoad(writeImages[REFLECTS],ivec2(map.x,size.y-map.y-1));
+};
+
+vec4 getNormal(in ivec2 coord){
+    vec4 normals = vec4(texelFetch(frameBuffers[NORMALED],ivec2(coord),0).xyz, 0.f);
+    return normals;
+};
+
+vec4 getPosition(in ivec2 coord){
+    vec4 position = vec4(texelFetch(frameBuffers[POSITION],ivec2(coord),0).xyz, 0.f);
+    return position;
+};
+
+// bubble sort horror
+void sort(inout vec3 arr[9u], int d)
+{
+    vec3 temp;
+    for(int i=0;i<d*d-1;++i)
+    {
+        for(int j=i+1;j<d*d;++j)
+        {
+            // my super multicomponent branchless arithmetic swap
+            // based on: a <- a+b, b <- a - b, a <- a - b
+            vec3 g = vec3(greaterThan(arr[i],arr[j]));
+            arr[i] += arr[j];
+            arr[j] = g*arr[i] - (2.0*g-vec3(1.0))*arr[j];
+            arr[i] -= arr[j];
+        }
+    }
+}
+
+vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
+    vec4 centerNormal = getNormal(coord);
+    vec3 centerOrigin = world2screen(getPosition(coord).xyz);
+    
+    /*
+    vec3 samples[9u]; int scount = 0;
+    for (uint x=0;x<3u;x++) {
+        for (uint y=0;y<3u;y++) {
+            vec4 csample = getIndirect(swapc+ivec2(x-1u,y-1u));
+            vec4 nsample = getNormal(coord+ivec2(x-1u,y-1u));
+
+            if (dot(nsample.xyz,centerNormal.xyz) > 0.5f || (x == 4u && y == 4u)) {
+                //sampleBlur += vec4(csample.xyz,1.f);
+                samples[scount++].xyz = csample.xyz;
+            };
+        };
+    };
+
+    if (scount > 0) sort(samples,int(sqrt(float(scount))));
+    return vec4(samples[scount>>1u],1.f);
+    */
+
+    vec4 sampled = 0.f.xxxx; int scount = 0;
+    
+    for (uint x=0;x<maxc;x++) {
+        for (uint y=0;y<maxc;y++) {
+            ivec2 map = coord+ivec2(x-(maxc>>1),y-(maxc>>1));
+            vec4 nsample = getNormal(map);
+            vec3 psample = world2screen(getPosition(map).xyz);
+
+            if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == (maxc>>1) && y == (maxc>>1))) {
+                if (reflection) {
+                    sampled += vec4(getReflection(map).xyz,1.f);
+                } else {
+                    sampled += getIndirect(map);
+                };
+            };
+        };
+    };
+
+    if (reflection) {
+        sampled.xyz /= sampled.w;
+        sampled.w = getReflection(coord).w;
+    };
+
+    return sampled;
+};
+
+// 
+void main() {
+    const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
+    const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
+    const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
+    const vec4 specular = texelFetch(frameBuffers[SPECULAR],samplep,0);
+
+    int denDepth = 3;
+    if (specular.y > 0.3333f) denDepth = 5;
+    if (specular.y > 0.6666f) denDepth = 7;
+    if (specular.y > 0.9999f) denDepth = 9;
+
+    vec4 coloring = getDenoised(samplep,false, 9);
+    vec4 reflects = getDenoised(samplep, true, denDepth);
+    if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,1.f); };
+    if (coloring.w <= 0.f) { coloring = vec4(0.f.xxx,1.f); };
+    coloring = max(coloring, 0.f.xxxx);
+    reflects = max(reflects, 0.f.xxxx);
+
+    uFragColor = vec4(mix(diffused.xyz*(coloring.xyz/coloring.w)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
+};

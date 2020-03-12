@@ -1,3 +1,32 @@
+#version 460 core // #
+#extension GL_GOOGLE_include_directive          : require
+#extension GL_EXT_scalar_block_layout           : require
+#extension GL_EXT_shader_realtime_clock         : require
+#extension GL_EXT_samplerless_texture_functions : require
+#extension GL_EXT_nonuniform_qualifier          : require
+#extension GL_EXT_control_flow_attributes       : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types         : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int8    : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float64 : require
+#extension GL_EXT_shader_subgroup_extended_types_int8      : require
+#extension GL_EXT_shader_subgroup_extended_types_int16     : require
+#extension GL_EXT_shader_subgroup_extended_types_int64     : require
+#extension GL_EXT_shader_subgroup_extended_types_float16   : require
+#extension GL_EXT_shader_16bit_storage                     : require
+#extension GL_EXT_shader_8bit_storage                      : require
+#extension GL_KHR_shader_subgroup_basic                    : require
+
+precision highp float;
+precision highp int;
+#define GLSLIFY 1
+#define GLSLIFY 1
+#define GLSLIFY 1
 // #
 // Re-Sampling
 #define DIFFUSED 0
@@ -88,7 +117,6 @@ vec3 fromLinear(in vec3 linearRGB) { return mix(vec3(1.055)*pow(linearRGB, vec3(
 vec3 toLinear(in vec3 sRGB) { return mix(pow((sRGB + vec3(0.055))/vec3(1.055), vec3(2.4)), sRGB/vec3(12.92), lessThan(sRGB, vec3(0.04045))); }
 vec4 fromLinear(in vec4 linearRGB) { return vec4(fromLinear(linearRGB.xyz), linearRGB.w); }
 vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
-
 
 // Mesh Data Buffers
 //layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
@@ -214,10 +242,6 @@ vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycen
     return mc*barycenter;
 };
 
-
-
-
-
 // Deferred and Rasterization Set
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
 //layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
@@ -270,8 +294,6 @@ uint hash( uvec2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)           
 uint hash( uvec3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
 uint hash( uvec4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
-
-
 // Construct a float with half-open range [0:1] using low 23 bits.
 // All zeroes yields 0.0, all ones yields the next smallest representable value below 1.0.
 float floatConstruct( uint m ) {
@@ -286,8 +308,6 @@ float floatConstruct( uint m ) {
 };
 
 highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
-
-
 
 // Pseudo-random value in half-open range [0:1].
 //float random( float x ) { return floatConstruct(hash(floatBitsToUint(x))); }
@@ -325,7 +345,6 @@ vec3 dcts(in vec2 hr) {
 //vec3 randomSphere() { return dcts(random2()); };
 //vec3 randomSphere(in uint  s) { return dcts(random2(s)); };
 //vec3 randomSphere(in uvec2 s) { return dcts(random2(s)); };
-
 
 vec3 randomSphere( inout uvec2 seed ) {
     float up = random(seed) * 2.0 - 1.0; // range: -1 to +1
@@ -417,8 +436,6 @@ bvec3 fequal(in vec3 a, in vec3 b){
         greaterThanEqual(a, b - 0.0001f));
 };
 
-
-
 struct Box { vec3 min, max; };
 
 vec2 boxIntersect(in vec3 rayOrigin, in vec3 rayDir, in vec3 boxMin, in vec3 boxMax) {
@@ -463,8 +480,34 @@ vec3 screen2world(in vec3 origin){
     return vec4(divW(vec4(origin,1.f) * projectionInv),1.f)*modelviewInv;
 };
 
-
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
 #define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+
+// 
+layout ( location = 0 ) in vec2 vcoord;
+layout ( location = 1 ) in vec4 position;
+
+layout (location = COLORING) out vec4 colored;
+layout (location = POSITION) out vec4 samples;
+layout (location = NORMALED) out vec4 normals;
+layout (location = TANGENTS) out vec4 tangent;
+
+// 
+void main() {
+    const vec2 size = imageSize(writeImages[DIFFUSED]);
+    vec2 coord = gl_FragCoord.xy; coord.y = size.y - coord.y;
+    vec4 samples = max(imageLoad(writeImages[DIFFUSED],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
+    //samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f);
+    samples = vec4(vec3(0.f,0.f,0.f),0.f);
+    //colored = vec4(0.f.xxx,1.f);
+    colored = vec4(gSkyColor,1.f);
+    normals = vec4((modelview * normalize(vec3(0.f, 0.f, 1.f))).xyz, 0.f);
+
+    gl_FragDepth = 1.f; 
+    imageStore(writeImages[REFLECTS], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
+    imageStore(writeImages[DIFFUSED], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
+    imageStore(writeImages[NORMALED], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
+    imageStore(writeImages[SAMPLING], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(samples.xyz,0.f));
+};

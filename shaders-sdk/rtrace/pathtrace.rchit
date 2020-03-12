@@ -87,10 +87,10 @@ void main() {
 
     // 
     const MaterialUnit unit = materials[0u].data[meshInfo[gl_InstanceCustomIndexNV].materialID];
-    vec4  diffuseColor = pow(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse,vec4(2.2f.xxx,1.f));
+    vec4  diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
     vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
     vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
-    vec4 emissionColor = pow(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission,vec4(2.2f.xxx,1.f));
+    vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
 
     // 
     PrimaryRay.normals.xyz = normalize(gNormal.xyz);
