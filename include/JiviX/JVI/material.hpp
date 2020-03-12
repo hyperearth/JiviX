@@ -66,9 +66,21 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Material) pushMaterial(const MaterialUnit& material = {}) {
+        virtual vk::DeviceSize pushMaterial(const MaterialUnit& material = {}) {
             const auto materialID = materialCounter++;
             this->rawMaterials[materialID] = material;
+            return materialID;
+        };
+
+        // 
+        virtual uPTR(Material) resetMaterials() {
+            materialCounter = 0u;
+            return uTHIS;
+        };
+
+        // 
+        virtual uPTR(Material) resetSampledImages() {
+            this->sampledImages.resize(0u);
             return uTHIS;
         };
 
