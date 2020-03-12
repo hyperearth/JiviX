@@ -479,59 +479,34 @@ const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shad
 #define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
 
 // 
-layout (location = 0) in vec4 fPosition;
-layout (location = 1) in vec4 fTexcoord;
-layout (location = 2) in vec4 fNormal;
-layout (location = 3) in vec4 fTangent;
-layout (location = 4) in vec4 fBinormal;
-layout (location = 5) flat in uvec4 uData;
+layout (location = 0) in vec4 gColor;
+layout (location = 1) in vec4 gSample;
+layout (location = 2) in vec4 gNormal;
+layout (location = 3) in vec4 wPosition;
+layout (location = 4) in vec4 gSpecular;
+layout (location = DIFFUSED) out vec4 oDiffused;
+layout (location = SAMPLING) out vec4 oSampling;
+layout (location = REFLECTS) out vec4 oSpecular;
 
 // 
-layout (location = COLORING) out vec4 colored;
-layout (location = POSITION) out vec4 samples;
-layout (location = NORMALED) out vec4 normals;
-layout (location = TANGENTS) out vec4 tangent;
-layout (location = EMISSION) out vec4 emission;
-layout (location = SPECULAR) out vec4 specular;
-layout (location = GEONORML) out vec4 geonormal;
+void main() { // Currently NO possible to compare
+    const ivec2 f2fx = ivec2(gl_FragCoord.xy);
+    const ivec2 size = ivec2(textureSize(frameBuffers[POSITION], 0));
+    const ivec2 i2fx = ivec2(f2fx.x,size.y-f2fx.y-1);
+    const vec2 i2fxm = vec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 
-// 
-void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
-    const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
-    vec4 diffuseColor = toLinear(unit.diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit.diffuseTexture)],fTexcoord.xy,0) : unit.diffuse);
-    vec4 normalsColor = unit.normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit.normalsTexture)],fTexcoord.xy,0) : unit.normals;
-    vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy,0) : unit.specular;
-    vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission);
-    
+    // world space
+    vec4 positions = vec4(gSample.xyz,1.f); // SSP from previous frame got...
+    vec4 almostpos = vec4(texture(frameBuffers[POSITION],i2fxm).xyz,1.f), worldspos = almostpos; // get world space from pixel
+    vec4 normaling = vec4(texture(frameBuffers[GEONORML],i2fxm).xyz,1.f);
+    almostpos = vec4(world2screen(almostpos.xyz),1.f);//, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
+
     // 
-    vec3 gTangent = fTangent.xyz;
-    vec3 gBinormal = fBinormal.xyz;//cross(fNormal.xyz,fTangent.xyz);
-    gBinormal -= dot(fNormal.xyz,gBinormal)*fNormal.xyz;
-    
-    mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal),normalize(fNormal.xyz));
-    vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
-
-    if (diffuseColor.w > 0.001f) {
-        colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
-        normals = vec4(gNormal.xyz,1.f);
-        tangent = vec4(gTangent.xyz,1.f);
-        samples = vec4(fPosition.xyz,1.f);
-        emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
-        specular = vec4(specularColor.xyz*specularColor.w,1.f);
-        geonormal = vec4(normalize(fNormal.xyz),1.f);
-        gl_FragDepth = gl_FragCoord.z;
-        //emission = vec4(emissionColor.xyz,emissionColor.w);
+    const bool isBackground = all(fequal(texelFetch(frameBuffers[POSITION],i2fx.xy,0).xyz,0.f.xxx));
+    if (abs(almostpos.z-positions.z) < 0.0001f && dot(gNormal.xyz,normaling.xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f && !isBackground) {
+        oDiffused = gColor;
+        oSpecular = gSpecular;
     } else {
-        colored = 0.f.xxxx;
-        normals = vec4(0.f.xx,0.f.xx);
-        samples = vec4(0.f.xxx,0.f.x);
-        tangent = vec4(0.f.xxx,0.f.x);
-        geonormal = vec4(0.f.xxx,0.f.x);
-        specular = 0.f.xxxx;
-        emission = 0.f.xxxx;
-        gl_FragDepth = 1.f;
+        discard;
     };
-    //ivec2 txd = ivec2(gl_FragCoord.xy), txs = imageSize(writeImages[DIFFUSED]);
-    //const vec4 dEmi = imageLoad(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1));
-    //imageStore(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1), vec4(emissionColor.xyz*emissionColor.w,0.f)+dEmi);
 };

@@ -17,6 +17,7 @@ layout (location = NORMALED) out vec4 normals;
 layout (location = TANGENTS) out vec4 tangent;
 layout (location = EMISSION) out vec4 emission;
 layout (location = SPECULAR) out vec4 specular;
+layout (location = GEONORML) out vec4 geonormal;
 
 // 
 void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
@@ -37,15 +38,19 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     if (diffuseColor.w > 0.001f) {
         colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
         normals = vec4(gNormal.xyz,1.f);
+        tangent = vec4(gTangent.xyz,1.f);
         samples = vec4(fPosition.xyz,1.f);
         emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
         specular = vec4(specularColor.xyz*specularColor.w,1.f);
+        geonormal = vec4(normalize(fNormal.xyz),1.f);
         gl_FragDepth = gl_FragCoord.z;
         //emission = vec4(emissionColor.xyz,emissionColor.w);
     } else {
         colored = 0.f.xxxx;
         normals = vec4(0.f.xx,0.f.xx);
         samples = vec4(0.f.xxx,0.f.x);
+        tangent = vec4(0.f.xxx,0.f.x);
+        geonormal = vec4(0.f.xxx,0.f.x);
         specular = 0.f.xxxx;
         emission = 0.f.xxxx;
         gl_FragDepth = 1.f;

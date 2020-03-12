@@ -14,6 +14,7 @@
 #define TANGENTS 3
 #define EMISSION 4
 #define SPECULAR 5
+#define GEONORML 6
 
 // TODO: Materials
 struct RayPayloadData {

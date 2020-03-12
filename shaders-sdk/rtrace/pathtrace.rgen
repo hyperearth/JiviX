@@ -60,17 +60,19 @@ void main() { // Hi-DPI adaptation
         vec3 raydir  = (modelview * normalize(cameraSample.xyz)).xyz;
         vec3 origin  = worldsSample.xyz;
         vec3 normal = normalSample.xyz;
+        vec3 geonrm = texture(frameBuffers[GEONORML], pixel).xyz;
 #else
         vec3 origin = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.001f));
         vec3 target = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.999f));
         vec3 raydir = normalize(target - origin);
         vec3 normal = vec3(0.f);
+        vec3 geonrm = vec3(0.f);
 #endif
 
         const float inIOR = 1.f;
         const float outIOR = 1.6666f;
         vec3 forign = origin.xyz;
-        vec3 fnorml = normal.xyz;
+        vec3 fnorml = geonrm.xyz;//normal.xyz;
         float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f,speculSample.z);
 
         //

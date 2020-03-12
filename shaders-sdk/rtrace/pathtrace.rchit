@@ -93,11 +93,10 @@ void main() {
     vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
 
     // 
-    PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));//normalize(gNormal.xyz);
+    PrimaryRay.normals.xyz = normalize(gNormal.xyz);
     PrimaryRay.diffuse     = diffuseColor;
     PrimaryRay.specular    = specularColor;
     PrimaryRay.emission    = emissionColor;
     PrimaryRay.tangent.xyz = normalize(gTangent.xyz);
-    //PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz)); // DEBUG
     PrimaryRay.normalm.xyz = normalize(TBN * (normalsColor.xyz * 2.f - 1.f));
 };

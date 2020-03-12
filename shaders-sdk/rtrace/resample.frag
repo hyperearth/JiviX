@@ -22,7 +22,7 @@ void main() { // Currently NO possible to compare
     // world space
     vec4 positions = vec4(gSample.xyz,1.f); // SSP from previous frame got...
     vec4 almostpos = vec4(texture(frameBuffers[POSITION],i2fxm).xyz,1.f), worldspos = almostpos; // get world space from pixel
-    vec4 normaling = vec4(texture(frameBuffers[NORMALED],i2fxm).xyz,1.f);
+    vec4 normaling = vec4(texture(frameBuffers[GEONORML],i2fxm).xyz,1.f);
     almostpos = vec4(world2screen(almostpos.xyz),1.f);//, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
 
     // 
