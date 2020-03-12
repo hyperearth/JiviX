@@ -384,21 +384,22 @@ namespace jvi {
         };
 
         // 
-        template<class T = uint8_t>
-        inline uPTR(Mesh) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type){
+        //template<class T = uint8_t>
+        //inline uPTR(Mesh) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type) {
+        inline uPTR(Mesh) setIndexData(const vkt::uni_arg<vkh::VkDescriptorBufferInfo>& rawIndices, const vk::IndexType& type) {
             vk::DeviceSize count = 0u;
 
             if (rawIndices.has()) {
                 switch (type) { // 
-                    case vk::IndexType::eUint32:   count = rawIndices.range() / 4u; break;
-                    case vk::IndexType::eUint16:   count = rawIndices.range() / 2u; break;
-                    case vk::IndexType::eUint8EXT: count = rawIndices.range() / 1u; break;
+                    case vk::IndexType::eUint32:   count = rawIndices->range / 4u; break;
+                    case vk::IndexType::eUint16:   count = rawIndices->range / 2u; break;
+                    case vk::IndexType::eUint8EXT: count = rawIndices->range / 1u; break;
                     default: count = 0u;
                 };
 
                 // 
                 this->thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
-                    cmd.copyBuffer(rawIndices, this->indexData, { vk::BufferCopy{ rawIndices.offset(), this->indexData.offset(), std::min(this->indexData.range(), rawIndices.range()) } });
+                    cmd.copyBuffer(rawIndices->buffer, this->indexData, { vk::BufferCopy{ rawIndices->offset, this->indexData.offset(), std::min(this->indexData.range(), rawIndices->range) } });
                 });
             };
 
@@ -428,9 +429,9 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint32); };
-        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint16); };
-        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices,vk::IndexType::eUint8EXT); };
+        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices.getDescriptor(),vk::IndexType::eUint32); };
+        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices.getDescriptor(),vk::IndexType::eUint16); };
+        virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices.getDescriptor(),vk::IndexType::eUint8EXT); };
         virtual uPTR(Mesh) setIndexData() { return this->setIndexData({},vk::IndexType::eNoneNV); };
 
         // some type dependent
