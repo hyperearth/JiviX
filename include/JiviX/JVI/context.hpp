@@ -397,8 +397,9 @@ namespace jvi {
                 });
 
                 // 
+                //memcpy(&handle, &frameBfImages[0u].getDescriptor(), sizeof(vk::DescriptorImageInfo) * 8u);
                 for (uint32_t i = 0; i < 8u; i++) {
-                    handle.offset<VkDescriptorImageInfo>(i) = frameBfImages[i];
+                    handle.offset<VkDescriptorImageInfo>(i) = frameBfImages[i].getDescriptor();
                 };
 
                 // 
@@ -416,8 +417,9 @@ namespace jvi {
                 });
 
                 // 
+                //memcpy(&handle, &smFlip0Images[0u].getDescriptor(), sizeof(vk::DescriptorImageInfo) * 8u);
                 for (uint32_t i = 0; i < 8u; i++) {
-                    handle.offset<VkDescriptorImageInfo>(i) = smFlip0Images[i];
+                    handle.offset<VkDescriptorImageInfo>(i) = smFlip0Images[i].getDescriptor();
                 };
 
                 // Reprojection WILL NOT write own depth... 
@@ -435,8 +437,9 @@ namespace jvi {
                 });
 
                 // 
+                //memcpy(&handle, &smFlip1Images[0u].getDescriptor(), sizeof(vk::DescriptorImageInfo) * 8u);
                 for (uint32_t i = 0; i < 8u; i++) {
-                    handle.offset<VkDescriptorImageInfo>(i) = smFlip1Images[i];
+                    handle.offset<VkDescriptorImageInfo>(i) = smFlip1Images[i].getDescriptor();
                 };
 
                 // Reprojection WILL NOT write own depth... 
