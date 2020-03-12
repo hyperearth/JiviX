@@ -74,6 +74,7 @@ void main() { // Hi-DPI adaptation
         float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f,speculSample.z);
 
         //
+        vec4 gTangent = PrimaryRay.tangent;
         vec4 gNormal = vec4(normal,0.f);
         vec4 gSignal = vec4(0.f.xxx,1.f);
         vec3 gEnergy = I == 0 ? 1.f.xxx : mix(1.f.xxx, colourSample.xyz + emitedSample.xyz, speculSample.z);
@@ -81,9 +82,9 @@ void main() { // Hi-DPI adaptation
 
         int i = 0; 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
-        gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz,gNormal.xyz); 
-        raydir.xyz = I == 0 ? randomHemisphereCosine(gNormal.xyz,seed) : reflectGlossy(raydir.xyz, gNormal.xyz, seed, speculSample.y);
-        origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.001f, i++; // pre-correction
+        gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz, gNormal.xyz);
+        raydir.xyz = I == 0 ? randomHemisphereCosine(seed, gTangent.xyz, gNormal.xyz) : reflectGlossy(seed, raydir.xyz, gTangent.xyz, gNormal.xyz, speculSample.y);
+        origin.xyz += faceforward(gNormal.xyz,-raydir.xyz, gNormal.xyz) * 0.001f, i++; // pre-correction
 #endif
 
         bool afterReflection = false;
@@ -122,7 +123,8 @@ void main() { // Hi-DPI adaptation
                 raydir.xyz, 10000.f,
                 0);
             
-            gNormal = PrimaryRay.normalm;
+            gNormal  = PrimaryRay.normalm;
+            gTangent = PrimaryRay.tangent;
             const vec4  diffuseColor = PrimaryRay.diffuse;
             const vec4 emissionColor = PrimaryRay.emission;
             const vec4 specularColor = PrimaryRay.specular;
@@ -165,7 +167,7 @@ void main() { // Hi-DPI adaptation
             // 
             gNormal.xyz = faceforward(gNormal.xyz,raydir.xyz,gNormal.xyz); // interverse into incoming ray
             if (diffuseColor.w > 0.001f) { // Reflection
-                raydir.xyz = (i == 0 && I == 1 || couldReflection) ? reflectGlossy(raydir.xyz, gNormal.xyz, seed, specularColor.y) : randomHemisphereCosine(gNormal.xyz,seed);
+                raydir.xyz = (i == 0 && I == 1 || couldReflection) ? reflectGlossy(seed, raydir.xyz, gTangent.xyz, gNormal.xyz, specularColor.y) : randomHemisphereCosine(seed, gTangent.xyz, gNormal.xyz);
             } else { // Fully Transparent, Continue...
                 raydir.xyz = normalize(raydir.xyz); 
                 if (TRANSPARENT_ITERATION > 0) { TRANSPARENT_ITERATION--; i--; };

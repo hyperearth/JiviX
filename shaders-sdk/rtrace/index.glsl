@@ -23,6 +23,7 @@ struct RayPayloadData {
     //vec4 texcoords;
     vec4 normals;
     vec4 normalm;
+    vec4 tangent;
     vec4 diffuse;
     vec4 specular;
     vec4 emission;
@@ -334,23 +335,30 @@ vec3 randomSphere( inout uvec2 seed ) {
     return normalize(vec3(cos(around) * over, up, sin(around) * over));	
 };
 
-vec3 randomHemisphereCosine(in uvec2 seed) {
+vec3 randomHemisphereCosine(inout uvec2 seed) {
     const vec2 hmsm = random2(seed);
     const float phi = hmsm.x * TWO_PI, up = sqrt(1.0f - hmsm.y), over = sqrt(fma(up,-up,1.f));
     return vec3(cos(phi)*over,up,sin(phi)*over);
 };
 
 /*
-vec3 randomHemisphereCosineA(in vec3 n, in uvec2 seed) {
+vec3 randomHemisphereCosine(inout uvec2 seed, in vec3 tangent, in vec3 normal){
+    const mat3 tbn = mat3(normalize(tangent),normalize(cross(tangent,normal)),normalize(normal));
+    return tbn * randomHemisphereCosine(seed).xzy;
+};
+*/
+
+/*
+vec3 randomHemisphereCosine(inout uvec2 seed, in vec3 tangent, in vec3 n) {
     vec3 up = abs(n.z) < 0.999f ? vec3(0.f, 0.f, 1.f) : vec3(1.f, 0.f, 0.f);
 	vec3 tan_x = normalize(cross(up, n));
 	vec3 tan_y = cross(n, tan_x);
     vec3 hemi = randomHemisphereCosine(seed);
     return normalize(hemi.x * tan_x + hemi.y * tan_y + n * hemi.z);
-};
-*/
+};*/
 
-vec3 randomHemisphereCosine( in vec3 nl, inout uvec2 seed )
+
+vec3 randomHemisphereCosine( inout uvec2 seed, in vec3 tg, in vec3 nl )
 {
     float up = random(seed); // uniform distribution in hemisphere
     float over = sqrt(max(0.0, 1.0 - up * up));
@@ -364,23 +372,9 @@ vec3 randomHemisphereCosine( in vec3 nl, inout uvec2 seed )
     return normalize(cos(around) * over * T + sin(around) * over * B + up * nl);
 };
 
-/*
-vec3 randomHemisphereCosine( in vec3 n, inout uvec2 seed ) {
-    vec3 rand = vec3(random(seed),random2(seed))*2.f-1.f;
-    float r = rand.x * 0.5 + 0.5; // [-1..1) -> [0..1)
-    float angle = (rand.y + 1.0) * PI; // [-1..1] -> [0..2*PI)
-    float sr = sqrt(r);
-    vec2 p = vec2(sr * cos(angle), sr * sin(angle));
-    vec3 ph = vec3(p.xy, sqrt(1.0 - p*p));
-    vec3 tangent = normalize(rand);
-    vec3 bitangent = cross(tangent, n);
-    tangent = cross(bitangent, n);
-    return normalize(tangent * ph.x + bitangent * ph.y + n * ph.z);
-};
-*/
 
-vec3 reflectGlossy(in vec3 I, in vec3 n, inout uvec2 seed, in float gloss){
-    return mix(reflect(I, n), randomHemisphereCosine(n,seed), gloss*sqrt(random(seed)));
+vec3 reflectGlossy(inout uvec2 seed, in vec3 I, in vec3 t, in vec3 n, in float gloss){
+    return mix(reflect(I, n), randomHemisphereCosine(seed,t,n), gloss*sqrt(random(seed)));
 };
 
 bvec4 and(in bvec4 a, in bvec4 b){
