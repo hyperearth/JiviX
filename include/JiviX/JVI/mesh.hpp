@@ -458,10 +458,10 @@ namespace jvi {
         };
 
         // MORE useful for instanced data
-        virtual uPTR(Mesh) setTransformData(const vkt::Vector<glm::vec4>& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
-            this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset();
-            this->geometryTemplate.geometry.triangles.transformData = transformData;
-            this->gpuTransformData = transformData;
+        virtual uPTR(Mesh) setTransformData(const vkh::VkDescriptorBufferInfo& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
+            this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset;
+            this->geometryTemplate.geometry.triangles.transformData = transformData.buffer;
+            //this->gpuTransformData = transformData;
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
             return uTHIS;

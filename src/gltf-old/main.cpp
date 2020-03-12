@@ -576,7 +576,7 @@ int main() {
 
         { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.f}), vk::ClearDepthStencilValue(1.0f, 0) };
-            Shared::TimeCallback(double(context->registerTime()->setModelView(cameraController->handle().project())->setDrawCount(frameCount++)->drawTime()));
+            Shared::TimeCallback(double(context->registerTime()->setModelView(cameraController->handle().project())->drawTime()));
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
@@ -602,6 +602,9 @@ int main() {
                 .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
                 .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));
+
+            // 
+            context->setDrawCount(frameCount++);
         };
 
         // present for displaying of this image

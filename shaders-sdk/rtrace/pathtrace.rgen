@@ -10,9 +10,10 @@ layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
 #define ShadowsRay PrimaryRay // re-direct
 //layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
 
+uvec2 launchSize = uvec2(0u);
 
 vec4 shiftByPixel(in vec4 wpos, inout uvec2 seed){
-    vec2 sizpx = vec2(gl_LaunchSizeNV.xy);
+    vec2 sizpx = vec2(launchSize);
     vec2 shift = random2(seed);
     vec4 sspos = vec4(vec4(divW(wpos * projectionInv),1.f) * modelviewInv, 1.f);
     sspos.xy += shift/sizpx;
@@ -30,9 +31,16 @@ void main() { // Hi-DPI adaptation
     ShadowsRay.fdata.xyz = PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTNV
     ShadowsRay.udata.xyz = PrimaryRay.udata.xyz = uvec3(0u);
 
+    uvec2 lanQ = gl_LaunchIDNV.xy;
+    launchSize = gl_LaunchSizeNV.xy;
+
     // 
-    const ivec2 curPixel = ivec2(gl_LaunchIDNV.xy), invPixel = ivec2(curPixel.x,gl_LaunchSizeNV.y-curPixel.y-1u);
-    const ivec2 sizPixel = ivec2(gl_LaunchSizeNV.xy);
+    //uvec2 lanQ = uvec2(gl_LaunchIDNV.x,(gl_LaunchIDNV.y<<1u) | ((gl_LaunchIDNV.x&1u)^(rdata.x&1u)));
+    //launchSize = uvec2(gl_LaunchSizeNV.x,gl_LaunchSizeNV.y<<1u);
+
+    // 
+    const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
+    const ivec2 sizPixel = ivec2(launchSize);
     const uint packed = pack32(u16vec2(curPixel));
 
     // 
@@ -182,16 +190,16 @@ void main() { // Hi-DPI adaptation
 
         // 
         if (I == 0) { // Store for Diffuse
-            const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy));
-            const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy));
-            imageStore(writeImages[DIFFUSED], ivec2(gl_LaunchIDNV.xy), clamp(gSignal,0.f.xxxx,256.f.xxxx) + directSample);
-            imageStore(writeImages[SAMPLING], ivec2(gl_LaunchIDNV.xy), vec4(forign,1.f));
-            imageStore(writeImages[NORMALED], ivec2(gl_LaunchIDNV.xy), vec4(fnorml,1.f));
+            const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(lanQ));
+            const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(lanQ));
+            imageStore(writeImages[DIFFUSED], ivec2(lanQ), clamp(gSignal,0.f.xxxx,256.f.xxxx) + directSample);
+            imageStore(writeImages[SAMPLING], ivec2(lanQ), vec4(forign,1.f));
+            imageStore(writeImages[NORMALED], ivec2(lanQ), vec4(fnorml,1.f));
         };
 
         if (I == 1) { // Titanic OS
-            const vec4 speculSample = imageLoad(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy));
-            imageStore(writeImages[REFLECTS], ivec2(gl_LaunchIDNV.xy), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),clamp(gSignal,0.f.xxxx,256.f.xxxx).xyz,speculSample.w < 0.9999f ? 1.f : clamp(speculSample.y,0.f,1.f)*0.3333f+0.3333f),frefl));
+            const vec4 speculSample = imageLoad(writeImages[REFLECTS], ivec2(lanQ));
+            imageStore(writeImages[REFLECTS], ivec2(lanQ), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),clamp(gSignal,0.f.xxxx,256.f.xxxx).xyz,speculSample.w < 0.9999f ? 1.f : clamp(speculSample.y,0.f,1.f)*0.3333f+0.3333f),frefl));
         };
 
         subgroupBarrier();
