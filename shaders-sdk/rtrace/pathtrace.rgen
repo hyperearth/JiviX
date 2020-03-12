@@ -85,6 +85,7 @@ void main() { // Hi-DPI adaptation
         gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz, gNormal.xyz);
         raydir.xyz = I == 0 ? randomHemisphereCosine(seed, gTangent.xyz, gNormal.xyz) : reflectGlossy(seed, raydir.xyz, gTangent.xyz, gNormal.xyz, speculSample.y);
         origin.xyz += faceforward(gNormal.xyz,-raydir.xyz, gNormal.xyz) * 0.001f, i++; // pre-correction
+        origin.xyz += raydir.xyz * 0.001f;
 #endif
 
         bool afterReflection = false;
@@ -102,14 +103,14 @@ void main() { // Hi-DPI adaptation
                 for (uint j=0;j<TRANSPARENT_COUNT;j++) {
                     traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
                         0, 1, 0,
-                        lorign.xyz, 0.0001f,
+                        lorign.xyz,  0.001f,
                         lightd.xyz, 10000.f,
                         0);
                     
                     depth = min(sdepth,depth+ShadowsRay.fdata.z); // Generalize Shadow Depth
                     lorign.xyz += lightd.xyz * ShadowsRay.fdata.z;
                     if (ShadowsRay.diffuse.w > 0.001f || depth >= (shdist-0.0001f)) { break; };
-                    lorign.xyz += faceforward(ShadowsRay.normals.xyz,-lightd.xyz,ShadowsRay.normals.xyz) * 0.0001f;
+                    lorign.xyz += faceforward(ShadowsRay.normalm.xyz,-lightd.xyz,ShadowsRay.normalm.xyz) * 0.0001f;
                 };
 
                 const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
@@ -119,7 +120,7 @@ void main() { // Hi-DPI adaptation
             // Primary Rays
             traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
                 0, 1, 0,
-                origin.xyz, 0.0001f,
+                origin.xyz,  0.001f,
                 raydir.xyz, 10000.f,
                 0);
             
@@ -155,11 +156,7 @@ void main() { // Hi-DPI adaptation
 
             // 
             origin.xyz += raydir.xyz * depth;
-            if (i == 0u) { 
-                forign = origin.xyz, 
-                fnorml = PrimaryRay.normals.xyz;
-                frefl = reflectionPower;
-            };
+            if (i == 0u) { forign = origin.xyz, fnorml = PrimaryRay.normals.xyz, frefl = reflectionPower; };
 
             // 
             if (couldReflection) afterReflection = true;
@@ -173,6 +170,7 @@ void main() { // Hi-DPI adaptation
                 if (TRANSPARENT_ITERATION > 0) { TRANSPARENT_ITERATION--; i--; };
             };
             origin.xyz += faceforward(gNormal.xyz,-raydir.xyz,gNormal.xyz) * 0.001f;
+            origin.xyz += raydir.xyz * 0.001f;
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f || depth >= 9999.f) { break; }; // 
 
         } else {

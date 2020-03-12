@@ -222,10 +222,10 @@ int main() {
     std::string wrn = "";
 
     // 
-    const float unitScale = 1.f;
+    const float unitScale = 100.f;
     const float unitHeight = -1.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "Chess_Set/Chess_Set.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "lost_empire.gltf"); 
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -519,7 +519,7 @@ int main() {
     // 
     //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
     context->setModelView(glm::lookAt(eye, foc, glm::dvec3(0.f, 1.f, 0.f)));
-    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 1000.));
+    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 10000.));
 
     // initialize program
     renderer->setupCommands();

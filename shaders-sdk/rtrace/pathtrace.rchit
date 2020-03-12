@@ -83,7 +83,7 @@ void main() {
     };
 
     // 
-    mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBitnorml),normalize(gNormal.xyz));
+    const mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBitnorml),normalize(gNormal.xyz));
 
     // 
     const MaterialUnit unit = materials[0u].data[meshInfo[gl_InstanceCustomIndexNV].materialID];
@@ -93,11 +93,11 @@ void main() {
     vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
 
     // 
-    PrimaryRay.normals.xyz = normalize(gNormal.xyz);
+    PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));//normalize(gNormal.xyz);
     PrimaryRay.diffuse     = diffuseColor;
     PrimaryRay.specular    = specularColor;
     PrimaryRay.emission    = emissionColor;
     PrimaryRay.tangent.xyz = normalize(gTangent.xyz);
     //PrimaryRay.normals.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz)); // DEBUG
-    PrimaryRay.normalm.xyz = PrimaryRay.normals.xyz;//normalize(TBN * (normalsColor.xyz * 2.f - 1.f));
+    PrimaryRay.normalm.xyz = normalize(TBN * (normalsColor.xyz * 2.f - 1.f));
 };
