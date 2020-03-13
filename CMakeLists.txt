@@ -16,6 +16,14 @@ set (CMAKE_CXX_EXTENSIONS 1)
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_C_STANDARD 11)
 
+#
+set(DCMAKE_SH="CMAKE_SH-NOTFOUND")
+if(MINGW)
+    set(CMAKE_SHARED_LIBRARY_PREFIX "")
+    set(CMAKE_STATIC_LIBRARY_PREFIX "")
+    set(GNUtoMS TRUE)
+endif()
+
 # Set source directories
 set (SOURCES_LIST 
     "./include/*.h"
@@ -30,17 +38,27 @@ set (SOURCES_LIST
     "./include/JiviX/*/*/*/vulkan.*"
     "./include/JiviX/*/*/*/*/*.hpp"
     "./include/JiviX/*/*/*/*/vulkan.*"
+    "./include/glad/*.hpp"
+    "./include/glad/*.h"
+    "./include/radx/*.hpp"
+    "./include/radx/*.h"
+    "./include/vulkan/*.hpp"
+    "./include/vulkan/*.h"
+    "./include/vma/*.hpp"
+    "./include/vma/*.h"
+    "./include/vkh/*.hpp"
+    "./include/vkh/*.h"
+    "./include/vkt2/*.hpp"
+    "./include/vkt2/*.h"
+    "./include/vkt/*.hpp"
+    "./include/vkt/*.h"
+    "./include/volk/*.hpp"
+    "./include/volk/*.h"
+    "./include/spirv/*.hpp"
+    "./include/spirv/*.h"
+    "./include/spirv/*/*.hpp"
+    "./include/spirv/*/*.h"
 
-    "./include/radx/*"
-    "./include/vulkan/*"
-    "./include/vma/*"
-    "./include/vkh/*"
-    "./include/vkt2/*"
-    "./include/vkt/*"
-    "./include/volk/*"
-    "./include/spirv/*"
-    "./include/spirv/*/*"
-    
     "./src/*.cpp"
     "./src/*.hpp"
     "./src/*.c"
@@ -74,6 +92,7 @@ set (LIBS glfw3)
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
 set (INC_DIR 
     "${DEP_DIR}/include/JiviX/"
+    "${DEP_DIR}/include/*/*/"
     "${DEP_DIR}/include/*/"
     "${DEP_DIR}/include/" 
     "${DEP_DIR}/src/" 
@@ -136,12 +155,12 @@ if (MSVC) # Clang in Visual Studio 2017
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
 else()
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++2a -march=skylake -mtune=skylake -fpermissive -w -Ofast")
-    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast")
-    if (WIN32)
-        set (CMAKE_CXX_FLAGS "${CMAK_CXX_FLAGS} -Wa,-mbig-obj")
-        set (CMAKE_C_FLAGS "${CMAK_C_FLAGS} -Wa,-mbig-obj")
-    endif()
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og -Wa,-mbig-obj -m64 -std=c++2a -march=skylake -mtune=skylake -fpermissive -w -Ofast --combine -fwhole-program")
+    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -g -Og -Wa,-mbig-obj -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast --combine -fwhole-program")
+    #if (WIN32)
+    #    set (CMAKE_CXX_FLAGS "${CMAK_CXX_FLAGS} -Wa,-mbig-obj")
+    #    set (CMAKE_C_FLAGS "${CMAK_C_FLAGS} -Wa,-mbig-obj")
+    #endif()
 endif()
 
 # Set optimizations for build types
