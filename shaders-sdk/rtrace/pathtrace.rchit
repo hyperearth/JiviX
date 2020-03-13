@@ -109,10 +109,11 @@ void main() {
 
     // 
     PrimaryRay.normals.xyz = normalize(gNormal.xyz);
-    PrimaryRay.diffuse     = diffuseColor;
-    PrimaryRay.specular    = specularColor;
-    PrimaryRay.emission    = emissionColor;
+    PrimaryRay.texcoord.xy = gTexcoord.xy;
+    //PrimaryRay.diffuse     = diffuseColor;
+    //PrimaryRay.specular    = specularColor;
+    //PrimaryRay.emission    = emissionColor;
     PrimaryRay.binorml.xyz = normalize(gBinormal.xyz);
     PrimaryRay.tangent.xyz = normalize(gTangent.xyz);
-    PrimaryRay.normalm.xyz = normalize( TBN * normalize(normalsColor.xyz * 2.f - 1.f) );
+    //PrimaryRay.normalm.xyz = normalize( TBN * normalize(normalsColor.xyz * 2.f - 1.f) );
 };

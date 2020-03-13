@@ -24,10 +24,7 @@ vec4 shiftByPixel(in vec4 wpos, inout uvec2 seed){
 // TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
     ShadowsRay.position  = PrimaryRay.position  = vec4(0.f);
-    ShadowsRay.specular  = PrimaryRay.specular  = vec4(0.f);
-    ShadowsRay.diffuse   = PrimaryRay.diffuse   = vec4(0.f);
     ShadowsRay.normals   = PrimaryRay.normals   = vec4(0.f);
-    ShadowsRay.normalm   = PrimaryRay.normalm   = vec4(0.f);
     ShadowsRay.fdata.xyz = PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTNV
     ShadowsRay.udata.xyz = PrimaryRay.udata.xyz = uvec3(0u);
 
@@ -131,8 +128,11 @@ void main() { // Hi-DPI adaptation
                         
                         depth = min(sdepth,depth+ShadowsRay.fdata.z); // Generalize Shadow Depth
                         lorign.xyz += lightd.xyz * ShadowsRay.fdata.z;
-                        if (ShadowsRay.diffuse.w > 0.001f || depth >= (shdist-0.0001f)) { break; };
-                        lorign.xyz += faceforward(ShadowsRay.normalm.xyz,-lightd.xyz,ShadowsRay.normalm.xyz) * 0.0001f;
+
+                        const MaterialUnit unit = materials[0u].data[meshInfo[ShadowsRay.udata.w].materialID];
+                        const vec4  diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],PrimaryRay.texcoord.xy) : unit.diffuse);
+                        if (diffuseColor.w > 0.001f || depth >= (shdist-0.0001f)) { break; };
+                        lorign.xyz += faceforward(gmNormal.xyz,-lightd.xyz,gmNormal.xyz) * 0.0001f;
                     };
                 };
 
@@ -150,12 +150,21 @@ void main() { // Hi-DPI adaptation
             gTangent = PrimaryRay.tangent;
             gmNormal = PrimaryRay.normals;
             gBinorml = PrimaryRay.binorml;
-            gNormal  = PrimaryRay.normalm;
+            //gNormal  = PrimaryRay.normalm;
 
             // 
-            const vec4  diffuseColor = PrimaryRay.diffuse;
-            const vec4 emissionColor = PrimaryRay.emission;
-            const vec4 specularColor = PrimaryRay.specular;
+            //const vec4  diffuseColor = PrimaryRay.texcoord.xy//PrimaryRay.diffuse;
+            //const vec4 emissionColor = PrimaryRay.texcoord.xy//PrimaryRay.emission;
+            //const vec4 specularColor = PrimaryRay.texcoord.xy//PrimaryRay.specular;
+
+            const MaterialUnit unit = materials[0u].data[meshInfo[ShadowsRay.udata.w].materialID];
+            const vec4  diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],PrimaryRay.texcoord.xy) : unit.diffuse);
+            const vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],PrimaryRay.texcoord.xy) : unit.emission);
+            const vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],PrimaryRay.texcoord.xy) : unit.normals;
+            const vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],PrimaryRay.texcoord.xy) : unit.specular;
+            
+            // compute transmuted normal 
+            gNormal.xyz = normalize(mat3x3(gTangent.xyz,gmNormal.xyz,gmNormal.xyz) * (normalsColor.xyz * 2.f - 1.f));
 
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;

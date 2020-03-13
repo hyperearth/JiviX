@@ -22,16 +22,17 @@ struct RayPayloadData {
     uvec4 udata;
     vec4 fdata;
     vec4 position;
-    //vec4 texcoords;
-    vec4 normals;
+    vec4 texcoord;
 
-    vec4 normalm;
+    vec4 normals;
+    //vec4 normalm;
     vec4 tangent;
     vec4 binorml;
+    
 
-    vec4 diffuse;
-    vec4 specular;
-    vec4 emission;
+    //vec4 diffuse;
+    //vec4 specular;
+    //vec4 emission;
     //vec4 tangents;
 };
 
@@ -333,12 +334,14 @@ vec3 randomSphere( inout uvec2 seed ) {
 vec3 randomHemisphereCosine(inout uvec2 seed) {
     const vec2 hmsm = random2(seed);
     const float phi = hmsm.x * TWO_PI, up = sqrt(1.0f - hmsm.y), over = sqrt(fma(up,-up,1.f));
-    return vec3(cos(phi)*over,up,sin(phi)*over);
+    return normalize(vec3(cos(phi)*over,up,sin(phi)*over));
 };
 
+/*
 vec3 randomHemisphereCosine(inout uvec2 seed, in mat3x3 TBN) {
     return normalize(TBN * randomHemisphereCosine(seed).xzy);
 };
+*/
 
 /*
 vec3 randomHemisphereCosine(inout uvec2 seed, in vec3 tangent, in vec3 n) {
@@ -349,7 +352,6 @@ vec3 randomHemisphereCosine(inout uvec2 seed, in vec3 tangent, in vec3 n) {
     return normalize(hemi.x * tan_x + hemi.y * tan_y + n * hemi.z);
 };*/
 
-/*
 vec3 randomHemisphereCosine( inout uvec2 seed, in mat3x3 TBN)
 {
     float up = random(seed); // uniform distribution in hemisphere
@@ -362,7 +364,7 @@ vec3 randomHemisphereCosine( inout uvec2 seed, in mat3x3 TBN)
     vec3 T = vec3( 1.0 + signf * TBN[2].x * TBN[2].x * a, signf * b, -signf * TBN[2].x );
     vec3 B = vec3( b, signf + TBN[2].y * TBN[2].y * a, -TBN[2].y );
     return normalize(cos(around) * over * T + sin(around) * over * B + up * TBN[2]);
-};*/
+};
 
 vec3 reflectGlossy(inout uvec2 seed, in vec3 I, in mat3x3 TBN, in float gloss){
     return mix(reflect(I,TBN[2]), randomHemisphereCosine(seed,TBN), gloss*sqrt(random(seed)));
