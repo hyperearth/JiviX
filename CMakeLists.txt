@@ -60,24 +60,24 @@ set (SOURCES_LIST
     #"./include/spirv/*/*.h"
 
     "./src/*.cpp"
-    "./src/*.hpp"
+    #"./src/*.hpp"
     "./src/*.c"
-    "./src/*.h"
+    #"./src/*.h"
     
     "./src/*/*.cpp"
-    "./src/*/*.hpp"
-    "./src/*/*.h"
+    #"./src/*/*.hpp"
+    #"./src/*/*.h"
     "./src/*/*.c"
     
     "./src/*/*/*.cpp"
-    "./src/*/*/*.hpp"
+    #"./src/*/*/*.hpp"
     "./src/*/*/*.c"
-    "./src/*/*/*.h"
+    #"./src/*/*/*.h"
     
-    "./src/include/*.hpp"
-    "./src/include/*.h"
-    "./src/include/*/*.hpp"
-    "./src/include/*/*.h"
+    #"./src/include/*.hpp"
+    #"./src/include/*.h"
+    #"./src/include/*/*.hpp"
+    #"./src/include/*/*.h"
 )
 
 # Find packages (Linux Prior)
@@ -152,15 +152,12 @@ endif()
 
 # Compiler specific options
 if (MSVC) # Clang in Visual Studio 2017
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
+    #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3")
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
 else()
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wp,-v -E -xc -dD -x c++   -g -Og -Wa,-mbig-obj -m64 -std=c++2a -march=skylake -mtune=skylake -fpermissive -w -Ofast ")
-    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}    -Wp,-v -E -xc -dD -x c++   -g -Og -Wa,-mbig-obj -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast ")
-    #if (WIN32)
-    #    set (CMAKE_CXX_FLAGS "${CMAK_CXX_FLAGS} -Wa,-mbig-obj")
-    #    set (CMAKE_C_FLAGS "${CMAK_C_FLAGS} -Wa,-mbig-obj")
-    #endif()
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -march=skylake -mtune=skylake -fpermissive ")
+    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=c1x   -march=skylake -mtune=skylake -fpermissive ")
 endif()
 
 # Set optimizations for build types

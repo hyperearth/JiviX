@@ -187,7 +187,7 @@ namespace jvi {
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 8u>& const getFlip1Buffers() const {
+        virtual const std::array<vkt::ImageRegion, 8u>& getFlip1Buffers() const {
             return this->smFlip1Images;
         }
 
@@ -197,7 +197,7 @@ namespace jvi {
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 8u>& const getFrameBuffers() const {
+        virtual const std::array<vkt::ImageRegion, 8u>& getFrameBuffers() const {
             return this->frameBfImages;
         }
 
@@ -315,11 +315,11 @@ namespace jvi {
 
             // 
             thread->submitOnce([&,this](vk::CommandBuffer& cmd) {
-                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = vk::Image(depthImage), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
                 for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
-                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = vk::Image(this->frameBfImages[i]), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->frameBfImages[i]) });
-                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = vk::Image(this->smFlip0Images[i]), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->smFlip0Images[i]) });
-                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = vk::Image(this->smFlip1Images[i]), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->smFlip1Images[i]) });
+                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i]->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->frameBfImages[i]) });
+                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip0Images[i]->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->smFlip0Images[i]) });
+                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip1Images[i]->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->smFlip1Images[i]) });
                     cmd.clearColorImage(this->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
                     cmd.clearColorImage(this->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
                     cmd.clearColorImage(this->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
