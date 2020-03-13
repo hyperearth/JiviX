@@ -155,8 +155,8 @@ if (MSVC) # Clang in Visual Studio 2017
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
 else()
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Og -Wa,-mbig-obj -m64 -std=c++2a -march=skylake -mtune=skylake -fpermissive -w -Ofast --combine -fwhole-program")
-    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -g -Og -Wa,-mbig-obj -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast --combine -fwhole-program")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wp,-v -E -xc -dD -x c++   -g -Og -Wa,-mbig-obj -m64 -std=c++2a -march=skylake -mtune=skylake -fpermissive -w -Ofast ")
+    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}    -Wp,-v -E -xc -dD -x c++   -g -Og -Wa,-mbig-obj -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive -w -Ofast ")
     #if (WIN32)
     #    set (CMAKE_CXX_FLAGS "${CMAK_CXX_FLAGS} -Wa,-mbig-obj")
     #    set (CMAKE_C_FLAGS "${CMAK_C_FLAGS} -Wa,-mbig-obj")
