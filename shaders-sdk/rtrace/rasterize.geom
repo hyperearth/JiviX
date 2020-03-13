@@ -40,8 +40,8 @@ void main() {
         if (!hasNormal (meshInfo[drawInfo.data.x])) { fNormal  = vec4(normal, 0.f); };
 
         if (!hasTangent(meshInfo[drawInfo.data.x])) { 
-            fTangent .xyz = tangent - dot(fNormal.xyz,tangent.xyz)*fNormal.xyz;
-            fBinormal.xyz = binorml - dot(fNormal.xyz,binorml.xyz)*fNormal.xyz;
+            fTangent .xyz = tangent; //- dot(fNormal.xyz,tangent.xyz)*fNormal.xyz;
+            fBinormal.xyz = binorml; //- dot(fNormal.xyz,binorml.xyz)*fNormal.xyz;
         } else {
             fBinormal.xyz = cross(fNormal.xyz,fTangent.xyz);
             //fBinormal.xyz = fBinormal.xyz - dot(fNormal.xyz,fBinormal.xyz)*fNormal.xyz;

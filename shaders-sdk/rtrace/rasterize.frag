@@ -28,10 +28,10 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy,0) : unit.emission);
     
     // 
-    vec3 gTangent = fTangent.xyz;
-    vec3 gBinormal = fBinormal.xyz;//cross(fNormal.xyz,fTangent.xyz);
-    gBinormal -= dot(fNormal.xyz,gBinormal)*fNormal.xyz;
+    vec3 gTangent = fTangent.xyz - dot(fNormal.xyz,fTangent.xyz)*fNormal.xyz;
+    vec3 gBinormal = fBinormal.xyz - dot(fNormal.xyz,fBinormal.xyz)*fNormal.xyz;
     
+    // 
     mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal),normalize(fNormal.xyz));
     vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
 

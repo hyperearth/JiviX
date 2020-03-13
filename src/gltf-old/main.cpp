@@ -385,7 +385,7 @@ int main() {
             };
 
             // 
-            meshes.push_back(jvx::Mesh(context, vertexCount<<uintptr_t(ctype)));
+            meshes.push_back(jvx::Mesh(context, vertexCount<<uintptr_t(ctype)*2u));
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
 
             // 

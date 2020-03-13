@@ -43,7 +43,7 @@ void main() {
     vec4 gNormal = vec4(triangulate(idx3, 2u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
     vec4 gTangent = vec4(triangulate(idx3, 3u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
     vec4 gTexcoord = vec4(triangulate(idx3, 1u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
-    vec4 gBitnorml = vec4(0.f.xxx,0.f);
+    vec4 gBinormal = vec4(0.f.xxx,0.f);
 
     // 
     const mat3x3 mc = mat3x3(
@@ -59,13 +59,9 @@ void main() {
         vec4(get_vec4(idx3[2], 1u, gl_InstanceCustomIndexNV).xyz,1.f)
     );
 
-    const vec3 dp1 = mc[1] - mc[0], dp2 = mc[2] - mc[0];
-    const vec3 tx1 = tx[1] - tx[0], tx2 = tx[2] - tx[0];
-    const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
-    const vec3 tangent = (dp1.xyz * tx2.yyy - dp2.xyz * tx1.yyy) * coef;
-    const vec3 binorml = (dp1.xyz * tx2.xxx - dp2.xyz * tx1.xxx) * coef;
-
-    // normals 
+    
+    /*
+    // normals
     if (!(dot(gNormal.xyz,gNormal.xyz) > 0.001f && hasNormal(meshInfo[gl_InstanceCustomIndexNV]))) {
         gNormal.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
     } else {
@@ -80,10 +76,29 @@ void main() {
         gTangent .xyz = (vec4(gTangent.xyz, 0.f) * normalTransform * normInTransform).xyz;
         gBitnorml.xyz = cross(gNormal.xyz,gTangent.xyz);
         //gBitnorml.xyz = gBitnorml.xyz - dot(gNormal.xyz,gBitnorml.xyz)*gNormal.xyz;
+    };*/
+
+    const vec3 dp1 = mc[1] - mc[0], dp2 = mc[2] - mc[0];
+    const vec3 tx1 = tx[1] - tx[0], tx2 = tx[2] - tx[0];
+    const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
+    const vec3 normal = normalize(cross(dp1.xyz, dp2.xyz));
+    const vec3 tangent = (dp1.xyz * tx2.yyy - dp2.xyz * tx1.yyy) * coef;
+    const vec3 binorml = (dp1.xyz * tx2.xxx - dp2.xyz * tx1.xxx) * coef;
+    if (!hasNormal (meshInfo[gl_InstanceCustomIndexNV])) { gNormal = vec4(normal, 0.f); };
+    if (!hasTangent(meshInfo[gl_InstanceCustomIndexNV])) { 
+        gTangent .xyz = tangent;
+        gBinormal.xyz = binorml;
+    } else {
+        gBinormal.xyz = cross(gNormal.xyz, gTangent.xyz);
+        //gBinormal.xyz = gBinormal.xyz - dot(gNormal.xyz,gBinormal.xyz)*gNormal.xyz;
     };
 
+    gTangent .xyz -= dot(gNormal.xyz,tangent.xyz)*gNormal.xyz;
+    gBinormal.xyz -= dot(gNormal.xyz,binorml.xyz)*gNormal.xyz;
+
+
     // 
-    const mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBitnorml),normalize(gNormal.xyz));
+    const mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal.xyz),normalize(gNormal.xyz));
 
     // 
     const MaterialUnit unit = materials[0u].data[meshInfo[gl_InstanceCustomIndexNV].materialID];
@@ -98,5 +113,5 @@ void main() {
     PrimaryRay.specular    = specularColor;
     PrimaryRay.emission    = emissionColor;
     PrimaryRay.tangent.xyz = normalize(gTangent.xyz);
-    PrimaryRay.normalm.xyz = PrimaryRay.normals.xyz;//normalize(TBN * (normalsColor.xyz * 2.f - 1.f));
+    PrimaryRay.normalm.xyz = normalize( normalize(normalsColor.xyz * 2.f - 1.f) * TBN );
 };
