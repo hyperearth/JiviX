@@ -46,6 +46,10 @@ void main() {
     vec4 gBinormal = vec4(0.f.xxx,0.f);
 
     // 
+    gNormal = vec4(normalize((vec4(gNormal.xyz,0.f) * normalTransform * normInTransform).xyz),0.f);
+    gTangent = vec4(normalize((vec4(gTangent.xyz,0.f) * normalTransform * normInTransform).xyz),0.f);
+
+    // 
     const mat3x3 mc = mat3x3(
         vec4(vec4(get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,
         vec4(vec4(get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,

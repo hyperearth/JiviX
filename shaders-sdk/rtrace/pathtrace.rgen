@@ -132,7 +132,7 @@ void main() { // Hi-DPI adaptation
                         const MaterialUnit unit = materials[0u].data[meshInfo[ShadowsRay.udata.w].materialID];
                         const vec4  diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],PrimaryRay.texcoord.xy) : unit.diffuse);
                         if (diffuseColor.w > 0.001f || depth >= (shdist-0.0001f)) { break; };
-                        lorign.xyz += faceforward(gmNormal.xyz,-lightd.xyz,gmNormal.xyz) * 0.0001f;
+                        lorign.xyz += faceforward(gmNormal.xyz,-lightd.xyz,gmNormal.xyz) * 0.0001f + lightd.xyz * 0.0001f;
                     };
                 };
 
@@ -212,8 +212,7 @@ void main() { // Hi-DPI adaptation
             };
 
             // 
-            origin.xyz += faceforward(gmNormal.xyz,-raydir.xyz,gmNormal.xyz) * 0.001f;
-            origin.xyz += raydir.xyz * 0.001f;
+            origin.xyz += faceforward(gmNormal.xyz,-raydir.xyz,gmNormal.xyz) * 0.0001f + raydir.xyz * 0.0001f;
             if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f || depth >= 9999.f || dot(raydir.xyz,gmNormal.xyz) <= 0.f) { break; }; // 
 
         } else {

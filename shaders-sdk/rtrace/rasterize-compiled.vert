@@ -1,3 +1,31 @@
+#version 460 core // #
+#extension GL_GOOGLE_include_directive  : require
+#extension GL_EXT_scalar_block_layout           : require
+#extension GL_EXT_shader_realtime_clock         : require
+#extension GL_EXT_samplerless_texture_functions : require
+#extension GL_EXT_nonuniform_qualifier          : require
+#extension GL_EXT_control_flow_attributes       : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types         : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int8    : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64   : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float64 : require
+#extension GL_EXT_shader_subgroup_extended_types_int8      : require
+#extension GL_EXT_shader_subgroup_extended_types_int16     : require
+#extension GL_EXT_shader_subgroup_extended_types_int64     : require
+#extension GL_EXT_shader_subgroup_extended_types_float16   : require
+#extension GL_EXT_shader_16bit_storage                     : require
+#extension GL_EXT_shader_8bit_storage                      : require
+#extension GL_KHR_shader_subgroup_basic                    : require
+
+precision highp float;
+precision highp int;
+#define GLSLIFY 1
+#define GLSLIFY 1
 #define GLSLIFY 1
 // #
 // Re-Sampling
@@ -336,6 +364,7 @@ vec3 randomHemisphereCosine(inout uvec2 seed) {
     const float phi = hmsm.x * TWO_PI, up = sqrt(1.0f - hmsm.y), over = sqrt(fma(up,-up,1.f));
     return normalize(vec3(cos(phi)*over,up,sin(phi)*over));
 };
+
 /*
 vec3 randomHemisphereCosine(inout uvec2 seed, in mat3x3 TBN) {
     return normalize(TBN * randomHemisphereCosine(seed).xzy);
@@ -349,8 +378,7 @@ vec3 randomHemisphereCosine(inout uvec2 seed, in vec3 tangent, in vec3 n) {
 	vec3 tan_y = cross(n, tan_x);
     vec3 hemi = randomHemisphereCosine(seed);
     return normalize(hemi.x * tan_x + hemi.y * tan_y + n * hemi.z);
-};
-*/
+};*/
 
 vec3 randomHemisphereCosine( inout uvec2 seed, in mat3x3 TBN)
 {
@@ -452,3 +480,45 @@ vec3 screen2world(in vec3 origin){
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
 #define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+
+// Left Oriented
+layout (location = 0) in vec3 iPosition;
+layout (location = 1) in vec2 iTexcoord;
+layout (location = 2) in vec3 iNormals;
+layout (location = 3) in vec4 iTangent;
+//layout (location = 4) in vec4 fBinormal;
+
+// Right Oriented
+layout (location = 0) out vec4 gPosition;
+layout (location = 1) out vec4 gTexcoord;
+layout (location = 2) out vec4 gNormal;
+layout (location = 3) out vec4 gTangent;
+
+// 
+void main() { // Cross-Lake
+    const uint globalInstanceID = meshIDs[nonuniformEXT(drawInfo.data.x)].instanceID[gl_InstanceIndex];
+    //const uint globalInstanceID = drawInfo.data.y;
+
+    mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
+    if (!hasTransform(meshInfo[drawInfo.data.x])) {
+        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    };
+    //const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    const mat4x4 matra4 = mat4x4(matras[0],matras[1],matras[2],vec4(0.f.xxx,1.f));
+
+    const mat3x4 transp = rtxInstances[globalInstanceID].transform;
+    const mat4x4 trans4 = mat4x4(transp[0],transp[1],transp[2],vec4(0.f.xxx,1.f));
+
+    const mat4x4 normalTransform = (inverse(transpose(matra4)));
+    const mat4x4 normInTransform = (inverse(transpose(trans4)));
+
+    // 
+      gTexcoord.xy = iTexcoord;
+    //gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * transp,1.f) * matras,1.f); // INVALID
+      gPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * transp,1.f); // CORRECT
+      gNormal = vec4(normalize((vec4(iNormals.xyz,0.f) * normalTransform * normInTransform).xyz),0.f);
+      gTangent = vec4(iTangent.xyz,0.f) * normalTransform * normInTransform;
+
+    // 
+    gl_Position = vec4(gPosition * modelview, 1.f) * projection;
+};
