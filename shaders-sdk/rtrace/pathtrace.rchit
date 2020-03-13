@@ -98,5 +98,5 @@ void main() {
     PrimaryRay.specular    = specularColor;
     PrimaryRay.emission    = emissionColor;
     PrimaryRay.tangent.xyz = normalize(gTangent.xyz);
-    PrimaryRay.normalm.xyz = normalize(TBN * (normalsColor.xyz * 2.f - 1.f));
+    PrimaryRay.normalm.xyz = PrimaryRay.normals.xyz;//normalize(TBN * (normalsColor.xyz * 2.f - 1.f));
 };
