@@ -1,13 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\build",
-    "\\include",
-    "\\include\\lancer",
-    "\\include\\lancer\\API",
-    "\\include\\lancer\\EXT",
-    "\\include\\vkt"
+    ""
   ],
-  "SelectedNode": "\\build\\LancER.sln",
+  "SelectedNode": "\\include",
   "PreviewInSolutionExplorer": false
 }

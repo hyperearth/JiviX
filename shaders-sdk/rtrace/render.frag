@@ -78,11 +78,16 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
             vec3 psample = world2screen(getPosition(map).xyz);
 
             if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == (maxc>>1) && y == (maxc>>1))) {
+                vec4 samp = 0.f.xxxx;
                 if (reflection) {
-                    sampled += vec4(getReflection(map).xyz,1.f);
+                    //sampled += 
+                    samp = vec4(getReflection(map).xyz,1.f);
                 } else {
-                    sampled += getIndirect(map);
+                    //sampled += 
+                    samp = getIndirect(map);
                 };
+
+                sampled += samp/max(samp.w,1.f);
             };
         };
     };
