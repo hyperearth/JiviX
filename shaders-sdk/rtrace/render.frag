@@ -80,14 +80,13 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
             if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == (maxc>>1) && y == (maxc>>1))) {
                 vec4 samp = 0.f.xxxx;
                 if (reflection) {
-                    //sampled += 
                     samp = vec4(getReflection(map).xyz,1.f);
                 } else {
-                    //sampled += 
                     samp = getIndirect(map);
                 };
 
-                sampled += samp/max(samp.w,1.f);
+                sampled += samp;
+                //sampled += clamp(samp/max(samp.w,1.f),0.f.xxxx,1.f.xxxx);
             };
         };
     };
