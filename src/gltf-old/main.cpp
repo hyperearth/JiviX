@@ -397,7 +397,7 @@ int main() {
                     const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
                     // 
-                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride);
+                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
                     auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                     vector.rangeInfo() = stride * attribute.count;
 
@@ -425,7 +425,7 @@ int main() {
                     const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
                     // 
-                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride);
+                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
                     auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                     vector.rangeInfo() = stride * attribute.count;
 
@@ -449,7 +449,7 @@ int main() {
                 const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
                 // 
-                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride);
+                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
                 auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                 vector.rangeInfo() = stride * attribute.count;
 
