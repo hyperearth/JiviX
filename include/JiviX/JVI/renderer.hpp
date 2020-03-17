@@ -263,7 +263,7 @@ namespace jvi {
             const auto& renderArea = this->context->refScissor();
 
             // 
-            saveCommand.copyImage(
+            /*saveCommand.copyImage(
                 this->context->frameBfImages[0u], this->context->frameBfImages[0u], 
                 this->context->smFlip1Images[4u], this->context->smFlip1Images[4u], 
             { vk::ImageCopy(
@@ -271,7 +271,7 @@ namespace jvi {
                 this->context->smFlip1Images[4u], vk::Offset3D{0u,0u,0u}, 
                 vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
             ) });
-            vkt::commandBarrier(saveCommand);
+            vkt::commandBarrier(saveCommand);*/
 
             // 
             return uTHIS;

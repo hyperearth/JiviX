@@ -603,7 +603,7 @@ namespace jvi {
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
-            //this->pipelineInfo.rasterizationState.pNext = &conserv;
+            this->pipelineInfo.rasterizationState.pNext = &conserv;
 
             // 
             for (uint32_t i = 0u; i < 8u; i++) {

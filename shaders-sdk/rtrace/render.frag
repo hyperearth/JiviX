@@ -31,7 +31,7 @@ vec4 getPosition(in ivec2 coord){
 
 vec4 getColor(in ivec2 map){
     const ivec2 size = imageSize(writeImages[RESCOLOR]);
-    return imageLoad(writeImages[RESCOLOR],ivec2(map.x,map.y));
+    return imageLoad(writeImages[RESCOLOR],ivec2(map.x,size.y-map.y-1));
 };
 
 // bubble sort horror

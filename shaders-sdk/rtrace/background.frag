@@ -28,5 +28,5 @@ void main() {
     imageStore(writeImages[DIFFUSED], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
     imageStore(writeImages[NORMALED], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(normals.xyz,0.f));
     imageStore(writeImages[SAMPLING], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(samples.xyz,0.f));
-    imageStore(writeImages[RESCOLOR], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(colored.xyz,1.f));
+    imageStore(writeImages[RESCOLOR], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));
 };
