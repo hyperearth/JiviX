@@ -105,7 +105,7 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
 };
 
 // 
-void main() {
+void main() { // TODO: explicit sampling 
     const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
     const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
     const vec4 specular = texelFetch(frameBuffers[SPECULAR],samplep,0);
