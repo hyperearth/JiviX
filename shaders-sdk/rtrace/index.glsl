@@ -5,6 +5,7 @@
 #define NORMALED 2
 #define REFLECTS 3
 #define RESCOLOR 4
+#define RENDERED 5
 //#define DIFFUSED_FLIP1 0//2
 //#define SAMPLING_FLIP1 1//3
 
@@ -228,6 +229,7 @@ vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycen
 
 // Deferred and Rasterization Set
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
+layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // New for FXAA shading (based on writeImages)
 //layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
 
 // Sampling And Ray Tracing Set (also, re-used from previous frame)

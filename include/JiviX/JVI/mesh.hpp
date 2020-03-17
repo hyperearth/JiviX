@@ -698,12 +698,12 @@ namespace jvi {
             if (this->instanceCount <= 0u) return uTHIS;
 
             // 
-            if (this->needsQuads) {
+            /*if (this->needsQuads) {
                 rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 rasterCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
                 rasterCommand.dispatch(vkt::tiled(this->vertexCount>>2u, 256u) * 256u, 1u, 1u);
-            };
+            };*/
 
             // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};

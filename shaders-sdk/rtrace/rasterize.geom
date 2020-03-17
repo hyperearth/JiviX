@@ -34,11 +34,11 @@ void main() {
         gl_Position = gl_in[i].gl_Position;
 
 #ifndef CONSERVATIVE
-        gl_Position.xyz /= gl_in[i].gl_Position.w;
-        gl_Position.xy = gl_Position.xy * .5f + .5f;
-        gl_Position.xy += pixelShift; // MSAA sample point
-        gl_Position.xy = gl_Position.xy * 2.f - 1.f;
-        gl_Position.xyz *= gl_in[i].gl_Position.w;
+        //gl_Position.xyz /= gl_in[i].gl_Position.w;
+        //gl_Position.xy = gl_Position.xy * .5f + .5f;
+        //gl_Position.xy += pixelShift; // MSAA sample point
+        //gl_Position.xy = gl_Position.xy * 2.f - 1.f;
+        //gl_Position.xyz *= gl_in[i].gl_Position.w;
 #endif
 
         // shift ray-tracing sample point

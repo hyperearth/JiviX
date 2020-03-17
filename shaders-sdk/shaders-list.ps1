@@ -51,6 +51,7 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     new-item -Name $HRDDIR$RDXO -itemtype directory  -Force | Out-Null
 
     # ray-tracing of vector graphics
+    BuildCompute "denoise.comp"         "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "render.frag"          "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "render.vert"          "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX"
