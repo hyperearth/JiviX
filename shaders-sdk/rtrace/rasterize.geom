@@ -28,18 +28,19 @@ void main() {
     const vec3 normal = normalize(cross(dp1.xyz, dp2.xyz));
 
     const vec2 size  = textureSize(frameBuffers[POSITION], 0);
-    const vec2 pixelShift = (staticRandom2() - 0.5f) / size * 0.5f;
+    const vec2 pixelShift = (staticRandom2() - 0.5f) / size;
 
     [[unroll]] for (uint i=0u;i<3u;i++) {
         const vec2 fi = pixelShift * gl_in[i].gl_Position.w;
 
         // 
         gl_Position = gl_in[i].gl_Position;
-        gl_Position.xy += fi; // MSAA sample point
+        //gl_Position.xy += fi * gl_Position.w; // MSAA sample point
         
         // shift ray-tracing sample point
-        fPosition = gl_Position * projectionInv, fPosition /= fPosition.w;
+        fPosition = gl_Position * projectionInv;
         fPosition.xyz = fPosition * modelviewInv;
+        fPosition /= fPosition.w;
 
         // 
         fTexcoord = gTexcoord[i]; // TODO: move texcoord by sample position for anti-aliased
@@ -47,7 +48,7 @@ void main() {
         fNormal = gNormal[i];
 
         // 
-        gl_Position.xy -= fi;
+        //gl_Position.xy -= fi;
 
         // 
         const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
