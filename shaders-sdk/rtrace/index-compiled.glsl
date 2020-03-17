@@ -1,3 +1,4 @@
+#define GLSLIFY 1
 // #
 // Re-Sampling
 #define DIFFUSED 0
@@ -94,7 +95,6 @@ vec3 fromLinear(in vec3 linearRGB) { return mix(vec3(1.055)*pow(linearRGB, vec3(
 vec3 toLinear(in vec3 sRGB) { return mix(pow((sRGB + vec3(0.055))/vec3(1.055), vec3(2.4)), sRGB/vec3(12.92), lessThan(sRGB, vec3(0.04045))); }
 vec4 fromLinear(in vec4 linearRGB) { return vec4(fromLinear(linearRGB.xyz), linearRGB.w); }
 vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
-
 
 // Mesh Data Buffers
 //layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
@@ -220,10 +220,6 @@ vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycen
     return mc*barycenter;
 };
 
-
-
-
-
 // Deferred and Rasterization Set
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
 //layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
@@ -276,8 +272,6 @@ uint hash( uvec2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)           
 uint hash( uvec3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
 uint hash( uvec4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
-
-
 // Construct a float with half-open range [0:1] using low 23 bits.
 // All zeroes yields 0.0, all ones yields the next smallest representable value below 1.0.
 float floatConstruct( uint m ) {
@@ -292,8 +286,6 @@ float floatConstruct( uint m ) {
 };
 
 highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
-
-
 
 // Pseudo-random value in half-open range [0:1].
 //float random( float x ) { return floatConstruct(hash(floatBitsToUint(x))); }
@@ -335,7 +327,6 @@ vec3 dcts(in vec2 hr) {
 //vec3 randomSphere() { return dcts(random2()); };
 //vec3 randomSphere(in uint  s) { return dcts(random2(s)); };
 //vec3 randomSphere(in uvec2 s) { return dcts(random2(s)); };
-
 
 vec3 randomSphere( inout uvec2 seed ) {
     float up = random(seed) * 2.0 - 1.0; // range: -1 to +1
@@ -417,8 +408,6 @@ bvec3 fequal(in vec3 a, in vec3 b){
         greaterThanEqual(a, b - 0.0001f));
 };
 
-
-
 struct Box { vec3 min, max; };
 
 vec2 boxIntersect(in vec3 rayOrigin, in vec3 rayDir, in vec3 boxMin, in vec3 boxMax) {
@@ -462,7 +451,6 @@ vec3 world2screen(in vec3 origin){
 vec3 screen2world(in vec3 origin){
     return vec4(divW(vec4(origin,1.f) * projectionInv),1.f)*modelviewInv;
 };
-
 
 // Some Settings
 const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)

@@ -27,18 +27,26 @@ void main() {
     const vec4 tx1 = gTexcoord[1] - gTexcoord[0], tx2 = gTexcoord[2] - gTexcoord[0];
     const vec3 normal = normalize(cross(dp1.xyz, dp2.xyz));
 
+    const vec2 size  = textureSize(frameBuffers[POSITION], 0);
+    const vec2 pixelShift = staticRandom2() / size;
+
     [[unroll]] for (uint i=0u;i<3u;i++) {
         gl_Position = gl_in[i].gl_Position;
+        //gl_Position.xy += pixelShift * gl_in[i].gl_Position.w; // MSAA sample point
+
+        // 
         fPosition = gPosition[i];
         fTexcoord = gTexcoord[i];
         fTangent = gTangent[i];
         fNormal = gNormal[i];
 
+        // 
         const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
         const vec3 tangent = (dp1.xyz * tx2.yyy - dp2.xyz * tx1.yyy) * coef;
         const vec3 binorml = (dp1.xyz * tx2.xxx - dp2.xyz * tx1.xxx) * coef;
         if (!hasNormal (meshInfo[drawInfo.data.x])) { fNormal  = vec4(normal, 0.f); };
 
+        // 
         if (!hasTangent(meshInfo[drawInfo.data.x])) { 
             fTangent .xyz = tangent; //- dot(fNormal.xyz,tangent.xyz)*fNormal.xyz;
             fBinormal.xyz = binorml; //- dot(fNormal.xyz,binorml.xyz)*fNormal.xyz;
@@ -49,6 +57,6 @@ void main() {
 
         EmitVertex();
     };
-    
+
     EndPrimitive();
 };
