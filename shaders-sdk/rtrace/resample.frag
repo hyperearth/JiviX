@@ -15,17 +15,17 @@ layout (location = SAMPLING) out vec4 oSampling;
 layout (location = REFLECTS) out vec4 oSpecular;
 layout (location = RESCOLOR) out vec4 oRescolor;
 
-const vec2 shift[9] = {
+/*const vec2 shift[9] = {
     vec2(-1.f,-1.f),vec2(0.f,-1.f),vec2(1.f,-1.f),
     vec2(-1.f, 0.f),vec2(0.f, 0.f),vec2(1.f, 0.f),
     vec2(-1.f, 1.f),vec2(0.f, 1.f),vec2(1.f, 1.f)
-};
+};*/
 
-//const vec2 shift[1] = { vec2(0.f, 0.f) };
+const vec2 shift[1] = { vec2(0.f, 0.f) };
 
 bool checkCorrect(in vec4 positions, in vec2 i2fxm) {
-    for (int i=0;i<9;i++) {
-    //for (int i=0;i<1;i++) {
+    //for (int i=0;i<9;i++) {
+    for (int i=0;i<1;i++) {
         const vec2 offt = shift[i];
 
         vec4 almostpos = vec4(texture(frameBuffers[POSITION],i2fxm+offt).xyz,1.f), worldspos = almostpos; // get world space from pixel

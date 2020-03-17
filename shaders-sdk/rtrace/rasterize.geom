@@ -34,15 +34,20 @@ void main() {
         gl_Position = gl_in[i].gl_Position;
 
 #ifndef CONSERVATIVE
-        gl_Position.xy += pixelShift * gl_in[i].gl_Position.w; // MSAA sample point
+        gl_Position.xyz /= gl_in[i].gl_Position.w;
+        gl_Position.xy = gl_Position.xy * .5f + .5f;
+        gl_Position.xy += pixelShift; // MSAA sample point
+        gl_Position.xy = gl_Position.xy * 2.f - 1.f;
+        gl_Position.xyz *= gl_in[i].gl_Position.w;
 #endif
 
         // shift ray-tracing sample point
-        fPosition = gl_Position * projectionInv;
-        fPosition.xyz = fPosition * modelviewInv;
-        fPosition /= fPosition.w;
+        //fPosition = gl_Position * projectionInv;
+        //fPosition.xyz = fPosition * modelviewInv;
+        //fPosition /= fPosition.w;
 
         // 
+        fPosition = gPosition[i];
         fTexcoord = gTexcoord[i]; // TODO: move texcoord by sample position for anti-aliased
         fTangent = gTangent[i];
         fNormal = gNormal[i];
