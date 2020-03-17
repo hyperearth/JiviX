@@ -16,6 +16,7 @@
 #define EMISSION 4
 #define SPECULAR 5
 #define GEONORML 6
+#define SAMPLEPT 7
 
 // TODO: Materials
 struct RayPayloadData {

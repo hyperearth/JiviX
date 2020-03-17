@@ -307,9 +307,19 @@ namespace jvi {
                 this->node->meshes[I]->increaseInstanceCount(i);
             };
 
+            // create sampling points
+            auto I = 0u;
+
+            // make covergence (depth) map
+            I = 0u; for (auto& M : this->node->meshes) {
+                M->createRasterizePipeline()->createCovergenceCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); // FIXED FINALLY
+            };
+            vkt::commandBarrier(this->cmdbuf);
+
             // 
-            auto I = 0u; for (auto& M : this->node->meshes) { 
-                M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); // FIXED FINALLY
+            this->cmdbuf.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, vk::ClearDepthStencilValue(1.0f, 0), (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
+            I = 0u; for (auto& M : this->node->meshes) {
+                M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); // FIXED FINALLY
             };
             vkt::commandBarrier(this->cmdbuf);
 

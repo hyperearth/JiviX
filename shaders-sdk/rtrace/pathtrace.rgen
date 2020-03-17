@@ -49,7 +49,7 @@ void main() { // Hi-DPI adaptation
     const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
     const vec4 colourSample = texture(frameBuffers[COLORING], pixel);
     const vec4 normalSample = texture(frameBuffers[NORMALED], pixel);
-    const vec4 worldsSample = texture(frameBuffers[POSITION], pixel);
+    const vec4 worldsSample = texture(frameBuffers[SAMPLEPT], pixel);
     const vec4 emitedSample = texture(frameBuffers[EMISSION], pixel);
     const vec4 speculSample = texture(frameBuffers[SPECULAR], pixel);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;

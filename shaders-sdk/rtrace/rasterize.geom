@@ -30,13 +30,13 @@ void main() {
     const vec2 size  = textureSize(frameBuffers[POSITION], 0);
     const vec2 pixelShift = (staticRandom2() - 0.5f) / size;
 
-    [[unroll]] for (uint i=0u;i<3u;i++) {
-        const vec2 fi = pixelShift * gl_in[i].gl_Position.w;
-
-        // 
+    [[unroll]] for (uint i=0u;i<3u;i++) { // 
         gl_Position = gl_in[i].gl_Position;
-        //gl_Position.xy += fi * gl_Position.w; // MSAA sample point
-        
+
+#ifndef CONSERVATIVE
+        gl_Position.xy += pixelShift * gl_in[i].gl_Position.w; // MSAA sample point
+#endif
+
         // shift ray-tracing sample point
         fPosition = gl_Position * projectionInv;
         fPosition.xyz = fPosition * modelviewInv;

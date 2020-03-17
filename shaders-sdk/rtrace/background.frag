@@ -10,6 +10,7 @@ layout (location = COLORING) out vec4 colored;
 layout (location = POSITION) out vec4 samples;
 layout (location = NORMALED) out vec4 normals;
 layout (location = TANGENTS) out vec4 tangent;
+layout (location = SAMPLEPT) out vec4 samplep;
 
 // 
 void main() {
@@ -21,7 +22,7 @@ void main() {
     //colored = vec4(0.f.xxx,1.f);
     colored = vec4(gSkyColor,1.f);
     normals = vec4(normalize((modelview * normalize(vec3(0.f, 0.f, 1.f))).xyz), 1.f);
-    
+    samplep = vec4(vec3(0.f,0.f,0.f),0.f);
 
     gl_FragDepth = 1.f; 
     imageStore(writeImages[REFLECTS], ivec2(gl_FragCoord.x,size.y-gl_FragCoord.y), vec4(0.f,0.f,0.f,0.f));

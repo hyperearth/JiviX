@@ -64,6 +64,11 @@ namespace jvi {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.geom.spv"), vk::ShaderStageFlagBits::eGeometry),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vk::ShaderStageFlagBits::eFragment)
             });
+            this->ctages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.vert.spv"), vk::ShaderStageFlagBits::eVertex),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.geom.spv"), vk::ShaderStageFlagBits::eGeometry),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+            });
 
             // 
             this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vk::ShaderStageFlagBits::eCompute);
@@ -603,7 +608,7 @@ namespace jvi {
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
-            this->pipelineInfo.rasterizationState.pNext = &conserv;
+            //this->pipelineInfo.rasterizationState.pNext = &conserv;
 
             // 
             for (uint32_t i = 0u; i < 8u; i++) {
@@ -614,14 +619,83 @@ namespace jvi {
             this->rasterizationState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
 
             // 
+            this->pipelineInfo.rasterizationState.pNext = &conserv;
+            this->pipelineInfo.stages = this->ctages;
+            this->covergenceState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
+
+            // 
+            return uTHIS;
+        };
+
+
+
+
+
+
+
+
+
+        // Create Secondary Command With Pipeline
+        virtual uPTR(Mesh) createCovergenceCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
+            if (this->instanceCount <= 0u) return uTHIS;
+
+            // 
+            if (this->needsQuads) {
+                rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+                rasterCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
+                rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
+                rasterCommand.dispatch(vkt::tiled(this->vertexCount >> 2u, 256u) * 256u, 1u, 1u);
+            };
+
+            // 
+            std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
+            buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
+            for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
+
+            // 
+            const auto& viewport = this->context->refViewport();
+            const auto& renderArea = this->context->refScissor();
+            const auto clearValues = std::vector<vk::ClearValue>{
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                vk::ClearDepthStencilValue(1.0f, 0)
+            };
+
+            // covergence
+            rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            rasterCommand.setViewport(0, { viewport });
+            rasterCommand.setScissor(0, { renderArea });
+            rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->covergenceState);
+            rasterCommand.bindVertexBuffers(0u, buffers, offsets);
+            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
+
+            // Make Draw Instanced
+            if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
+                this->rawMeshInfo[0u].prmCount = this->indexCount / 3u;
+                rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
+            }
+            else { // VAL Mode
+                this->rawMeshInfo[0u].prmCount = this->vertexCount / 3u;
+                rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
+            };
+            rasterCommand.endRenderPass();
+            //vkt::commandBarrier(rasterCommand);
+
+            // 
             return uTHIS;
         };
 
         // Create Secondary Command With Pipeline
         virtual uPTR(Mesh) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
             if (this->instanceCount <= 0u) return uTHIS;
-
-
 
             // 
             if (this->needsQuads) {
@@ -651,7 +725,7 @@ namespace jvi {
                 vk::ClearDepthStencilValue(1.0f, 0)
             };
 
-            // 
+            // samples itself
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
             rasterCommand.setScissor(0, { renderArea });
@@ -705,6 +779,7 @@ namespace jvi {
         std::vector<vkh::VkVertexInputBindingDescription> vertexInputBindingDescriptions = {};
         std::vector<vkh::VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
+        std::vector<vkh::VkPipelineShaderStageCreateInfo> ctages = {};
 
         vkh::VkComputePipelineCreateInfo quadInfo = {};
         vkh::VkPipelineShaderStageCreateInfo quadStage = {};
@@ -725,6 +800,7 @@ namespace jvi {
         //vk::CommandBuffer rasterCommand = {};
         vkh::VkGeometryNV geometryTemplate = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
+        vk::Pipeline covergenceState = {};
 
         // WIP buffer bindings
         vkt::Vector<vkh::VkVertexInputAttributeDescription> rawAttributes = {};

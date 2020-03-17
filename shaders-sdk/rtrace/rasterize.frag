@@ -18,6 +18,7 @@ layout (location = TANGENTS) out vec4 tangent;
 layout (location = EMISSION) out vec4 emission;
 layout (location = SPECULAR) out vec4 specular;
 layout (location = GEONORML) out vec4 geonormal;
+layout (location = SAMPLEPT) out vec4 gsamplept; 
 
 // 
 void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
@@ -36,23 +37,33 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
 
     if (diffuseColor.w > 0.001f) {
+#ifndef CONSERVATIVE
+        samples = 0.f.xxxx;
+        gsamplept = vec4(fPosition.xyz,1.f); // used for ray-start position
+        geonormal = vec4(normalize(fNormal.xyz),1.f);
         colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
-        normals = vec4(gNormal.xyz,1.f);
-        tangent = vec4(gTangent.xyz,1.f);
-        samples = vec4(fPosition.xyz,1.f);
         emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
         specular = vec4(specularColor.xyz*specularColor.w,1.f);
-        geonormal = vec4(normalize(fNormal.xyz),1.f);
-        gl_FragDepth = gl_FragCoord.z;
-        //emission = vec4(emissionColor.xyz,emissionColor.w);
-    } else {
+#else
+        samples = vec4(fPosition.xyz,1.f); // covered center of pixel (used for resampling tests)
+        gsamplept = 0.f.xxxx;
+        geonormal = 0.f.xxxx;
         colored = 0.f.xxxx;
-        normals = vec4(0.f.xx,0.f.xx);
-        samples = vec4(0.f.xxx,0.f.x);
-        tangent = vec4(0.f.xxx,0.f.x);
-        geonormal = vec4(0.f.xxx,0.f.x);
         specular = 0.f.xxxx;
         emission = 0.f.xxxx;
+#endif
+        normals = vec4(gNormal.xyz,1.f);
+        tangent = vec4(gTangent.xyz,1.f);
+        gl_FragDepth = gl_FragCoord.z;
+    } else {
+        colored = 0.f.xxxx;
+        specular = 0.f.xxxx;
+        emission = 0.f.xxxx;
+        normals = vec4(0.f.xx,0.f.xx);
+        tangent = vec4(0.f.xxx,0.f.x);
+        samples = vec4(0.f.xxx,0.f.x);
+        gsamplept = vec4(0.f.xxx,0.f.x);
+        geonormal = vec4(0.f.xxx,0.f.x);
         gl_FragDepth = 1.f;
     };
     //ivec2 txd = ivec2(gl_FragCoord.xy), txs = imageSize(writeImages[DIFFUSED]);

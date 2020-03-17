@@ -31,8 +31,6 @@ void main() {
     // 
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
     if (diffcolor.w > 0.f && !all(fequal(positions.xyz,0.f.xxx))) { // set into current 
-    //if (diffcolor.w > 0.f) {
-    //{
         gl_Position = vec4(world2screen(positions.xyz),1.f), gl_Position.y *= -1.f, gl_PointSize = 1.f;
         gColor = clamp(diffcolor, 0.001f, 10000000.f);
         gSpecular = vec4(speccolor.xyz,1.f);
