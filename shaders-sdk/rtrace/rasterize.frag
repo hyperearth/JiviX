@@ -36,22 +36,22 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal),normalize(fNormal.xyz));
     vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
 
+    // 
     if (diffuseColor.w > 0.001f) {
 #ifndef CONSERVATIVE
         samples = 0.f.xxxx;
-        gsamplept = vec4(fPosition.xyz,1.f); // used for ray-start position
-        geonormal = vec4(normalize(fNormal.xyz),1.f);
         colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
+        gsamplept = vec4(fPosition.xyz,1.f); // used for ray-start position
         emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
         specular = vec4(specularColor.xyz*specularColor.w,1.f);
 #else
         samples = vec4(fPosition.xyz,1.f); // covered center of pixel (used for resampling tests)
-        gsamplept = 0.f.xxxx;
-        geonormal = 0.f.xxxx;
         colored = 0.f.xxxx;
+        gsamplept = 0.f.xxxx;
         specular = 0.f.xxxx;
         emission = 0.f.xxxx;
 #endif
+        geonormal = vec4(normalize(fNormal.xyz),1.f);
         normals = vec4(gNormal.xyz,1.f);
         tangent = vec4(gTangent.xyz,1.f);
         gl_FragDepth = gl_FragCoord.z;

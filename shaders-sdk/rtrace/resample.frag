@@ -15,25 +15,25 @@ layout (location = SAMPLING) out vec4 oSampling;
 layout (location = REFLECTS) out vec4 oSpecular;
 layout (location = RESCOLOR) out vec4 oRescolor;
 
-/*const vec2 shift[9] = {
+const vec2 shift[9] = {
     vec2(-1.f,-1.f),vec2(0.f,-1.f),vec2(1.f,-1.f),
     vec2(-1.f, 0.f),vec2(0.f, 0.f),vec2(1.f, 0.f),
     vec2(-1.f, 1.f),vec2(0.f, 1.f),vec2(1.f, 1.f)
-};*/
+};
 
-const vec2 shift[1] = { vec2(0.f, 0.f) };
+//const vec2 shift[1] = { vec2(0.f, 0.f) };
 
 bool checkCorrect(in vec4 positions, in vec2 i2fxm) {
-    //for (int i=0;i<9;i++) {
-    for (int i=0;i<1;i++) {
+    for (int i=0;i<9;i++) {
+    //for (int i=0;i<1;i++) {
         const vec2 offt = shift[i];
 
         vec4 almostpos = vec4(texture(frameBuffers[POSITION],i2fxm+offt).xyz,1.f), worldspos = almostpos; // get world space from pixel
         vec4 normaling = vec4(texture(frameBuffers[GEONORML],i2fxm+offt).xyz,1.f);
         almostpos = vec4(world2screen(almostpos.xyz),1.f);//, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
 
-        const bool isBackground = all(fequal(texture(frameBuffers[POSITION],i2fxm+offt,0).xyz,0.f.xxx));
-        if (abs(almostpos.z-positions.z) < 0.0001f && dot(gNormal.xyz,normaling.xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f || isBackground) {
+        const bool isBackground = all(fequal(texture(frameBuffers[POSITION],floor(i2fxm+offt),0).xyz,0.f.xxx));
+        if (abs(almostpos.z-positions.z) < 0.0001f && dot(gNormal.xyz,normaling.xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f && !isBackground) {
             return true;
         };
     };

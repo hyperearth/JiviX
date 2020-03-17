@@ -52,6 +52,7 @@ void main() { // Hi-DPI adaptation
     const vec4 worldsSample = texture(frameBuffers[SAMPLEPT], pixel);
     const vec4 emitedSample = texture(frameBuffers[EMISSION], pixel);
     const vec4 speculSample = texture(frameBuffers[SPECULAR], pixel);
+    const vec4 geompsSample = texture(frameBuffers[POSITION], pixel);
     const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
     uvec2 seed = uvec2(packed,rdata.x);
 
@@ -76,7 +77,7 @@ void main() { // Hi-DPI adaptation
 
         const float inIOR = 1.f;
         const float outIOR = 1.6666f;
-        vec3 forign = origin.xyz;
+        vec3 forign = geompsSample.xyz;//origin.xyz;
         vec3 fnorml = geonrm.xyz;//normal.xyz;
         float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f,speculSample.z);
 
