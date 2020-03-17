@@ -29,6 +29,11 @@ vec4 getPosition(in ivec2 coord){
     return position;
 };
 
+vec4 getColor(in ivec2 map){
+    const ivec2 size = imageSize(writeImages[RESCOLOR]);
+    return imageLoad(writeImages[RESCOLOR],ivec2(map.x,map.y));
+};
+
 // bubble sort horror
 void sort(inout vec3 arr[9u], int d)
 {
@@ -103,8 +108,8 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
 void main() {
     const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
     const vec4 emission = texelFetch(frameBuffers[EMISSION],samplep,0);
-    const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
     const vec4 specular = texelFetch(frameBuffers[SPECULAR],samplep,0);
+    const vec4 diffused = getColor(samplep);//texelFetch(frameBuffers[COLORING],samplep,0);
 
     int denDepth = 3;
     if (specular.y > 0.3333f) denDepth = 5;
@@ -118,5 +123,5 @@ void main() {
     coloring = max(coloring, 0.f.xxxx);
     reflects = max(reflects, 0.f.xxxx);
 
-    uFragColor = vec4(mix(diffused.xyz*(coloring.xyz/coloring.w)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
+    uFragColor = vec4(mix((diffused.xyz/diffused.w)*(coloring.xyz/coloring.w)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.w),1.f);
 };

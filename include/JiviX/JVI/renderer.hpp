@@ -258,6 +258,26 @@ namespace jvi {
         };
 
         // 
+        virtual uPTR(Renderer) saveDiffuseColor(const vk::CommandBuffer& saveCommand = {}) {
+            const auto& viewport = this->context->refViewport();
+            const auto& renderArea = this->context->refScissor();
+
+            // 
+            saveCommand.copyImage(
+                this->context->frameBfImages[0u], this->context->frameBfImages[0u], 
+                this->context->smFlip1Images[4u], this->context->smFlip1Images[4u], 
+            { vk::ImageCopy(
+                this->context->frameBfImages[0u], vk::Offset3D{0u,0u,0u}, 
+                this->context->smFlip1Images[4u], vk::Offset3D{0u,0u,0u}, 
+                vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
+            ) });
+            vkt::commandBarrier(saveCommand);
+
+            // 
+            return uTHIS;
+        };
+
+        // 
         virtual uPTR(Renderer) setupCommands() { // setup Commands
             if (!this->context->refRenderPass()) {
                 this->context->createRenderPass();
@@ -296,6 +316,7 @@ namespace jvi {
             // 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
             this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // FIXED FINALLY 
+            this->saveDiffuseColor(this->cmdbuf);
 
             // 
             this->cmdbuf.end();

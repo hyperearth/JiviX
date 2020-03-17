@@ -4,6 +4,7 @@
 #define SAMPLING 1
 #define NORMALED 2
 #define REFLECTS 3
+#define RESCOLOR 4
 //#define DIFFUSED_FLIP1 0//2
 //#define SAMPLING_FLIP1 1//3
 

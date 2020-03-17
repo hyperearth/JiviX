@@ -7,10 +7,13 @@ layout (location = 1) in vec4 gSample;
 layout (location = 2) in vec4 gNormal;
 layout (location = 3) in vec4 wPosition;
 layout (location = 4) in vec4 gSpecular;
+layout (location = 5) in vec4 gRescolor;
+
+//gRescolor
 layout (location = DIFFUSED) out vec4 oDiffused;
 layout (location = SAMPLING) out vec4 oSampling;
 layout (location = REFLECTS) out vec4 oSpecular;
-
+layout (location = RESCOLOR) out vec4 oRescolor;
 
 const vec2 shift[9] = {
     vec2(-1.f,-1.f),vec2(0.f,-1.f),vec2(1.f,-1.f),
@@ -45,5 +48,6 @@ void main() { // Currently NO possible to compare
     if (checkCorrect(vec4(gSample.xyz,1.f), i2fxm)) {
         oDiffused = gColor;
         oSpecular = gSpecular;
+        oRescolor = gRescolor;
     } else { discard; };
 };
