@@ -571,7 +571,7 @@ int main() {
         currSemaphore = c_semaphore;
 
         // acquire next image where will rendered (and get semaphore when will presented finally)
-        n_semaphore = (n_semaphore >= 0 ? n_semaphore : (framebuffers.size() - 1));
+        n_semaphore = (n_semaphore >= 0 ? n_semaphore : static_cast<int32_t>(framebuffers.size()) - 1);
         device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
 
         { // submit rendering (and wait presentation in device)
@@ -582,7 +582,7 @@ int main() {
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(device, commandPool, false, false); // do reference of cmd buffer
-                commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(fw->renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+                commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(fw->renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
                 commandBuffer.setViewport(0, { viewport });
                 commandBuffer.setScissor(0, { renderArea });
                 commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalPipeline);
@@ -599,9 +599,9 @@ int main() {
 
             // Submit command once
             context->getThread()->submitCmd({ renderer->refCommandBuffer(), commandBuffer }, vk::SubmitInfo()
-                .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(XPEHb.size())
-                .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(waitSemaphores.size())
-                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(signalSemaphores.size()));
+                .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(static_cast<uint32_t>(XPEHb.size()))
+                .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size()))
+                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())));
 
             // 
             context->setDrawCount(frameCount++);

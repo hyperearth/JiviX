@@ -285,7 +285,7 @@ namespace jvi {
             // 
             deferredFramebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
-                .attachmentCount = deferredAttachments.size(),
+                .attachmentCount = static_cast<uint32_t>(deferredAttachments.size()),
                 .pAttachments = deferredAttachments.data(),
                 .width = width,
                 .height = height
@@ -294,7 +294,7 @@ namespace jvi {
             // Reprojection WILL NOT write own depth... 
             smpFlip0Framebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
-                .attachmentCount = smpFlip0Attachments.size(),
+                .attachmentCount = static_cast<uint32_t>(smpFlip0Attachments.size()),
                 .pAttachments = smpFlip0Attachments.data(),
                 .width = width,
                 .height = height
@@ -303,7 +303,7 @@ namespace jvi {
             // Reprojection WILL NOT write own depth... 
             smpFlip1Framebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
-                .attachmentCount = smpFlip1Attachments.size(),
+                .attachmentCount = static_cast<uint32_t>(smpFlip1Attachments.size()),
                 .pAttachments = smpFlip1Attachments.data(),
                 .width = width,
                 .height = height

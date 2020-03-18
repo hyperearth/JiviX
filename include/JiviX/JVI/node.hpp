@@ -263,7 +263,7 @@ namespace jvi {
 
         // Create Or Rebuild Acceleration Structure
         virtual uPTR(Node) createAccelerationStructure() { // Re-assign instance count
-            this->accelerationStructureInfo.instanceCount = MaxInstanceCount;
+            this->accelerationStructureInfo.instanceCount = static_cast<uint32_t>(MaxInstanceCount);
             this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
             this->accelerationStructureInfo.geometryCount = 0u;
 

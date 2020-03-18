@@ -84,7 +84,7 @@ namespace jvi {
 
             // 
             {
-                this->indexCount = this->geometryTemplate.geometry.triangles.indexCount = AllocationUnitCount;
+                this->indexCount = this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(AllocationUnitCount);
                 this->indexType = vk::IndexType::eNoneNV;
                 this->indexData = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * sizeof(uint32_t),
@@ -104,7 +104,7 @@ namespace jvi {
 
             // 
             for (uint32_t i = 0; i < 8; i++) {
-                this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount = AllocationUnitCount;
+                this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount = static_cast<uint32_t>(AllocationUnitCount);
                 this->geometryTemplate.geometry.triangles.vertexOffset = 0u;
                 this->geometryTemplate.geometry.triangles.vertexStride = 8u;
                 this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
@@ -282,9 +282,9 @@ namespace jvi {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID+1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
-            this->vertexInputBindingDescriptions[bindingID].binding = bindingID;
+            this->vertexInputBindingDescriptions[bindingID].binding = static_cast<uint32_t>(bindingID);
             this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
-            this->bindRange[this->lastBindID = bindingID] = rawData.range();
+            this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = rawData.range();
             if (rawData.has() && rawData.range() > 0) {
                 this->thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
                     cmd.copyBuffer(rawData, this->bindings[bindingID], { vk::BufferCopy{ rawData.offset(), this->bindings[bindingID].offset(), std::min(this->bindings[bindingID].range(), rawData.range()) } });
@@ -314,8 +314,8 @@ namespace jvi {
         virtual uPTR(Mesh) genQuads(const vk::DeviceSize& primitiveCount = 0u) {
             this->indexType = vk::IndexType::eUint32;
             this->needsQuads = true;
-            this->indexCount = this->geometryTemplate.geometry.triangles.indexCount = primitiveCount * 6u;
-            this->vertexCount = this->geometryTemplate.geometry.triangles.vertexCount = primitiveCount * 4u;
+            this->indexCount = this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(primitiveCount * 6u);
+            this->vertexCount = this->geometryTemplate.geometry.triangles.vertexCount = static_cast<uint32_t>(primitiveCount * 4u);
             this->currentUnitCount = this->indexCount;
             return uTHIS;
         };
@@ -332,8 +332,8 @@ namespace jvi {
             const uintptr_t locationID = attribute->location;
             this->vertexInputAttributeDescriptions.resize(locationID+1u);
             this->vertexInputAttributeDescriptions[locationID] = attribute;
-            this->vertexInputAttributeDescriptions[locationID].binding = bindingID;
-            this->vertexInputAttributeDescriptions[locationID].location = locationID;
+            this->vertexInputAttributeDescriptions[locationID].binding = static_cast<uint32_t>(bindingID);
+            this->vertexInputAttributeDescriptions[locationID].location = static_cast<uint32_t>(locationID);
             this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions[locationID];
 
             if (locationID == 0 && NotStub) { // 
@@ -381,7 +381,7 @@ namespace jvi {
         virtual uPTR(Mesh) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& indexCount = 0) {
             this->indexType = type;
             if (indexCount) {
-                this->indexCount = indexCount;
+                this->indexCount = static_cast<uint32_t>(indexCount);
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
                 this->currentUnitCount = this->indexCount;
             };
@@ -412,7 +412,7 @@ namespace jvi {
             if (rawIndices.has() && type != vk::IndexType::eNoneNV) {
                 //this->indexData = rawIndices;
                 this->indexType = type;
-                this->indexCount = count;
+                this->indexCount = static_cast<uint32_t>(count);
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
                 this->currentUnitCount = this->indexCount;
             } else {
@@ -503,7 +503,7 @@ namespace jvi {
             };
 
             // Re-assign instance count
-            this->accelerationStructureInfo.geometryCount = this->geometries.size();
+            this->accelerationStructureInfo.geometryCount = static_cast<uint32_t>(this->geometries.size());
             this->accelerationStructureInfo.pGeometries = this->geometries.data();
             this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_NV;
             this->accelerationStructureInfo.instanceCount = 0u;
@@ -521,9 +521,9 @@ namespace jvi {
             // Create Max Possible
             if (this->geometryTemplate.geometry.triangles.indexType == VK_INDEX_TYPE_NONE_NV) {
                 this->geometryTemplate.geometry.triangles.indexCount = 0;
-                this->geometryTemplate.geometry.triangles.vertexCount = AllocationUnitCount >> int(!Is2ndFormat);
+                this->geometryTemplate.geometry.triangles.vertexCount = static_cast<uint32_t>(AllocationUnitCount >> int(!Is2ndFormat));
             } else {
-                this->geometryTemplate.geometry.triangles.indexCount = AllocationUnitCount >> int(!Is2ndFormat);
+                this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(AllocationUnitCount >> int(!Is2ndFormat));
             };
 
             // 
@@ -571,9 +571,9 @@ namespace jvi {
             // 
             if (this->geometryTemplate.geometry.triangles.indexType == VK_INDEX_TYPE_NONE_NV) {
                 this->geometryTemplate.geometry.triangles.indexCount = 0;
-                this->geometryTemplate.geometry.triangles.vertexCount = currentUnitCount;
+                this->geometryTemplate.geometry.triangles.vertexCount = static_cast<uint32_t>(currentUnitCount);
             } else {
-                this->geometryTemplate.geometry.triangles.indexCount = currentUnitCount;
+                this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(currentUnitCount);
             };
 
             // 
@@ -660,7 +660,7 @@ namespace jvi {
             };
 
             // covergence
-            rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
             rasterCommand.setScissor(0, { renderArea });
             rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
@@ -718,7 +718,7 @@ namespace jvi {
             };
 
             // samples itself
-            rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, clearValues.size(), clearValues.data()), vk::SubpassContents::eInline);
+            rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
             rasterCommand.setScissor(0, { renderArea });
             rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
