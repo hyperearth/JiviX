@@ -102,6 +102,7 @@ set (INC_DIR
 # Set definition
 set (DEFINES
     -DNOMINMAX
+    -DVK_ENABLE_BETA_EXTENSIONS
     -D_CRT_SECURE_NO_WARNINGS
     -D_USE_MATH_DEFINES
     -DGLM_FORCE_SWIZZLE
@@ -111,6 +112,16 @@ set (DEFINES
     -DGLFW_INCLUDE_NONE
     -DEXPERIMENTAL_GLTF
     -DUSE_VULKAN
+    
+    -Dkhronos_int8_t=int8_t
+    -Dkhronos_uint8_t=uint8_t
+    -Dkhronos_int16_t=int16_t
+    -Dkhronos_uint16_t=uint16_t
+    -Dkhronos_int32_t=int32_t
+    -Dkhronos_uint32_t=uint32_t
+    -Dkhronos_float_t=float
+    -Dkhronos_int64_t=int64_t
+    -Dkhronos_uint64_t=uint64_t
 )
 
 # Set MSVC/Windows specific 
@@ -125,12 +136,12 @@ endif()
 
 # Vulkan Directories 
 if (Vulkan_INCLUDE_DIR)
-    set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
+    #set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
 endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)
-    set (LIBS ${LIBS} ${Vulkan_LIBRARY})
+    #set (LIBS ${LIBS} ${Vulkan_LIBRARY})
 endif()
 
 # GLFW 
