@@ -626,15 +626,7 @@ namespace jvi {
             // 
             return uTHIS;
         };
-
-
-
-
-
-
-
-
-
+        
         // Create Secondary Command With Pipeline
         virtual uPTR(Mesh) createCovergenceCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
             if (this->instanceCount <= 0u) return uTHIS;
