@@ -29,6 +29,7 @@ namespace jvi {
             this->properties.pNext = &this->rayTracingProperties;
             vkGetPhysicalDeviceProperties2(driver->getPhysicalDevice(), &(VkPhysicalDeviceProperties2&)this->properties);
             //driver->getPhysicalDevice().getProperties2(this->properties); // Vulkan-HPP Bugged
+            //driver->getPhysicalDevice().getProperties2(&(VkPhysicalDeviceProperties2&)this->properties);
 
             // 
             const auto& rtxp = rayTracingProperties;
