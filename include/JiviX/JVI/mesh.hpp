@@ -523,7 +523,7 @@ namespace jvi {
                 this->createInfo.maxGeometryCount = 1u;
                 this->createInfo.pGeometryInfos = geometryCreate.data();
                 this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-                
+
                 // 
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureKHR(this->createInfo, nullptr, this->driver->getDispatch());
 

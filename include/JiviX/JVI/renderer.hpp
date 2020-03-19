@@ -89,6 +89,10 @@ namespace jvi {
             // get ray-tracing properties
             this->rayTracingState = driver->getDevice().createRayTracingPipelineKHR(driver->getPipelineCache(), this->rayTraceInfo.vkInfo.hpp(), vk::AllocationCallbacks{}, this->driver->getDispatch()).value;
             this->driver->getDevice().getRayTracingShaderGroupHandlesKHR(this->rayTracingState,0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupHandleSize,this->rawSBTBuffer.data(),this->driver->getDispatch());
+
+            //std::vector<glm::u64vec4> imageData = {}; imageData.resize(this->rayTraceInfo.groupCount());
+            //this->driver->getDevice().getRayTracingShaderGroupHandlesKHR<glm::u64vec4>(this->rayTracingState, 0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()), imageData, this->driver->getDispatch());
+
             return uTHIS;
         };
 

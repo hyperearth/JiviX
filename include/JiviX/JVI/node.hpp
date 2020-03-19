@@ -175,13 +175,13 @@ namespace jvi {
             };
 
             // [3] acceleration structure
-            if (this->accelerationStructure) {
+            /*if (this->accelerationStructure) {
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 2u,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
                 }).offset<vk::AccelerationStructureKHR>(0u) = this->accelerationStructure;
-            };
+            };*/
 
             // [4] plush uniforms 
             this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -269,7 +269,7 @@ namespace jvi {
             this->offsetInfos[0u].primitiveCount = this->instanceCounter;
 
             // 
-            this->buildInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
+            this->buildInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
             this->buildInfo.dstAccelerationStructure = this->accelerationStructure;
             this->buildInfo.geometryCount = 1u;
             this->buildInfo.ppGeometries = (this->dataPtr = this->dataInfos.data()).ptr();
@@ -290,7 +290,7 @@ namespace jvi {
             this->instanceInfos[0u].allowsTransforms = true;
 
             // 
-            this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
+            this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
             this->createInfo.maxGeometryCount = this->instanceInfos.size();
             this->createInfo.pGeometryInfos = this->instanceInfos.data();
             this->createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
@@ -311,7 +311,7 @@ namespace jvi {
                 vmaAllocateMemory(this->driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&this->allocation,&this->allocationInfo);
                 
                 // 
-                this->driver->getDevice().bindAccelerationStructureMemoryNV({vkh::VkBindAccelerationStructureMemoryInfoKHR{
+                this->driver->getDevice().bindAccelerationStructureMemoryKHR({vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = this->allocationInfo.deviceMemory,
                     .memoryOffset = this->allocationInfo.offset
@@ -320,8 +320,8 @@ namespace jvi {
 
             // 
             if (!this->gpuScratchBuffer.has()) { // 
-                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
-                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_NV,
+                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
+                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR,
                     .accelerationStructure = this->accelerationStructure
                 }, this->driver->getDispatch());
 
@@ -375,7 +375,7 @@ namespace jvi {
         // 
         vk::DescriptorSet meshDataDescriptorSet = {};
         vk::DescriptorSet bindingsDescriptorSet = {};
-        vk::AccelerationStructureNV accelerationStructure = {};
+        vk::AccelerationStructureKHR accelerationStructure = {};
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
         VmaAllocationInfo allocationInfo = {};
         VmaAllocation allocation = {};
