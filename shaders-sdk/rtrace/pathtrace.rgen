@@ -226,7 +226,7 @@ void main() { // Hi-DPI adaptation
         // 
         if (I == 0) { // Store for Diffuse
             //const vec4 colordSample = imageLoad(writeImages[RESCOLOR], ivec2(lanQ));
-            const vec4 directSample = 0.f.xxxx;//imageLoad(writeImages[DIFFUSED], ivec2(lanQ)); // Use Explicit
+            const vec4 directSample = imageLoad(writeImages[DIFFUSED], ivec2(lanQ)); // Use Explicit
             const vec4 locateSample = imageLoad(writeImages[SAMPLING], ivec2(lanQ));
             imageStore(writeImages[DIFFUSED], ivec2(lanQ), clamp(gSignal,0.f.xxxx,65536.f.xxxx) + directSample);
             imageStore(writeImages[SAMPLING], ivec2(lanQ), vec4(forign,1.f));

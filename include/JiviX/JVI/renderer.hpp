@@ -169,7 +169,6 @@ namespace jvi {
 
             // 
             for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
-                //rasterCommand.clearColorImage(this->context->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 1.f,1.f,1.f,1.f }), { this->context->smFlip1Images[i] });
                 rasterCommand.clearColorImage(this->context->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->smFlip0Images[i] });
                 rasterCommand.clearColorImage(this->context->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->frameBfImages[i] });
             };
@@ -216,7 +215,7 @@ namespace jvi {
             // Clear NO anymore needed data
             vkt::commandBarrier(rayTraceCommand);
             for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
-                //rayTraceCommand.clearColorImage(this->context->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 1.f,1.f,1.f,1.f }), { this->context->smFlip1Images[i] });
+                //rayTraceCommand.clearColorImage(this->context->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->frameBfImages[i] });
                 rayTraceCommand.clearColorImage(this->context->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->smFlip0Images[i] });
             };
 
@@ -275,7 +274,7 @@ namespace jvi {
             const auto& renderArea = this->context->refScissor();
 
             // 
-            /*saveCommand.copyImage(
+            saveCommand.copyImage(
                 this->context->frameBfImages[0u], this->context->frameBfImages[0u], 
                 this->context->smFlip1Images[4u], this->context->smFlip1Images[4u], 
             { vk::ImageCopy(
@@ -283,7 +282,7 @@ namespace jvi {
                 this->context->smFlip1Images[4u], vk::Offset3D{0u,0u,0u}, 
                 vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
             ) });
-            vkt::commandBarrier(saveCommand);*/
+            vkt::commandBarrier(saveCommand);
 
             // 
             return uTHIS;
@@ -341,7 +340,7 @@ namespace jvi {
             // 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
             this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // FIXED FINALLY 
-            this->saveDiffuseColor(this->cmdbuf);
+            //this->saveDiffuseColor(this->cmdbuf);
 
             //
             const auto& viewport = this->context->refViewport();

@@ -134,7 +134,7 @@ void main() { // TODO: explicit sampling
     vec4 newdpixel = vec4((diffused.xyz/diffused.w)*(coloring.xyz/coloring.w),1.f);
 
     // 
-    vec4 nwsampled = resampled+clamp(newdpixel,0.f.xxxx,1.f.xxxx);
+    vec4 nwsampled = newdpixel;//resampled+clamp(newdpixel,0.f.xxxx,1.f.xxxx);
     setColor(samplep,nwsampled);
 
     // Final Result Rendering
