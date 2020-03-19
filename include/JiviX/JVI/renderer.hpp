@@ -39,9 +39,9 @@ namespace jvi {
 
             // 
             this->rtStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
-                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rgen.spv"), vk::ShaderStageFlagBits::eRaygenNV),
-                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitNV),
-                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rmiss.spv"), vk::ShaderStageFlagBits::eMissNV)
+                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rgen.spv"), vk::ShaderStageFlagBits::eRaygenKHR),
+                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rchit.spv"), vk::ShaderStageFlagBits::eClosestHitKHR),
+                vkt::makePipelineStageInfo(driver->getDevice(), vkt::readBinary("./shaders/rtrace/pathtrace.rmiss.spv"), vk::ShaderStageFlagBits::eMissKHR)
                 });
 
             // 
@@ -85,10 +85,10 @@ namespace jvi {
             this->rgenSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset(), this->gpuSBTBuffer.stride());
             this->rhitSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset()+ this->gpuSBTBuffer.stride() * this->rayTraceInfo. hitOffsetIndex(), this->gpuSBTBuffer.stride());
             this->rmisSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset()+ this->gpuSBTBuffer.stride() * this->rayTraceInfo.missOffsetIndex(), this->gpuSBTBuffer.stride());
-            
+
             // get ray-tracing properties
-            this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(), this->rayTraceInfo, nullptr, this->driver->getDispatch());
-            this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupHandleSize,this->rawSBTBuffer.data(),this->driver->getDispatch());
+            this->rayTracingState = driver->getDevice().createRayTracingPipelineKHR(driver->getPipelineCache(), this->rayTraceInfo.vkInfo.hpp(), vk::AllocationCallbacks{}, this->driver->getDispatch()).value;
+            this->driver->getDevice().getRayTracingShaderGroupHandlesKHR(this->rayTracingState,0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupHandleSize,this->rawSBTBuffer.data(),this->driver->getDispatch());
             return uTHIS;
         };
 
@@ -227,17 +227,18 @@ namespace jvi {
             //std::cout << rtxp.shaderGroupHandleSize << std::endl;
 
             vkt::commandBarrier(rayTraceCommand);
-            rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
-            rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingKHR, this->rayTracingState);
+            rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingKHR, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rayTraceCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 })), 0u, { meshData });
-            rayTraceCommand.traceRaysNV(
-                this->rgenSBTPtr.buffer(), this->rgenSBTPtr.offset(),
-                this->rmisSBTPtr.buffer(), this->rmisSBTPtr.offset(), this->rmisSBTPtr.range(),
-                this->rhitSBTPtr.buffer(), this->rhitSBTPtr.offset(), this->rhitSBTPtr.range(),
+            rayTraceCommand.traceRaysKHR(this->rgenSBTPtr.getRegion(), this->rmisSBTPtr.getRegion(), this->rhitSBTPtr.getRegion(), vk::StridedBufferRegionKHR{}, renderArea.extent.width, renderArea.extent.height, 1u, this->driver->getDispatch());
+            /*
+                this->rgenSBTPtr.getRegion()
+                this->rmisSBTPtr.getRegion(),
+                this->rhitSBTPtr.getRegion(),
                 {}, 0u, 0u,
                 renderArea.extent.width, renderArea.extent.height, 1u,
                 this->driver->getDispatch()
-            );
+            );*/
             vkt::commandBarrier(rayTraceCommand);
             return uTHIS;
         };
@@ -411,7 +412,7 @@ namespace jvi {
         vkt::uni_ptr<Thread> thread = {};
         
         // 
-        vk::PhysicalDeviceRayTracingPropertiesNV rayTracingProperties = {};
+        vk::PhysicalDeviceRayTracingPropertiesKHR rayTracingProperties = {};
         vk::PhysicalDeviceProperties2 properties = {};
 
         //std::vector<vkt::uni_ptr<Instance>> instances = {};
