@@ -31,11 +31,6 @@ namespace jvi {
             //driver->getPhysicalDevice().getProperties2(this->properties); // Vulkan-HPP Bugged
             //driver->getPhysicalDevice().getProperties2(&(VkPhysicalDeviceProperties2&)this->properties);
 
-            // 
-            const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
-
             // Pre-Initialize Stages For FASTER CODE
             this->skyboxStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/background.vert.spv"), vk::ShaderStageFlagBits::eVertex),
@@ -80,9 +75,19 @@ namespace jvi {
             this->rayTraceInfo.vkInfo.maxRecursionDepth = 4u;
             this->rayTraceInfo.addShaderStages(this->rtStages);
             this->rayTraceInfo.addShaderStages(this->bgStages);
-            this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(),this->rayTraceInfo,nullptr,this->driver->getDispatch());
 
+            // 
+            const auto& rtxp = rayTracingProperties;
+            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+
+            // create for KHR compatible and comfort
+            this->rgenSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset(), this->gpuSBTBuffer.stride());
+            this->rhitSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset()+ this->gpuSBTBuffer.stride() * this->rayTraceInfo. hitOffsetIndex(), this->gpuSBTBuffer.stride());
+            this->rmisSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset()+ this->gpuSBTBuffer.stride() * this->rayTraceInfo.missOffsetIndex(), this->gpuSBTBuffer.stride());
+            
             // get ray-tracing properties
+            this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(), this->rayTraceInfo, nullptr, this->driver->getDispatch());
             this->driver->getDevice().getRayTracingShaderGroupHandlesNV(this->rayTracingState,0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupHandleSize,this->rawSBTBuffer.data(),this->driver->getDispatch());
             return uTHIS;
         };
@@ -226,9 +231,9 @@ namespace jvi {
             rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rayTraceCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 })), 0u, { meshData });
             rayTraceCommand.traceRaysNV(
-                this->gpuSBTBuffer.buffer(), this->gpuSBTBuffer.offset(),
-                this->gpuSBTBuffer.buffer(), this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * this->gpuSBTBuffer.stride(), this->gpuSBTBuffer.stride(),
-                this->gpuSBTBuffer.buffer(), this->gpuSBTBuffer.offset() + this->rayTraceInfo. hitOffsetIndex() * this->gpuSBTBuffer.stride(), this->gpuSBTBuffer.stride(),
+                this->rgenSBTPtr.buffer(), this->rgenSBTPtr.offset(),
+                this->rmisSBTPtr.buffer(), this->rmisSBTPtr.offset(), this->rmisSBTPtr.range(),
+                this->rhitSBTPtr.buffer(), this->rhitSBTPtr.offset(), this->rhitSBTPtr.range(),
                 {}, 0u, 0u,
                 renderArea.extent.width, renderArea.extent.height, 1u,
                 this->driver->getDispatch()
@@ -393,6 +398,10 @@ namespace jvi {
         vk::Pipeline denoiseState = {};
 
         // 
+        vkt::Vector<glm::u64vec4> rgenSBTPtr = {};
+        vkt::Vector<glm::u64vec4> rhitSBTPtr = {};
+        vkt::Vector<glm::u64vec4> rmisSBTPtr = {};
+
         vkt::Vector<glm::u64vec4> gpuSBTBuffer = {};
         vkt::Vector<glm::u64vec4> rawSBTBuffer = {};
 
