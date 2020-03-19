@@ -81,13 +81,13 @@ namespace jvi {
             allocInfo.dispatch = driver->getDispatch();
 
             // 
-            this->geometryCreate[0].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount);
+            this->geometryCreate[0].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount*3u);
             this->geometryCreate[0].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
 
             { //
                 this->indexType = vk::IndexType::eNoneKHR;
                 this->indexData = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * sizeof(uint32_t),
+                    .size = AllocationUnitCount * sizeof(uint32_t) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
                 this->rawMeshInfo[0u].indexType = uint32_t(vk::IndexType::eNoneKHR) + 1u;
@@ -107,7 +107,7 @@ namespace jvi {
                 this->geometryInfo[0].geometry.triangles.vertexStride = 8u;
                 this->geometryInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
                 this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * 2 * sizeof(uint32_t),
+                    .size = AllocationUnitCount * 6u * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
@@ -117,7 +117,7 @@ namespace jvi {
                 glCreateBuffers(1u, &this->bindingsOGL[i].second);
                 glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
                 glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
-                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, AllocationUnitCount * 2u * sizeof(uint32_t), this->bindingsOGL[i].first, 0u);
+                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, AllocationUnitCount * 6u * sizeof(uint32_t), this->bindingsOGL[i].first, 0u);
 #endif
             };
 
@@ -297,8 +297,8 @@ namespace jvi {
             this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
             this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = rawData.range();
             if (rawData.has() && rawData.range() > 0) {
-                this->thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
-                    cmd.copyBuffer(rawData, this->bindings[bindingID], { vk::BufferCopy{ rawData.offset(), this->bindings[bindingID].offset(), std::min(this->bindings[bindingID].range(), rawData.range()) } });
+                this->thread->submitOnce([=, this](vk::CommandBuffer& cmd) {
+                    cmd.copyBuffer(rawData, this->bindings[bindingID], { vk::BufferCopy{ rawData.offset(), this->bindings[bindingID].offset(), std::min(vk::DeviceSize(this->bindings[bindingID].range()), vk::DeviceSize(rawData.range())) } });
                 });
             };
             return uTHIS;
