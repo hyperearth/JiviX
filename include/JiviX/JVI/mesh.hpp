@@ -38,10 +38,8 @@ namespace jvi {
             this->thread = std::make_shared<Thread>(this->driver);
 
             // 
-            this->accelerationStructureInfo.instanceCount = 0u;
-            this->accelerationStructureInfo.geometryCount = 1u;//this->instanceCount;
-            this->accelerationStructureInfo.pGeometries = &this->geometryTemplate;
-            this->accelerationStructureInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_NV;
+            this->createInfo.maxGeometryCount = 1u;
+            this->createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
 
             // create required buffers
@@ -83,14 +81,16 @@ namespace jvi {
             allocInfo.dispatch = driver->getDispatch();
 
             // 
-            {
-                this->indexCount = this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(AllocationUnitCount);
-                this->indexType = vk::IndexType::eNoneNV;
+            this->geometryCreate[0].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount);
+            this->geometryCreate[0].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
+
+            { //
+                this->indexType = vk::IndexType::eNoneKHR;
                 this->indexData = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1 },
-                    });
-                this->rawMeshInfo[0u].indexType = uint32_t(vk::IndexType::eNoneNV) + 1u;
+                });
+                this->rawMeshInfo[0u].indexType = uint32_t(vk::IndexType::eNoneKHR) + 1u;
 
                 // TODO: other platforms memory handling
                 // create OpenGL version of buffers
@@ -104,10 +104,8 @@ namespace jvi {
 
             // 
             for (uint32_t i = 0; i < 8; i++) {
-                this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount = static_cast<uint32_t>(AllocationUnitCount);
-                this->geometryTemplate.geometry.triangles.vertexOffset = 0u;
-                this->geometryTemplate.geometry.triangles.vertexStride = 8u;
-                this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
+                this->geometryInform[0].geometry.triangles.vertexStride = 8u;
+                this->geometryInform[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
                 this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * 2 * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
@@ -123,6 +121,12 @@ namespace jvi {
 #endif
             };
 
+            // 
+            this->buildInfo.geometryCount = 1u;
+            this->buildInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>(&(this->buildGPtr = this->buildGInfo.data()));
+            this->buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+
+            // 
             return uTHIS;
         }
 
@@ -314,9 +318,7 @@ namespace jvi {
         virtual uPTR(Mesh) genQuads(const vk::DeviceSize& primitiveCount = 0u) {
             this->indexType = vk::IndexType::eUint32;
             this->needsQuads = true;
-            this->indexCount = this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(primitiveCount * 6u);
-            this->vertexCount = this->geometryTemplate.geometry.triangles.vertexCount = static_cast<uint32_t>(primitiveCount * 4u);
-            this->currentUnitCount = this->indexCount;
+            this->currentUnitCount = (this->primitiveCount = this->offsetInfo[0].primitiveCount = primitiveCount)*6u;
             return uTHIS;
         };
 
@@ -338,24 +340,26 @@ namespace jvi {
 
             if (locationID == 0 && NotStub) { // 
                 const auto& binding = this->vertexInputBindingDescriptions[bindingID];
-                this->vertexCount = this->bindRange[bindingID] / binding.stride;
-                this->geometryTemplate.geometry.triangles.vertexOffset = attribute->offset + this->bindings[bindingID].offset();
-                this->geometryTemplate.geometry.triangles.vertexFormat = attribute->format;
-                this->geometryTemplate.geometry.triangles.vertexStride = binding.stride;
-                this->geometryTemplate.geometry.triangles.vertexCount = this->vertexCount;
-                this->geometryTemplate.geometry.triangles.vertexData = this->bindings[bindingID];
+                if (this->indexType == vk::IndexType::eNoneKHR) {
+                    this->currentUnitCount = (this->bindRange[bindingID] / binding.stride);
+                };
+                  this->offsetInfo[0].primitiveOffset = attribute->offset; //+ this->bindings[bindingID].offset(); // WARNING!!
+                //this->geometryInform[0].geometry.triangles.vertexOffset = attribute->offset + this->bindings[bindingID].offset();
+                  this->geometryInform[0].geometry.triangles.vertexFormat = attribute->format;
+                  this->geometryInform[0].geometry.triangles.vertexStride = binding.stride;
+                  this->geometryInform[0].geometry.triangles.vertexData = this->bindings[bindingID];
 
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
-                if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryTemplate.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
+                if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->geometryInform[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+                if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryInform[0].geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
 
             if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
             if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
             if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
 
-            if (this->indexType == vk::IndexType::eNoneNV) {
-                this->currentUnitCount = this->vertexCount;
+            if (this->indexType == vk::IndexType::eNoneKHR) {
+                this->primitiveCount = this->currentUnitCount/3u;
             };
 
             return uTHIS;
@@ -366,24 +370,26 @@ namespace jvi {
         //virtual uPTR(Mesh) addAttribute(const void* attribute, const bool& NotStub = true) { return this->addAttribute(*(vkh::VkVertexInputAttributeDescription*)attribute, NotStub); };
 
         // 
-        virtual uPTR(Mesh) setVertexCount(const uint32_t& count = 32768u) {
-            if (this->indexType == vk::IndexType::eNoneNV) {
-                this->vertexCount = this->geometryTemplate.geometry.triangles.vertexCount = count;
-                this-> indexCount = this->geometryTemplate.geometry.triangles.indexCount = 0;
-            } else {
-                this-> indexCount = this->geometryTemplate.geometry.triangles.indexCount = count;
-            };
+        virtual uPTR(Mesh) setIndexCount(const uint32_t& count = 32768u) {
             this->currentUnitCount = count;
+            this->primitiveCount = this->offsetInfo[0].primitiveCount = count / 3u; // Mul*3u
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Mesh) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& indexCount = 0) {
+        virtual uPTR(Mesh) setPrimitiveCount(const uint32_t& count = 32768u) {
+            this->currentUnitCount = count * 3u;
+            this->primitiveCount = this->offsetInfo[0].primitiveCount = count; // Mul*3u
+            return uTHIS;
+        };
+
+        // 
+        virtual uPTR(Mesh) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& primitiveCount = 0) {
             this->indexType = type;
-            if (indexCount) {
-                this->indexCount = static_cast<uint32_t>(indexCount);
+            if (this->primitiveCount) {
+                this->primitiveCount = static_cast<uint32_t>(primitiveCount);
+                this->currentUnitCount = this->primitiveCount * 3u;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
-                this->currentUnitCount = this->indexCount;
             };
             return uTHIS;
         };
@@ -393,7 +399,6 @@ namespace jvi {
         //inline uPTR(Mesh) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type) {
         inline uPTR(Mesh) setIndexData(const vkt::uni_arg<vkh::VkDescriptorBufferInfo>& rawIndices, const vk::IndexType& type) {
             vk::DeviceSize count = 0u;
-
             if (rawIndices.has()) {
                 switch (type) { // 
                     case vk::IndexType::eUint32:   count = rawIndices->range / 4u; break;
@@ -409,25 +414,21 @@ namespace jvi {
             };
 
             // 
-            if (rawIndices.has() && type != vk::IndexType::eNoneNV) {
-                //this->indexData = rawIndices;
+            if (rawIndices.has() && type != vk::IndexType::eNoneKHR) {
                 this->indexType = type;
-                this->indexCount = static_cast<uint32_t>(count);
-                this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
-                this->currentUnitCount = this->indexCount;
             } else {
-                //this->indexData = {};
-                this->indexType = vk::IndexType::eNoneNV;
-                this->indexCount = 0u;
-                this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
-                this->currentUnitCount = this->vertexCount;
+                this->indexType = vk::IndexType::eNoneKHR;
             };
 
             // 
-            this->geometryTemplate.geometry.triangles.indexOffset = this->indexData.offset();
-            this->geometryTemplate.geometry.triangles.indexType   = VkIndexType(this->indexType);
-            this->geometryTemplate.geometry.triangles.indexCount  = this->indexCount;
-            this->geometryTemplate.geometry.triangles.indexData   = this->indexData;
+            this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
+            //this->offsetInfo[0].primitiveOffset = 0u;
+            this->offsetInfo[0].primitiveCount = (this->primitiveCount = count / 3u);
+            this->currentUnitCount = count;
+
+            // 
+            this->geometryInform[0].geometry.triangles.indexType = VkIndexType(this->indexType);
+            this->geometryInform[0].geometry.triangles.indexData = this->indexData;
 
             // 
             return uTHIS;
@@ -437,7 +438,7 @@ namespace jvi {
         virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices.getDescriptor(),vk::IndexType::eUint32); };
         virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices.getDescriptor(),vk::IndexType::eUint16); };
         virtual uPTR(Mesh) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices.getDescriptor(),vk::IndexType::eUint8EXT); };
-        virtual uPTR(Mesh) setIndexData() { return this->setIndexData({},vk::IndexType::eNoneNV); };
+        virtual uPTR(Mesh) setIndexData() { return this->setIndexData({},vk::IndexType::eNoneKHR); };
 
         // some type dependent
         template<class T = uint8_t>
@@ -464,9 +465,8 @@ namespace jvi {
 
         // MORE useful for instanced data
         virtual uPTR(Mesh) setTransformData(const vkh::VkDescriptorBufferInfo& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
-            this->geometryTemplate.geometry.triangles.transformOffset = transformData.offset;
-            this->geometryTemplate.geometry.triangles.transformData = transformData.buffer;
-            //this->gpuTransformData = transformData;
+            this->offsetInfo[0].transformOffset = transformData.offset;
+            this->geometryInform[0].geometry.triangles.transformData = transformData.buffer;
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
             return uTHIS;
@@ -481,63 +481,45 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // TODO: CommandLess building of AS
         virtual uPTR(Mesh) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
-            if (this->geometryTemplate.geometry.triangles.indexType == VK_INDEX_TYPE_NONE_NV) { this->geometryTemplate.geometry.triangles.indexCount = 0; };
+            //if (this->geometryDatas[0].geometry.triangles.indexType == VK_INDEX_TYPE_NONE_KHR) { this->geometryDatas[0].geometry.triangles.indexCount = 0; };
+            this->buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            this->buildInfo.dstAccelerationStructure = this->accelerationStructure;
+            this->buildInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->buildInfo.geometryCount = 1u;
+            this->buildInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>(&(geometryPtr = geometryInform.data()));
             if (this->accelerationStructure) { this->updateGeometry(); } else { this->createAccelerationStructure(); };
-            buildCommand.buildAccelerationStructureNV((vk::AccelerationStructureInfoNV&)this->accelerationStructureInfo,{},0ull,this->needsUpdate,this->accelerationStructure,{},this->gpuScratchBuffer,this->gpuScratchBuffer.offset(),this->driver->getDispatch());
+            buildCommand.buildAccelerationStructureKHR(1u, &this->buildInfo.hpp(), &(this->offsetPtr = this->offsetInfo.data()), this->driver->getDispatch());
             this->needsUpdate = true; return uTHIS;
         };
 
         //
-        virtual uPTR(Mesh) updateGeometry() {
-            this->geometries.resize(1u);
-            for (uint32_t i = 0u; i < this->geometries.size(); i++) {
-                //this->geometries.push_back(this->geometryTemplate);
-                this->geometries[i] = this->geometryTemplate;
-                this->geometries[i].flags = { .eOpaque = 1 };
-                if (this->gpuTransformData.has()) {
-                    this->geometries[i].geometry.triangles.transformOffset = vk::DeviceSize(this->transformStride) * vk::DeviceSize(i) + this->gpuTransformData.offset(); // Should To Be Different's
-                    this->geometries[i].geometry.triangles.transformData = this->gpuTransformData;
-                };
-            };
+        virtual uPTR(Mesh) updateGeometry() { // TODO: Reserved For FUTURE!
 
-            // Re-assign instance count
-            this->accelerationStructureInfo.geometryCount = static_cast<uint32_t>(this->geometries.size());
-            this->accelerationStructureInfo.pGeometries = this->geometries.data();
-            this->accelerationStructureInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_NV;
-            this->accelerationStructureInfo.instanceCount = 0u;
-            
             return uTHIS;
         };
 
         // Create Or Rebuild Acceleration Structure
         virtual uPTR(Mesh) createAccelerationStructure() {
             bool Is2ndFormat = // TODO: more correct length detection
-                this->geometryTemplate.geometry.triangles.vertexFormat == VK_FORMAT_R32G32_SFLOAT ||
-                this->geometryTemplate.geometry.triangles.vertexFormat == VK_FORMAT_R16G16B16_SFLOAT ||
-                this->geometryTemplate.geometry.triangles.vertexFormat == VK_FORMAT_R16G16_SFLOAT;
-
-            // Create Max Possible
-            if (this->geometryTemplate.geometry.triangles.indexType == VK_INDEX_TYPE_NONE_NV) {
-                this->geometryTemplate.geometry.triangles.indexCount = 0;
-                this->geometryTemplate.geometry.triangles.vertexCount = static_cast<uint32_t>(AllocationUnitCount >> int(!Is2ndFormat));
-            } else {
-                this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(AllocationUnitCount >> int(!Is2ndFormat));
-            };
-
-            // 
-            this->updateGeometry();
+                this->geometryInform[0].geometry.triangles.vertexFormat == VK_FORMAT_R32G32_SFLOAT ||
+                this->geometryInform[0].geometry.triangles.vertexFormat == VK_FORMAT_R16G16B16_SFLOAT ||
+                this->geometryInform[0].geometry.triangles.vertexFormat == VK_FORMAT_R16G16_SFLOAT;
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
-                this->accelerationStructure = this->driver->getDevice().createAccelerationStructureNV(vkh::VkAccelerationStructureCreateInfoNV{
-                    .info = this->accelerationStructureInfo
-                }, nullptr, this->driver->getDispatch());
+                this->createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+                this->createInfo.maxGeometryCount = 1u;
+                this->createInfo.pGeometryInfos = geometryCreate.data();
+                this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+
+                // 
+                this->accelerationStructure = this->driver->getDevice().createAccelerationStructureKHR(this->createInfo, nullptr, this->driver->getDispatch());
 
                 //
-                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
-                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_NV,
+                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
+                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_KHR,
                     .accelerationStructure = this->accelerationStructure
                 }, this->driver->getDispatch());
 
@@ -547,7 +529,7 @@ namespace jvi {
                 vmaAllocateMemory(this->driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&this->allocation,&this->allocationInfo);
 
                 // 
-                this->driver->getDevice().bindAccelerationStructureMemoryNV({vkh::VkBindAccelerationStructureMemoryInfoNV{
+                this->driver->getDevice().bindAccelerationStructureMemoryKHR({vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = this->allocationInfo.deviceMemory,
                     .memoryOffset = this->allocationInfo.offset
@@ -556,8 +538,8 @@ namespace jvi {
 
             // 
             if (!this->gpuScratchBuffer.has()) { // 
-                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsNV(vkh::VkAccelerationStructureMemoryRequirementsInfoNV{
-                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_NV,
+                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
+                    .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR,
                     .accelerationStructure = this->accelerationStructure
                 }, this->driver->getDispatch());
 
@@ -566,14 +548,6 @@ namespace jvi {
                     .size = requirements.memoryRequirements.size,
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1 }
                 }, VMA_MEMORY_USAGE_GPU_ONLY);
-            };
-
-            // 
-            if (this->geometryTemplate.geometry.triangles.indexType == VK_INDEX_TYPE_NONE_NV) {
-                this->geometryTemplate.geometry.triangles.indexCount = 0;
-                this->geometryTemplate.geometry.triangles.vertexCount = static_cast<uint32_t>(currentUnitCount);
-            } else {
-                this->geometryTemplate.geometry.triangles.indexCount = static_cast<uint32_t>(currentUnitCount);
             };
 
             // 
@@ -636,7 +610,7 @@ namespace jvi {
                 rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 rasterCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-                rasterCommand.dispatch(vkt::tiled(this->vertexCount >> 2u, 256u) * 256u, 1u, 1u);
+                rasterCommand.dispatch(vkt::tiled(this->primitiveCount, 256u) * 256u, 1u, 1u);
             };
 
             // 
@@ -669,14 +643,14 @@ namespace jvi {
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
 
             // Make Draw Instanced
-            if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
-                this->rawMeshInfo[0u].prmCount = this->indexCount / 3u;
+            if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
+                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-                rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
+                rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, 0u, 0u, 0u);
             }
             else { // VAL Mode
-                this->rawMeshInfo[0u].prmCount = this->vertexCount / 3u;
-                rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
+                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
+                rasterCommand.draw(this->currentUnitCount, this->instanceCount, 0u, 0u);
             };
             rasterCommand.endRenderPass();
             //vkt::commandBarrier(rasterCommand);
@@ -688,14 +662,6 @@ namespace jvi {
         // Create Secondary Command With Pipeline
         virtual uPTR(Mesh) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // UNIT ONLY!
             if (this->instanceCount <= 0u) return uTHIS;
-
-            // 
-            /*if (this->needsQuads) {
-                rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-                rasterCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
-                rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-                rasterCommand.dispatch(vkt::tiled(this->vertexCount>>2u, 256u) * 256u, 1u, 1u);
-            };*/
 
             // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -727,14 +693,14 @@ namespace jvi {
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
 
             // Make Draw Instanced
-            if (this->indexType != vk::IndexType::eNoneNV) { // PLC Mode
-                this->rawMeshInfo[0u].prmCount = this->indexCount / 3u;
+            if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
+                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-                rasterCommand.drawIndexed(this->indexCount, this->instanceCount, 0u, 0u, 0u);
+                rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, 0u, 0u, 0u);
             }
             else { // VAL Mode
-                this->rawMeshInfo[0u].prmCount = this->vertexCount / 3u;
-                rasterCommand.draw(this->vertexCount, this->instanceCount, 0u, 0u);
+                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
+                rasterCommand.draw(this->currentUnitCount, this->instanceCount, 0u, 0u);
             };
             rasterCommand.endRenderPass();
             //vkt::commandBarrier(rasterCommand);
@@ -751,11 +717,12 @@ namespace jvi {
 #endif
 
         vk::DeviceSize currentUnitCount = 0u;
-        vk::IndexType indexType = vk::IndexType::eNoneNV;
+        vk::IndexType indexType = vk::IndexType::eNoneKHR;
         vk::DeviceSize AllocationUnitCount = 32768;
 
         // 
-        uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 0u;
+        //uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 0u;
+        uint32_t primitiveCount = 0u, instanceCount = 0u;
         bool needsUpdate = false;
         bool needsQuads = false;
 
@@ -784,13 +751,23 @@ namespace jvi {
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-        vkh::VkAccelerationStructureInfoNV accelerationStructureInfo = {};
-        std::vector<vkh::VkGeometryNV> geometries = {};
+
+        // BUT ONLY SINGLE! (Currently)
+        vkh::VkAccelerationStructureBuildGeometryInfoKHR buildInfo = {};
+        std::vector<vk::AccelerationStructureBuildGeometryInfoKHR> buildGInfo = { {} };
+        std::vector<vk::AccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
+        vk::AccelerationStructureBuildGeometryInfoKHR* buildGPtr = {};
+        vk::AccelerationStructureBuildOffsetInfoKHR*   offsetPtr = {};
+
+        // Acceleration structure info
+        vkh::VkAccelerationStructureCreateInfoKHR createInfo = {}; // CREATE
+        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR> geometryCreate = { {} };
+
+        // Current Geometry State
+        std::vector<vkh::VkAccelerationStructureGeometryKHR>               geometryInform = { {} };
+        vkh::VkAccelerationStructureGeometryKHR                            geometryPtr = {};
 
         // 
-        //vk::CommandBuffer buildCommand = {};
-        //vk::CommandBuffer rasterCommand = {};
-        vkh::VkGeometryNV geometryTemplate = {};
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
         vk::Pipeline covergenceState = {};
 
@@ -807,7 +784,7 @@ namespace jvi {
         vkt::Vector<uint32_t> gpuInstanceMap = {};
 
         // 
-        vk::AccelerationStructureNV accelerationStructure = {};
+        vk::AccelerationStructureKHR accelerationStructure = {};
         VmaAllocationInfo allocationInfo = {};
         VmaAllocation allocation = {};
 
