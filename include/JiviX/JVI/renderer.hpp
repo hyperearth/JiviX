@@ -78,8 +78,8 @@ namespace jvi {
 
             // 
             const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // create for KHR compatible and comfort
             this->rgenSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset(), this->gpuSBTBuffer.stride());
@@ -88,10 +88,12 @@ namespace jvi {
 
             // get ray-tracing properties
             this->rayTracingState = driver->getDevice().createRayTracingPipelineKHR(driver->getPipelineCache(), this->rayTraceInfo.vkInfo.hpp(), vk::AllocationCallbacks{}, this->driver->getDispatch()).value;
-            this->driver->getDevice().getRayTracingShaderGroupHandlesKHR(this->rayTracingState,0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()),this->rayTraceInfo.groupCount()*rayTracingProperties.shaderGroupHandleSize,this->rawSBTBuffer.data(),this->driver->getDispatch());
-
-            //std::vector<glm::u64vec4> imageData = {}; imageData.resize(this->rayTraceInfo.groupCount());
-            //this->driver->getDevice().getRayTracingShaderGroupHandlesKHR<glm::u64vec4>(this->rayTracingState, 0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()), imageData, this->driver->getDispatch());
+            this->driver->getDevice().getRayTracingShaderGroupHandlesKHR(
+                this->rayTracingState, 0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()),
+                this->rawSBTBuffer.stride() * this->rayTraceInfo.groupCount(),
+                this->rawSBTBuffer.data(),
+                this->driver->getDispatch()
+            );
 
             return uTHIS;
         };
