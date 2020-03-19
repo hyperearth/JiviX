@@ -42,7 +42,7 @@ void main() { // Hi-DPI adaptation
 
     // 
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
-    const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f); 
+    const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
     const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
 
     //const vec2 shift = random2(uvec2(rdata[0],packed)), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
@@ -74,9 +74,10 @@ void main() { // Hi-DPI adaptation
         vec3 normal = vec3(0.f);
         vec3 geonrm = vec3(0.f);
 #endif
+        // 
+        const vec4 bspher = vec4(origin, 10000.f);
+        const float inIOR = 1.f, outIOR = 1.6666f;
 
-        const float inIOR = 1.f;
-        const float outIOR = 1.6666f;
         vec3 forign = geompsSample.xyz;//origin.xyz;
         vec3 fnorml = geonrm.xyz;//normal.xyz;
         float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f,speculSample.z);
@@ -116,7 +117,7 @@ void main() { // Hi-DPI adaptation
                 vec3 lorign = origin;
                 const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,lorign.xyz);
                 const vec3 lightd = normalize(lightp.xyz - lorign.xyz);
-                
+
                 float depth = 0.f;
                 if (dot(lightd.xyz,gmNormal.xyz) >= 0.f) {
                     float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
@@ -154,18 +155,14 @@ void main() { // Hi-DPI adaptation
             //gNormal  = PrimaryRay.normalm;
 
             // 
-            //const vec4  diffuseColor = PrimaryRay.texcoord.xy//PrimaryRay.diffuse;
-            //const vec4 emissionColor = PrimaryRay.texcoord.xy//PrimaryRay.emission;
-            //const vec4 specularColor = PrimaryRay.texcoord.xy//PrimaryRay.specular;
-
             const MaterialUnit unit = materials[0u].data[meshInfo[ShadowsRay.udata.w].materialID];
             const vec4  diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],PrimaryRay.texcoord.xy) : unit.diffuse);
-            const vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],PrimaryRay.texcoord.xy) : unit.emission);
             const vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],PrimaryRay.texcoord.xy) : unit.normals;
+            const vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],PrimaryRay.texcoord.xy) : unit.emission);
             const vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],PrimaryRay.texcoord.xy) : unit.specular;
-            
+
             // compute transmuted normal 
-            gNormal.xyz = normalize(mat3x3(gTangent.xyz,gmNormal.xyz,gmNormal.xyz) * (normalsColor.xyz * 2.f - 1.f));
+            gNormal.xyz = normalize(mat3x3(gTangent.xyz,gBinorml.xyz,gmNormal.xyz) * (normalsColor.xyz * 2.f - 1.f));
 
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
@@ -177,7 +174,10 @@ void main() { // Hi-DPI adaptation
             bool couldReflection = random(seed) <= reflectionPower;
 
             // TODO: better depth system
-            [[flatten]] if (depth >= 9999.f) { BACKSKY_COLOR; } else
+            [[flatten]] if (depth >= 9999.f) { 
+                const float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,bspher.xyz,bspher.w); depth = (sdepth <= 0.f ? 10000.f : sdepth);
+                BACKSKY_COLOR;
+            } else
             [[flatten]] if (depth == PrimaryRay.fdata.z) { if (diffuseColor.w > 0.001f) {
                 if (couldReflection) {
                     gEnergy *= mix(1.f.xxx,diffuseColor.xyz,specularColor.zzz);
@@ -189,8 +189,10 @@ void main() { // Hi-DPI adaptation
             [[flatten]] if (depth == sdepth) { // Light Sphere
                 if (afterReflection) { gSignal.xyz += clamp(lightc*gEnergy.xyz,0.f.xxx,64.f.xxx), gEnergy *= 0.f.xxx; }; // TODO: Denoised Caustics Support
                 gmNormal.xyz = gNormal.xyz = normalize((origin.xyz + raydir.xyz * sdepth) - sphere.xyz);
-            } else {
-                gEnergy *= 0.f.xxx;
+            } else 
+            {
+                const float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,bspher.xyz,bspher.w); depth = (sdepth <= 0.f ? 10000.f : sdepth);
+                BACKSKY_COLOR;
             };
 
             // 
@@ -216,8 +218,7 @@ void main() { // Hi-DPI adaptation
 
             // 
             origin.xyz += faceforward(gmNormal.xyz,-raydir.xyz,gmNormal.xyz) * 0.0001f + raydir.xyz * 0.0001f;
-            if (dot(gEnergy.xyz,1.f.xxx) <= 0.0001f || depth >= 9999.f || dot(raydir.xyz,gmNormal.xyz) <= 0.f) { break; }; // 
-
+            if ((dot(gEnergy.xyz,1.f.xxx)/3.f) <= 0.001f || depth >= 9999.f || dot(raydir.xyz,gmNormal.xyz) <= 0.f) { break; }; // 
         } else {
             gSignal.xyz += fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
             forign.xyz = 0.f.xxx;

@@ -16,9 +16,14 @@ layout (location = SAMPLEPT) out vec4 samplep;
 void main() {
     const vec2 size = imageSize(writeImages[DIFFUSED]);
     vec2 coord = gl_FragCoord.xy; coord.y = size.y - coord.y;
+
+    vec3 origin = screen2world(vec3((vec2(coord)/vec2(size))*2.f-1.f,0.001f));
+    vec3 target = screen2world(vec3((vec2(coord)/vec2(size))*2.f-1.f,0.999f));
+    vec3 direct = normalize(target - origin);
+
     vec4 samples = max(imageLoad(writeImages[DIFFUSED],ivec2(coord)),0.0001f.xxxx); samples.xyz /= samples.w;
     //samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f);
-    samples = samplep = vec4(vec3(0.f,0.f,0.f),1.f);
+    samples = samplep = vec4(origin+direct*10000.f,1.f);
     colored = vec4(gSkyColor,1.f);
     normals = vec4(normalize((modelview * normalize(vec3(0.f, 0.f, 1.f))).xyz), 1.f);
 
