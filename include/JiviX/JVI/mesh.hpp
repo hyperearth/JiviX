@@ -489,7 +489,9 @@ namespace jvi {
 
         // TODO: CommandLess building of AS
         virtual uPTR(Mesh) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
-            //if (this->geometryDatas[0].geometry.triangles.indexType == VK_INDEX_TYPE_NONE_KHR) { this->geometryDatas[0].geometry.triangles.indexCount = 0; };
+            if (this->accelerationStructure) { this->updateGeometry(); }
+            else { this->createAccelerationStructure(); };
+
             this->buildGInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
             this->buildGInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->buildGInfo[0].dstAccelerationStructure = this->accelerationStructure;
@@ -498,7 +500,6 @@ namespace jvi {
             this->buildGInfo[0].scratchData = this->gpuScratchBuffer;
             this->offsetInfo[0].primitiveCount = primitiveCount;
 
-            if (this->accelerationStructure) { this->updateGeometry(); } else { this->createAccelerationStructure(); };
             buildCommand.buildAccelerationStructureKHR(1u, &this->buildGInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
             this->needsUpdate = true; return uTHIS;
         };
@@ -535,14 +536,14 @@ namespace jvi {
                 // 
                 VmaAllocationCreateInfo allocInfo = {};
                 allocInfo.memoryTypeBits |= requirements.memoryRequirements.memoryTypeBits;
-                vmaAllocateMemory(this->driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&this->allocation,&this->allocationInfo);
+                vmaAllocateMemory(this->driver->getAllocator(),&reinterpret_cast<VkMemoryRequirements&>(requirements.memoryRequirements),&allocInfo,&this->allocation,&this->allocationInfo);
 
                 // 
-                this->driver->getDevice().bindAccelerationStructureMemoryKHR({vkh::VkBindAccelerationStructureMemoryInfoKHR{
+                this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u,&vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = this->allocationInfo.deviceMemory,
                     .memoryOffset = this->allocationInfo.offset
-                }}, this->driver->getDispatch());
+                }.hpp(), this->driver->getDispatch());
             };
 
             // 
