@@ -33,8 +33,8 @@ namespace jvi {
 
             // 
             const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuSBTBuffer = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupHandleSize * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // Pre-Initialize Stages For FASTER CODE
             this->skyboxStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
@@ -219,14 +219,16 @@ namespace jvi {
                 rayTraceCommand.clearColorImage(this->context->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->context->smFlip0Images[i] });
             };
 
+            //std::cout << rtxp.shaderGroupHandleSize << std::endl;
+
             vkt::commandBarrier(rayTraceCommand);
             rayTraceCommand.bindPipeline(vk::PipelineBindPoint::eRayTracingNV, this->rayTracingState);
             rayTraceCommand.bindDescriptorSets(vk::PipelineBindPoint::eRayTracingNV, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             rayTraceCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 })), 0u, { meshData });
             rayTraceCommand.traceRaysNV(
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset(),
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
-                this->gpuSBTBuffer, this->gpuSBTBuffer.offset() + this->rayTraceInfo.hitOffsetIndex() * rtxp.shaderGroupHandleSize, rtxp.shaderGroupHandleSize,
+                this->gpuSBTBuffer.buffer(), this->gpuSBTBuffer.offset(),
+                this->gpuSBTBuffer.buffer(), this->gpuSBTBuffer.offset() + this->rayTraceInfo.missOffsetIndex() * this->gpuSBTBuffer.stride(), this->gpuSBTBuffer.stride(),
+                this->gpuSBTBuffer.buffer(), this->gpuSBTBuffer.offset() + this->rayTraceInfo. hitOffsetIndex() * this->gpuSBTBuffer.stride(), this->gpuSBTBuffer.stride(),
                 {}, 0u, 0u,
                 renderArea.extent.width, renderArea.extent.height, 1u,
                 this->driver->getDispatch()
@@ -391,8 +393,8 @@ namespace jvi {
         vk::Pipeline denoiseState = {};
 
         // 
-        vkt::Vector<uint64_t> gpuSBTBuffer = {};
-        vkt::Vector<uint64_t> rawSBTBuffer = {};
+        vkt::Vector<glm::u64vec4> gpuSBTBuffer = {};
+        vkt::Vector<glm::u64vec4> rawSBTBuffer = {};
 
         // 
         vkt::uni_ptr<Context> context = {};
