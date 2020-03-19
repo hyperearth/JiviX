@@ -269,14 +269,15 @@ namespace jvi {
             this->offsetInfos[0u].primitiveCount = this->instanceCounter;
 
             // 
+            this->buildInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV;
             this->buildInfo.dstAccelerationStructure = this->accelerationStructure;
             this->buildInfo.geometryCount = 1u;
-            this->buildInfo.ppGeometries = &(this->dataPtr = this->dataInfos.data());
+            this->buildInfo.ppGeometries = (this->dataPtr = this->dataInfos.data()).ptr();
             this->buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             // 
             vkt::commandBarrier(buildCommand);
-            buildCommand.buildAccelerationStructureKHR(1u, &this->buildInfo.hpp(), &(offsetsPtr = this->offsetInfos.data()), this->driver->getDispatch()); // Can only 1
+            buildCommand.buildAccelerationStructureKHR(1u, &this->buildInfo.hpp(), (offsetsPtr = this->offsetInfos.data()).ptr(), this->driver->getDispatch()); // Can only 1
             vkt::commandBarrier(buildCommand);
             this->needsUpdate = true; return uTHIS;
         };
@@ -360,10 +361,11 @@ namespace jvi {
 
         // 
         std::vector<vk::AccelerationStructureBuildOffsetInfoKHR> offsetInfos = { {} };
-        vk::AccelerationStructureBuildOffsetInfoKHR* offsetsPtr = nullptr;
+        vkt::uni_arg<vk::AccelerationStructureBuildOffsetInfoKHR*> offsetsPtr = {};
 
+        // 
         std::vector<vkh::VkAccelerationStructureGeometryKHR> dataInfos = { {} };
-        vkh::VkAccelerationStructureGeometryKHR* dataPtr = nullptr;
+        vkt::uni_arg<vkh::VkAccelerationStructureGeometryKHR*> dataPtr = {};
 
 
         // 

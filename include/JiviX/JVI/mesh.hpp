@@ -104,8 +104,8 @@ namespace jvi {
 
             // 
             for (uint32_t i = 0; i < 8; i++) {
-                this->geometryInform[0].geometry.triangles.vertexStride = 8u;
-                this->geometryInform[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
+                this->geometryInfo[0].geometry.triangles.vertexStride = 8u;
+                this->geometryInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
                 this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * 2 * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1 },
@@ -121,10 +121,17 @@ namespace jvi {
 #endif
             };
 
+            // originally, it should to be array (like as old version of LancER)
+            this->buildGInfo[0].geometryCount = 1u;
+            this->buildGInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->geometryPtr = this->geometryInfo.data()).ptr());
+            this->buildGInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            this->buildGInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+
             // 
-            this->buildInfo.geometryCount = 1u;
-            this->buildInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>(&(this->buildGPtr = this->buildGInfo.data()));
-            this->buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            this->createInfo.maxGeometryCount = 1u;
+            this->createInfo.pGeometryInfos = geometryCreate.data();
+            this->createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
 
             // 
             return uTHIS;
@@ -345,13 +352,13 @@ namespace jvi {
                 };
                   this->offsetInfo[0].primitiveOffset = attribute->offset; //+ this->bindings[bindingID].offset(); // WARNING!!
                 //this->geometryInform[0].geometry.triangles.vertexOffset = attribute->offset + this->bindings[bindingID].offset();
-                  this->geometryInform[0].geometry.triangles.vertexFormat = attribute->format;
-                  this->geometryInform[0].geometry.triangles.vertexStride = binding.stride;
-                  this->geometryInform[0].geometry.triangles.vertexData = this->bindings[bindingID];
+                  this->geometryInfo[0].geometry.triangles.vertexFormat = attribute->format;
+                  this->geometryInfo[0].geometry.triangles.vertexStride = binding.stride;
+                  this->geometryInfo[0].geometry.triangles.vertexData = this->bindings[bindingID];
 
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
-                if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->geometryInform[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryInform[0].geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
+                if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->geometryInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+                if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->geometryInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
 
             if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
@@ -422,13 +429,12 @@ namespace jvi {
 
             // 
             this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
-            //this->offsetInfo[0].primitiveOffset = 0u;
             this->offsetInfo[0].primitiveCount = (this->primitiveCount = count / 3u);
             this->currentUnitCount = count;
 
             // 
-            this->geometryInform[0].geometry.triangles.indexType = VkIndexType(this->indexType);
-            this->geometryInform[0].geometry.triangles.indexData = this->indexData;
+            this->geometryInfo[0].geometry.triangles.indexType = VkIndexType(this->indexType);
+            this->geometryInfo[0].geometry.triangles.indexData = this->indexData;
 
             // 
             return uTHIS;
@@ -466,7 +472,7 @@ namespace jvi {
         // MORE useful for instanced data
         virtual uPTR(Mesh) setTransformData(const vkh::VkDescriptorBufferInfo& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
             this->offsetInfo[0].transformOffset = transformData.offset;
-            this->geometryInform[0].geometry.triangles.transformData = transformData.buffer;
+            this->geometryInfo[0].geometry.triangles.transformData = transformData.buffer;
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
             return uTHIS;
@@ -484,13 +490,15 @@ namespace jvi {
         // TODO: CommandLess building of AS
         virtual uPTR(Mesh) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             //if (this->geometryDatas[0].geometry.triangles.indexType == VK_INDEX_TYPE_NONE_KHR) { this->geometryDatas[0].geometry.triangles.indexCount = 0; };
-            this->buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-            this->buildInfo.dstAccelerationStructure = this->accelerationStructure;
-            this->buildInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-            this->buildInfo.geometryCount = 1u;
-            this->buildInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>(&(geometryPtr = geometryInform.data()));
+            this->buildGInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->buildGInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            this->buildGInfo[0].dstAccelerationStructure = this->accelerationStructure;
+            this->buildGInfo[0].geometryCount = 1u;
+            this->buildGInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>(&(geometryPtr = geometryInfo.data()));
+            this->offsetInfo[0].primitiveCount = primitiveCount;
+
             if (this->accelerationStructure) { this->updateGeometry(); } else { this->createAccelerationStructure(); };
-            buildCommand.buildAccelerationStructureKHR(1u, &this->buildInfo.hpp(), &(this->offsetPtr = this->offsetInfo.data()), this->driver->getDispatch());
+            buildCommand.buildAccelerationStructureKHR(1u, &this->buildGInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
             this->needsUpdate = true; return uTHIS;
         };
 
@@ -503,9 +511,9 @@ namespace jvi {
         // Create Or Rebuild Acceleration Structure
         virtual uPTR(Mesh) createAccelerationStructure() {
             bool Is2ndFormat = // TODO: more correct length detection
-                this->geometryInform[0].geometry.triangles.vertexFormat == VK_FORMAT_R32G32_SFLOAT ||
-                this->geometryInform[0].geometry.triangles.vertexFormat == VK_FORMAT_R16G16B16_SFLOAT ||
-                this->geometryInform[0].geometry.triangles.vertexFormat == VK_FORMAT_R16G16_SFLOAT;
+                this->geometryInfo[0].geometry.triangles.vertexFormat == VK_FORMAT_R32G32_SFLOAT ||
+                this->geometryInfo[0].geometry.triangles.vertexFormat == VK_FORMAT_R16G16B16_SFLOAT ||
+                this->geometryInfo[0].geometry.triangles.vertexFormat == VK_FORMAT_R16G16_SFLOAT;
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
@@ -753,19 +761,19 @@ namespace jvi {
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
 
         // BUT ONLY SINGLE! (Currently)
-        vkh::VkAccelerationStructureBuildGeometryInfoKHR buildInfo = {};
-        std::vector<vk::AccelerationStructureBuildGeometryInfoKHR> buildGInfo = { {} };
-        std::vector<vk::AccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
-        vk::AccelerationStructureBuildGeometryInfoKHR* buildGPtr = {};
-        vk::AccelerationStructureBuildOffsetInfoKHR*   offsetPtr = {};
+        //vkh::VkAccelerationStructureBuildGeometryInfoKHR buildInfo = {};
+        std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR> buildGInfo = { {} };
+        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> buildGPtr = {};
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>   offsetPtr = {};
 
         // Acceleration structure info
         vkh::VkAccelerationStructureCreateInfoKHR createInfo = {}; // CREATE
         std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR> geometryCreate = { {} };
 
         // Current Geometry State
-        std::vector<vkh::VkAccelerationStructureGeometryKHR>               geometryInform = { {} };
-        vkh::VkAccelerationStructureGeometryKHR                            geometryPtr = {};
+        vkt::uni_arg<vkh::VkAccelerationStructureGeometryKHR*>             geometryPtr = {};
+        std::vector<vkh::VkAccelerationStructureGeometryKHR>               geometryInfo = { {} };
 
         // 
         vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
