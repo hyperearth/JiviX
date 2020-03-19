@@ -1,10 +1,10 @@
 #version 460 core // #
 #extension GL_GOOGLE_include_directive : require
-#extension GL_NV_ray_tracing           : require
+#extension GL_EXT_ray_tracing           : require
 #include "./driver.glsl"
 
-rayPayloadInNV RayPayloadData PrimaryRay;
-hitAttributeNV vec2 baryCoord;
+rayPayloadInEXT RayPayloadData PrimaryRay;
+hitAttributeEXT vec2 baryCoord;
 
 #define IndexU8 1000265000
 #define IndexU16 0
@@ -14,8 +14,8 @@ hitAttributeNV vec2 baryCoord;
 void main() {
     const uint globalInstanceID = gl_InstanceID;
 
-    mat3x4 matras = mat3x4(instances[gl_InstanceCustomIndexNV].transform[gl_HitKindNV]);
-    if (!hasTransform(meshInfo[gl_InstanceCustomIndexNV])) {
+    mat3x4 matras = mat3x4(instances[gl_InstanceCustomIndexEXT].transform[gl_HitKindEXT]);
+    if (!hasTransform(meshInfo[gl_InstanceCustomIndexEXT])) {
         matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
     };
     //const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
@@ -28,21 +28,21 @@ void main() {
     const mat4x4 normInTransform = (inverse(transpose(trans4)));
 
     // type definition
-    int IdxType = int(meshInfo[gl_InstanceCustomIndexNV].indexType)-1;
+    int IdxType = int(meshInfo[gl_InstanceCustomIndexEXT].indexType)-1;
     uvec3 idx3 = uvec3(gl_PrimitiveID*3u+0u,gl_PrimitiveID*3u+1u,gl_PrimitiveID*3u+2u);
-    if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.y*1u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.z*1u, 8u, gl_InstanceCustomIndexNV)); };
-    if (IdxType == IndexU16) { idx3 = uvec3(load_u16(idx3.x*2u, 8u, gl_InstanceCustomIndexNV),load_u16(idx3.y*2u, 8u, gl_InstanceCustomIndexNV),load_u16(idx3.z*2u, 8u, gl_InstanceCustomIndexNV)); };
-    if (IdxType == IndexU32) { idx3 = uvec3(load_u32(idx3.x*4u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.y*4u, 8u, gl_InstanceCustomIndexNV),load_u32(idx3.z*4u, 8u, gl_InstanceCustomIndexNV)); };
+    if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, gl_InstanceCustomIndexEXT),load_u32(idx3.y*1u, 8u, gl_InstanceCustomIndexEXT),load_u32(idx3.z*1u, 8u, gl_InstanceCustomIndexEXT)); };
+    if (IdxType == IndexU16) { idx3 = uvec3(load_u16(idx3.x*2u, 8u, gl_InstanceCustomIndexEXT),load_u16(idx3.y*2u, 8u, gl_InstanceCustomIndexEXT),load_u16(idx3.z*2u, 8u, gl_InstanceCustomIndexEXT)); };
+    if (IdxType == IndexU32) { idx3 = uvec3(load_u32(idx3.x*4u, 8u, gl_InstanceCustomIndexEXT),load_u32(idx3.y*4u, 8u, gl_InstanceCustomIndexEXT),load_u32(idx3.z*4u, 8u, gl_InstanceCustomIndexEXT)); };
 
     // mesh definition 
-    PrimaryRay.position.xyz = vec4(vec4(triangulate(idx3, 0u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,1.f)*matras,1.f)*transp;
-    PrimaryRay.fdata.xyz    = vec3(baryCoord, gl_HitTNV);
-    PrimaryRay.udata        = uvec4(idx3, gl_InstanceCustomIndexNV);
+    PrimaryRay.position.xyz = vec4(vec4(triangulate(idx3, 0u, gl_InstanceCustomIndexEXT,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,1.f)*matras,1.f)*transp;
+    PrimaryRay.fdata.xyz    = vec3(baryCoord, gl_HitTEXT);
+    PrimaryRay.udata        = uvec4(idx3, gl_InstanceCustomIndexEXT);
 
     // 
-    vec4 gNormal = vec4(triangulate(idx3, 2u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
-    vec4 gTangent = vec4(triangulate(idx3, 3u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
-    vec4 gTexcoord = vec4(triangulate(idx3, 1u, gl_InstanceCustomIndexNV,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+    vec4 gNormal = vec4(triangulate(idx3, 2u, gl_InstanceCustomIndexEXT,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+    vec4 gTangent = vec4(triangulate(idx3, 3u, gl_InstanceCustomIndexEXT,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+    vec4 gTexcoord = vec4(triangulate(idx3, 1u, gl_InstanceCustomIndexEXT,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
     vec4 gBinormal = vec4(0.f.xxx,0.f);
 
     // 
@@ -51,29 +51,29 @@ void main() {
 
     // 
     const mat3x3 mc = mat3x3(
-        vec4(vec4(get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,
-        vec4(vec4(get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,
-        vec4(vec4(get_vec4(idx3[2], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp
+        vec4(vec4(get_vec4(idx3[0], 0u, gl_InstanceCustomIndexEXT).xyz,1.f)*matras,1.f)*transp,
+        vec4(vec4(get_vec4(idx3[1], 0u, gl_InstanceCustomIndexEXT).xyz,1.f)*matras,1.f)*transp,
+        vec4(vec4(get_vec4(idx3[2], 0u, gl_InstanceCustomIndexEXT).xyz,1.f)*matras,1.f)*transp
     );
 
     // 
     const mat3x3 tx = mat3x3(
-        vec4(get_vec4(idx3[0], 1u, gl_InstanceCustomIndexNV).xyz,1.f),
-        vec4(get_vec4(idx3[1], 1u, gl_InstanceCustomIndexNV).xyz,1.f),
-        vec4(get_vec4(idx3[2], 1u, gl_InstanceCustomIndexNV).xyz,1.f)
+        vec4(get_vec4(idx3[0], 1u, gl_InstanceCustomIndexEXT).xyz,1.f),
+        vec4(get_vec4(idx3[1], 1u, gl_InstanceCustomIndexEXT).xyz,1.f),
+        vec4(get_vec4(idx3[2], 1u, gl_InstanceCustomIndexEXT).xyz,1.f)
     );
 
     
     /*
     // normals
-    if (!(dot(gNormal.xyz,gNormal.xyz) > 0.001f && hasNormal(meshInfo[gl_InstanceCustomIndexNV]))) {
+    if (!(dot(gNormal.xyz,gNormal.xyz) > 0.001f && hasNormal(meshInfo[gl_InstanceCustomIndexEXT]))) {
         gNormal.xyz = normalize(cross(mc[1].xyz-mc[0].xyz,mc[2].xyz-mc[0].xyz));
     } else {
         gNormal.xyz = normalize((vec4(gNormal.xyz,0.f) * normalTransform * normInTransform).xyz);
     };
 
     // tangents
-    if (!(dot(gTangent.xyz,gTangent.xyz) > 0.001f && hasTangent(meshInfo[gl_InstanceCustomIndexNV]))) {
+    if (!(dot(gTangent.xyz,gTangent.xyz) > 0.001f && hasTangent(meshInfo[gl_InstanceCustomIndexEXT]))) {
         gTangent .xyz = tangent-dot(gNormal.xyz,tangent.xyz)*gNormal.xyz;
         gBitnorml.xyz = binorml-dot(gNormal.xyz,binorml.xyz)*gNormal.xyz;
     } else {
@@ -88,8 +88,8 @@ void main() {
     const vec3 normal = normalize(cross(dp1.xyz, dp2.xyz));
     const vec3 tangent = (dp1.xyz * tx2.yyy - dp2.xyz * tx1.yyy) * coef;
     const vec3 binorml = (dp1.xyz * tx2.xxx - dp2.xyz * tx1.xxx) * coef;
-    if (!hasNormal (meshInfo[gl_InstanceCustomIndexNV])) { gNormal = vec4(normal, 0.f); };
-    if (!hasTangent(meshInfo[gl_InstanceCustomIndexNV])) { 
+    if (!hasNormal (meshInfo[gl_InstanceCustomIndexEXT])) { gNormal = vec4(normal, 0.f); };
+    if (!hasTangent(meshInfo[gl_InstanceCustomIndexEXT])) { 
         gTangent .xyz = tangent;
         gBinormal.xyz = binorml;
     } else {
@@ -105,7 +105,7 @@ void main() {
     const mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal.xyz),normalize(gNormal.xyz));
 
     // 
-    const MaterialUnit unit = materials[0u].data[meshInfo[gl_InstanceCustomIndexNV].materialID];
+    const MaterialUnit unit = materials[0u].data[meshInfo[gl_InstanceCustomIndexEXT].materialID];
     vec4  diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
     vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
     vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;

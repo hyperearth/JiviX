@@ -1,14 +1,14 @@
 #version 460 core // #
 #extension GL_GOOGLE_include_directive : require
-#extension GL_NV_ray_tracing           : require
+#extension GL_EXT_ray_tracing           : require
 #include "./driver.glsl"
 
 
 #define ENABLE_RASTERIZE_STAGE
-layout ( binding = 2, set = 1 ) uniform accelerationStructureNV Scene;
-layout ( location = 0 ) rayPayloadNV RayPayloadData PrimaryRay;
+layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
+layout ( location = 0 ) rayPayloadEXT RayPayloadData PrimaryRay;
 #define ShadowsRay PrimaryRay // re-direct
-//layout ( location = 1 ) rayPayloadNV RayPayloadData ShadowsRay;
+//layout ( location = 1 ) rayPayloadEXT RayPayloadData ShadowsRay;
 
 uvec2 launchSize = uvec2(0u);
 
@@ -25,15 +25,15 @@ vec4 shiftByPixel(in vec4 wpos, inout uvec2 seed){
 void main() { // Hi-DPI adaptation
     ShadowsRay.position  = PrimaryRay.position  = vec4(0.f);
     ShadowsRay.normals   = PrimaryRay.normals   = vec4(0.f);
-    ShadowsRay.fdata.xyz = PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTNV
+    ShadowsRay.fdata.xyz = PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTEXT
     ShadowsRay.udata.xyz = PrimaryRay.udata.xyz = uvec3(0u);
 
-    uvec2 lanQ = gl_LaunchIDNV.xy;
-    launchSize = gl_LaunchSizeNV.xy;
+    uvec2 lanQ = gl_LaunchIDEXT.xy;
+    launchSize = gl_LaunchSizeEXT.xy;
 
     // 
-    //uvec2 lanQ = uvec2(gl_LaunchIDNV.x,(gl_LaunchIDNV.y<<1u) | ((gl_LaunchIDNV.x&1u)^(rdata.x&1u)));
-    //launchSize = uvec2(gl_LaunchSizeNV.x,gl_LaunchSizeNV.y<<1u);
+    //uvec2 lanQ = uvec2(gl_LaunchIDEXT.x,(gl_LaunchIDEXT.y<<1u) | ((gl_LaunchIDEXT.x&1u)^(rdata.x&1u)));
+    //launchSize = uvec2(gl_LaunchSizeEXT.x,gl_LaunchSizeEXT.y<<1u);
 
     // 
     const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
@@ -122,7 +122,7 @@ void main() { // Hi-DPI adaptation
                 if (dot(lightd.xyz,gmNormal.xyz) >= 0.f) {
                     float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
                     for (uint j=0;j<TRANSPARENT_COUNT;j++) {
-                        traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
+                        traceRayEXT(Scene, gl_RayFlagsOpaqueEXT, 0xFF,
                             0, 1, 0,
                             lorign.xyz,  0.001f,
                             lightd.xyz, 10000.f,
@@ -143,7 +143,7 @@ void main() { // Hi-DPI adaptation
             };
 
             // Primary Rays
-            traceNV(Scene, gl_RayFlagsOpaqueNV, 0xFF,
+            traceRayEXT(Scene, gl_RayFlagsOpaqueEXT, 0xFF,
                 0, 1, 0,
                 origin.xyz,  0.001f,
                 raydir.xyz, 10000.f,
