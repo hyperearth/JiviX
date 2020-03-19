@@ -494,7 +494,8 @@ namespace jvi {
             this->buildGInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->buildGInfo[0].dstAccelerationStructure = this->accelerationStructure;
             this->buildGInfo[0].geometryCount = 1u;
-            this->buildGInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>(&(geometryPtr = geometryInfo.data()));
+            this->buildGInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((geometryPtr = geometryInfo.data()).ptr());
+            this->buildGInfo[0].scratchData = this->gpuScratchBuffer;
             this->offsetInfo[0].primitiveCount = primitiveCount;
 
             if (this->accelerationStructure) { this->updateGeometry(); } else { this->createAccelerationStructure(); };
@@ -521,7 +522,7 @@ namespace jvi {
                 this->createInfo.maxGeometryCount = 1u;
                 this->createInfo.pGeometryInfos = geometryCreate.data();
                 this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-
+                
                 // 
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureKHR(this->createInfo, nullptr, this->driver->getDispatch());
 

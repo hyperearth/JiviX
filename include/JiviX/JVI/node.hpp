@@ -274,6 +274,7 @@ namespace jvi {
             this->buildInfo.geometryCount = 1u;
             this->buildInfo.ppGeometries = (this->dataPtr = this->dataInfos.data()).ptr();
             this->buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+            this->buildInfo.scratchData = this->gpuScratchBuffer;
 
             // 
             vkt::commandBarrier(buildCommand);
