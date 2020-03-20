@@ -338,6 +338,7 @@ namespace jvi {
         // 
         virtual uPTR(Mesh) genQuads(const vk::DeviceSize& primitiveCount = 0u) {
             this->buildGInfo[0].geometry.triangles.indexType = this->bottomDataCreate[0].indexType = VkIndexType(this->indexType = vk::IndexType::eUint32);
+            this->buildGInfo[0].geometry.triangles.indexData = this->indexData; // Force Use Index Data
             this->currentUnitCount = (this->primitiveCount = this->offsetInfo[0].primitiveCount = primitiveCount)*6u; this->needsQuads = true;
             return uTHIS;
         };
@@ -786,7 +787,7 @@ namespace jvi {
 
         // FOR BUILD! BUT ONLY SINGLE!
         std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR>   bdHeadInfo = { {} };
-        vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> BdHeadPtr = {};
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> bdHeadPtr = {};
 
         // CAN BE MULTIPLE! (single element of array, array of array[0])
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };

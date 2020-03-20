@@ -319,7 +319,7 @@ namespace jvi {
             this->instancHeadInfo[0].update = this->needsUpdate;
 
             // 
-            if (buildCommand) {
+            if (buildCommand) { // OpenGL Compatibility Finally Broken!
                 buildCommand.buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
                 vkt::commandBarrier(buildCommand); this->needsUpdate = true;
             } else {
