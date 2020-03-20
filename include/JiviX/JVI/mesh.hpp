@@ -507,14 +507,16 @@ namespace jvi {
             this->bdHeadInfo[0].dstAccelerationStructure = this->accelerationStructure;
             this->bdHeadInfo[0].ppGeometries = (this->buildGPtr = this->buildGInfo.data()).ptr();
             this->bdHeadInfo[0].scratchData = this->gpuScratchBuffer;
+            this->bdHeadInfo[0].update = this->needsUpdate;
 
             // 
             if (buildCommand) {
                 buildCommand.buildAccelerationStructureKHR(1u, &this->bdHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+                this->needsUpdate = true;
             } else {
                 driver->getDevice().buildAccelerationStructureKHR(1u, &this->bdHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
             }
-            this->needsUpdate = true; return uTHIS;
+            return uTHIS;
         };
 
         //

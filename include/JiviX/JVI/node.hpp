@@ -316,18 +316,17 @@ namespace jvi {
             this->instancHeadInfo[0].ppGeometries = (this->instancPtr = this->instancInfo.data()).ptr();
             this->instancHeadInfo[0].scratchData = this->gpuScratchBuffer;
             this->instancHeadInfo[0].geometryCount = this->instancInfo.size();
+            this->instancHeadInfo[0].update = this->needsUpdate;
 
             // 
             if (buildCommand) {
-                // FATAL CRUSHING
                 buildCommand.buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
-                vkt::commandBarrier(buildCommand);
+                vkt::commandBarrier(buildCommand); this->needsUpdate = true;
             } else {
                 driver->getDevice().buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
             };
 
-            // 
-            this->needsUpdate = true; return uTHIS;
+            return uTHIS;
         };
 
         // Create Or Rebuild Acceleration Structure
