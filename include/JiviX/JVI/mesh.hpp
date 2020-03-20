@@ -503,9 +503,7 @@ namespace jvi {
             else { this->createAccelerationStructure(); };
 
             // 
-            //this->bdHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-            //this->bdHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-            //this->bdHeadInfo[0].geometryCount = 1u;
+            this->bdHeadInfo[0].geometryCount = this->buildGInfo.size();
             this->bdHeadInfo[0].dstAccelerationStructure = this->accelerationStructure;
             this->bdHeadInfo[0].ppGeometries = (this->buildGPtr = this->buildGInfo.data()).ptr();
             this->bdHeadInfo[0].scratchData = this->gpuScratchBuffer;
@@ -777,19 +775,20 @@ namespace jvi {
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
 
-        // BUT ONLY SINGLE! (Currently)
-        std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR>   bdHeadInfo = { {} };
-        vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> BdHeadPtr = {};
 
         // FOR CREATE (Acceleration Structure)
         vkh::VkAccelerationStructureCreateInfoKHR                           bottomCreate = {}; // CREATE 
-        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR>  bottomDataCreate = { {} };
+        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR>  bottomDataCreate = { {} }; // Currently, SINGLE!
 
-        // 
+        // FOR BUILD! BUT ONLY SINGLE!
+        std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR>   bdHeadInfo = { {} };
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> BdHeadPtr = {};
+
+        // CAN BE MULTIPLE! (single element of array, array of array[0])
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsetPtr = {};
 
-        // 
+        // CAN BE MULTIPLE! (single element of array, array of array[0])
         std::vector<vkh::VkAccelerationStructureGeometryKHR>   buildGInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureGeometryKHR*> buildGPtr = {};
 

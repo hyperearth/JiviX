@@ -315,6 +315,7 @@ namespace jvi {
             this->instancHeadInfo[0].dstAccelerationStructure = this->accelerationStructure;
             this->instancHeadInfo[0].ppGeometries = (this->instancPtr = this->instancInfo.data()).ptr();
             this->instancHeadInfo[0].scratchData = this->gpuScratchBuffer;
+            this->instancHeadInfo[0].geometryCount = this->instancInfo.size();
 
             // 
             if (buildCommand) {
@@ -398,21 +399,23 @@ namespace jvi {
         vkh::VsDescriptorSetCreateInfoHelper meshDataDescriptorSetInfo = {};
         vkh::VsDescriptorSetCreateInfoHelper bindingsDescriptorSetInfo = {};
 
-        // FOR CREATE ONLY!
-        vkh::VkAccelerationStructureCreateInfoKHR topCreate = {};
-        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR> topDataCreate = { {} };
 
-        // HEADER, FOR BUILDING!
+        // FOR CREATE (Acceleration Structure)
+        vkh::VkAccelerationStructureCreateInfoKHR topCreate = {};
+        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR> topDataCreate = { {} }; // Currently, SINGLE!
+
+        // FOR BUILD! BUT ONLY SINGLE!
         std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR>   instancHeadInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> instancHeadPtr = {};
 
-        // Geometry Offsets
+        // CAN BE MULTIPLE! (single element of array, array of array[0])
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>     offsetsInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>   offsetsPtr = {};
 
-        // Instance Data PTR
+        // CAN BE MULTIPLE! (single element of array, array of array[0])
         std::vector<vkh::VkAccelerationStructureGeometryKHR>   instancInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureGeometryKHR*> instancPtr = {};
+
 
         // 
         vkt::Vector<uint8_t> TempBuffer = {};
