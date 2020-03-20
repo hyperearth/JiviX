@@ -28,12 +28,19 @@ namespace jvi {
             // 
             this->createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
+            // 
+            auto allocInfo = vkt::MemoryAllocationInfo{};
+            allocInfo.device = *driver;
+            allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
+            allocInfo.dispatch = driver->getDispatch();
+
+
             // DEATH POINT FIXED 
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(allocInfo, vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } });
 
             // 
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
             return uTHIS;
         };
 
@@ -306,16 +313,21 @@ namespace jvi {
                 }, this->driver->getDispatch());
 
                 // 
-                VmaAllocationCreateInfo allocInfo = {};
-                allocInfo.memoryTypeBits |= requirements.memoryRequirements.memoryTypeBits;
-                vmaAllocateMemory(this->driver->getAllocator(),&(VkMemoryRequirements&)requirements.memoryRequirements,&allocInfo,&this->allocation,&this->allocationInfo);
-                
+                auto allocInfo = vkt::MemoryAllocationInfo{};
+                allocInfo.device = *driver;
+                allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
+                allocInfo.dispatch = driver->getDispatch();
+                allocInfo.reqSize = requirements.memoryRequirements.size;
+                allocInfo.range = requirements.memoryRequirements.size;
+
                 // 
-                this->driver->getDevice().bindAccelerationStructureMemoryKHR({vkh::VkBindAccelerationStructureMemoryInfoKHR{
+                this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u, &vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
-                    .memory = this->allocationInfo.deviceMemory,
-                    .memoryOffset = this->allocationInfo.offset
-                }}, this->driver->getDispatch());
+                    .memory = (TempBuffer = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
+                    .size = requirements.memoryRequirements.size,
+                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
+                }))->getAllocationInfo().memory,
+                }.hpp(), this->driver->getDispatch());
             };
 
             // 
@@ -368,8 +380,8 @@ namespace jvi {
         std::vector<vkh::VkAccelerationStructureGeometryKHR> dataInfos = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureGeometryKHR*> dataPtr = {};
 
-
         // 
+        vkt::Vector<uint8_t> TempBuffer = {};
         vkt::Vector<glm::uvec4> gpuMeshInfo = {};
 
         // 

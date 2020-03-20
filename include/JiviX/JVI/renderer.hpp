@@ -77,14 +77,20 @@ namespace jvi {
             this->rayTraceInfo.addShaderStages(this->bgStages);
 
             // 
+            auto allocInfo = vkt::MemoryAllocationInfo{};
+            allocInfo.device = *driver;
+            allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
+            allocInfo.dispatch = driver->getDispatch();
+
+            // 
             const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(allocInfo, vkh::VkBufferCreateInfo{ .size = rtxp.shaderGroupBaseAlignment * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } });
 
             // create for KHR compatible and comfort
             this->rgenSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset(), this->gpuSBTBuffer.stride());
-            this->rhitSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset()+ this->gpuSBTBuffer.stride() * this->rayTraceInfo. hitOffsetIndex(), this->gpuSBTBuffer.stride());
-            this->rmisSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset()+ this->gpuSBTBuffer.stride() * this->rayTraceInfo.missOffsetIndex(), this->gpuSBTBuffer.stride());
+            this->rhitSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset() + this->gpuSBTBuffer.stride() * this->rayTraceInfo.hitOffsetIndex(), this->gpuSBTBuffer.stride());
+            this->rmisSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset() + this->gpuSBTBuffer.stride() * this->rayTraceInfo.missOffsetIndex(), this->gpuSBTBuffer.stride());
 
             // get ray-tracing properties
             this->rayTracingState = driver->getDevice().createRayTracingPipelineKHR(driver->getPipelineCache(), this->rayTraceInfo.vkInfo.hpp(), vk::AllocationCallbacks{}, this->driver->getDispatch()).value;
