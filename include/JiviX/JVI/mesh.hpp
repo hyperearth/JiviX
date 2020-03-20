@@ -350,13 +350,14 @@ namespace jvi {
                 if (this->indexType == vk::IndexType::eNoneKHR) {
                     this->currentUnitCount = (this->bindRange[bindingID] / binding.stride);
                 };
-                  this->offsetInfo[0].primitiveOffset = attribute->offset; //+ this->bindings[bindingID].offset(); // WARNING!!
 
-                //this->geometryInform[0].geometry.triangles.vertexOffset = attribute->offset + this->bindings[bindingID].offset();
-                  this->buildGInfo[0].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-                  this->buildGInfo[0].geometry.triangles.vertexFormat = attribute->format;
-                  this->buildGInfo[0].geometry.triangles.vertexStride = binding.stride;
-                  this->buildGInfo[0].geometry.triangles.vertexData = this->bindings[bindingID];
+                // 
+                this->buildGInfo[0].flags = { .eOpaque = 1 };
+                this->offsetInfo[0].primitiveOffset = attribute->offset; //+ this->bindings[bindingID].offset(); // WARNING!!
+                this->buildGInfo[0].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+                this->buildGInfo[0].geometry.triangles.vertexFormat = attribute->format;
+                this->buildGInfo[0].geometry.triangles.vertexStride = binding.stride;
+                this->buildGInfo[0].geometry.triangles.vertexData = this->bindings[bindingID];
 
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
                 if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
@@ -495,10 +496,14 @@ namespace jvi {
             this->bdHeadInfo[0].geometryCount = 1u;
             this->bdHeadInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo[0].scratchData = this->gpuScratchBuffer;
+            this->bdHeadInfo[0].geometryArrayOfPointers = true;
 
             // 
-            driver->getDevice().buildAccelerationStructureKHR(1u, &this->bdHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
-            //buildCommand.buildAccelerationStructureKHR(1u, &this->buildGInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+            if (buildCommand) {
+                buildCommand.buildAccelerationStructureKHR(1u, &this->bdHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+            } else {
+                driver->getDevice().buildAccelerationStructureKHR(1u, &this->bdHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+            }
             this->needsUpdate = true; return uTHIS;
         };
 

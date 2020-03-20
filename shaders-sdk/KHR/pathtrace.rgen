@@ -117,7 +117,7 @@ void main() { // Hi-DPI adaptation
                 vec3 lorign = origin;
                 const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,lorign.xyz);
                 const vec3 lightd = normalize(lightp.xyz - lorign.xyz);
-
+/* CURRENTLY DEBUGGING 
                 float depth = 0.f;
                 if (dot(lightd.xyz,gmNormal.xyz) >= 0.f) {
                     float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
@@ -139,7 +139,7 @@ void main() { // Hi-DPI adaptation
                 };
 
                 const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-                if (depth >= shdist-0.0001f) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };
+                if (depth >= shdist-0.0001f) { gSignal += vec4(gEnergy * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f); };*/
             };
 
             // Primary Rays
@@ -179,6 +179,7 @@ void main() { // Hi-DPI adaptation
                 BACKSKY_COLOR;
             } else
             [[flatten]] if (depth == PrimaryRay.fdata.z) { if (diffuseColor.w > 0.001f) {
+                gEnergy.xyz *= vec3(0.5f,0.5f,1.f);
                 if (couldReflection) {
                     gEnergy *= mix(1.f.xxx,diffuseColor.xyz,specularColor.zzz);
                 } else {

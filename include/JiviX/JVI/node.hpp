@@ -304,11 +304,15 @@ namespace jvi {
             this->instancHeadInfo[0].ppGeometries = (this->instancPtr = this->instancInfo.data()).ptr();
             this->instancHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo[0].scratchData = this->gpuScratchBuffer;
+            this->instancHeadInfo[0].geometryArrayOfPointers = true;
 
             // 
             vkt::commandBarrier(buildCommand);
-            //buildCommand.buildAccelerationStructureKHR(1u, &this->instancInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
-            driver->getDevice().buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
+            if (buildCommand) {
+                buildCommand.buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
+            } else {
+                driver->getDevice().buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
+            };
             vkt::commandBarrier(buildCommand);
             this->needsUpdate = true; return uTHIS;
         };
