@@ -117,28 +117,29 @@ namespace jvi {
 
             // FOR BUILD! 
             // originally, it should to be array (like as old version of LancER)
-            this->bdHeadInfo[0].geometryCount = 1u;
-            this->bdHeadInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
-            this->bdHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-            this->bdHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-            this->bdHeadInfo[0].geometryArrayOfPointers = true;
+            this->bdHeadInfo[0u].geometryCount = 1u;
+            this->bdHeadInfo[0u].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
+            this->bdHeadInfo[0u].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            this->bdHeadInfo[0u].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->bdHeadInfo[0u].geometryArrayOfPointers = true;
 
             // FOR BUILD! FULL GEOMETRY INFO! 
-            this->buildGInfo[0].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
-            this->buildGInfo[0].geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
-            this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-            this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec3);
-            this->offsetInfo[0].firstVertex = 0u;
-            this->offsetInfo[0].primitiveCount = 0u;
-            this->offsetInfo[0].primitiveOffset = 0u;
-            this->offsetInfo[0].transformOffset = 0u;
+            this->buildGInfo[0u].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
+            this->buildGInfo[0u].geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
+            this->buildGInfo[0u].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            this->buildGInfo[0u].geometry.triangles.vertexStride = sizeof(glm::vec3);
+            this->offsetInfo[0u].firstVertex = 0u;
+            this->offsetInfo[0u].primitiveCount = 0u;
+            this->offsetInfo[0u].primitiveOffset = 0u;
+            this->offsetInfo[0u].transformOffset = 0u;
 
             // COR CREATE! 
-            this->bottomDataCreate[0].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-            this->bottomDataCreate[0].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount * 3u);
-            this->bottomDataCreate[0].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
-            this->bottomDataCreate[0].indexType = VK_INDEX_TYPE_NONE_KHR;
-            this->bottomDataCreate[0].vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            this->bottomDataCreate[0u].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+            this->bottomDataCreate[0u].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount * 3u);
+            this->bottomDataCreate[0u].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
+            this->bottomDataCreate[0u].indexType = VK_INDEX_TYPE_NONE_KHR;
+            this->bottomDataCreate[0u].vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            this->bottomDataCreate[0u].allowsTransforms = true;
 
             // COR CREATE! 
             this->bottomCreate.maxGeometryCount = this->bottomDataCreate.size();
@@ -533,12 +534,6 @@ namespace jvi {
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
-                this->bottomCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-                this->bottomCreate.maxGeometryCount = 1u;
-                this->bottomCreate.pGeometryInfos = this->bottomDataCreate.data();
-                this->bottomCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-
-                // 
                 this->accelerationStructure = this->driver->getDevice().createAccelerationStructureKHR(this->bottomCreate, nullptr, this->driver->getDispatch());
 
                 //
