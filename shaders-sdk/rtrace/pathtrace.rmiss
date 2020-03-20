@@ -3,7 +3,7 @@
 #extension GL_EXT_ray_tracing           : require
 #include "./driver.glsl"
 
-rayPayloadInEXT RayPayloadData PrimaryRay;
+layout(location = 0) rayPayloadInEXT RayPayloadData PrimaryRay;
 
 void main() {
     vec3 raydir = gl_WorldRayDirectionEXT;

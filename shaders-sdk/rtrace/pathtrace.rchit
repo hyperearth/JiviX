@@ -3,7 +3,7 @@
 #extension GL_EXT_ray_tracing           : require
 #include "./driver.glsl"
 
-rayPayloadInEXT RayPayloadData PrimaryRay;
+layout(location = 0) rayPayloadInEXT RayPayloadData PrimaryRay;
 hitAttributeEXT vec2 baryCoord;
 
 #define IndexU8 1000265000
