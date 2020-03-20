@@ -47,7 +47,7 @@ namespace jvi {
             this->instancHeadInfo[0u].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->instancPtr = this->instancInfo.data()).ptr());
             this->instancHeadInfo[0u].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo[0u].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-            this->instancHeadInfo[0u].geometryArrayOfPointers = true;
+            this->instancHeadInfo[0u].geometryArrayOfPointers = false;
 
             // 
             this->instancInfo[0u].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;

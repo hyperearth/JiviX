@@ -121,7 +121,7 @@ namespace jvi {
             this->bdHeadInfo[0u].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo[0u].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->bdHeadInfo[0u].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-            this->bdHeadInfo[0u].geometryArrayOfPointers = true;
+            this->bdHeadInfo[0u].geometryArrayOfPointers = false;
 
             // FOR BUILD! FULL GEOMETRY INFO! 
             this->buildGInfo[0u].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
