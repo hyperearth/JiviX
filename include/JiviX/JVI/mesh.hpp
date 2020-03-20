@@ -501,7 +501,8 @@ namespace jvi {
             this->buildGInfo[0].scratchData = this->gpuScratchBuffer;
             this->offsetInfo[0].primitiveCount = primitiveCount;
 
-            buildCommand.buildAccelerationStructureKHR(1u, &this->buildGInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+            driver->getDevice().buildAccelerationStructureKHR(1u, &this->buildGInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+            //buildCommand.buildAccelerationStructureKHR(1u, &this->buildGInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
             this->needsUpdate = true; return uTHIS;
         };
 
