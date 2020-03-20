@@ -182,13 +182,13 @@ namespace jvi {
             };
 
             // [3] acceleration structure
-            /*if (this->accelerationStructure) {
+            if (this->accelerationStructure) {
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 2u,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
                 }).offset<vk::AccelerationStructureKHR>(0u) = this->accelerationStructure;
-            };*/
+            };
 
             // [4] plush uniforms 
             this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
