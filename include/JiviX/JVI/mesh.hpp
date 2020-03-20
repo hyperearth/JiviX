@@ -83,6 +83,7 @@ namespace jvi {
             // 
             this->geometryCreate[0].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount*3u);
             this->geometryCreate[0].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
+            this->geometryCreate[0].indexType = VK_INDEX_TYPE_NONE_KHR;
 
             { //
                 this->indexType = vk::IndexType::eNoneKHR;
@@ -323,7 +324,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Mesh) genQuads(const vk::DeviceSize& primitiveCount = 0u) {
-            this->indexType = vk::IndexType::eUint32;
+            this->geometryCreate[0].indexType = VkIndexType(this->indexType = vk::IndexType::eUint32);
             this->needsQuads = true;
             this->currentUnitCount = (this->primitiveCount = this->offsetInfo[0].primitiveCount = primitiveCount)*6u;
             return uTHIS;
@@ -433,7 +434,7 @@ namespace jvi {
             this->currentUnitCount = count;
 
             // 
-            this->geometryInfo[0].geometry.triangles.indexType = VkIndexType(this->indexType);
+            this->geometryInfo[0].geometry.triangles.indexType = this->geometryCreate[0].indexType = VkIndexType(this->indexType);
             this->geometryInfo[0].geometry.triangles.indexData = this->indexData;
 
             // 
@@ -521,7 +522,7 @@ namespace jvi {
             if (!this->accelerationStructure) { // create acceleration structure fastly...
                 this->createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
                 this->createInfo.maxGeometryCount = 1u;
-                this->createInfo.pGeometryInfos = geometryCreate.data();
+                this->createInfo.pGeometryInfos = this->geometryCreate.data();
                 this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
 
                 // 
@@ -545,9 +546,9 @@ namespace jvi {
                 this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u,&vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = (TempBuffer = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                    .size = requirements.memoryRequirements.size,
-                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
-                }))->getAllocationInfo().memory,
+                        .size = requirements.memoryRequirements.size,
+                        .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
+                     }))->getAllocationInfo().memory,
                 }.hpp(), this->driver->getDispatch());
             };
 

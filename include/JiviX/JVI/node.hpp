@@ -266,40 +266,40 @@ namespace jvi {
             };
 
             // 
-            this->dataInfos.resize(1u);
-            this->dataInfos[0u].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
-            this->dataInfos[0u].geometry.instances.data = this->gpuInstances;//vkt::Vector<vkh::VsGeometryInstance>(this->gpuInstances.getAllocation(), sizeof(vkh::VsGeometryInstance) * instanceID, sizeof(vkh::VsGeometryInstance));
+            this->dataInfo.resize(1u);
+            this->dataInfo[0u].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+            this->dataInfo[0u].geometry.instances.data = this->gpuInstances;//vkt::Vector<vkh::VsGeometryInstance>(this->gpuInstances.getAllocation(), sizeof(vkh::VsGeometryInstance) * instanceID, sizeof(vkh::VsGeometryInstance));
 
             // 
-            this->offsetInfos.resize(1u);
-            this->offsetInfos[0u].primitiveOffset = 0u;
-            this->offsetInfos[0u].primitiveCount = this->instanceCounter;
+            this->offsetsInfo.resize(1u);
+            this->offsetsInfo[0u].primitiveOffset = 0u;
+            this->offsetsInfo[0u].primitiveCount = this->instanceCounter;
 
             // 
-            this->buildInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-            this->buildInfo.dstAccelerationStructure = this->accelerationStructure;
-            this->buildInfo.geometryCount = 1u;
-            this->buildInfo.ppGeometries = (this->dataPtr = this->dataInfos.data()).ptr();
-            this->buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
-            this->buildInfo.scratchData = this->gpuScratchBuffer;
+            this->instancInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+            this->instancInfo[0].dstAccelerationStructure = this->accelerationStructure;
+            this->instancInfo[0].geometryCount = 1u;
+            this->instancInfo[0].ppGeometries = (this->dataPtr = this->dataInfo.data()).ptr();
+            this->instancInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+            this->instancInfo[0].scratchData = this->gpuScratchBuffer;
 
             // 
             vkt::commandBarrier(buildCommand);
-            buildCommand.buildAccelerationStructureKHR(1u, &this->buildInfo.hpp(), (offsetsPtr = this->offsetInfos.data()).ptr(), this->driver->getDispatch()); // Can only 1
+            buildCommand.buildAccelerationStructureKHR(1u, &this->instancInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
             vkt::commandBarrier(buildCommand);
             this->needsUpdate = true; return uTHIS;
         };
 
         // Create Or Rebuild Acceleration Structure
         virtual uPTR(Node) createAccelerationStructure() { // Re-assign instance count
-            this->instanceInfos[0u].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
-            this->instanceInfos[0u].maxPrimitiveCount = static_cast<uint32_t>(MaxInstanceCount);
-            this->instanceInfos[0u].allowsTransforms = true;
+            this->instanceCreateInfos[0u].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+            this->instanceCreateInfos[0u].maxPrimitiveCount = static_cast<uint32_t>(MaxInstanceCount);
+            this->instanceCreateInfos[0u].allowsTransforms = true;
 
             // 
             this->createInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-            this->createInfo.maxGeometryCount = this->instanceInfos.size();
-            this->createInfo.pGeometryInfos = this->instanceInfos.data();
+            this->createInfo.maxGeometryCount = this->instanceCreateInfos.size();
+            this->createInfo.pGeometryInfos = this->instanceCreateInfos.data();
             this->createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             // 
@@ -324,9 +324,9 @@ namespace jvi {
                 this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u, &vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = (TempBuffer = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                    .size = requirements.memoryRequirements.size,
-                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
-                }))->getAllocationInfo().memory,
+                        .size = requirements.memoryRequirements.size,
+                        .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
+                    }))->getAllocationInfo().memory,
                 }.hpp(), this->driver->getDispatch());
             };
 
@@ -364,20 +364,18 @@ namespace jvi {
         vkh::VsDescriptorSetCreateInfoHelper meshDataDescriptorSetInfo = {};
         vkh::VsDescriptorSetCreateInfoHelper bindingsDescriptorSetInfo = {};
 
-        // 
+        // ONLY SINGLE!
         vkh::VkAccelerationStructureCreateInfoKHR createInfo = {};
-        vkh::VkAccelerationStructureBuildGeometryInfoKHR buildInfo = {};
-
-
-        // BUT ONLY SINGLE!
-        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR> instanceInfos = { {} };
+        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR> instanceCreateInfos = { {} };
 
         // 
-        std::vector<vk::AccelerationStructureBuildOffsetInfoKHR> offsetInfos = { {} };
-        vkt::uni_arg<vk::AccelerationStructureBuildOffsetInfoKHR*> offsetsPtr = {};
+        std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR>   instancInfo = { {} };
+        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>     offsetsInfo = { {} };
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> instancPtr = {};
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>   offsetsPtr = {};
 
-        // 
-        std::vector<vkh::VkAccelerationStructureGeometryKHR> dataInfos = { {} };
+        // Element data
+        std::vector<vkh::VkAccelerationStructureGeometryKHR> dataInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureGeometryKHR*> dataPtr = {};
 
         // 

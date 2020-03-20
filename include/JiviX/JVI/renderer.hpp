@@ -100,7 +100,8 @@ namespace jvi {
             this->rmisSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset() + this->gpuSBTBuffer.stride() * this->rayTraceInfo.missOffsetIndex(), this->gpuSBTBuffer.stride());
 
             // get ray-tracing properties
-            auto [result, pipeline] = driver->getDevice().createRayTracingPipelineKHR(driver->getPipelineCache(), this->rayTraceInfo.vkInfo.hpp(), nullptr, this->driver->getDispatch());
+            auto [result, pipeline] = driver->getDevice().createRayTracingPipelineKHR(driver->getPipelineCache(), this->rayTraceInfo.format().hpp(), nullptr, this->driver->getDispatch());
+            //this->rayTracingState = driver->getDevice().createRayTracingPipelineNV(driver->getPipelineCache(), this->rayTraceInfo.format().hpp(), nullptr, this->driver->getDispatch());
             this->rayTracingState = pipeline;
             this->driver->getDevice().getRayTracingShaderGroupHandlesKHR(
                 this->rayTracingState, 0u, static_cast<uint32_t>(this->rayTraceInfo.groupCount()),
