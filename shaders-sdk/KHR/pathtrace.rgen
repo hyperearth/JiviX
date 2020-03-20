@@ -4,7 +4,7 @@
 #include "./driver.glsl"
 
 
-#define ENABLE_RASTERIZE_STAGE
+//#define ENABLE_RASTERIZE_STAGE
 layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 layout ( location = 0 ) rayPayloadEXT RayPayloadData PrimaryRay;
 #define ShadowsRay PrimaryRay // re-direct
