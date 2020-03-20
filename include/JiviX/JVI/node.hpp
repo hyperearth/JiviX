@@ -277,15 +277,24 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
-            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
-            buildCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
+        virtual uPTR(Node) copyMeta(const vk::CommandBuffer& copyCommand = {}) {
+            vkt::commandBarrier(copyCommand);
+            copyCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{.srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
 
             // 
             for (uint32_t i = 0; i < this->meshes.size(); i++) {
                 auto& mesh = this->meshes[i];
-                buildCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { vk::BufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() } });
+                copyCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { vk::BufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() } });
             };
+            vkt::commandBarrier(copyCommand);
+
+            // 
+            return uTHIS;
+        }
+
+        // 
+        virtual uPTR(Node) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
             this->instancInfo.resize(1u);
@@ -304,16 +313,18 @@ namespace jvi {
             this->instancHeadInfo[0].ppGeometries = (this->instancPtr = this->instancInfo.data()).ptr();
             this->instancHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo[0].scratchData = this->gpuScratchBuffer;
-            this->instancHeadInfo[0].geometryArrayOfPointers = true;
+            this->instancHeadInfo[0].geometryArrayOfPointers = false;
 
             // 
-            vkt::commandBarrier(buildCommand);
             if (buildCommand) {
-                buildCommand.buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
+                // FATAL CRUSHING
+                //buildCommand.buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
+                vkt::commandBarrier(buildCommand);
             } else {
                 driver->getDevice().buildAccelerationStructureKHR(1u, &this->instancHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
             };
-            vkt::commandBarrier(buildCommand);
+
+            // 
             this->needsUpdate = true; return uTHIS;
         };
 

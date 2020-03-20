@@ -496,7 +496,7 @@ namespace jvi {
             this->bdHeadInfo[0].geometryCount = 1u;
             this->bdHeadInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo[0].scratchData = this->gpuScratchBuffer;
-            this->bdHeadInfo[0].geometryArrayOfPointers = true;
+            this->bdHeadInfo[0].geometryArrayOfPointers = false;
 
             // 
             if (buildCommand) {

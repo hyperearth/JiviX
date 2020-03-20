@@ -335,7 +335,7 @@ namespace jvi {
 
             // setup instanced and material data
             this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
-            this->node->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
+            this->node->copyMeta(this->cmdbuf)->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
             this->setupBackgroundPipeline()->setupSkyboxedCommand(this->cmdbuf);
