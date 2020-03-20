@@ -366,7 +366,7 @@ namespace jvi {
 
                 // 
                 this->buildGInfo[0].flags = { .eOpaque = 1 };
-                this->offsetInfo[0].primitiveOffset = attribute->offset; //+ this->bindings[bindingID].offset(); // WARNING!!
+                this->offsetInfo[0].primitiveOffset = attribute->offset + this->bindings[bindingID].offset(); // WARNING!! Also, unknown about needing `.offset()`... 
                 this->buildGInfo[0].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
                 this->buildGInfo[0].geometry.triangles.vertexFormat = this->bottomDataCreate[0].vertexFormat = attribute->format;
                 this->buildGInfo[0].geometry.triangles.vertexStride = binding.stride;
@@ -419,11 +419,12 @@ namespace jvi {
         //inline uPTR(Mesh) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type) {
         inline uPTR(Mesh) setIndexData(const vkt::uni_arg<vkh::VkDescriptorBufferInfo>& rawIndices, const vk::IndexType& type) {
             vk::DeviceSize count = 0u;
+            uint32_t stride = 1u;
             if (rawIndices.has()) {
                 switch (type) { // 
-                    case vk::IndexType::eUint32:   count = rawIndices->range / 4u; break;
-                    case vk::IndexType::eUint16:   count = rawIndices->range / 2u; break;
-                    case vk::IndexType::eUint8EXT: count = rawIndices->range / 1u; break;
+                    case vk::IndexType::eUint32:   count = rawIndices->range / (stride = 4u); break;
+                    case vk::IndexType::eUint16:   count = rawIndices->range / (stride = 2u); break;
+                    case vk::IndexType::eUint8EXT: count = rawIndices->range / (stride = 1u); break;
                     default: count = 0u;
                 };
 
@@ -444,6 +445,7 @@ namespace jvi {
             this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
             this->buildGInfo[0].geometry.triangles.indexType = this->bottomDataCreate[0].indexType = VkIndexType(this->indexType);
             this->buildGInfo[0].geometry.triangles.indexData = this->indexData;
+            this->offsetInfo[0].firstVertex = this->indexData.offset() / stride; // Trying these scheme (change indices to next)
             this->offsetInfo[0].primitiveCount = (this->primitiveCount = (this->currentUnitCount = count) / (this->needsQuads ? 4u : 3u));
 
             // 
