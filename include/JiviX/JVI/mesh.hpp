@@ -98,10 +98,10 @@ namespace jvi {
 
             // 
             for (uint32_t i = 0; i < 8; i++) {
-                this->buildGInfo[0].geometry.triangles.vertexStride = 8u;
-                this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32_SFLOAT;
+                this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec3);
+                this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * 6u * sizeof(uint32_t),
+                    .size = AllocationUnitCount * 9u * sizeof(uint32_t),
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
@@ -122,11 +122,22 @@ namespace jvi {
             this->bdHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->bdHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
 
+            // FOR BUILD! FULL GEOMETRY INFO! 
+            this->buildGInfo[0].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
+            this->buildGInfo[0].geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
+            this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+            this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec3);
+            this->offsetInfo[0].firstVertex = 0u;
+            this->offsetInfo[0].primitiveCount = 0u;
+            this->offsetInfo[0].primitiveOffset = 0u;
+            this->offsetInfo[0].transformOffset = 0u;
+
             // COR CREATE! 
             this->bottomDataCreate[0].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
             this->bottomDataCreate[0].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount * 3u);
             this->bottomDataCreate[0].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
             this->bottomDataCreate[0].indexType = VK_INDEX_TYPE_NONE_KHR;
+            this->bottomDataCreate[0].vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
 
             // COR CREATE! 
             this->bottomCreate.maxGeometryCount = this->bottomDataCreate.size();
@@ -355,7 +366,7 @@ namespace jvi {
                 this->buildGInfo[0].flags = { .eOpaque = 1 };
                 this->offsetInfo[0].primitiveOffset = attribute->offset; //+ this->bindings[bindingID].offset(); // WARNING!!
                 this->buildGInfo[0].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-                this->buildGInfo[0].geometry.triangles.vertexFormat = attribute->format;
+                this->buildGInfo[0].geometry.triangles.vertexFormat = this->bottomDataCreate[0].vertexFormat = attribute->format;
                 this->buildGInfo[0].geometry.triangles.vertexStride = binding.stride;
                 this->buildGInfo[0].geometry.triangles.vertexData = this->bindings[bindingID];
 
@@ -369,7 +380,7 @@ namespace jvi {
             if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
 
             if (this->indexType == vk::IndexType::eNoneKHR) {
-                this->primitiveCount = this->currentUnitCount/3u;
+                this->primitiveCount = this->currentUnitCount / (this->needsQuads ? 4u : 3u);
             };
 
             return uTHIS;
@@ -381,13 +392,13 @@ namespace jvi {
 
         // 
         virtual uPTR(Mesh) setIndexCount(const uint32_t& count = 32768u) {
-            this->primitiveCount = this->offsetInfo[0].primitiveCount = (this->currentUnitCount = count) / 3u; // Mul*3u
+            this->primitiveCount = this->offsetInfo[0].primitiveCount = (this->currentUnitCount = count) / (this->needsQuads ? 4u : 3u); // Mul*3u
             return uTHIS;
         };
 
         // 
         virtual uPTR(Mesh) setPrimitiveCount(const uint32_t& count = 32768u) {
-            this->currentUnitCount = (this->primitiveCount = this->offsetInfo[0].primitiveCount = count) * 3u; // Mul*3u
+            this->currentUnitCount = (this->primitiveCount = this->offsetInfo[0].primitiveCount = count) * (this->needsQuads ? 4u : 3u); // Mul*3u
             return uTHIS;
         };
 
@@ -431,7 +442,7 @@ namespace jvi {
             this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
             this->buildGInfo[0].geometry.triangles.indexType = this->bottomDataCreate[0].indexType = VkIndexType(this->indexType);
             this->buildGInfo[0].geometry.triangles.indexData = this->indexData;
-            this->offsetInfo[0].primitiveCount = (this->primitiveCount = (this->currentUnitCount = count) / 3u);
+            this->offsetInfo[0].primitiveCount = (this->primitiveCount = (this->currentUnitCount = count) / (this->needsQuads ? 4u : 3u));
 
             // 
             return uTHIS;
@@ -629,6 +640,7 @@ namespace jvi {
                 rasterCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
                 rasterCommand.dispatch(vkt::tiled(this->primitiveCount, 256u) * 256u, 1u, 1u);
+                this->needsQuads = false;
             };
 
             // 

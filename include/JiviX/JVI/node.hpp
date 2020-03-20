@@ -48,11 +48,20 @@ namespace jvi {
             this->instancHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
 
+            // 
+            this->instancInfo[0].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+            this->instancInfo[0].geometry = vkh::VkAccelerationStructureGeometryInstancesDataKHR{};
+            this->offsetsInfo[0].firstVertex = 0u;
+            this->offsetsInfo[0].primitiveCount = 0u;
+            this->offsetsInfo[0].primitiveOffset = 0u;
+            this->offsetsInfo[0].transformOffset = 0u;
+
             // FOR CREATE!
             this->topDataCreate[0].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
             this->topDataCreate[0].maxVertexCount = 0u;
             this->topDataCreate[0].maxPrimitiveCount = static_cast<uint32_t>(MaxInstanceCount);
             this->topDataCreate[0].indexType = VK_INDEX_TYPE_NONE_KHR;
+            this->topDataCreate[0].vertexFormat = VK_FORMAT_UNDEFINED;
 
             // FOR CREATE!
             this->topCreate.maxGeometryCount = this->topDataCreate.size();
