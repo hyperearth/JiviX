@@ -47,6 +47,7 @@ namespace jvi {
             this->instancHeadInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->instancPtr = this->instancInfo.data()).ptr());
             this->instancHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->instancHeadInfo[0].geometryArrayOfPointers = true;
 
             // 
             this->instancInfo[0].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
@@ -316,13 +317,12 @@ namespace jvi {
             this->offsetsInfo[0u].primitiveCount = this->instanceCounter;
 
             // 
-            this->instancHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+            //this->instancHeadInfo[0].geometryCount = 1u;
+            //this->instancHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+            //this->instancHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
             this->instancHeadInfo[0].dstAccelerationStructure = this->accelerationStructure;
-            this->instancHeadInfo[0].geometryCount = 1u;
             this->instancHeadInfo[0].ppGeometries = (this->instancPtr = this->instancInfo.data()).ptr();
-            this->instancHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo[0].scratchData = this->gpuScratchBuffer;
-            this->instancHeadInfo[0].geometryArrayOfPointers = false;
 
             // 
             if (buildCommand) {

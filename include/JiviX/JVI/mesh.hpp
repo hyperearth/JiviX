@@ -121,6 +121,7 @@ namespace jvi {
             this->bdHeadInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->bdHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->bdHeadInfo[0].geometryArrayOfPointers = true;
 
             // FOR BUILD! FULL GEOMETRY INFO! 
             this->buildGInfo[0].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
@@ -495,19 +496,18 @@ namespace jvi {
             return uTHIS;
         };
 
-        // TODO: CommandLess building of AS
+        // 
         virtual uPTR(Mesh) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
             if (this->accelerationStructure) { this->updateGeometry(); }
             else { this->createAccelerationStructure(); };
 
             // 
-            this->bdHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-            this->bdHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            //this->bdHeadInfo[0].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            //this->bdHeadInfo[0].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            //this->bdHeadInfo[0].geometryCount = 1u;
             this->bdHeadInfo[0].dstAccelerationStructure = this->accelerationStructure;
-            this->bdHeadInfo[0].geometryCount = 1u;
-            this->bdHeadInfo[0].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
+            this->bdHeadInfo[0].ppGeometries = (this->buildGPtr = this->buildGInfo.data()).ptr();
             this->bdHeadInfo[0].scratchData = this->gpuScratchBuffer;
-            this->bdHeadInfo[0].geometryArrayOfPointers = false;
 
             // 
             if (buildCommand) {
