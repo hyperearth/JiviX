@@ -343,6 +343,7 @@ namespace jvi {
                 //
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_KHR,
+                    .buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                     .accelerationStructure = this->accelerationStructure
                 }, this->driver->getDispatch());
 
@@ -368,6 +369,7 @@ namespace jvi {
             if (!this->gpuScratchBuffer.has()) { // 
                 auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR,
+                    .buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                     .accelerationStructure = this->accelerationStructure
                 }, this->driver->getDispatch());
 
