@@ -42,14 +42,13 @@ namespace jvi {
             this->gpuMeshInfo = vkt::Vector<glm::uvec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // FOR BUILD! 
-            // originally, it should to be array (like as old version of LancER)
-            this->instancHeadInfo[0u].geometryCount = 1u;
+            this->instancHeadInfo[0u].geometryCount = this->instancInfo.size();
             this->instancHeadInfo[0u].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->instancPtr = this->instancInfo.data()).ptr());
             this->instancHeadInfo[0u].type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo[0u].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
             this->instancHeadInfo[0u].geometryArrayOfPointers = false;
 
-            // 
+            // FOR BUILD! // originally, it should to be array (like as old version of LancER)
             this->instancInfo[0u].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
             this->instancInfo[0u].geometry = vkh::VkAccelerationStructureGeometryInstancesDataKHR{};
             this->instancInfo[0u].geometry.instances.data = this->gpuInstances;

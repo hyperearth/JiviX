@@ -98,10 +98,10 @@ namespace jvi {
 
             // 
             for (uint32_t i = 0; i < 8; i++) {
-                this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec3);
+                this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec4);
                 this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * 9u * sizeof(uint32_t),
+                    .size = AllocationUnitCount * sizeof(glm::vec4) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
@@ -116,24 +116,23 @@ namespace jvi {
             };
 
             // FOR BUILD! 
-            // originally, it should to be array (like as old version of LancER)
-            this->bdHeadInfo[0u].geometryCount = 1u;
+            this->bdHeadInfo[0u].geometryCount = this->buildGInfo.size();
             this->bdHeadInfo[0u].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo[0u].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-            this->bdHeadInfo[0u].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->bdHeadInfo[0u].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
             this->bdHeadInfo[0u].geometryArrayOfPointers = false;
 
-            // FOR BUILD! FULL GEOMETRY INFO! 
+            // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)
             this->buildGInfo[0u].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
             this->buildGInfo[0u].geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
             this->buildGInfo[0u].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-            this->buildGInfo[0u].geometry.triangles.vertexStride = sizeof(glm::vec3);
+            this->buildGInfo[0u].geometry.triangles.vertexStride = sizeof(glm::vec4);
             this->offsetInfo[0u].firstVertex = 0u;
             this->offsetInfo[0u].primitiveCount = 0u;
             this->offsetInfo[0u].primitiveOffset = 0u;
             this->offsetInfo[0u].transformOffset = 0u;
 
-            // COR CREATE! 
+            // FOR CREATE! 
             this->bottomDataCreate[0u].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
             this->bottomDataCreate[0u].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount * 3u);
             this->bottomDataCreate[0u].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
@@ -141,7 +140,7 @@ namespace jvi {
             this->bottomDataCreate[0u].vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
             this->bottomDataCreate[0u].allowsTransforms = true;
 
-            // COR CREATE! 
+            // FOR CREATE! 
             this->bottomCreate.maxGeometryCount = this->bottomDataCreate.size();
             this->bottomCreate.pGeometryInfos = this->bottomDataCreate.data();
             this->bottomCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
