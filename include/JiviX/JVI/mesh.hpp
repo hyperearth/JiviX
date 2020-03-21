@@ -143,8 +143,8 @@ namespace jvi {
             // FOR CREATE! 
             this->bottomCreate.maxGeometryCount = this->bottomDataCreate.size();
             this->bottomCreate.pGeometryInfos = this->bottomDataCreate.data();
-            this->bottomCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-            this->bottomCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->bottomCreate.type = this->bdHeadInfo[0u].type;
+            this->bottomCreate.flags = this->bdHeadInfo[0u].flags;
 
             // 
             return uTHIS;

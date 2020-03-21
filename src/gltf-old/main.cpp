@@ -223,11 +223,11 @@ int main() {
 
     // 
     const float unitScale = 1.f;
-    const float unitHeight = -1.f;
+    const float unitHeight = -32.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf");
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     // 
@@ -416,7 +416,7 @@ int main() {
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
-                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
+                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
                     mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u });
                 }
                 else if (NM[i] == "TANGENT") { // STUB for Tangents
@@ -437,7 +437,7 @@ int main() {
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
-                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) });
+                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
                     mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = 0u }, false);
                 };
             };

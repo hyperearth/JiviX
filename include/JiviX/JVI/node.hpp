@@ -68,9 +68,10 @@ namespace jvi {
             // FOR CREATE!
             this->topCreate.maxGeometryCount = this->topDataCreate.size();
             this->topCreate.pGeometryInfos = this->topDataCreate.data();
-            this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
-            this->topCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
+            this->topCreate.type = this->instancHeadInfo[0u].type;
+            this->topCreate.flags = this->instancHeadInfo[0u].flags;
 
+            // 
             return uTHIS;
         };
 
