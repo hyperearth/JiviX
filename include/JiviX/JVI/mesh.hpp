@@ -116,11 +116,11 @@ namespace jvi {
             };
 
             // FOR BUILD! 
-            this->bdHeadInfo[0u].geometryCount = this->buildGInfo.size();
-            this->bdHeadInfo[0u].ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
-            this->bdHeadInfo[0u].type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-            this->bdHeadInfo[0u].flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-            this->bdHeadInfo[0u].geometryArrayOfPointers = false;
+            this->bdHeadInfo.geometryCount = this->buildGInfo.size();
+            this->bdHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
+            this->bdHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+            this->bdHeadInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+            this->bdHeadInfo.geometryArrayOfPointers = false;
 
             // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)
             this->buildGInfo[0u].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
@@ -133,7 +133,7 @@ namespace jvi {
             this->offsetInfo[0u].transformOffset = 0u;
 
             // FOR CREATE! 
-            this->bottomDataCreate[0u].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+            this->bottomDataCreate[0u].geometryType = this->buildGInfo[0u].geometryType;
             this->bottomDataCreate[0u].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount * 3u);
             this->bottomDataCreate[0u].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
             this->bottomDataCreate[0u].indexType = VK_INDEX_TYPE_NONE_KHR;
@@ -143,8 +143,8 @@ namespace jvi {
             // FOR CREATE! 
             this->bottomCreate.maxGeometryCount = this->bottomDataCreate.size();
             this->bottomCreate.pGeometryInfos = this->bottomDataCreate.data();
-            this->bottomCreate.type = this->bdHeadInfo[0u].type;
-            this->bottomCreate.flags = this->bdHeadInfo[0u].flags;
+            this->bottomCreate.type = this->bdHeadInfo.type;
+            this->bottomCreate.flags = this->bdHeadInfo.flags;
 
             // 
             return uTHIS;
@@ -505,18 +505,18 @@ namespace jvi {
             else { this->createAccelerationStructure(); };
 
             // 
-            this->bdHeadInfo[0].geometryCount = this->buildGInfo.size();
-            this->bdHeadInfo[0].dstAccelerationStructure = this->accelerationStructure;
-            this->bdHeadInfo[0].ppGeometries = (this->buildGPtr = this->buildGInfo.data()).ptr();
-            this->bdHeadInfo[0].scratchData = this->gpuScratchBuffer;
-            this->bdHeadInfo[0].update = this->needsUpdate;
+            this->bdHeadInfo.geometryCount = this->buildGInfo.size();
+            this->bdHeadInfo.dstAccelerationStructure = this->accelerationStructure;
+            this->bdHeadInfo.ppGeometries = (this->buildGPtr = this->buildGInfo.data()).ptr();
+            this->bdHeadInfo.scratchData = this->gpuScratchBuffer;
+            this->bdHeadInfo.update = this->needsUpdate;
 
             // 
             if (buildCommand) {
-                buildCommand.buildAccelerationStructureKHR(1u, &this->bdHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
                 this->needsUpdate = true;
             } else {
-                driver->getDevice().buildAccelerationStructureKHR(1u, &this->bdHeadInfo[0].hpp(), reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
             }
             return uTHIS;
         };
@@ -781,12 +781,13 @@ namespace jvi {
 
 
         // FOR CREATE (Acceleration Structure)
-        vkh::VkAccelerationStructureCreateInfoKHR                           bottomCreate = {}; // CREATE 
-        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR>  bottomDataCreate = { {} }; // Currently, SINGLE!
+        vkh::VkAccelerationStructureCreateInfoKHR                          bottomCreate = {}; // CREATE SINGLE!
+        std::vector<vkh::VkAccelerationStructureCreateGeometryTypeInfoKHR> bottomDataCreate = { {} }; // CAN BE MULTIPLE!
 
-        // FOR BUILD! BUT ONLY SINGLE!
-        std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR>   bdHeadInfo = { {} };
-        vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> bdHeadPtr = {};
+        // FOR BUILD! BUT ONLY SINGLE! (Contain Multiple-Instanced)
+        vkh::VkAccelerationStructureBuildGeometryInfoKHR                  bdHeadInfo = {};
+        //std::vector<vkh::VkAccelerationStructureBuildGeometryInfoKHR>   bdHeadInfo = { {} };
+        //vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> bdHeadPtr = {};
 
         // CAN BE MULTIPLE! (single element of array, array of array[0])
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
