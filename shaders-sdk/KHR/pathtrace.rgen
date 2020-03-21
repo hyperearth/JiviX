@@ -101,7 +101,7 @@ void main() { // Hi-DPI adaptation
         const mat3x3 TBN = mat3x3(gTangent.xyz,gBinorml.xyz,gNormal.xyz);
 
         // 
-        gNormal.xyz = normalize(faceforward(gNormal.xyz, raydir.xyz, gNormal.xyz));
+         gNormal.xyz = normalize(faceforward( gNormal.xyz, raydir.xyz,  gNormal.xyz));
         gmNormal.xyz = normalize(faceforward(gmNormal.xyz, raydir.xyz, gmNormal.xyz));
 
         int i = 0; 
@@ -224,6 +224,10 @@ void main() { // Hi-DPI adaptation
             // 
             origin.xyz += faceforward(gmNormal.xyz,-raydir.xyz,gmNormal.xyz) * 0.0001f + raydir.xyz * 0.0001f;
             if ((dot(gEnergy.xyz,1.f.xxx)/3.f) <= 0.001f || depth >= 9999.f || dot(raydir.xyz,gmNormal.xyz) <= 0.f) { break; }; // 
+
+            // for fix direct light leaks
+            gmNormal.xyz = normalize(faceforward(gmNormal.xyz, -raydir.xyz, gmNormal.xyz));
+             gNormal.xyz = normalize(faceforward( gNormal.xyz, -raydir.xyz,  gNormal.xyz));
         } else {
             gSignal.xyz += fma(gEnergy.xyz, 1.f.xxx,gSignal.xyz), gEnergy *= 0.f;
             forign.xyz = 0.f.xxx;
