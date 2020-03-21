@@ -36,6 +36,12 @@ bool checkCorrect(in vec4 positions, in vec2 i2fxm) {
     return false;
 }
 
+// WE NEEDS: 
+// - GL_NV_shader_atomic_float
+// - GL_NV_shader_atomic_fp16_vector
+// - GL_NV_shader_atomic_float64
+// FOR COMPUTE SHADERS! 
+
 // 
 void main() { // Currently NO possible to compare
     const ivec2 f2fx  = ivec2(gl_FragCoord.xy);
