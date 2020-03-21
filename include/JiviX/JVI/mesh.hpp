@@ -101,7 +101,7 @@ namespace jvi {
                 this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec4);
                 this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * sizeof(glm::vec4) * 3u,
+                    .size = AllocationUnitCount * sizeof(glm::vec4) * 12u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
@@ -366,7 +366,7 @@ namespace jvi {
 
                 // 
                 this->buildGInfo[0].flags = { .eOpaque = 1 };
-                this->offsetInfo[0].primitiveOffset = attribute->offset + this->bindings[bindingID].offset(); // WARNING!! Also, unknown about needing `.offset()`... 
+                this->offsetInfo[0].primitiveOffset = attribute->offset + this->bindings[bindingID].offset(); // !!WARNING!! Also, unknown about needing `.offset()`... 
                 this->buildGInfo[0].geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
                 this->buildGInfo[0].geometry.triangles.vertexFormat = this->bottomDataCreate[0].vertexFormat = attribute->format;
                 this->buildGInfo[0].geometry.triangles.vertexStride = binding.stride;
@@ -435,18 +435,11 @@ namespace jvi {
             };
 
             // 
-            if (rawIndices.has() && type != vk::IndexType::eNoneKHR) {
-                this->indexType = type;
-            } else {
-                this->indexType = vk::IndexType::eNoneKHR;
-            };
-
-            // 
-            this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
-            this->buildGInfo[0].geometry.triangles.indexType = this->bottomDataCreate[0].indexType = VkIndexType(this->indexType);
-            this->buildGInfo[0].geometry.triangles.indexData = this->indexData;
-            this->offsetInfo[0].firstVertex = this->indexData.offset() / stride; // Trying these scheme (change indices to next)
-            this->offsetInfo[0].primitiveCount = (this->primitiveCount = (this->currentUnitCount = count) / (this->needsQuads ? 4u : 3u));
+            this->indexType = (rawIndices.has() && type != vk::IndexType::eNoneKHR) ? type : vk::IndexType::eNoneKHR;
+            this->rawMeshInfo[0].indexType = uint32_t(this->buildGInfo[0].geometry.triangles.indexType = this->bottomDataCreate[0].indexType = VkIndexType(this->indexType)) + 1u;
+            this->buildGInfo[0u].geometry.triangles.indexData = this->indexData;
+            this->offsetInfo[0u].firstVertex = this->indexData.offset() / stride; // Trying these scheme (change indices to next)
+            this->offsetInfo[0u].primitiveCount = (this->primitiveCount = (this->currentUnitCount = count) / (this->needsQuads ? 4u : 3u));
 
             // 
             return uTHIS;
@@ -673,13 +666,14 @@ namespace jvi {
 
             // Make Draw Instanced
             if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
+                const uintptr_t voffset = this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
                 this->rawMeshInfo[0u].prmCount = this->primitiveCount;
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-                rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, 0u, 0u, 0u);
+                rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, this->offsetInfo[0u].firstVertex, voffset, 0u);
             }
             else { // VAL Mode
                 this->rawMeshInfo[0u].prmCount = this->primitiveCount;
-                rasterCommand.draw(this->currentUnitCount, this->instanceCount, 0u, 0u);
+                rasterCommand.draw(this->currentUnitCount, this->instanceCount, this->offsetInfo[0u].firstVertex, 0u);
             };
             rasterCommand.endRenderPass();
             //vkt::commandBarrier(rasterCommand);
