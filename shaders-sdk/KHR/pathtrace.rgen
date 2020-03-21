@@ -100,9 +100,12 @@ void main() { // Hi-DPI adaptation
         vec2 gTexcoord = 0.f.xx;
         const mat3x3 TBN = mat3x3(gTangent.xyz,gBinorml.xyz,gNormal.xyz);
 
+        // 
+        gNormal.xyz = normalize(faceforward(gNormal.xyz, raydir.xyz, gNormal.xyz));
+        gmNormal.xyz = normalize(faceforward(gmNormal.xyz, raydir.xyz, gmNormal.xyz));
+
         int i = 0; 
 #ifdef ENABLE_RASTERIZE_STAGE // complete first stage
-        gNormal.xyz = faceforward(gNormal.xyz, raydir.xyz, gNormal.xyz);
         raydir.xyz = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, raydir.xyz, TBN, speculSample.y);
         origin.xyz += faceforward(gNormal.xyz,-raydir.xyz, gNormal.xyz) * 0.001f, i++; // pre-correction
         origin.xyz += raydir.xyz * 0.001f;
@@ -117,14 +120,14 @@ void main() { // Hi-DPI adaptation
                 vec3 lorign = origin;
                 const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,lorign.xyz);
                 const vec3 lightd = normalize(lightp.xyz - lorign.xyz);
- //CURRENTLY DEBUGGING 
+
                 float depth = 0.f;
-                if (dot(lightd.xyz,gmNormal.xyz) >= 0.f) {
+                if (dot(lightd.xyz, gmNormal.xyz) >= 0.f) {
                     float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
                     for (uint j=0;j<TRANSPARENT_COUNT;j++) {
-                        traceRayEXT(Scene, gl_RayFlagsOpaqueEXT, 0xFF,
+                        traceRayEXT(Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT, 0xFF,
                             0, 1, 0,
-                            lorign.xyz,  0.001f,
+                            lorign.xyz, 0.0001f,
                             lightd.xyz, 10000.f,
                             0);
                         
@@ -143,14 +146,14 @@ void main() { // Hi-DPI adaptation
             };
 
             // Primary Rays
-            traceRayEXT(Scene, gl_RayFlagsOpaqueEXT, 0xFF,
+            traceRayEXT(Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT, 0xFF,
                 0, 1, 0,
-                origin.xyz,  0.001f,
+                origin.xyz, 0.0001f,
                 raydir.xyz, 10000.f,
                 0);
             
             gTangent = PrimaryRay.tangent;
-            gmNormal = PrimaryRay.normals;
+            gmNormal = PrimaryRay.normals; gmNormal.xyz = normalize(faceforward(gmNormal.xyz, raydir.xyz, gmNormal.xyz));
             gBinorml = PrimaryRay.binorml;
             //gNormal  = PrimaryRay.normalm;
 
@@ -163,6 +166,7 @@ void main() { // Hi-DPI adaptation
 
             // compute transmuted normal 
             gNormal.xyz = normalize(mat3x3(gTangent.xyz,gBinorml.xyz,gmNormal.xyz) * (normalsColor.xyz * 2.f - 1.f));
+            gNormal.xyz = normalize(faceforward(gNormal.xyz, raydir.xyz, gNormal.xyz));
 
             // 
             float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
@@ -204,8 +208,8 @@ void main() { // Hi-DPI adaptation
             if (couldReflection) afterReflection = true;
 
             // 
-            gmNormal.xyz = faceforward(gmNormal.xyz,raydir.xyz,gmNormal.xyz); // interverse into incoming ray
-             gNormal.xyz = faceforward( gNormal.xyz,raydir.xyz, gNormal.xyz);
+            gmNormal.xyz = normalize(faceforward(gmNormal.xyz,raydir.xyz,gmNormal.xyz)); // interverse into incoming ray
+             gNormal.xyz = normalize(faceforward( gNormal.xyz,raydir.xyz, gNormal.xyz));
 
             // 
             if (diffuseColor.w > 0.001f) { // Reflection

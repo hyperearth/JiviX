@@ -353,6 +353,7 @@ vec3 randomHemisphereCosine(inout uvec2 seed) {
     const float phi = hmsm.x * TWO_PI, up = sqrt(1.0f - hmsm.y), over = sqrt(fma(up,-up,1.f));
     return normalize(vec3(cos(phi)*over,up,sin(phi)*over));
 };
+
 /*
 vec3 randomHemisphereCosine(inout uvec2 seed, in mat3x3 TBN) {
     return normalize(TBN * randomHemisphereCosine(seed).xzy);
@@ -384,7 +385,7 @@ vec3 randomHemisphereCosine( inout uvec2 seed, in mat3x3 TBN)
 };
 
 vec3 reflectGlossy(inout uvec2 seed, in vec3 I, in mat3x3 TBN, in float gloss){
-    return mix(reflect(I,TBN[2]), randomHemisphereCosine(seed,TBN), gloss*sqrt(random(seed)));
+    return normalize(mix(reflect(I,TBN[2]), randomHemisphereCosine(seed,TBN), gloss*sqrt(random(seed))));
 };
 
 bvec4 and(in bvec4 a, in bvec4 b){
