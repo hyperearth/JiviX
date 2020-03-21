@@ -327,14 +327,18 @@ namespace jvi {
             this->cmdbuf = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread));
             this->cmdbuf.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
 
+
+            // create sampling points
+            this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
+            auto I = 0u; this->node->createDescriptorSet();
+
             // prepare meshes for ray-tracing
-            for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); };
+            I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); };
             vkt::commandBarrier(this->cmdbuf);
-            for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf); };
+            I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); };
             vkt::commandBarrier(this->cmdbuf);
 
             // setup instanced and material data
-            this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
             this->node->copyMeta(this->cmdbuf)->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
@@ -346,9 +350,6 @@ namespace jvi {
                 const auto I = this->node->rawInstances[i].instanceId;
                 this->node->meshes[I]->increaseInstanceCount(i);
             };
-
-            // create sampling points
-            auto I = 0u;
 
             // make covergence (depth) map
             this->cmdbuf.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, vk::ClearDepthStencilValue(1.0f, 0), (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);

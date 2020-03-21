@@ -493,9 +493,23 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Mesh) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+        virtual uPTR(Mesh) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             if (this->accelerationStructure) { this->updateGeometry(); }
             else { this->createAccelerationStructure(); };
+
+            // 
+            if (this->needsQuads && buildCommand) { //
+                this->quadInfo.layout = this->context->unifiedPipelineLayout;
+                this->quadInfo.stage = this->quadStage;
+                this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
+
+                buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+                buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
+                buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
+                buildCommand.dispatch(vkt::tiled(this->primitiveCount, 256u) * 256u, 1u, 1u);
+                this->offsetInfo[0u].primitiveCount = (this->primitiveCount <<= 1);
+                this->needsQuads = false;
+            };
 
             // 
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
@@ -580,12 +594,6 @@ namespace jvi {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
-            {
-                this->quadInfo.layout = this->context->unifiedPipelineLayout;
-                this->quadInfo.stage = this->quadStage;
-                this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
-            }
-
             // TODO: Add to main package
             // Enable Conservative Rasterization For Fix Some Antialiasing Issues
             vk::PipelineRasterizationConservativeStateCreateInfoEXT conserv = {};
@@ -627,16 +635,6 @@ namespace jvi {
             if (this->instanceCount <= 0u) return uTHIS;
 
             // 
-            if (this->needsQuads) {
-                rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-                rasterCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
-                rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-                rasterCommand.dispatch(vkt::tiled(this->primitiveCount, 256u) * 256u, 1u, 1u);
-                this->offsetInfo[0u].primitiveCount = (this->primitiveCount <<= 1);
-                this->needsQuads = false;
-            };
-
-            // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
             for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
@@ -666,14 +664,13 @@ namespace jvi {
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
 
             // Make Draw Instanced
+            this->rawMeshInfo[0u].prmCount = this->primitiveCount;
             if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
                 const uintptr_t voffset = this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
-                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
                 rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, this->offsetInfo[0u].firstVertex, voffset, 0u);
             }
             else { // VAL Mode
-                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
                 rasterCommand.draw(this->currentUnitCount, this->instanceCount, this->offsetInfo[0u].firstVertex, 0u);
             };
             rasterCommand.endRenderPass();
@@ -717,14 +714,14 @@ namespace jvi {
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
 
             // Make Draw Instanced
+            this->rawMeshInfo[0u].prmCount = this->primitiveCount;
             if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
-                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
+                const uintptr_t voffset = this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-                rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, 0u, 0u, 0u);
+                rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, this->offsetInfo[0u].firstVertex, voffset, 0u);
             }
             else { // VAL Mode
-                this->rawMeshInfo[0u].prmCount = this->primitiveCount;
-                rasterCommand.draw(this->currentUnitCount, this->instanceCount, 0u, 0u);
+                rasterCommand.draw(this->currentUnitCount, this->instanceCount, this->offsetInfo[0u].firstVertex, 0u);
             };
             rasterCommand.endRenderPass();
             //vkt::commandBarrier(rasterCommand);
