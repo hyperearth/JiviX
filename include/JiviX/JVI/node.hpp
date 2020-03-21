@@ -29,14 +29,8 @@ namespace jvi {
             this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             // 
-            auto allocInfo = vkt::MemoryAllocationInfo{};
-            allocInfo.device = *driver;
-            allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
-            allocInfo.dispatch = driver->getDispatch();
-
-            // 
             this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(allocInfo, vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } });
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } });
 
             // 
             this->gpuMeshInfo = vkt::Vector<glm::uvec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
@@ -347,21 +341,17 @@ namespace jvi {
                     .accelerationStructure = this->accelerationStructure
                 }, this->driver->getDispatch());
 
-                // 
-                auto allocInfo = vkt::MemoryAllocationInfo{};
-                allocInfo.device = *driver;
-                allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
-                allocInfo.dispatch = driver->getDispatch();
-                allocInfo.reqSize = requirements.memoryRequirements.size;
-                allocInfo.range = requirements.memoryRequirements.size;
+                // TODO: fix memoryProperties issue
+                TempBuffer = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
+                    .size = requirements.memoryRequirements.size,
+                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
+                });
 
                 // 
                 this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u, &vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
-                    .memory = (TempBuffer = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                        .size = requirements.memoryRequirements.size,
-                        .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
-                    }))->getAllocationInfo().memory,
+                    .memory = TempBuffer->getAllocationInfo().memory,
+                    .memoryOffset = TempBuffer->getAllocationInfo().offset,
                 }.hpp(), this->driver->getDispatch());
             };
 

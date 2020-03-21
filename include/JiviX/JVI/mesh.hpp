@@ -72,15 +72,10 @@ namespace jvi {
             // 
             //this->quadGenerator = vkt::createCompute(this->driver->getDevice(), std::string("./shaders/rtrace/quad.comp.spv"), this->context->unifiedPipelineLayout, this->driver->pipelineCache);
 
-            // 
-            auto allocInfo = vkt::MemoryAllocationInfo{};
-            allocInfo.device = *driver;
-            allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
-            allocInfo.dispatch = driver->getDispatch();
 
             { //
                 this->indexType = vk::IndexType::eNoneKHR;
-                this->indexData = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
+                this->indexData = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * sizeof(uint32_t) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
@@ -100,7 +95,7 @@ namespace jvi {
             for (uint32_t i = 0; i < 8; i++) {
                 this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec4);
                 this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                this->bindings[i] = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
+                this->bindings[i] = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * sizeof(glm::vec4) * 12u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
@@ -553,21 +548,17 @@ namespace jvi {
                     .accelerationStructure = this->accelerationStructure
                 }, this->driver->getDispatch());
 
-                // 
-                auto allocInfo = vkt::MemoryAllocationInfo{};
-                allocInfo.device = *driver;
-                allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
-                allocInfo.dispatch = driver->getDispatch();
-                allocInfo.reqSize = requirements.memoryRequirements.size;
-                allocInfo.range = requirements.memoryRequirements.size;
+                // TODO: fix memoryProperties issue
+                TempBuffer = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
+                    .size = requirements.memoryRequirements.size,
+                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
+                });
 
                 // 
                 this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u,&vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
-                    .memory = (TempBuffer = vkt::Vector<uint8_t>(allocInfo, vkh::VkBufferCreateInfo{
-                        .size = requirements.memoryRequirements.size,
-                        .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
-                     }))->getAllocationInfo().memory,
+                    .memory = TempBuffer->getAllocationInfo().memory,
+                    .memoryOffset = TempBuffer->getAllocationInfo().offset,
                 }.hpp(), this->driver->getDispatch());
             };
 
