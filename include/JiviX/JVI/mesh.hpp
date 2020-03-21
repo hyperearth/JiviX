@@ -127,7 +127,7 @@ namespace jvi {
             this->buildGInfo[0u].geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
             this->buildGInfo[0u].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
             this->buildGInfo[0u].geometry.triangles.vertexStride = sizeof(glm::vec4);
-            this->offsetInfo[0u].firstVertex = 0u;
+            this->offsetInfo[0u].firstVertex = 0u; // FOR INDICED INCLUDED! 
             this->offsetInfo[0u].primitiveCount = 0u;
             this->offsetInfo[0u].primitiveOffset = 0u;
             this->offsetInfo[0u].transformOffset = 0u;
