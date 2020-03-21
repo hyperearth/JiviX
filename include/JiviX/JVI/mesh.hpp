@@ -506,7 +506,7 @@ namespace jvi {
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-                buildCommand.dispatch(vkt::tiled(this->primitiveCount, 256u) * 256u, 1u, 1u);
+                buildCommand.dispatch(vkt::tiled(this->primitiveCount, 256u), 1u, 1u);
                 this->offsetInfo[0u].primitiveCount = (this->primitiveCount <<= 1);
                 this->needsQuads = false;
             };
