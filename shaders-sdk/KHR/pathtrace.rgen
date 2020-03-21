@@ -125,7 +125,7 @@ void main() { // Hi-DPI adaptation
                 if (dot(lightd.xyz, gmNormal.xyz) >= 0.f) {
                     float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
                     for (uint j=0;j<TRANSPARENT_COUNT;j++) {
-                        traceRayEXT(Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT, 0xFF,
+                        traceRayEXT(Scene, gl_RayFlagsOpaqueEXT, 0xFF,
                             0, 1, 0,
                             lorign.xyz, 0.0001f,
                             lightd.xyz, 10000.f,
@@ -146,7 +146,7 @@ void main() { // Hi-DPI adaptation
             };
 
             // Primary Rays
-            traceRayEXT(Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT, 0xFF,
+            traceRayEXT(Scene, gl_RayFlagsOpaqueEXT, 0xFF,
                 0, 1, 0,
                 origin.xyz, 0.0001f,
                 raydir.xyz, 10000.f,

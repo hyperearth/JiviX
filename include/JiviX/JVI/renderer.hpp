@@ -354,7 +354,7 @@ namespace jvi {
             // make covergence (depth) map
             this->cmdbuf.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, vk::ClearDepthStencilValue(1.0f, 0), (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
             I = 0u; for (auto& M : this->node->meshes) {
-                M->createRasterizePipeline()->createCovergenceCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
+                M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u), true);
                 //M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
             };
             vkt::commandBarrier(this->cmdbuf);
@@ -363,7 +363,6 @@ namespace jvi {
             this->cmdbuf.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, vk::ClearDepthStencilValue(1.0f, 0), (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
             I = 0u; for (auto& M : this->node->meshes) {
                 M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
-                //M->createCovergenceCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
             };
             vkt::commandBarrier(this->cmdbuf);
 
