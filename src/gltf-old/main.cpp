@@ -367,8 +367,8 @@ int main() {
     // []  [] // [][][] // []  [] //   [][] //
 
     // Meshes (only one primitive supported)
-    for (uint32_t i = 0; i < model.meshes.size(); i++) {
-        const auto& meshData = model.meshes[i];
+    for (uint32_t j = 0; j < model.meshes.size(); j++) {
+        const auto& meshData = model.meshes[j];
 
         // Make Instanced Primitives
         //for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
@@ -385,8 +385,14 @@ int main() {
                 vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
             };
 
+            vk::DeviceSize MaxStride = sizeof(glm::vec4);
+            for (uint32_t i = 0u; i < model.bufferViews.size(); i++) {
+                const auto& BV = model.bufferViews[i];
+                MaxStride = std::max(vk::DeviceSize(BV.byteStride), MaxStride);
+            };
+
             // 
-            meshes.push_back(jvx::Mesh( context, vkt::tiled(vertexCount<<(uintptr_t(ctype)*0u), 3ull)));
+            meshes.push_back(jvx::Mesh( context, vkt::tiled(vertexCount<<(uintptr_t(ctype)*0u), 3ull), MaxStride));
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
 
             // 

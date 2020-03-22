@@ -24,7 +24,7 @@ namespace jvi {
     // TODO: Descriptor Sets
     class Mesh : public std::enable_shared_from_this<Mesh> { public: friend Node; friend Renderer;
         Mesh() {};
-        Mesh(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768) : context(context), AllocationUnitCount(AllocationUnitCount) { this->construct(); };
+        Mesh(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = sizeof(glm::vec4)) : context(context), AllocationUnitCount(AllocationUnitCount), MaxStride(MaxStride){ this->construct(); };
         //Mesh(Context* context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Mesh() {};
 
@@ -93,10 +93,8 @@ namespace jvi {
 
             // 
             for (uint32_t i = 0; i < 8; i++) {
-                this->buildGInfo[0].geometry.triangles.vertexStride = sizeof(glm::vec4);
-                this->buildGInfo[0].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 this->bindings[i] = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * sizeof(glm::vec4) * 12u,
+                    .size = AllocationUnitCount * MaxStride * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
@@ -122,7 +120,7 @@ namespace jvi {
             this->buildGInfo[0u].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
             this->buildGInfo[0u].geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
             this->buildGInfo[0u].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-            this->buildGInfo[0u].geometry.triangles.vertexStride = sizeof(glm::vec4);
+            this->buildGInfo[0u].geometry.triangles.vertexStride = MaxStride;
             this->offsetInfo[0u].firstVertex = 0u; // FOR INDICED INCLUDED! 
             this->offsetInfo[0u].primitiveCount = 0u;
             this->offsetInfo[0u].primitiveOffset = 0u;
@@ -681,7 +679,7 @@ namespace jvi {
 
         vk::DeviceSize currentUnitCount = 0u;
         vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize AllocationUnitCount = 32768;
+        vk::DeviceSize AllocationUnitCount = 32768, MaxStride = sizeof(glm::vec4);
 
         // 
         //uint32_t indexCount = 0u, vertexCount = 0u, instanceCount = 0u;
