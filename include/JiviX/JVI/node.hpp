@@ -57,7 +57,7 @@ namespace jvi {
             this->topDataCreate[0u].maxVertexCount = 0u;
             this->topDataCreate[0u].indexType = VK_INDEX_TYPE_NONE_KHR;
             this->topDataCreate[0u].vertexFormat = VK_FORMAT_UNDEFINED;
-            this->topDataCreate[0u].allowsTransforms = true;
+            this->topDataCreate[0u].allowsTransforms = false;
 
             // FOR CREATE!
             this->topCreate.maxGeometryCount = this->topDataCreate.size();
@@ -325,10 +325,8 @@ namespace jvi {
 
         // Create Or Rebuild Acceleration Structure
         virtual uPTR(Node) createAccelerationStructure() { // Re-assign instance count
-            this->topCreate.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
             this->topCreate.maxGeometryCount = this->topDataCreate.size();
             this->topCreate.pGeometryInfos = this->topDataCreate.data();
-            this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
