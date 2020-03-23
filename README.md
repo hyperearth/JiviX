@@ -39,8 +39,9 @@ Date:[23.03.2020]:[helix.d@IMN]
 ## TODO Lists
 
 - [x] Diffuse layer with global illumination (Path Tracing)
-- [ ] Materials support
-- [ ] Reflection layers
+- [x] Reflection layers (NOT reprojected)
+- [x] Support of `VK_KHR_ray_tracing`
+- [x] Materials support
 - [ ] Transparency layers
 - [ ] Glossy reflections
 - [ ] ReShade extensions support
