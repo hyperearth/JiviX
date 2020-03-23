@@ -116,15 +116,17 @@ namespace jvi {
             this->bdHeadInfo.geometryArrayOfPointers = false;
 
             // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)
-            this->buildGInfo[0u].flags = { .eOpaque = 1 };
-            this->buildGInfo[0u].geometry = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{};
-            this->buildGInfo[0u].geometry.triangles.indexType = VK_INDEX_TYPE_NONE_KHR;
-            this->buildGInfo[0u].geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-            this->buildGInfo[0u].geometry.triangles.vertexStride = MaxStride;
-            this->offsetInfo[0u].firstVertex = 0u; // FOR INDICED INCLUDED! 
-            this->offsetInfo[0u].primitiveCount = 0u;
-            this->offsetInfo[0u].primitiveOffset = 0u;
-            this->offsetInfo[0u].transformOffset = 0u;
+            this->buildGInfo[0u] = vkh::VkAccelerationStructureGeometryKHR{ .flags = {.eOpaque = 1 } };
+            this->buildGInfo[0u] = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{ 
+                .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT, 
+                .vertexStride = MaxStride,
+                .indexType = VK_INDEX_TYPE_NONE_KHR,
+            };
+            this->offsetInfo[0u] = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
+                .primitiveCount = 0u,
+                .primitiveOffset = 0u,
+                .transformOffset = 0u
+            };
 
             // FOR CREATE! 
             this->bottomDataCreate[0u].geometryType = this->buildGInfo[0u].geometryType;

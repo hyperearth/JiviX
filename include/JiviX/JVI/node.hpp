@@ -43,13 +43,13 @@ namespace jvi {
             this->instancHeadInfo.geometryArrayOfPointers = false;
 
             // FOR BUILD! // originally, it should to be array (like as old version of LancER)
-            this->instancInfo[0u].geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
-            this->instancInfo[0u].geometry = vkh::VkAccelerationStructureGeometryInstancesDataKHR{};
-            this->instancInfo[0u].geometry.instances.data = this->gpuInstances;
-            this->offsetsInfo[0u].firstVertex = 0u;
-            this->offsetsInfo[0u].primitiveCount = 0u;
-            this->offsetsInfo[0u].primitiveOffset = 0u;
-            this->offsetsInfo[0u].transformOffset = 0u;
+            this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryKHR{ };
+            this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryInstancesDataKHR{ .data = this->gpuInstances };
+            this->offsetsInfo[0u] = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
+                .primitiveCount = 0u,
+                .primitiveOffset = 0u,
+                .transformOffset = 0u
+            };
 
             // FOR CREATE!
             this->topDataCreate[0u].geometryType = this->instancInfo[0u].geometryType;
