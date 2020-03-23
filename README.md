@@ -18,17 +18,17 @@ Planned to beat world record as most perfect and most long-time development prod
 
 ```MD
 - Architecture    : [ARC:F2020]
+- Portfolio       : Work in Progress
+- License         : BSD-3 (Currently)
+- Execute Day     : [2021:Q1]
 - Support OS      : Windows 10 (2004 or Newer)
 - Support HW      : RTX 2070 or familiar...
-- Project Type    : Experimental, Personal
-- Portfolio       : Work in Progress
-- Path-Tracing    : Diffuse noiseless (almost), reflection...
-- License         : BSD-3 (Currently)
-- Graphical API   : Vulkan API (VK_KHR_ray_tracing)
-- Target Games    : Minecraft Java Edition, Neverball...
-- Code Language   : C++20, Visual Studio 2019 Support
 - Commercial      : Under Consideration
-- Execute Day     : [2021:Q1]
+- Project Type    : Experimental, Personal
+- Path-Tracing    : Diffuse noiseless (almost), reflection...
+- Target Games    : Minecraft Java Edition, Neverball...
+- Graphical API   : Vulkan API (VK_KHR_ray_tracing)
+- Code Language   : C++20, Visual Studio 2019 Support
 - General To Do   : Add Transform Feedback support
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
