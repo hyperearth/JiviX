@@ -28,7 +28,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Path-Tracing    : Diffuse noiseless (almost), reflection...
 - Target Games    : Minecraft Java Edition, Neverball...
 - Graphical API   : Vulkan API (VK_KHR_ray_tracing)
-- Code Language   : C++20, Visual Studio 2019 Support
+- Code Language   : C++20, [Visual Studio 2019] support
 - General To Do   : Add Transform Feedback support
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
