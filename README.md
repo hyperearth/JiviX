@@ -12,32 +12,28 @@ Planned to beat world record as most perfect and most long-time development prod
 - [MineRTX](https://github.com/hyperearth/MineRTX), spin-off project for add RTX ray tracing for Minecraft (Java Edition)...
 - [hE-ART](https://github.com/hyperearth/hE-ART), terminal of projects, central...
 - [TankAPI](https://github.com/world8th/vRt/tree/TankAPI) itself, moved into as part of vRt project. 
+- Hello triangle example, based on [VK_KHR_ray_tracing](https://github.com/helixd-2k18/VK_KHR_ray_tracing) extension, modified
 
 ## Tech Spec
 
 ```MD
-- Architecture    : vRt (10:Gen)
+- Architecture    : [ARC:F2020]
 - RHI             : Yes, Vulkan-HPP
 - Support OS      : Windows 10 (2004 or Newer)
 - Support HW      : RTX 2070 or familiar...
-- Extensions      : WIP
 - Project Type    : Experimental, Personal
-- Portfolio       : Planned
-- Ray-Tracing     : Planned
-- Path-Tracing    : For Diffuse Only, (almost) noiseless
-- Role/Target     : Simplify Vulkan API, alternate of Vookoo...
+- Portfolio       : Work in Progress
+- Path-Tracing    : Diffuse noiseless (almost), reflection...
 - License         : BSD-3 (Currently)
-- Graphical API   : Vulkan, DirectX 12 (Vulkan-HPP over D3D12)
-- DirectX Support : DECLINED
+- Graphical API   : Vulkan API (VK_KHR_ray_tracing)
 - Target Games    : Minecraft Java Edition, Neverball...
 - Code Language   : C++20, Visual Studio 2019 Support
 - Commercial      : Under Consideration
 - Execute Day     : [2021:Q1]
-- Based On        : C++20, STL, PartenOS
-- General To Do   : Rewrite Vulkan and D3D12 library set...
+- General To Do   : Add Transform Feedback support
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 
-Date:[28.02.2020]:[helix.d@IMN]
+Date:[23.03.2020]:[helix.d@IMN]
 ```
 
 ## TODO Lists
