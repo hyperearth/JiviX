@@ -12,7 +12,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - [MineRTX](https://github.com/hyperearth/MineRTX), spin-off project for add RTX ray tracing for Minecraft (Java Edition)...
 - [hE-ART](https://github.com/hyperearth/hE-ART), terminal of projects, central...
 - [TankAPI](https://github.com/world8th/vRt/tree/TankAPI) itself, moved into as part of vRt project. 
-- Hello triangle example, based on [VK_KHR_ray_tracing](https://github.com/helixd-2k18/VK_KHR_ray_tracing) extension, modified
+- [Hello triangle](https://github.com/helixd-2k18/VK_KHR_ray_tracing) example, based on [VK_KHR_ray_tracing](https://github.com/helixd-2k18/VK_KHR_ray_tracing) extension, modified
 
 ## Tech Spec
 
