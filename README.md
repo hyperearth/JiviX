@@ -18,7 +18,6 @@ Planned to beat world record as most perfect and most long-time development prod
 
 ```MD
 - Architecture    : [ARC:F2020]
-- RHI             : Yes, Vulkan-HPP
 - Support OS      : Windows 10 (2004 or Newer)
 - Support HW      : RTX 2070 or familiar...
 - Project Type    : Experimental, Personal
@@ -32,6 +31,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Execute Day     : [2021:Q1]
 - General To Do   : Add Transform Feedback support
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
+- Used Libraries  : Vulkan-HPP, VKt/VKh, 
 
 Date:[23.03.2020]:[helix.d@IMN]
 ```
