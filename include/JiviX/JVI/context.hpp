@@ -20,7 +20,7 @@ namespace jvi {
 #pragma pack(pop)
 
     // 
-    class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend Node; friend Driver; friend Material; friend Renderer;
+    class Context : public std::enable_shared_from_this<Context> { public: friend Mesh; friend MeshInput; friend MeshBinding; friend Node; friend Driver; friend Material; friend Renderer;
         Context() {};
         Context(const vkt::uni_ptr<Driver>& driver) : driver(driver) { this->construct(); };
         //Context(Driver* driver) : driver(vkt::uni_ptr(driver)) { this->construct(); };

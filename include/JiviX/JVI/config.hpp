@@ -18,6 +18,8 @@ namespace jvi {
     class Renderer;
     class Material;
     class Context;
+    class MeshInput;
+    class MeshBinding;
 
 #define uPTR(NAME) vkt::uni_ptr<NAME>
 #ifdef NATIVE_SHARED_PTR
