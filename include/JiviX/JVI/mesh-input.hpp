@@ -18,6 +18,7 @@ namespace jvi {
         // 
         virtual uPTR(MeshInput) construct() {
             this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vk::ShaderStageFlagBits::eCompute);
+            this->counterData = vkt::Vector<uint32_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 4u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
         };
 
         // Record Geometry (Transform Feedback)
@@ -49,7 +50,13 @@ namespace jvi {
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
                 buildCommand.bindVertexBuffers(0u, buffers, offsets);
                 buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-                buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
+                if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
+                    const uintptr_t voffset = this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
+                    buildCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                    buildCommand.drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
+                } else { // VAL Mode
+                    buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
+                };
                 buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }); //!!WARNING!!
             }
 
@@ -106,16 +113,13 @@ namespace jvi {
 
         // some type dependent
         template<class T = uint8_t>
-        inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
+        inline uPTR(MeshInput) setIndexData(const vkt::uni_arg<vkt::Vector<T>>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
         virtual uPTR(MeshInput) createRasterizePipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
-
-            // 
-            vk::PipelineRasterizationStateStreamCreateInfoEXT TFI = {};
-            TFI.rasterizationStream = 0u;
+            const auto& TFI = vk::PipelineRasterizationStateStreamCreateInfoEXT().setRasterizationStream(0u);
 
             // 
             this->pipelineInfo.rasterizationState.pNext = &TFI;

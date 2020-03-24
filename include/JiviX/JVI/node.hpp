@@ -374,7 +374,7 @@ namespace jvi {
         };
 
     protected: // 
-        std::vector<vkt::uni_ptr<Mesh>> meshes = {}; // Mesh list as Template for Instances
+        std::vector<vkt::uni_ptr<MeshBinding>> meshes = {}; // Mesh list as Template for Instances
         std::vector<uint32_t> mapMeshes = {};
         uintptr_t MaxInstanceCount = 64;
 

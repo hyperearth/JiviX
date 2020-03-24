@@ -1,10 +1,16 @@
 #pragma once
 
 #include "./core.hpp"
-#include "./JVI/mesh.hpp"
+#include "./JVI/mesh-binding.hpp"
 
 namespace jvx { 
-    class Mesh : public Wrap<jvi::Mesh> { public: using T = jvi::Mesh;
-        Mesh(const Context& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = sizeof(glm::vec4)) { object = std::make_shared<jvi::Mesh>(context, AllocationUnitCount, MaxStride); };
+    class MeshBinding : public Wrap<jvi::MeshBinding> { 
+    public: using T = jvi::MeshBinding;
+        MeshBinding(const Context& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = sizeof(glm::vec4)) { object = std::make_shared<jvi::MeshBinding>(context, AllocationUnitCount, MaxStride); };
+    };
+
+    class MeshInput : public Wrap<jvi::MeshInput> {
+    public: using T = jvi::MeshInput;
+        MeshInput(const Context& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = sizeof(glm::vec4)) { object = std::make_shared<jvi::MeshInput>(context, AllocationUnitCount, MaxStride); };
     };
 };

@@ -67,7 +67,6 @@ namespace jvi {
             });
 
             { //
-                this->indexType = vk::IndexType::eNoneKHR;
                 this->indexData = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * sizeof(uint32_t) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eSharedDeviceAddress = 1 },
@@ -89,7 +88,7 @@ namespace jvi {
             for (uint32_t i = 0; i < 1; i++) {
                 this->bindings[i] = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = AllocationUnitCount * MaxStride * 3u,
-                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
+                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
                 // TODO: other platforms memory handling
@@ -138,7 +137,7 @@ namespace jvi {
 
             // 
             return uTHIS;
-        }
+        };
 
         // 
         virtual vkt::Vector<uint8_t>& getBindingBuffer(const uintptr_t& i = 0u) {
@@ -216,7 +215,6 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& primitiveCount = 0) {
-            this->indexType = type;
             if (primitiveCount) {
                 this->currentUnitCount = (this->primitiveCount = this->offsetTemp.primitiveCount = static_cast<uint32_t>(primitiveCount)) * 3u;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
@@ -275,11 +273,11 @@ namespace jvi {
             this->vertexInputAttributeDescriptions[locationID].location = static_cast<uint32_t>(locationID);
             this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions[locationID];
 
-            if (locationID == 0 && NotStub) { // 
+            if (locationID == 0u && NotStub) { // 
                 const auto& binding = this->vertexInputBindingDescriptions[bindingID];
-                if (this->indexType == vk::IndexType::eNoneKHR) {
+                //if (this->indexType == vk::IndexType::eNoneKHR) {
                     this->currentUnitCount = (this->bindRange[bindingID] / binding.stride);
-                };
+                //};
 
                 // 
                 this->offsetTemp.primitiveOffset = attribute->offset + this->bindings[bindingID].offset(); // !!WARNING!! Also, unknown about needing `.offset()`... 
@@ -298,9 +296,10 @@ namespace jvi {
             if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
             if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
 
-            if (this->indexType == vk::IndexType::eNoneKHR) {
-                this->primitiveCount = this->currentUnitCount / (this->needsQuads ? 4u : 3u);
-            };
+            //if (this->indexType == vk::IndexType::eNoneKHR) {
+                //this->primitiveCount = this->currentUnitCount / (this->needsQuads ? 4u : 3u);
+            //};
+            this->primitiveCount = this->currentUnitCount / 3u;
 
             return uTHIS;
         };
@@ -337,9 +336,13 @@ namespace jvi {
         };
 
         //
-        virtual uPTR(MeshBinding) updateGeometry() { // TODO: Reserved For FUTURE!
+        virtual uPTR(MeshBinding) updateGeometry(const vkt::uni_ptr<MeshInput>& input = {}) { // TODO: Reserved For FUTURE!
+            this->input = input; return uTHIS;
+        };
 
-            return uTHIS;
+        //
+        virtual uPTR(MeshBinding) bindMeshInput(const vkt::uni_ptr<MeshInput>& input = {}) {
+            this->input = input; return uTHIS;
         };
 
         // Create Or Rebuild Acceleration Structure
@@ -433,7 +436,7 @@ namespace jvi {
             // 
             return uTHIS;
         };
-        
+
         // Create Secondary Command With Pipeline
         virtual uPTR(MeshBinding) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u), const bool& conservative = false) { // UNIT ONLY!
             if (this->instanceCount <= 0u) return uTHIS;
@@ -442,6 +445,7 @@ namespace jvi {
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
             for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
+            this->rawMeshInfo[0u].prmCount = this->primitiveCount;
 
             // 
             const auto& viewport = this->context->refViewport();
@@ -466,20 +470,8 @@ namespace jvi {
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, conservative ? this->covergenceState : this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-
-            // Make Draw Instanced
-            this->rawMeshInfo[0u].prmCount = this->primitiveCount;
-            //if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
-            //    const uintptr_t voffset = this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
-            //    rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-            //    rasterCommand.drawIndexed(this->currentUnitCount, this->instanceCount, this->offsetTemp.firstVertex, voffset, 0u);
-            //}
-            //else { // VAL Mode
-            //    rasterCommand.draw(this->currentUnitCount, this->instanceCount, this->offsetTemp.firstVertex, 0u);
-            //};
             rasterCommand.draw(this->currentUnitCount, this->instanceCount, this->offsetTemp.firstVertex, 0u);
             rasterCommand.endRenderPass();
-            //vkt::commandBarrier(rasterCommand);
             
             // 
             return uTHIS;
@@ -493,7 +485,7 @@ namespace jvi {
 #endif
 
         // 
-        vk::IndexType indexType = vk::IndexType::eNoneKHR;
+        //vk::IndexType indexType = vk::IndexType::eNoneKHR;
         vk::DeviceSize AllocationUnitCount = 32768, MaxStride = sizeof(glm::vec4);
 
         // 
@@ -572,6 +564,7 @@ namespace jvi {
         vkt::uni_ptr<Driver> driver = {};
         vkt::uni_ptr<Thread> thread = {};
         vkt::uni_ptr<Context> context = {};
+        vkt::uni_ptr<MeshInput> input = {}; // Currently, Single! 
         //vkt::uni_ptr<Renderer> renderer = {};
     };
 
