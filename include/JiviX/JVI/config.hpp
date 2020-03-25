@@ -30,4 +30,16 @@ namespace jvi {
 #define uTHIS this
 #endif
 
+    struct MeshInfo {
+        uint32_t materialID = 0u;
+        uint32_t indexType = 0u;
+        uint32_t prmCount = 0u;
+        //uint32_t flags = 0u;
+        uint32_t
+            hasTransform : 1,
+            hasNormal : 1,
+            hasTexcoord : 1,
+            hasTangent : 1;
+    };
+
 };

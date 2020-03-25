@@ -223,10 +223,10 @@ int main() {
     std::string wrn = "";
 
     // 
-    const float unitScale = 100.f;
+    const float unitScale = 1.f;
     const float unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -251,7 +251,8 @@ int main() {
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
     //std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
 
-    // 
+
+    // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
@@ -261,6 +262,7 @@ int main() {
         // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
     };
+
 
     // buffer views
     std::vector<vkt::Vector<uint8_t>> buffersViews = {};
@@ -396,7 +398,7 @@ int main() {
             jvx::MeshInput mInput(context, vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull));
             meshes.push_back(jvx::MeshBinding( context, vkt::tiled(vertexCount<<(uintptr_t(ctype)*0u), 3ull) ));
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
-            mesh->bindMeshInput(mInput);
+            mesh->bindMeshInput(mInput); // 
 
             // 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };

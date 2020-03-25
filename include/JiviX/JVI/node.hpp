@@ -104,13 +104,13 @@ namespace jvi {
 
             //this->rawInstances[instanceID].instanceId = meshID; // Customize Per Mesh
             this->mapMeshes.push_back(meshID);
-            if (!this->meshes[meshID]->accelerationStructure) {
-                this->meshes[meshID]->buildAccelerationStructure();
-            };
-            if (this->meshes[meshID]->accelerationStructure) {
-                this->rawInstances[instanceID].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[meshID]->accelerationStructure, this->driver->getDispatch());
+            //if (!this->meshes[meshID]->accelerationStructure) {
+            //    this->meshes[meshID]->buildAccelerationStructure();
+            //};
+            //if (this->meshes[meshID]->accelerationStructure) {
+            //    this->rawInstances[instanceID].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[meshID]->accelerationStructure, this->driver->getDispatch());
                 //this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle, this->driver->getDispatch());
-            };
+            //};
 
             return uTHIS;
         };
@@ -277,9 +277,7 @@ namespace jvi {
             )),{});
 
             // remap mesh data
-            this->mapMeshData();
-
-            // 
+            //this->mapMeshData();
             return uTHIS;
         };
 

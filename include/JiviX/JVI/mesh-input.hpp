@@ -40,8 +40,14 @@ namespace jvi {
         };
 
         // Record Geometry (Transform Feedback)
-        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
-            if (this->needsQuads && buildCommand) { // FOR MINECRAFT ONLY! 
+        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, vk::CommandBuffer buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
+            bool DirectCommand = false;
+
+            if (!buildCommand || ignoreIndirection) {
+                buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
+            };
+
+            if (buildCommand && this->needsQuads) { this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->context->unifiedPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
                 this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
@@ -51,11 +57,9 @@ namespace jvi {
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
                 buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
-                this->needsQuads = false;
-            } else 
+            } else
 
-            // USE Advanced Transform Feedback!
-            if (buildCommand) { // 
+            if (buildCommand && this->needUpdate) { this->needUpdate = false; // 
                 std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
                 buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
                 for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
@@ -85,7 +89,7 @@ namespace jvi {
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
                 buildCommand.bindVertexBuffers(0u, buffers, offsets);
-                buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
+                buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
                 if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
                     const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
                     buildCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
@@ -96,6 +100,11 @@ namespace jvi {
                 buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand.endRenderPass();
                 vkt::commandBarrier(buildCommand);
+            }
+
+            if (DirectCommand) {
+                vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
+                this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
             }
 
             return uTHIS;
@@ -129,6 +138,11 @@ namespace jvi {
             if (locationID == 0u && NotStub && this->indexType == vk::IndexType::eNoneKHR) {
                 this->currentUnitCount = this->bindRange[bindingID] / this->bindings[bindingID].stride();
             };
+
+            // 
+            if (locationID == 1u && NotStub) { rawMeshInfo[0].hasTexcoord = 1; };
+            if (locationID == 2u && NotStub) { rawMeshInfo[0].hasNormal = 1; };
+            if (locationID == 3u && NotStub) { rawMeshInfo[0].hasTangent = 1; };
 
             // 
             return uTHIS;
@@ -202,7 +216,10 @@ namespace jvi {
             return uTHIS;
         };
 
-
+        //virtual uPTR(MeshInput) disableIndirection(const bool& value = true) {
+        //    this->ignoreIndirection = value;
+        //    return uTHIS;
+        //};
 
     protected: friend Node; friend Renderer; // Partitions
         std::vector<vkh::VkVertexInputBindingDescription> vertexInputBindingDescriptions = {};
@@ -211,6 +228,7 @@ namespace jvi {
         // 
         std::vector<vkt::Vector<uint8_t>> bindings = {};
         std::vector<uint32_t> bindRange = { 0 };
+        vkt::Vector<MeshInfo> rawMeshInfo = {}; // From Parent Element
 
         // 
         vkt::Vector<uint8_t> indexData = {};
@@ -221,7 +239,7 @@ namespace jvi {
         // 
         vk::DeviceSize currentUnitCount = 0u;
         vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        bool needsQuads = false;
+        bool needsQuads = false, needUpdate = true, ignoreIndirection = false;
 
         // 
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};

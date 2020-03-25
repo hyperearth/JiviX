@@ -332,10 +332,9 @@ namespace jvi {
             this->cmdbuf = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread));
             this->cmdbuf.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
 
-
             // create sampling points
             this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
-            auto I = 0u; this->node->createDescriptorSet();
+            auto I = 0u; this->node->copyMeta(this->cmdbuf)->createDescriptorSet();
 
             // prepare meshes for ray-tracing
             I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); };
@@ -344,7 +343,7 @@ namespace jvi {
             vkt::commandBarrier(this->cmdbuf);
 
             // setup instanced and material data
-            this->node->copyMeta(this->cmdbuf)->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
+            this->node->buildAccelerationStructure(this->cmdbuf)->createDescriptorSet();
 
             // first-step rendering
             this->setupBackgroundPipeline()->setupSkyboxedCommand(this->cmdbuf);

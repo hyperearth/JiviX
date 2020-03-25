@@ -8,18 +8,6 @@
 
 namespace jvi {
 
-    struct MeshInfo {
-        uint32_t materialID = 0u;
-        uint32_t indexType = 0u;
-        uint32_t prmCount = 0u;
-        //uint32_t flags = 0u;
-        uint32_t
-            hasTransform : 1,
-            hasNormal : 1,
-            hasTexcoord : 1,
-            hasTangent : 1;
-    };
-
     // WIP Mesh Object
     // Sub-Instances Can Be Supported
     // TODO: Descriptor Sets
@@ -299,9 +287,10 @@ namespace jvi {
                 if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->buildGTemp.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
 
-            if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
-            if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
-            if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
+            // Here is NO needs
+            //if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
+            //if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
+            //if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
 
             return uTHIS;
         };
@@ -323,7 +312,7 @@ namespace jvi {
             // build geometry data
             if (this->input) { 
                 this->input->createRasterizePipeline();
-                this->input->buildGeometry(this->bindings[0u], buildCommand);
+                this->input->buildGeometry(this->bindings[0u], buildCommand, meshData);
                 this->setIndexCount(this->currentUnitCount = this->input->currentUnitCount);
             };
             this->offsetInfo[0] = this->offsetTemp;
@@ -358,7 +347,8 @@ namespace jvi {
 
         //
         virtual uPTR(MeshBinding) bindMeshInput(const vkt::uni_ptr<MeshInput>& input = {}) {
-            this->input = input; return uTHIS;
+            (this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
+            return uTHIS;
         };
 
         // Create Or Rebuild Acceleration Structure
