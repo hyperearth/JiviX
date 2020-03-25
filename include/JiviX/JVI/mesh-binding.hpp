@@ -320,6 +320,8 @@ namespace jvi {
 
             // build geometry data
             if (this->input) { this->input->buildGeometry(this->bindings[0u]); };
+            this->offsetInfo[0] = this->offsetTemp;
+            this->buildGInfo[0] = this->buildGTemp;
 
             // 
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();

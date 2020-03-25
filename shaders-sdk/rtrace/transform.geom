@@ -23,38 +23,20 @@ layout (location = 4, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 64) out vec4
 
 // 
 void main() {
-    const MaterialUnit unit = materials[0u].data[meshInfo[drawInfo.data.x].materialID];
     const vec4 dp1 = gPosition[1] - gPosition[0], dp2 = gPosition[2] - gPosition[0];
     const vec4 tx1 = gTexcoord[1] - gTexcoord[0], tx2 = gTexcoord[2] - gTexcoord[0];
     const vec3 normal = normalize(cross(dp1.xyz, dp2.xyz));
-
     const vec2 size  = textureSize(frameBuffers[POSITION], 0);
     const vec2 pixelShift = (staticRandom2() - 0.5f) / size;
 
     [[unroll]] for (uint i=0u;i<3u;i++) { // 
         gl_Position = gl_in[i].gl_Position;
 
-#ifndef CONSERVATIVE
-        //gl_Position.xyz /= gl_in[i].gl_Position.w;
-        //gl_Position.xy = gl_Position.xy * .5f + .5f;
-        //gl_Position.xy += pixelShift; // MSAA sample point
-        //gl_Position.xy = gl_Position.xy * 2.f - 1.f;
-        //gl_Position.xyz *= gl_in[i].gl_Position.w;
-#endif
-
-        // shift ray-tracing sample point
-        //fPosition = gl_Position * projectionInv;
-        //fPosition.xyz = fPosition * modelviewInv;
-        //fPosition /= fPosition.w;
-
         // 
         fPosition = gPosition[i];
         fTexcoord = gTexcoord[i]; // TODO: move texcoord by sample position for anti-aliased
         fTangent = gTangent[i];
         fNormal = gNormal[i];
-
-        // 
-        //gl_Position.xy -= fi;
 
         // 
         const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
@@ -71,6 +53,12 @@ void main() {
             //fBinormal.xyz = fBinormal.xyz - dot(fNormal.xyz,fBinormal.xyz)*fNormal.xyz;
         };
 
+        // 
+        fNormal.xyz = normalize(fNormal.xyz);
+        fTangent.xyz = normalize(fTangent.xyz);
+        fBinormal.xyz = normalize(fBinormal.xyz);
+
+        // 
         EmitVertex();
     };
 
