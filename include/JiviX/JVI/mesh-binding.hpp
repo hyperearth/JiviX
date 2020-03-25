@@ -34,6 +34,15 @@ namespace jvi {
             this->rawAttributes = vkt::Vector<VkVertexInputAttributeDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
             this->gpuAttributes = vkt::Vector<VkVertexInputAttributeDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
+            // ALPHA_TEST
+            this->offsetIndirect = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+
+            /*
+            thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
+                cmd.fillBuffer(this->offsetIndirect, 0u, 4u, 1u);
+                cmd.fillBuffer(this->offsetIndirect, 4u, 12u, 0u);
+            });*/
+
             // 
             //this->gpuMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
             this->rawMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
@@ -93,7 +102,7 @@ namespace jvi {
             this->bdHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->bdHeadInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-            this->bdHeadInfo.geometryArrayOfPointers = false;
+            this->bdHeadInfo.geometryArrayOfPointers = false; // MARK TRUE FOR INDIRECT BUILDING!!
 
             // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)
             this->buildGTemp = vkh::VkAccelerationStructureGeometryKHR{ .flags = {.eOpaque = 1 } };
@@ -292,7 +301,7 @@ namespace jvi {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
-            this->offsetTemp.primitiveCount = this->primitiveCount;
+            //this->offsetTemp.primitiveCount = this->primitiveCount;
 
             // 
             this->offsetInfo[0] = this->offsetTemp;
@@ -309,6 +318,10 @@ namespace jvi {
             if (buildCommand) {
                 vkt::debugLabel(buildCommand, "Begin building bottom acceleration structure...", this->driver->getDispatch());
                 buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch()); this->needsUpdate = true;
+
+                // INDIRECT UNSUPPORTED!!
+                buildCommand.updateBuffer<uint64_t>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), std::array<uint64_t, 1> { this->input->counterData.deviceAddress() }, this->driver->getDispatch());
+                buildCommand.buildAccelerationStructureIndirectKHR(this->bdHeadInfo.hpp(), this->offsetIndirect.buffer(), this->offsetIndirect.offset(), this->offsetIndirect.stride(), this->driver->getDispatch());
                 vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch());
             }
             else {
@@ -322,6 +335,7 @@ namespace jvi {
         // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) bindMeshInput(const vkt::uni_ptr<MeshInput>& input = {}) {
             (this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
+            //this->input->linkCounterBuffer(this->offsetIndirect);
             return uTHIS;
         };
 
@@ -513,6 +527,7 @@ namespace jvi {
         //vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> bdHeadPtr = {};
 
         // CAN BE MULTIPLE! (single element of array, array of array[0])
+        vkt::Vector<uint64_t>                                         offsetIndirect {};
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsetPtr = {};
         vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 

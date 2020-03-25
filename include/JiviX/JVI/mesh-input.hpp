@@ -27,7 +27,7 @@ namespace jvi {
 
             // 
             this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vk::ShaderStageFlagBits::eCompute);
-            this->counterData = vkt::Vector<uint32_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(glm::uvec4), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->counterData = vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_TO_CPU);
 
             // for faster code, pre-initialize
             this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
@@ -81,8 +81,11 @@ namespace jvi {
                 };
 
                 // 
+                auto offsetsInfo = vkh::VkAccelerationStructureBuildOffsetInfoKHR{ .primitiveCount = 0u };
+
+                // 
                 vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
-                buildCommand.fillBuffer(counterData.buffer(), counterData.offset(), counterData.range(), 0u); // Nullify Counters
+                buildCommand.updateBuffer(counterData.buffer(), counterData.offset(), sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), &offsetsInfo); // Nullify Counters
                 buildCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
                 buildCommand.beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand.setViewport(0, { viewport });
@@ -221,10 +224,11 @@ namespace jvi {
             return uTHIS;
         };
 
-        //virtual uPTR(MeshInput) disableIndirection(const bool& value = true) {
-        //    this->ignoreIndirection = value;
-        //    return uTHIS;
-        //};
+        // 
+        virtual uPTR(MeshInput) linkCounterBuffer(const vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>& offsetInfo = {}) {
+            //this->counterData = offsetInfo; // DANGER!! BSOD BY LOCKING GPU!
+            return uTHIS;
+        };
 
     protected: friend Node; friend Renderer; // Partitions
         uint64_t checkoutPointData = 0ull;
@@ -240,7 +244,7 @@ namespace jvi {
 
         // 
         vkt::Vector<uint8_t> indexData = {};
-        vkt::Vector<uint32_t> counterData = {};
+        vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR> counterData = {};
         uint32_t lastBindID = 0u;
         //size_t primitiveCount = 0u;
 
