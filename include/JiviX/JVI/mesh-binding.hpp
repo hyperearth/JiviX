@@ -35,7 +35,8 @@ namespace jvi {
             this->gpuAttributes = vkt::Vector<VkVertexInputAttributeDescription>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // ALPHA_TEST
-            this->offsetIndirect = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->offsetIndirectPtr = vkt::Vector<uint64_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->offsetIndirect = vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             /*
             thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
@@ -307,6 +308,10 @@ namespace jvi {
                 };
                 this->input->createRasterizePipeline()->buildGeometry(this->bindings[0u], buildCommand, meshData);
                 this->setIndexCount(this->input->currentUnitCount);
+
+                // 
+                buildCommand.updateBuffer<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), { this->offsetTemp });
+                buildCommand.updateBuffer<uint64_t>(this->offsetIndirectPtr.buffer(), this->offsetIndirectPtr.offset(), { this->offsetIndirect.deviceAddress() });
             };
             return uTHIS;
         };
@@ -330,11 +335,8 @@ namespace jvi {
             if (buildCommand) {
                 vkt::debugLabel(buildCommand, "Begin building bottom acceleration structure...", this->driver->getDispatch());
                 buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch()); this->needsUpdate = true;
-
-                // INDIRECT UNSUPPORTED!!
-                buildCommand.updateBuffer<uint64_t>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), std::array<uint64_t, 1> { this->input->counterData.deviceAddress() }, this->driver->getDispatch());
                 buildCommand.buildAccelerationStructureIndirectKHR(this->bdHeadInfo.hpp(), this->offsetIndirect.buffer(), this->offsetIndirect.offset(), this->offsetIndirect.stride(), this->driver->getDispatch());
-                vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch());
+                vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch()); this->needsUpdate = true;
             }
             else {
                 driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
@@ -548,7 +550,8 @@ namespace jvi {
         //vkt::uni_arg<vkh::VkAccelerationStructureBuildGeometryInfoKHR*> bdHeadPtr = {};
 
         // CAN BE MULTIPLE! (single element of array, array of array[0])
-        vkt::Vector<uint64_t>                                         offsetIndirect {};
+        vkt::Vector<uint64_t>                                         offsetIndirectPtr {};
+        vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetIndirect {};
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
         vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsetPtr = {};
         vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
