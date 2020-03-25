@@ -125,11 +125,11 @@ namespace jvi {
 
             // Generate Default Layout
             this->addBinding(vkh::VkVertexInputBindingDescription{ .stride = static_cast<uint32_t>(MaxStride) });
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 16u });
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 32u });
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 48u });
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 64u });
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 16u }); // Texcoords
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 32u }); // Normals
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 48u }); // Tangents
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 64u }); // BiNormals
 
             // 
             return uTHIS;
@@ -199,25 +199,25 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 32768u) {
-            this->primitiveCount = this->offsetTemp.primitiveCount = (this->currentUnitCount = count) / (this->needsQuads ? 4u : 3u); // Mul*3u
+            this->primitiveCount = this->offsetTemp.primitiveCount = (this->currentUnitCount = count) / 3u; // Mul*3u
             return uTHIS;
         };
 
         // 
         virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 32768u) {
-            this->currentUnitCount = (this->primitiveCount = this->offsetTemp.primitiveCount = count) * (this->needsQuads ? 4u : 3u); // Mul*3u
+            this->currentUnitCount = (this->primitiveCount = this->offsetTemp.primitiveCount = count) * 3u; // Mul*3u
             return uTHIS;
         };
 
         // 
-        virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& primitiveCount = 0) {
+        /*virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& primitiveCount = 0) {
             if (primitiveCount) {
                 this->currentUnitCount = (this->primitiveCount = this->offsetTemp.primitiveCount = static_cast<uint32_t>(primitiveCount)) * 3u;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
                 this->setPrimitiveCount(primitiveCount);
             };
             return uTHIS;
-        };
+        };*/
 
         // 
         virtual uPTR(MeshBinding) setDriver(const vkt::uni_ptr<Driver>& driver = {}){
@@ -287,7 +287,7 @@ namespace jvi {
                 if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->buildGTemp.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
 
-            // Here is NO needs
+            // Here is NO more needs
             //if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
             //if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
             //if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
@@ -300,21 +300,23 @@ namespace jvi {
             buildCommand.copyBuffer(this->rawAttributes , this->gpuAttributes , { vk::BufferCopy{ this->rawAttributes .offset(), this->gpuAttributes .offset(), this->gpuAttributes .range() } });
             buildCommand.copyBuffer(this->rawBindings   , this->gpuBindings   , { vk::BufferCopy{ this->rawBindings   .offset(), this->gpuBindings   .offset(), this->gpuBindings   .range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
-            //vkt::commandBarrier(buildCommand);
             return uTHIS;
         };
 
-        // TODO: unwrap template!!
-        virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
-            if (this->accelerationStructure) { this->updateGeometry(); }
-            else { this->createAccelerationStructure(); };
-
-            // build geometry data
-            if (this->input) { 
-                this->input->createRasterizePipeline();
-                this->input->buildGeometry(this->bindings[0u], buildCommand, meshData);
+        // 
+        virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
+            if (this->input) {
+                this->input->createRasterizePipeline()->buildGeometry(this->bindings[0u], buildCommand, meshData);
                 this->setIndexCount(this->currentUnitCount = this->input->currentUnitCount);
             };
+            return uTHIS;
+        };
+
+        // 
+        virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
+
+            // 
             this->offsetInfo[0] = this->offsetTemp;
             this->buildGInfo[0] = this->buildGTemp;
 
@@ -327,21 +329,13 @@ namespace jvi {
 
             // 
             if (buildCommand) {
-                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
-                this->needsUpdate = true;
-            } else {
-                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch()); this->needsUpdate = true;
             }
+            else {
+                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
+            };
 
             //
-            return uTHIS;
-        };
-
-        //
-        virtual uPTR(MeshBinding) updateGeometry() { // TODO: Reserved For FUTURE!
-            //if (this->input) {
-            //    this->input->buildGeometry(this->bindings[0u]);
-            //};
             return uTHIS;
         };
 
@@ -496,7 +490,6 @@ namespace jvi {
 
         // 
         uint32_t currentUnitCount = 0u, primitiveCount = 0u, instanceCount = 0u;
-        bool needsUpdate = false, needsQuads = false;
 
         // 
         std::array<vkt::Vector<uint8_t>, 1> bindings = {};
@@ -520,9 +513,10 @@ namespace jvi {
         std::vector<vkh::VkPipelineShaderStageCreateInfo> ctages = {};
 
         // accumulated by "Instance" for instanced rendering
-        vkt::Vector<glm::vec4> gpuTransformData = {};
-        uint32_t transformStride = sizeof(glm::vec4);
+        vkt::Vector<glm::mat3x4> gpuTransformData = {};
+        uint32_t transformStride = sizeof(glm::mat3x4);
         uint32_t lastBindID = 0u, locationCounter = 0u;
+        bool needsUpdate = false;
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};

@@ -339,6 +339,8 @@ namespace jvi {
             // prepare meshes for ray-tracing
             I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(this->cmdbuf); };
             vkt::commandBarrier(this->cmdbuf);
+            I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); };
+            vkt::commandBarrier(this->cmdbuf);
             I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); };
             vkt::commandBarrier(this->cmdbuf);
 
