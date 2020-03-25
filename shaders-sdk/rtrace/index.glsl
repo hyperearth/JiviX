@@ -111,13 +111,13 @@ vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
 
 // 
 layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
-layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer mesh1[];
-layout (binding = 2, set = 0, r8ui) readonly uniform uimageBuffer mesh2[];
-layout (binding = 3, set = 0, r8ui) readonly uniform uimageBuffer mesh3[];
-layout (binding = 4, set = 0, r8ui) readonly uniform uimageBuffer mesh4[];
-layout (binding = 5, set = 0, r8ui) readonly uniform uimageBuffer mesh5[];
-layout (binding = 6, set = 0, r8ui) readonly uniform uimageBuffer mesh6[];
-layout (binding = 7, set = 0, r8ui) readonly uniform uimageBuffer mesh7[];
+//layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer mesh1[];
+//layout (binding = 2, set = 0, r8ui) readonly uniform uimageBuffer mesh2[];
+//layout (binding = 3, set = 0, r8ui) readonly uniform uimageBuffer mesh3[];
+//layout (binding = 4, set = 0, r8ui) readonly uniform uimageBuffer mesh4[];
+//layout (binding = 5, set = 0, r8ui) readonly uniform uimageBuffer mesh5[];
+//layout (binding = 6, set = 0, r8ui) readonly uniform uimageBuffer mesh6[];
+//layout (binding = 7, set = 0, r8ui) readonly uniform uimageBuffer mesh7[];
 
 #ifdef GEN_QUAD_INDEX // For Minecraft
 layout (binding = 8, set = 0, r8ui) uniform uimageBuffer index[]; // indices compatible 
@@ -172,13 +172,13 @@ uint8_t load_u8(in uint offset, in uint binding, in uint meshID_) {
     //if (binding == 7u) { return mesh7[meshID].data[offset]; };
 
     if (binding == 0u) { return uint8_t(imageLoad(mesh0[meshID], int(offset)).x); };
-    if (binding == 1u) { return uint8_t(imageLoad(mesh1[meshID], int(offset)).x); };
-    if (binding == 2u) { return uint8_t(imageLoad(mesh2[meshID], int(offset)).x); };
-    if (binding == 3u) { return uint8_t(imageLoad(mesh3[meshID], int(offset)).x); };
-    if (binding == 4u) { return uint8_t(imageLoad(mesh4[meshID], int(offset)).x); };
-    if (binding == 5u) { return uint8_t(imageLoad(mesh5[meshID], int(offset)).x); };
-    if (binding == 6u) { return uint8_t(imageLoad(mesh6[meshID], int(offset)).x); };
-    if (binding == 7u) { return uint8_t(imageLoad(mesh7[meshID], int(offset)).x); };
+    //if (binding == 1u) { return uint8_t(imageLoad(mesh1[meshID], int(offset)).x); };
+    //if (binding == 2u) { return uint8_t(imageLoad(mesh2[meshID], int(offset)).x); };
+    //if (binding == 3u) { return uint8_t(imageLoad(mesh3[meshID], int(offset)).x); };
+    //if (binding == 4u) { return uint8_t(imageLoad(mesh4[meshID], int(offset)).x); };
+    //if (binding == 5u) { return uint8_t(imageLoad(mesh5[meshID], int(offset)).x); };
+    //if (binding == 6u) { return uint8_t(imageLoad(mesh6[meshID], int(offset)).x); };
+    //if (binding == 7u) { return uint8_t(imageLoad(mesh7[meshID], int(offset)).x); };
     if (binding == 8u) { return uint8_t(imageLoad(index[meshID], int(offset)).x); };
 
     return uint8_t(0u);

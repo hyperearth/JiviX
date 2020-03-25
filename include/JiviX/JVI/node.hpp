@@ -148,9 +148,9 @@ namespace jvi {
         virtual uPTR(Node) createDescriptorSet() { // 
             this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
             this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
-
+ 
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
-            const auto bindingCount = 8u;
+            const auto bindingCount = 1u; //8u;
             const auto meshCount = std::min(this->meshes.size(), 64ull);
             for (uint32_t j=0;j<bindingCount;j++) {
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{

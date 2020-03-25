@@ -225,6 +225,7 @@ namespace jvi {
             if (primitiveCount) {
                 this->currentUnitCount = (this->primitiveCount = this->offsetTemp.primitiveCount = static_cast<uint32_t>(primitiveCount)) * 3u;
                 this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
+                this->setPrimitiveCount(primitiveCount);
             };
             return uTHIS;
         };
@@ -249,7 +250,7 @@ namespace jvi {
         };
 
         // MORE useful for instanced data
-        virtual uPTR(MeshBinding) setTransformData(const vkh::VkDescriptorBufferInfo& transformData = {}, const uint32_t& stride = sizeof(glm::vec4)) {
+        virtual uPTR(MeshBinding) setTransformData(const vkh::VkDescriptorBufferInfo& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
             this->offsetTemp.transformOffset = transformData.offset;
             this->buildGTemp.geometry.triangles.transformData = transformData.buffer;
             this->transformStride = stride; // used for instanced correction
