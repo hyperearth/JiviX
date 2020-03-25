@@ -47,6 +47,7 @@ namespace jvi {
                 buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
             };
 
+            // TODO: Add QUADs support for GEN-2.0
             if (buildCommand && this->needsQuads) { this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->context->unifiedPipelineLayout;
                 this->quadInfo.stage = this->quadStage;

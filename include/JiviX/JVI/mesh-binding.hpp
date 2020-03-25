@@ -195,7 +195,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 65536u * 3u) { this->setPrimitiveCount(std::min(uint32_t(vkt::tiled(count, 3u)), uint32_t(this->MaxPrimitiveCount))); return uTHIS; };
         virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 65536u) { this->primitiveCount = this->offsetTemp.primitiveCount = std::min(uint32_t(count), uint32_t(this->MaxPrimitiveCount)); return uTHIS; };
 
@@ -278,7 +278,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
             if (this->input) {
                 this->input->createRasterizePipeline()->buildGeometry(this->bindings[0u], buildCommand, meshData);
@@ -287,7 +287,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
@@ -319,7 +319,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        //
+        // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) bindMeshInput(const vkt::uni_ptr<MeshInput>& input = {}) {
             (this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
             return uTHIS;
