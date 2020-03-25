@@ -18,34 +18,41 @@ layout (location = 3) out vec4 fTangent;
 layout (location = 4) out vec4 fBinormal;
 layout (location = 5) flat out uvec4 uData;
 
+mat4x4 regen4(in mat3x4 T) {
+    return mat4x4(T[0],T[1],T[2],vec4(0.f.xxx,1.f));
+}
+
+mat3x3 regen3(in mat3x4 T) {
+    return mat3x3(T[0].xyz,T[1].xyz,T[2].xyz);
+}
+
+vec4 mul4(in vec4 v, in mat3x4 M) {
+    return vec4(v*M,1.f);
+}
+
 // 
 void main() { // Cross-Lake
     const uint globalInstanceID = meshIDs[nonuniformEXT(drawInfo.data.x)].instanceID[gl_InstanceIndex];
-    //const uint globalInstanceID = drawInfo.data.y;
 
+    // By Geometry Data
     mat3x4 matras = mat3x4(instances[drawInfo.data.x].transform[gl_InstanceIndex]);
     if (!hasTransform(meshInfo[drawInfo.data.x])) {
         matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
     };
 
-    // By Geometry ID
-    //const mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
-    const mat4x4 matra4 = mat4x4(matras[0],matras[1],matras[2],vec4(0.f.xxx,1.f));
-
-    // By Insttance Data
-    const mat3x4 transp = rtxInstances[globalInstanceID].transform;
-    const mat4x4 trans4 = mat4x4(transp[0],transp[1],transp[2],vec4(0.f.xxx,1.f));
+    // By Instance Data
+    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
 
     // Native Normal Transform
-    const mat4x4 normalTransform = (inverse(transpose(matra4)));
-    const mat4x4 normInTransform = (inverse(transpose(trans4)));
+    const mat3x3 normalTransform = inverse(transpose(regen3(matras)));
+    const mat3x3 normInTransform = inverse(transpose(regen3(matra4)));
 
     // Just Remap Into... 
       fTexcoord = vec4(iTexcoord.xy, 0.f.xx);
-      fPosition = vec4(vec4(vec4(iPosition.xyz,1.f) * matras,1.f) * transp,1.f); // CORRECT
-      fNormal = vec4(normalize((vec4(iNormals.xyz,0.f) * normalTransform * normInTransform).xyz),0.f);
-      fTangent = vec4(iTangent.xyz,0.f) * normalTransform * normInTransform;
-      fBinormal = vec4(iBinormal.xyz,0.f) * normalTransform * normInTransform;
+      fPosition = mul4(mul4(vec4(iPosition.xyz, 1.f), matras), matra4); // CORRECT
+      fNormal = vec4(normalize(iNormals.xyz * normalTransform * normInTransform), 0.f);
+      fTangent = vec4(normalize(iTangent.xyz * normalTransform * normInTransform), 0.f);
+      fBinormal = vec4(normalize(iBinormal.xyz * normalTransform * normInTransform), 0.f);
 
     // 
     gl_Position = vec4(fPosition * modelview, 1.f) * projection;

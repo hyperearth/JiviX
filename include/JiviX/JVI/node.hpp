@@ -3,7 +3,7 @@
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
-#include "./mesh.hpp"
+#include "./mesh-binding.hpp"
 
 namespace jvi {
 
@@ -125,23 +125,23 @@ namespace jvi {
         };
 
         // Push Mesh "Template" For Any Other Instances
-        virtual uintptr_t pushMesh(const vkt::uni_ptr<Mesh>& mesh = {}) {
+        virtual uintptr_t pushMesh(const vkt::uni_ptr<MeshBinding>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(mesh); return ptr;
         };
 
         // WARNING!!! NOT RECOMMENDED! 
         [[deprecated]]
-        virtual uintptr_t pushMesh(Mesh* mesh) {
+        virtual uintptr_t pushMesh(MeshBinding* mesh) {
             const uintptr_t ptr = this->meshes.size();
-            this->meshes.push_back(vkt::uni_ptr<Mesh>(mesh)); return ptr;
+            this->meshes.push_back(vkt::uni_ptr<MeshBinding>(mesh)); return ptr;
         };
 
         // WARNING!!! NOT RECOMMENDED! 
         [[deprecated]]
-        virtual uintptr_t pushMesh(Mesh& mesh) {
+        virtual uintptr_t pushMesh(MeshBinding& mesh) {
             const uintptr_t ptr = this->meshes.size();
-            this->meshes.push_back(vkt::uni_ptr<Mesh>(&mesh)); return ptr;
+            this->meshes.push_back(vkt::uni_ptr<MeshBinding>(&mesh)); return ptr;
         };
 
         // 

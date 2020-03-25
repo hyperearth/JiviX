@@ -4,6 +4,7 @@
 #include "./driver.hpp"
 #include "./thread.hpp"
 #include "./context.hpp"
+#include "./mesh-input.hpp"
 
 namespace jvi {
 
@@ -24,7 +25,7 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer;
         MeshBinding() {};
-        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = sizeof(glm::vec4)) : context(context), AllocationUnitCount(AllocationUnitCount), MaxStride(MaxStride){ this->construct(); };
+        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = 80u) : context(context), AllocationUnitCount(AllocationUnitCount), MaxStride(MaxStride){ this->construct(); };
         //MeshBinding(Context* context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~MeshBinding() {};
 
@@ -132,6 +133,14 @@ namespace jvi {
             this->bottomCreate.pGeometryInfos = this->bottomDataCreate.data();
             this->bottomCreate.type = this->bdHeadInfo.type;
             this->bottomCreate.flags = this->bdHeadInfo.flags;
+
+            // Generate Default Layout
+            this->addBinding(vkh::VkVertexInputBindingDescription{ .stride = static_cast<uint32_t>(MaxStride) });
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 16u });
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 32u });
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 48u });
+            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 64u });
 
             // 
             return uTHIS;
@@ -273,11 +282,9 @@ namespace jvi {
 
             if (locationID == 0u && NotStub) { // 
                 const auto& binding = this->vertexInputBindingDescriptions[bindingID];
-                //if (this->indexType == vk::IndexType::eNoneKHR) {
-                    this->currentUnitCount = (this->bindRange[bindingID] / binding.stride);
-                //};
 
                 // 
+                this->offsetTemp.primitiveCount = this->primitiveCount = (this->currentUnitCount = (this->bindRange[bindingID] / binding.stride)) / 3u;
                 this->offsetTemp.primitiveOffset = attribute->offset + this->bindings[bindingID].offset(); // !!WARNING!! Also, unknown about needing `.offset()`... 
                 this->buildGTemp.flags = { .eOpaque = 1 };
                 this->buildGTemp.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
@@ -293,11 +300,6 @@ namespace jvi {
             if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
             if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
             if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
-
-            //if (this->indexType == vk::IndexType::eNoneKHR) {
-                //this->primitiveCount = this->currentUnitCount / (this->needsQuads ? 4u : 3u);
-            //};
-            this->primitiveCount = this->currentUnitCount / 3u;
 
             return uTHIS;
         };
@@ -316,6 +318,9 @@ namespace jvi {
             if (this->accelerationStructure) { this->updateGeometry(); }
             else { this->createAccelerationStructure(); };
 
+            // build geometry data
+            if (this->input) { this->input->buildGeometry(this->bindings[0u]); };
+
             // 
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
             this->bdHeadInfo.dstAccelerationStructure = this->accelerationStructure;
@@ -330,12 +335,17 @@ namespace jvi {
             } else {
                 driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
             }
+
+            //
             return uTHIS;
         };
 
         //
-        virtual uPTR(MeshBinding) updateGeometry(const vkt::uni_ptr<MeshInput>& input = {}) { // TODO: Reserved For FUTURE!
-            this->input = input; return uTHIS;
+        virtual uPTR(MeshBinding) updateGeometry() { // TODO: Reserved For FUTURE!
+            //if (this->input) {
+            //    this->input->buildGeometry(this->bindings[0u]);
+            //};
+            return uTHIS;
         };
 
         //
@@ -484,7 +494,7 @@ namespace jvi {
 
         // 
         //vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize AllocationUnitCount = 32768, MaxStride = sizeof(glm::vec4);
+        vk::DeviceSize AllocationUnitCount = 32768, MaxStride = 80u;
 
         // 
         uint32_t currentUnitCount = 0u, primitiveCount = 0u, instanceCount = 0u;

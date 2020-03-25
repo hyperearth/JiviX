@@ -14,7 +14,7 @@ layout (location = 3) in vec4 gTangent[];
 //layout (location = 4) flat in ivec4 gIndexes;
 
 // 
-layout (location = 0, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 0) out vec4 fPosition;
+layout (location = 0, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 0 ) out vec4 fPosition;
 layout (location = 1, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 16) out vec4 fTexcoord;
 layout (location = 2, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 32) out vec4 fNormal;
 layout (location = 3, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 48) out vec4 fTangent;

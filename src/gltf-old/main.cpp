@@ -207,7 +207,7 @@ int main() {
 
     // 
     auto context = jvx::Context(fw);
-    auto mesh = jvx::Mesh(context);
+    auto mesh = jvx::MeshBinding(context);
     auto node = jvx::Node(context);
     auto material = jvx::Material(context);
     auto renderer = jvx::Renderer(context);
@@ -240,7 +240,7 @@ int main() {
     using mat4_t = glm::mat3x4;
 
     // Every mesh will have transform buffer per internal instances
-    std::vector<jvx::Mesh> meshes = {};
+    std::vector<jvx::MeshBinding> meshes = {};
     std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
 
     // Transform Data Buffer
@@ -385,6 +385,7 @@ int main() {
                 vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
             };
 
+            // 
             vk::DeviceSize MaxStride = sizeof(glm::vec4);
             for (uint32_t i = 0u; i < model.bufferViews.size(); i++) {
                 const auto& BV = model.bufferViews[i];
@@ -392,8 +393,10 @@ int main() {
             };
 
             // 
-            meshes.push_back(jvx::Mesh( context, vkt::tiled(vertexCount<<(uintptr_t(ctype)*0u), 3ull), MaxStride));
+            jvx::MeshInput mInput(context, vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull));
+            meshes.push_back(jvx::MeshBinding( context, vkt::tiled(vertexCount<<(uintptr_t(ctype)*0u), 3ull) ));
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
+            mesh->bindMeshInput(mInput);
 
             // 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
@@ -423,8 +426,8 @@ int main() {
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
-                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
-                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u });
+                    mInput->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
+                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u });
                 }
                 else if (NM[i] == "TANGENT") { // STUB for Tangents
                     auto& attribute = primitive.attributes.find("NORMAL") != primitive.attributes.end() ? model.accessors[primitive.attributes.find("NORMAL")->second] : model.accessors[primitive.attributes.find("POSITION")->second];
@@ -444,8 +447,8 @@ int main() {
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
-                    mesh->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
-                    mesh->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = 0u }, false);
+                    mInput->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
+                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = 0u }, false);
                 };
             };
 
@@ -461,7 +464,7 @@ int main() {
                 vector.rangeInfo() = stride * attribute.count;
 
                 // determine index type
-                mesh->setIndexData(vector.getDescriptor(), attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
+                mInput->setIndexData(vector, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
             };
 
             node->pushMesh(mesh->setMaterialID(primitive.material)->increaseInstanceCount()->sharedPtr());

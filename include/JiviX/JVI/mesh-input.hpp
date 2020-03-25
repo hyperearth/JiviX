@@ -8,7 +8,9 @@
 
 namespace jvi {
 
-    // TODO: Make Mesh Shaded and Geometry Complex
+    // WARNING!!
+    // FOR VULKAN API ONLY!!
+    // PLANNED: OPENGL VERSION!!
     class MeshInput : public std::enable_shared_from_this<MeshInput> {
     public: friend Node; friend Renderer;
         MeshInput() {};
@@ -28,7 +30,7 @@ namespace jvi {
         };
 
         // Record Geometry (Transform Feedback)
-        virtual uPTR(MeshInput) buildGeometry(const vkt::uni_arg<vkt::Vector<uint8_t>>& OutPut, const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
+        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
             if (this->needsQuads && buildCommand) { // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->context->unifiedPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
@@ -50,8 +52,8 @@ namespace jvi {
 
                 // covergence
                 buildCommand.fillBuffer(counterData.buffer(), counterData.offset(), counterData.range(), 0u); // Nullify Counters
-                buildCommand.beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }); //!!WARNING!!
-                buildCommand.bindTransformFeedbackBuffersEXT(0u, { OutPut->buffer() }, { OutPut->offset() }, { OutPut->range() }); //!!WARNING!!
+                buildCommand.beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand.bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() }, { OutPut->range() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
                 buildCommand.bindVertexBuffers(0u, buffers, offsets);
@@ -63,7 +65,7 @@ namespace jvi {
                 } else { // VAL Mode
                     buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
                 };
-                buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }); //!!WARNING!!
+                buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
             }
 
             return uTHIS;
@@ -76,7 +78,7 @@ namespace jvi {
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
             this->vertexInputBindingDescriptions[bindingID].binding = static_cast<uint32_t>(bindingID);
-            this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
+            //this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
             this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = rawData.range();
             this->bindings[bindingID] = rawData;
             return uTHIS;
@@ -94,13 +96,14 @@ namespace jvi {
         };
 
         // 
-        inline uPTR(MeshInput) setIndexData(const vkt::uni_arg<vkt::Vector<>>& rawIndices, const vk::IndexType& type = vk::IndexType::eNoneKHR) {
+        template<class T = uint8_t>
+        inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type = vk::IndexType::eNoneKHR) {
             vk::DeviceSize count = 0u; uint32_t stride = 1u;
             if (rawIndices.has()) {
                 switch (type) { // 
-                    case vk::IndexType::eUint32:   count = rawIndices->range / (stride = 4u); break;
-                    case vk::IndexType::eUint16:   count = rawIndices->range / (stride = 2u); break;
-                    case vk::IndexType::eUint8EXT: count = rawIndices->range / (stride = 1u); break;
+                    case vk::IndexType::eUint32:   count = rawIndices->range() / (stride = 4u); break;
+                    case vk::IndexType::eUint16:   count = rawIndices->range() / (stride = 2u); break;
+                    case vk::IndexType::eUint8EXT: count = rawIndices->range() / (stride = 1u); break;
                     default: count = 0u;
                 };
             };
@@ -112,14 +115,14 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) setIndexData(const vkt::uni_arg<vkt::Vector<uint32_t>>& rawIndices) { return this->setIndexData(vkt::Vector<>(*rawIndices), vk::IndexType::eUint32); };
-        virtual uPTR(MeshInput) setIndexData(const vkt::uni_arg<vkt::Vector<uint16_t>>& rawIndices) { return this->setIndexData(vkt::Vector<>(*rawIndices), vk::IndexType::eUint16); };
-        virtual uPTR(MeshInput) setIndexData(const vkt::uni_arg<vkt::Vector<uint8_t >>& rawIndices) { return this->setIndexData(vkt::Vector<>(*rawIndices), vk::IndexType::eUint8EXT); };
+        virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint32); };
+        virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint16); };
+        virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint8EXT); };
         virtual uPTR(MeshInput) setIndexData() { return this->setIndexData({}, vk::IndexType::eNoneKHR); };
 
         // some type dependent
         template<class T = uint8_t>
-        inline uPTR(MeshInput) setIndexData(const vkt::uni_arg<vkt::Vector<T>>& rawIndices = {}) { return this->setIndexData(rawIndices); };
+        inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
         virtual uPTR(MeshInput) createRasterizePipeline() {
@@ -157,9 +160,6 @@ namespace jvi {
 
         // 
         std::array<vkt::Vector<uint8_t>, 8> bindings = {};
-//#ifdef ENABLE_OPENGL_INTEROP
-//        std::array<std::pair<GLuint, GLuint>, 8> bindingsOGL = {};
-//#endif
         std::array<uint32_t, 8> bindRange = { 0 };
 
         // 
@@ -180,8 +180,7 @@ namespace jvi {
         // 
         vkh::VkComputePipelineCreateInfo quadInfo = {};
         vkh::VkPipelineShaderStageCreateInfo quadStage = {};
-        vk::Pipeline quadGenerator = {};
-        vk::Pipeline transformState = {};
+        vk::Pipeline quadGenerator = {}, transformState = {};
 
         // 
         vkt::uni_ptr<Driver> driver = {};
