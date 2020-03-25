@@ -251,14 +251,15 @@ namespace jvi {
             this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions[locationID];
 
             if (locationID == 0u && NotStub) { // 
-                const auto& binding = this->vertexInputBindingDescriptions[bindingID];
+                const auto& bindingData = this->vertexInputBindingDescriptions[bindingID];
+                const auto& bindingBuffer = this->bindings[bindingID];
 
                 // 
-                this->offsetTemp.primitiveOffset = attribute->offset; // !!WARNING!!
+                this->offsetTemp.primitiveOffset = bindingBuffer.offset() + attribute->offset; // !!WARNING!!
                 this->buildGTemp.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
                 this->buildGTemp.geometry.triangles.vertexFormat = this->bottomDataCreate[0].vertexFormat = attribute->format;
-                this->buildGTemp.geometry.triangles.vertexStride = binding.stride;
-                this->buildGTemp.geometry.triangles.vertexData = this->bindings[bindingID];
+                this->buildGTemp.geometry.triangles.vertexStride = bindingData.stride;
+                this->buildGTemp.geometry.triangles.vertexData = bindingBuffer;
                 this->buildGTemp.flags = { .eOpaque = 1 };
 
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
@@ -289,6 +290,9 @@ namespace jvi {
         // 
         virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
+
+            // 
+            this->offsetTemp.primitiveCount = this->primitiveCount;
 
             // 
             this->offsetInfo[0] = this->offsetTemp;
