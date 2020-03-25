@@ -223,10 +223,10 @@ int main() {
     std::string wrn = "";
 
     // 
-    const float unitScale = 1.f;
+    const float unitScale = 100.f;
     const float unitHeight = -0.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -249,7 +249,7 @@ int main() {
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
-    //std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
+    std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
 
 
     // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
@@ -261,6 +261,17 @@ int main() {
 
         // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
+
+        // 
+        gpuBuffers.push_back(vkt::Vector<>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            .size = cpuBuffers.back().range(),
+            .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
+        }, VMA_MEMORY_USAGE_GPU_ONLY));
+
+        // 
+        vkt::submitOnce(fw->getDevice(), fw->getQueue(), fw->getCommandPool(), [&](const vk::CommandBuffer& cmd) {
+            cmd.copyBuffer(cpuBuffers.back().buffer(), gpuBuffers.back().buffer(), { vk::BufferCopy(cpuBuffers.back().offset(), gpuBuffers.back().offset(), cpuBuffers.back().range()) });
+        });
     };
 
 
@@ -269,7 +280,7 @@ int main() {
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
         const auto& BV = model.bufferViews[i];
         const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
-        buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull));
+        buffersViews.push_back(vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull));
     };
 
     // 
@@ -395,10 +406,10 @@ int main() {
             };
 
             // 
-            jvx::MeshInput mInput(context, vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull));
-            meshes.push_back(jvx::MeshBinding( context, vkt::tiled(vertexCount<<(uintptr_t(ctype)*0u), 3ull) ));
+            const vk::DeviceSize range = vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
+            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, range);
+            meshes.push_back(mBinding); mBinding->bindMeshInput(mInput);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
-            mesh->bindMeshInput(mInput); // 
 
             // 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
@@ -410,7 +421,7 @@ int main() {
 
                     // 
                     auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                    auto vector = vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                     vector.rangeInfo() = stride * attribute.count;
 
                     // 
@@ -438,7 +449,7 @@ int main() {
 
                     // 
                     auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                    auto vector = vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                     vector.rangeInfo() = stride * attribute.count;
 
                     // 
@@ -462,7 +473,7 @@ int main() {
 
                 // 
                 auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                auto vector = vkt::Vector<uint8_t>(gpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                 vector.rangeInfo() = stride * attribute.count;
 
                 // determine index type

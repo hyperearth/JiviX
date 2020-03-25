@@ -42,4 +42,6 @@ namespace jvi {
             hasTangent : 1;
     };
 
+    constexpr uint32_t DEFAULT_STRIDE = 80u;
+
 };

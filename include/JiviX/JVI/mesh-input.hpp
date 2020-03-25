@@ -14,7 +14,7 @@ namespace jvi {
     class MeshInput : public std::enable_shared_from_this<MeshInput> {
     public: friend Node; friend Renderer; friend MeshBinding;
         MeshInput() {};
-        MeshInput(const vkt::uni_ptr<Context> & context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = sizeof(glm::vec4)) : context(context) { this->construct(); };
+        MeshInput(const vkt::uni_ptr<Context> & context) : context(context) { this->construct(); };
         ~MeshInput() {};
 
         // 
@@ -27,7 +27,7 @@ namespace jvi {
 
             // 
             this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vk::ShaderStageFlagBits::eCompute);
-            this->counterData = vkt::Vector<uint32_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 4u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->counterData = vkt::Vector<uint32_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint64_t), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
 
             // for faster code, pre-initialize
             this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({

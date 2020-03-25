@@ -13,7 +13,7 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer;
         MeshBinding() {};
-        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = 80u) : context(context), AllocationUnitCount(AllocationUnitCount), MaxStride(MaxStride){ this->construct(); };
+        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = DEFAULT_STRIDE) : context(context), AllocationUnitCount(AllocationUnitCount), MaxStride(MaxStride){ this->construct(); };
         //MeshBinding(Context* context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~MeshBinding() {};
 
@@ -492,7 +492,7 @@ namespace jvi {
 
         // 
         //vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize AllocationUnitCount = 32768, MaxStride = 80u;
+        vk::DeviceSize AllocationUnitCount = 32768, MaxStride = DEFAULT_STRIDE;
 
         // 
         uint32_t currentUnitCount = 0u, primitiveCount = 0u, instanceCount = 0u;
