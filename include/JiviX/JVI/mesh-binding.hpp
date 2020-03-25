@@ -79,10 +79,10 @@ namespace jvi {
             };
 
             // 
-            //for (uint32_t i = 0; i < 8; i++) {
-            for (uint32_t i = 0; i < 1; i++) {
+            for (uint32_t i = 0; i < 2; i++) {
+            //for (uint32_t i = 0; i < 1; i++) {
                 this->bindings[i] = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = MaxPrimitiveCount * MaxStride * 3u,
+                    .size = MaxPrimitiveCount * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
@@ -132,12 +132,16 @@ namespace jvi {
             this->bottomCreate.flags = this->bdHeadInfo.flags;
 
             // Generate Default Layout
-            this->addBinding(vkh::VkVertexInputBindingDescription{ .stride = static_cast<uint32_t>(MaxStride) });
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 16u }); // Texcoords
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 32u }); // Normals
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 48u }); // Tangents
-            this->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 64u }); // BiNormals
+            this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 0, .stride = static_cast<uint32_t>(MaxStride) });
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 16u }); // Texcoords
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 32u }); // Normals
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 48u }); // Tangents
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 64u }); // BiNormals
+
+            // FOR QUADS RESERVED!
+            this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
+            //this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .binding = 1, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
 
             // 
             return uTHIS;
@@ -204,6 +208,12 @@ namespace jvi {
             return uTHIS;
         };
 
+        // 
+        virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type = vk::IndexType::eNoneKHR) {
+            this->rawMeshInfo[0u].indexType = uint32_t(this->buildGTemp.geometry.triangles.indexType = VkIndexType(type)) + 1u;
+            return uTHIS;
+        };
+
         // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 65536u * 3u) { this->setPrimitiveCount(std::min(uint32_t(vkt::tiled(count, 3u)), uint32_t(this->MaxPrimitiveCount))); return uTHIS; };
         virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 65536u) { this->primitiveCount = this->offsetTemp.primitiveCount = std::min(uint32_t(count), uint32_t(this->MaxPrimitiveCount)); return uTHIS; };
@@ -238,8 +248,8 @@ namespace jvi {
 
         // 
         template<class T = uint8_t>
-        inline uPTR(MeshBinding) addBinding(const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = vkh::VkVertexInputBindingDescription{}) {
-            const uintptr_t bindingID = 0u;//this->vertexInputBindingDescriptions.size();
+        inline uPTR(MeshBinding) setBinding(const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = vkh::VkVertexInputBindingDescription{}) {
+            const uintptr_t bindingID = binding->binding;
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
             this->vertexInputBindingDescriptions[bindingID].binding = bindingID;
@@ -248,10 +258,8 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) addAttribute(const vkt::uni_arg<vkh::VkVertexInputAttributeDescription>& attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
-            //const uintptr_t bindingID = attribute.binding;
-            //const uintptr_t locationID = this->locationCounter++;
-            const uintptr_t bindingID = this->lastBindID;
+        virtual uPTR(MeshBinding) setAttribute(const vkt::uni_arg<vkh::VkVertexInputAttributeDescription>& attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
+            const uintptr_t bindingID = attribute->binding;
             const uintptr_t locationID = attribute->location;
             this->vertexInputAttributeDescriptions.resize(locationID + 1u);
             this->vertexInputAttributeDescriptions[locationID] = attribute;
@@ -287,21 +295,25 @@ namespace jvi {
             return uTHIS;
         };
 
-        // TODO: Add QUADs support for GEN-2.0
+        // TODO: Fix Quads support with Indices
+        // WARNING: Quads needs only for specific games
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
             if (this->input) {
+                if (this->input->needsQuads) { // TODO: WARNING!! Attribute Indices May Broken!
+                    this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
+                    this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .binding = 1, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
+                    this->manifestIndex(vk::IndexType::eUint32);
+                    this->setPrimitiveCount(vkt::tiled(this->input->currentUnitCount,4ull)<<1u); // Quad Vertices, But Primitives Twice!
+                };
                 this->input->createRasterizePipeline()->buildGeometry(this->bindings[0u], buildCommand, meshData);
                 this->setIndexCount(this->input->currentUnitCount);
             };
             return uTHIS;
         };
 
-        // TODO: Add QUADs support for GEN-2.0
+        // TODO: Fix Quads support with Indices
         virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
-
-            // 
-            //this->offsetTemp.primitiveCount = this->primitiveCount;
 
             // 
             this->offsetInfo[0] = this->offsetTemp;
@@ -332,7 +344,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // TODO: Add QUADs support for GEN-2.0
+        // TODO: Fix Quads support with Indices
         virtual uPTR(MeshBinding) bindMeshInput(const vkt::uni_ptr<MeshInput>& input = {}) {
             (this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
             //this->input->linkCounterBuffer(this->offsetIndirect);
@@ -464,7 +476,16 @@ namespace jvi {
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, conservative ? this->covergenceState : this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-            rasterCommand.draw((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->instanceCount, this->offsetTemp.firstVertex, 0u);
+
+            // Now, QUAD compatible
+            if (this->buildGTemp.geometry.triangles.indexType != VK_INDEX_TYPE_NONE_KHR) { // PLC Mode (for Quads)
+                rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), vk::IndexType(this->buildGTemp.geometry.triangles.indexType));
+                rasterCommand.drawIndexed((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->instanceCount, this->offsetTemp.firstVertex, 0u, 0u);
+            }
+            else { // VAL Mode
+                rasterCommand.draw((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->instanceCount, this->offsetTemp.firstVertex, 0u);
+            };
+
             rasterCommand.endRenderPass();
             vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
 
@@ -487,7 +508,7 @@ namespace jvi {
         uint32_t primitiveCount = 0u, instanceCount = 0u;
 
         // 
-        std::array<vkt::Vector<uint8_t>, 1> bindings = {};
+        std::array<vkt::Vector<uint8_t>, 2> bindings = {};
 #ifdef ENABLE_OPENGL_INTEROP
         std::array<std::pair<GLuint, GLuint>, 1> bindingsOGL = {};
 #endif

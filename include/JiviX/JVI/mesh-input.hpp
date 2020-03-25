@@ -48,7 +48,8 @@ namespace jvi {
             };
 
             // TODO: Add QUADs support for GEN-2.0
-            if (buildCommand && this->needsQuads) { this->needsQuads = false; // FOR MINECRAFT ONLY! 
+            if (buildCommand && this->needsQuads) {
+                this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->context->unifiedPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
                 this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
@@ -58,7 +59,7 @@ namespace jvi {
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
                 buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
-            } else
+            } else 
 
             if (buildCommand && this->needUpdate) { this->needUpdate = false; // 
                 std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
