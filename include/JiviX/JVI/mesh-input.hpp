@@ -79,7 +79,8 @@ namespace jvi {
                     vk::ClearDepthStencilValue(1.0f, 0)
                 };
 
-                // covergence
+                // 
+                vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
                 buildCommand.fillBuffer(counterData.buffer(), counterData.offset(), counterData.range(), 0u); // Nullify Counters
                 buildCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
                 buildCommand.beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
@@ -99,6 +100,9 @@ namespace jvi {
                 };
                 buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand.endRenderPass();
+                vkt::debugLabel(buildCommand, "Ending building geometry data...", this->driver->getDispatch());
+                //buildCommand.endDebugUtilsLabelEXT(this->driver->getDispatch());
+                //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
                 //vkt::commandBarrier(buildCommand);
             }
 
@@ -222,6 +226,9 @@ namespace jvi {
         //};
 
     protected: friend Node; friend Renderer; // Partitions
+        uint64_t checkoutPointData = 0ull;
+
+        //
         std::vector<vkh::VkVertexInputBindingDescription> vertexInputBindingDescriptions = {};
         std::vector<vkh::VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 

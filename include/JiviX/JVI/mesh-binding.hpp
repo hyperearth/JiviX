@@ -329,7 +329,9 @@ namespace jvi {
 
             // 
             if (buildCommand) {
+                vkt::debugLabel(buildCommand, "Begin building bottom acceleration structure...", this->driver->getDispatch());
                 buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch()); this->needsUpdate = true;
+                vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch());
             }
             else {
                 driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
@@ -463,6 +465,7 @@ namespace jvi {
             };
 
             // covergence
+            vkt::debugLabel(rasterCommand, "Begin rasterization...", this->driver->getDispatch());
             rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
             rasterCommand.setViewport(0, { viewport });
             rasterCommand.setScissor(0, { renderArea });
@@ -472,7 +475,8 @@ namespace jvi {
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
             rasterCommand.draw(this->currentUnitCount, this->instanceCount, this->offsetTemp.firstVertex, 0u);
             rasterCommand.endRenderPass();
-            
+            vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
+
             // 
             return uTHIS;
         };

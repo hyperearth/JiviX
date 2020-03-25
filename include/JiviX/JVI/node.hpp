@@ -313,8 +313,10 @@ namespace jvi {
 
             // 
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
+                vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
                 buildCommand.buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
                 vkt::commandBarrier(buildCommand); this->needsUpdate = true;
+                vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
                 driver->getDevice().buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
             };
