@@ -583,6 +583,7 @@ int main() {
         // acquire next image where will rendered (and get semaphore when will presented finally)
         n_semaphore = (n_semaphore >= 0 ? n_semaphore : static_cast<int32_t>(framebuffers.size()) - 1);
         device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
+        //device.signalSemaphore(vk::SemaphoreSignalInfo().setSemaphore(framebuffers[n_semaphore].semaphore).setValue(1u));
 
         { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.f}), vk::ClearDepthStencilValue(1.0f, 0) };
@@ -604,13 +605,13 @@ int main() {
 
             // Create render submission 
             std::vector<vk::Semaphore> waitSemaphores = { framebuffers[n_semaphore].semaphore }, signalSemaphores = { framebuffers[c_semaphore].semaphore };
-            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
             std::array<vk::CommandBuffer, 2> XPEHb = { renderer->refCommandBuffer(), commandBuffer };
 
             // Submit command once
             context->getThread()->submitCmd({ renderer->refCommandBuffer(), commandBuffer }, vk::SubmitInfo()
                 .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(static_cast<uint32_t>(XPEHb.size()))
-                .setPWaitDstStageMask(waitStages.data()).setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size()))
+                .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())));
 
             // 

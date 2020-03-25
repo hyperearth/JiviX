@@ -101,6 +101,7 @@ namespace jvi {
             };
 
             // FOR BUILD! 
+            this->bdHeadInfo = vkh::VkAccelerationStructureBuildGeometryInfoKHR{};
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
             this->bdHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
@@ -320,7 +321,11 @@ namespace jvi {
             else { this->createAccelerationStructure(); };
 
             // build geometry data
-            if (this->input) { this->input->buildGeometry(this->bindings[0u]); };
+            if (this->input) { 
+                this->input->createRasterizePipeline();
+                this->input->buildGeometry(this->bindings[0u], buildCommand);
+                this->setIndexCount(this->currentUnitCount = this->input->currentUnitCount);
+            };
             this->offsetInfo[0] = this->offsetTemp;
             this->buildGInfo[0] = this->buildGTemp;
 

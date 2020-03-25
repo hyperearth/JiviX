@@ -12,7 +12,7 @@ namespace jvi {
     // FOR VULKAN API ONLY!!
     // PLANNED: OPENGL VERSION!!
     class MeshInput : public std::enable_shared_from_this<MeshInput> {
-    public: friend Node; friend Renderer;
+    public: friend Node; friend Renderer; friend MeshBinding;
         MeshInput() {};
         MeshInput(const vkt::uni_ptr<Context> & context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = sizeof(glm::vec4)) : context(context) { this->construct(); };
         ~MeshInput() {};
@@ -50,7 +50,7 @@ namespace jvi {
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-                buildCommand.dispatch(vkt::tiled(uint32_t(this->primitiveCount), 256u), 1u, 1u);
+                buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
                 this->needsQuads = false;
             } else 
 
@@ -60,22 +60,42 @@ namespace jvi {
                 buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
                 for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
 
+                // 
+                const auto& viewport = this->context->refViewport();
+                const auto& renderArea = this->context->refScissor();
+                const auto clearValues = std::vector<vk::ClearValue>{
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
+                    vk::ClearDepthStencilValue(1.0f, 0)
+                };
+
                 // covergence
                 buildCommand.fillBuffer(counterData.buffer(), counterData.offset(), counterData.range(), 0u); // Nullify Counters
+                buildCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
                 buildCommand.beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand.setViewport(0, { viewport });
+                buildCommand.setScissor(0, { renderArea });
                 buildCommand.bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() }, { OutPut->range() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
                 buildCommand.bindVertexBuffers(0u, buffers, offsets);
                 buildCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
                 if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
-                    const uintptr_t voffset = this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
+                    const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
                     buildCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
                     buildCommand.drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
                 } else { // VAL Mode
                     buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
                 };
                 buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand.endRenderPass();
+                vkt::commandBarrier(buildCommand);
             }
 
             return uTHIS;
@@ -89,7 +109,9 @@ namespace jvi {
             this->vertexInputBindingDescriptions[bindingID] = binding;
             this->vertexInputBindingDescriptions[bindingID].binding = static_cast<uint32_t>(bindingID);
             //this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
+            this->bindRange.resize(bindingID + 1u);
             this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = rawData.range();
+            this->bindings.resize(bindingID+1u);
             this->bindings[bindingID] = rawData;
             return uTHIS;
         };
@@ -102,12 +124,19 @@ namespace jvi {
             this->vertexInputAttributeDescriptions[locationID] = attribute;
             this->vertexInputAttributeDescriptions[locationID].binding = static_cast<uint32_t>(bindingID);
             this->vertexInputAttributeDescriptions[locationID].location = static_cast<uint32_t>(locationID);
+
+            // 
+            if (locationID == 0u && NotStub && this->indexType == vk::IndexType::eNoneKHR) {
+                this->currentUnitCount = this->bindRange[bindingID] / this->bindings[bindingID].stride();
+            };
+
+            // 
             return uTHIS;
         };
 
         // 
         template<class T = uint8_t>
-        inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type = vk::IndexType::eNoneKHR) {
+        inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type) {
             vk::DeviceSize count = 0u; uint32_t stride = 1u;
             if (rawIndices.has()) {
                 switch (type) { // 
@@ -121,6 +150,12 @@ namespace jvi {
             // 
             this->indexData = rawIndices;
             this->indexType = (rawIndices.has() && type != vk::IndexType::eNoneKHR) ? type : vk::IndexType::eNoneKHR;
+
+            // 
+            if (this->indexType != vk::IndexType::eNoneKHR) {
+                this->currentUnitCount = rawIndices.range() / stride;
+            };
+
             return uTHIS;
         };
 
@@ -131,8 +166,8 @@ namespace jvi {
         virtual uPTR(MeshInput) setIndexData() { return this->setIndexData({}, vk::IndexType::eNoneKHR); };
 
         // some type dependent
-        template<class T = uint8_t>
-        inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
+        //template<class T = uint8_t>
+        //inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
         virtual uPTR(MeshInput) createRasterizePipeline() {
@@ -150,10 +185,15 @@ namespace jvi {
             this->pipelineInfo.vertexInputBindingDescriptions = this->vertexInputBindingDescriptions;
             this->pipelineInfo.stages = this->stages;
             //this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{ .depthTestEnable = true, .depthWriteEnable = true };
-            //this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
-            //this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
-            //this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+            this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
+
+            // 
+            for (uint32_t i = 0u; i < 8u; i++) {
+                this->pipelineInfo.colorBlendAttachmentStates.push_back(vkh::VkPipelineColorBlendAttachmentState{ .blendEnable = true }); // transparency will generated by ray-tracing
+            };
 
             // 
             this->transformState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
@@ -169,14 +209,14 @@ namespace jvi {
         std::vector<vkh::VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
         // 
-        std::array<vkt::Vector<uint8_t>, 8> bindings = {};
-        std::array<uint32_t, 8> bindRange = { 0 };
+        std::vector<vkt::Vector<uint8_t>> bindings = {};
+        std::vector<uint32_t> bindRange = { 0 };
 
         // 
         vkt::Vector<uint8_t> indexData = {};
         vkt::Vector<uint32_t> counterData = {};
         uint32_t lastBindID = 0u;
-        size_t primitiveCount = 0u;
+        //size_t primitiveCount = 0u;
 
         // 
         vk::DeviceSize currentUnitCount = 0u;

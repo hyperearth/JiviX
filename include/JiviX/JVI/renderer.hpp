@@ -59,12 +59,17 @@ namespace jvi {
         // 
         virtual uPTR(Renderer) linkMaterial(vkt::uni_ptr<Material>& materials) {
             this->materials = materials;
+            if (this->materials->descriptorSet) {
+                this->context->descriptorSets[4] = this->materials->descriptorSet;
+            };
             return uTHIS;
         };
 
         // 
         virtual uPTR(Renderer) linkNode(vkt::uni_ptr<Node>& node) {
             this->node = node;
+            if (this->node->meshDataDescriptorSet) { this->context->descriptorSets[0] = this->node->meshDataDescriptorSet; };
+            if (this->node->bindingsDescriptorSet) { this->context->descriptorSets[1] = this->node->bindingsDescriptorSet; };
             return uTHIS;
         };
 

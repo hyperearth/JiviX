@@ -25,7 +25,8 @@ namespace jvi {
 #pragma pack(pop)
 
     // WIP Materials
-    class Material : public std::enable_shared_from_this<Material> { public: // 
+    class Material : public std::enable_shared_from_this<Material> {
+    public: friend Renderer;// 
         Material() {};
         Material(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
         //Material(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
