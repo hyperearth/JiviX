@@ -13,8 +13,7 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer;
         MeshBinding() {};
-        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize AllocationUnitCount = 32768, vk::DeviceSize MaxStride = DEFAULT_STRIDE) : context(context), AllocationUnitCount(AllocationUnitCount), MaxStride(MaxStride){ this->construct(); };
-        //MeshBinding(Context* context, vk::DeviceSize AllocationUnitCount = 32768) : AllocationUnitCount(AllocationUnitCount) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
+        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, vk::DeviceSize MaxStride = DEFAULT_STRIDE) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), MaxStride(MaxStride){ this->construct(); };
         ~MeshBinding() {};
 
         // 
@@ -55,7 +54,7 @@ namespace jvi {
 
             { //
                 this->indexData = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * sizeof(uint32_t) * 3u,
+                    .size = MaxPrimitiveCount * sizeof(uint32_t) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
                 this->rawMeshInfo[0u].indexType = uint32_t(vk::IndexType::eNoneKHR) + 1u;
@@ -66,7 +65,7 @@ namespace jvi {
                 glCreateBuffers(1u, &this->indexDataOGL.second);
                 glCreateMemoryObjectsEXT(1u, &this->indexDataOGL.first);
                 glImportMemoryWin32HandleEXT(this->indexDataOGL.first, this->indexData->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->indexData->getAllocationInfo().handle);
-                glNamedBufferStorageMemEXT(this->indexDataOGL.second, AllocationUnitCount * 2u * sizeof(uint32_t), this->indexDataOGL.first, 0u);
+                glNamedBufferStorageMemEXT(this->indexDataOGL.second, MaxPrimitiveCount * sizeof(uint32_t) * 3u, this->indexDataOGL.first, 0u);
 #endif
             };
 
@@ -74,7 +73,7 @@ namespace jvi {
             //for (uint32_t i = 0; i < 8; i++) {
             for (uint32_t i = 0; i < 1; i++) {
                 this->bindings[i] = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = AllocationUnitCount * MaxStride * 3u,
+                    .size = MaxPrimitiveCount * MaxStride * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
                 });
 
@@ -84,7 +83,7 @@ namespace jvi {
                 glCreateBuffers(1u, &this->bindingsOGL[i].second);
                 glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
                 glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
-                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, AllocationUnitCount * 6u * sizeof(uint32_t), this->bindingsOGL[i].first, 0u);
+                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, MaxPrimitiveCount * 3u * sizeof(uint32_t), this->bindingsOGL[i].first, 0u);
 #endif
             };
 
@@ -104,15 +103,15 @@ namespace jvi {
                 .indexType = VK_INDEX_TYPE_NONE_KHR,
             };
             this->offsetTemp = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
-                .primitiveCount = 0u,
+                .primitiveCount = 1u,
                 .primitiveOffset = 0u,
                 .transformOffset = 0u
             };
 
             // FOR CREATE! 
             this->bottomDataCreate[0u].geometryType = this->buildGTemp.geometryType;
-            this->bottomDataCreate[0u].maxVertexCount = static_cast<uint32_t>(AllocationUnitCount * 3u);
-            this->bottomDataCreate[0u].maxPrimitiveCount = static_cast<uint32_t>(AllocationUnitCount);
+            this->bottomDataCreate[0u].maxVertexCount = static_cast<uint32_t>(MaxPrimitiveCount * 3u);
+            this->bottomDataCreate[0u].maxPrimitiveCount = static_cast<uint32_t>(MaxPrimitiveCount);
             this->bottomDataCreate[0u].indexType = VK_INDEX_TYPE_NONE_KHR;
             this->bottomDataCreate[0u].vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
             this->bottomDataCreate[0u].allowsTransforms = true;
@@ -196,28 +195,9 @@ namespace jvi {
             return uTHIS;
         };
 
-
         // 
-        virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 32768u) {
-            this->primitiveCount = this->offsetTemp.primitiveCount = (this->currentUnitCount = count) / 3u; // Mul*3u
-            return uTHIS;
-        };
-
-        // 
-        virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 32768u) {
-            this->currentUnitCount = (this->primitiveCount = this->offsetTemp.primitiveCount = count) * 3u; // Mul*3u
-            return uTHIS;
-        };
-
-        // 
-        /*virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type, const vk::DeviceSize& primitiveCount = 0) {
-            if (primitiveCount) {
-                this->currentUnitCount = (this->primitiveCount = this->offsetTemp.primitiveCount = static_cast<uint32_t>(primitiveCount)) * 3u;
-                this->rawMeshInfo[0u].indexType = uint32_t(type) + 1u;
-                this->setPrimitiveCount(primitiveCount);
-            };
-            return uTHIS;
-        };*/
+        virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 65536u * 3u) { this->setPrimitiveCount(std::min(uint32_t(vkt::tiled(count, 3u)), uint32_t(this->MaxPrimitiveCount))); return uTHIS; };
+        virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 65536u) { this->primitiveCount = this->offsetTemp.primitiveCount = std::min(uint32_t(count), uint32_t(this->MaxPrimitiveCount)); return uTHIS; };
 
         // 
         virtual uPTR(MeshBinding) setDriver(const vkt::uni_ptr<Driver>& driver = {}){
@@ -274,23 +254,17 @@ namespace jvi {
                 const auto& binding = this->vertexInputBindingDescriptions[bindingID];
 
                 // 
-                this->offsetTemp.primitiveCount = this->primitiveCount = (this->currentUnitCount = (this->bindRange[bindingID] / binding.stride)) / 3u;
-                this->offsetTemp.primitiveOffset = attribute->offset + this->bindings[bindingID].offset(); // !!WARNING!! Also, unknown about needing `.offset()`... 
-                this->buildGTemp.flags = { .eOpaque = 1 };
+                this->offsetTemp.primitiveOffset = attribute->offset; // !!WARNING!!
                 this->buildGTemp.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
                 this->buildGTemp.geometry.triangles.vertexFormat = this->bottomDataCreate[0].vertexFormat = attribute->format;
                 this->buildGTemp.geometry.triangles.vertexStride = binding.stride;
                 this->buildGTemp.geometry.triangles.vertexData = this->bindings[bindingID];
+                this->buildGTemp.flags = { .eOpaque = 1 };
 
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
                 if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->buildGTemp.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->buildGTemp.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
             };
-
-            // Here is NO more needs
-            //if (locationID == 1u && NotStub) { rawMeshInfo[0u].hasTexcoord = 1; };
-            //if (locationID == 2u && NotStub) { rawMeshInfo[0u].hasNormal = 1; };
-            //if (locationID == 3u && NotStub) { rawMeshInfo[0u].hasTangent = 1; };
 
             return uTHIS;
         };
@@ -307,7 +281,7 @@ namespace jvi {
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
             if (this->input) {
                 this->input->createRasterizePipeline()->buildGeometry(this->bindings[0u], buildCommand, meshData);
-                this->setIndexCount(this->currentUnitCount = this->input->currentUnitCount);
+                this->setIndexCount(this->input->currentUnitCount);
             };
             return uTHIS;
         };
@@ -447,7 +421,6 @@ namespace jvi {
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
             buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
             for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
-            this->rawMeshInfo[0u].prmCount = this->primitiveCount;
 
             // 
             const auto& viewport = this->context->refViewport();
@@ -473,7 +446,7 @@ namespace jvi {
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, conservative ? this->covergenceState : this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-            rasterCommand.draw(this->currentUnitCount, this->instanceCount, this->offsetTemp.firstVertex, 0u);
+            rasterCommand.draw((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->instanceCount, this->offsetTemp.firstVertex, 0u);
             rasterCommand.endRenderPass();
             vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
 
@@ -490,10 +463,10 @@ namespace jvi {
 
         // 
         //vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize AllocationUnitCount = 32768, MaxStride = DEFAULT_STRIDE;
+        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE;
 
         // 
-        uint32_t currentUnitCount = 0u, primitiveCount = 0u, instanceCount = 0u;
+        uint32_t primitiveCount = 0u, instanceCount = 0u;
 
         // 
         std::array<vkt::Vector<uint8_t>, 1> bindings = {};

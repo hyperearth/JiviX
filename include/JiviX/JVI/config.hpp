@@ -43,5 +43,7 @@ namespace jvi {
     };
 
     constexpr uint32_t DEFAULT_STRIDE = 80u;
+    constexpr uint32_t MAX_VERT_COUNT = 65536u;
+    constexpr uint32_t MAX_PRIM_COUNT = 65536u * 3u;
 
 };

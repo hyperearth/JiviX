@@ -20,6 +20,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "misc/tiny_gltf.h"
+#include <string>
 
 
 struct Active {
@@ -406,10 +407,11 @@ int main() {
             };
 
             // 
-            const vk::DeviceSize range = vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, range);
+            const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount,3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
+            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount);
             meshes.push_back(mBinding); mBinding->bindMeshInput(mInput);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
+            mBinding->setIndexCount(PrimitiveCount);
 
             // 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
@@ -626,6 +628,13 @@ int main() {
                 .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(static_cast<uint32_t>(XPEHb.size()))
                 .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())));
+
+            // 
+            //auto checkpointData = context->getThread()->getQueue().getCheckpointDataNV(fw->getDispatch());
+            //for (auto& c : checkpointData) {
+            //    const auto str = reinterpret_cast<char*>(c.pCheckpointMarker);
+            //    std::cerr << std::string(str) << std::endl;
+            //}
 
             // 
             context->setDrawCount(frameCount++);
