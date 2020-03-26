@@ -1,6 +1,10 @@
 #version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
+#extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_ray_tracing          : require
+#extension GL_EXT_ray_query            : require
 #include "./driver.glsl"
+
+layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 
 // 
 layout (location = 0) in vec4 fPosition;
@@ -66,6 +70,22 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
         geonormal = vec4(0.f.xxx,0.f.x);
         gl_FragDepth = 1.f;
     };
+
+/*
+    rayQueryEXT rayQuery;
+    rayQueryInitializeEXT(rayQuery, Scene,
+                        gl_RayFlagsTerminateOnFirstHitEXT,
+                        0xFF, fPosition.xyz, 0.001f, vec3(1.f,0.f,0.f), 10000.f);
+
+    uint32_t I = 0;
+    while(rayQueryProceedEXT(rayQuery) && (I++) < 32) {
+        if (rayQueryGetIntersectionTypeEXT(rayQuery, false) == gl_RayQueryCandidateIntersectionTriangleEXT)
+        {
+
+        }
+    };
+*/
+
     //ivec2 txd = ivec2(gl_FragCoord.xy), txs = imageSize(writeImages[DIFFUSED]);
     //const vec4 dEmi = imageLoad(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1));
     //imageStore(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1), vec4(emissionColor.xyz*emissionColor.w,0.f)+dEmi);

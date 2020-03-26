@@ -50,6 +50,7 @@ void main() {
     gTangent = vec4(normalize((vec4(gTangent.xyz,0.f) * normalTransform * normInTransform).xyz),0.f);
 
     // 
+/*
     const mat3x3 mc = mat3x3(
         vec4(vec4(get_vec4(idx3[0], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,
         vec4(vec4(get_vec4(idx3[1], 0u, gl_InstanceCustomIndexNV).xyz,1.f)*matras,1.f)*transp,
@@ -62,7 +63,7 @@ void main() {
         vec4(get_vec4(idx3[1], 1u, gl_InstanceCustomIndexNV).xyz,1.f),
         vec4(get_vec4(idx3[2], 1u, gl_InstanceCustomIndexNV).xyz,1.f)
     );
-
+*/
     
     /*
     // normals
@@ -82,6 +83,7 @@ void main() {
         //gBitnorml.xyz = gBitnorml.xyz - dot(gNormal.xyz,gBitnorml.xyz)*gNormal.xyz;
     };*/
 
+/*
     const vec3 dp1 = mc[1] - mc[0], dp2 = mc[2] - mc[0];
     const vec3 tx1 = tx[1] - tx[0], tx2 = tx[2] - tx[0];
     const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
@@ -99,17 +101,19 @@ void main() {
 
     gTangent .xyz -= dot(gNormal.xyz,tangent.xyz)*gNormal.xyz;
     gBinormal.xyz -= dot(gNormal.xyz,binorml.xyz)*gNormal.xyz;
-
-
-    // 
-    const mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal.xyz),normalize(gNormal.xyz));
+*/
 
     // 
+    //const mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal.xyz),normalize(gNormal.xyz));
+
+    // 
+/*
     const MaterialUnit unit = materials[0u].data[meshInfo[gl_InstanceCustomIndexNV].materialID];
     vec4  diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
     vec4  normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
     vec4 specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
     vec4 emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
+*/
 
     // 
     PrimaryRay.normals.xyz = normalize(gNormal.xyz);
