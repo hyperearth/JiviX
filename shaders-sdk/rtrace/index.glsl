@@ -157,10 +157,10 @@ layout (binding = 7, set = 1, scalar) readonly buffer InstanceMaps { uint instan
 layout(push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // System Specified
-#define meshID nonuniformEXT(meshID_)
+#define meshID nonuniformEXT(nodeMeshID)
 
 // System Specified
-uint8_t load_u8(in uint offset, in uint binding, in uint meshID_) {
+uint8_t load_u8(in uint offset, in uint binding, in uint nodeMeshID) {
     //if (binding == 0u) { return mesh0[meshID].data[offset]; };
     //if (binding == 1u) { return mesh1[meshID].data[offset]; };
     //if (binding == 2u) { return mesh2[meshID].data[offset]; };
@@ -184,17 +184,17 @@ uint8_t load_u8(in uint offset, in uint binding, in uint meshID_) {
 };
 
 // System Specified
-uint16_t load_u16(in uint offset, in uint binding, in uint meshID_) {
-    return pack16(u8vec2(load_u8(offset,binding,meshID_),load_u8(offset+1u,binding,meshID_)));
+uint16_t load_u16(in uint offset, in uint binding, in uint nodeMeshID) {
+    return pack16(u8vec2(load_u8(offset,binding,nodeMeshID),load_u8(offset+1u,binding,nodeMeshID)));
 };
 
 // System Specified
-uint32_t load_u32(in uint offset, in uint binding, in uint meshID_) {
-    return pack32(u16vec2(load_u16(offset,binding,meshID_),load_u16(offset+2u,binding,meshID_)));
+uint32_t load_u32(in uint offset, in uint binding, in uint nodeMeshID) {
+    return pack32(u16vec2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
 };
 
 // TODO: Add Uint16_t, Uint32_t, Float16_t Support
-vec4 get_vec4(in uint idx, in uint loc, in uint meshID_) {
+vec4 get_vec4(in uint idx, in uint loc, in uint nodeMeshID) {
     Attribute attrib = attributes[meshID].data[loc];
     Binding  binding = bindings[meshID].data[attrib.binding];
     //Attribute attrib = attributes[loc].data[meshID];
@@ -204,20 +204,20 @@ vec4 get_vec4(in uint idx, in uint loc, in uint meshID_) {
     
     // 
     //if (binding.stride >  0u) vec = vec4(0.f,0.f,1.f,0.f);
-    if (binding.stride >  0u) vec[0] = uintBitsToFloat(load_u32(boffset +  0u, attrib.binding, meshID_));
-    if (binding.stride >  4u) vec[1] = uintBitsToFloat(load_u32(boffset +  4u, attrib.binding, meshID_));
-    if (binding.stride >  8u) vec[2] = uintBitsToFloat(load_u32(boffset +  8u, attrib.binding, meshID_));
-    if (binding.stride > 12u) vec[3] = uintBitsToFloat(load_u32(boffset + 12u, attrib.binding, meshID_));
+    if (binding.stride >  0u) vec[0] = uintBitsToFloat(load_u32(boffset +  0u, attrib.binding, nodeMeshID));
+    if (binding.stride >  4u) vec[1] = uintBitsToFloat(load_u32(boffset +  4u, attrib.binding, nodeMeshID));
+    if (binding.stride >  8u) vec[2] = uintBitsToFloat(load_u32(boffset +  8u, attrib.binding, nodeMeshID));
+    if (binding.stride > 12u) vec[3] = uintBitsToFloat(load_u32(boffset + 12u, attrib.binding, nodeMeshID));
     
     // 
     return vec;
 };
 
-vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycenter){
+vec4 triangulate(in uvec3 indices, in uint loc, in uint nodeMeshID, in vec3 barycenter){
     const mat3x4 mc = mat3x4(
-        get_vec4(indices[0],loc,meshID_),
-        get_vec4(indices[1],loc,meshID_),
-        get_vec4(indices[2],loc,meshID_)
+        get_vec4(indices[0],loc,nodeMeshID),
+        get_vec4(indices[1],loc,nodeMeshID),
+        get_vec4(indices[2],loc,nodeMeshID)
     );
     return mc*barycenter;
 };
