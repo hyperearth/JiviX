@@ -222,6 +222,22 @@ vec4 triangulate(in uvec3 indices, in uint loc, in uint meshID_, in vec3 barycen
     return mc*barycenter;
 };
 
+mat4x4 regen4(in mat3x4 T) {
+    return mat4x4(T[0],T[1],T[2],vec4(0.f.xxx,1.f));
+}
+
+mat3x3 regen3(in mat3x4 T) {
+    return mat3x3(T[0].xyz,T[1].xyz,T[2].xyz);
+}
+
+vec4 mul4(in vec4 v, in mat3x4 M) {
+    return vec4(v*M,1.f);
+}
+
+#define IndexU8 1000265000
+#define IndexU16 0
+#define IndexU32 1
+
 
 
 
