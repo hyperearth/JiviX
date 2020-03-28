@@ -243,10 +243,10 @@ namespace jvi {
             return uTHIS;
         };
 
-        // MORE useful for instanced data
-        virtual uPTR(MeshBinding) setTransformData(const vkh::VkDescriptorBufferInfo& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
-            this->offsetTemp.transformOffset = transformData.offset;
-            this->buildGTemp.geometry.triangles.transformData = transformData.buffer;
+        // 
+        virtual uPTR(MeshBinding) setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
+            this->offsetTemp.transformOffset = transformData.offset();
+            this->buildGTemp.geometry.triangles.transformData = transformData;
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
             return uTHIS;
@@ -326,7 +326,10 @@ namespace jvi {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
-            this->offsetInfo.resize(this->geometryCount + 1u);
+            if (this->geometryCount > this->offsetInfo.size()) { this->offsetInfo.resize(this->geometryCount); };
+            if (this->geometryCount > this->buildGInfo.size()) { this->buildGInfo.resize(this->geometryCount); };
+
+            // 
             for (uint32_t i = 0; i < this->geometryCount; i++) {
                 this->offsetInfo[i] = this->offsetTemp;
                 this->buildGInfo[i] = this->buildGTemp;
