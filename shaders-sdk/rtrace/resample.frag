@@ -54,7 +54,7 @@ void main() { // Currently NO possible to compare
     // 
     if (checkCorrect(vec4(gSample.xyz,1.f), i2fxm)) {
         oDiffused = gColor;
-        oSpecular = gSpecular;
+        //oSpecular = gSpecular; // TODO: Make New Reflection Sampling
         oRescolor = gRescolor;
     } else { discard; };
 };

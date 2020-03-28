@@ -99,19 +99,12 @@ namespace jvi {
         // 
         virtual uPTR(Node) pushInstance(const vkt::uni_arg<vkh::VsGeometryInstance>& instance = vkh::VsGeometryInstance{}) {
             const auto instanceID = this->instanceCounter++;
-            const uint32_t meshID = instance->instanceId;
-            this->rawInstances[instanceID] = instance;
+            const auto meshID = instance->instanceId;
+            this->rawInstances[instanceID] = instance; // List Of Instances
 
-            //this->rawInstances[instanceID].instanceId = meshID; // Customize Per Mesh
+            // Add Instance ID into Mesh
             this->mapMeshes.push_back(meshID);
-            //if (!this->meshes[meshID]->accelerationStructure) {
-            //    this->meshes[meshID]->buildAccelerationStructure();
-            //};
-            //if (this->meshes[meshID]->accelerationStructure) {
-            //    this->rawInstances[instanceID].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[meshID]->accelerationStructure, this->driver->getDispatch());
-                //this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[meshID]->accelerationStructure, 8ull, &this->rawInstances[instanceID].accelerationStructureHandle, this->driver->getDispatch());
-            //};
-
+            this->meshes[this->mapMeshes.back()]->linkWithInstance(instanceID);
             return uTHIS;
         };
 
@@ -119,8 +112,6 @@ namespace jvi {
         virtual uPTR(Node) mapMeshData() {
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
                 this->rawInstances[i].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[this->mapMeshes[i]]->accelerationStructure, this->driver->getDispatch());
-                //this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[this->mapMeshes[i]]->accelerationStructure, sizeof(uint64_t), &this->rawInstances[i].accelerationStructureHandle, this->driver->getDispatch());
-                //std::cout << this->rawInstances[i].accelerationStructureHandle << std::endl;
             };
             return uTHIS;
         };
@@ -131,6 +122,7 @@ namespace jvi {
             this->meshes.push_back(mesh); return ptr;
         };
 
+        /*
         // WARNING!!! NOT RECOMMENDED! 
         [[deprecated]]
         virtual uintptr_t pushMesh(MeshBinding* mesh) {
@@ -144,12 +136,13 @@ namespace jvi {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(vkt::uni_ptr<MeshBinding>(&mesh)); return ptr;
         };
+        */
 
         // 
         virtual uPTR(Node) createDescriptorSet() { // 
             this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
             this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
- 
+
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const auto bindingCount = 1u; //8u;
             const auto meshCount = std::min(this->meshes.size(), 64ull);
@@ -295,7 +288,7 @@ namespace jvi {
 
             // 
             return uTHIS;
-        }
+        };
 
         // 
         virtual uPTR(Node) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {

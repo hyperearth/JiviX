@@ -226,15 +226,20 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) increaseInstanceCount(const uint32_t& mapID = 0u, const uint32_t& instanceCount = 1u) {
-            this->rawInstanceMap[this->instanceCount] = mapID;
-            this->instanceCount += instanceCount;
+        virtual uPTR(MeshBinding) linkWithInstance(const uint32_t& mapID = 0u) {
+            this->rawInstanceMap[this->mapCount++] = mapID;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(MeshBinding) setInstanceCount(const uint32_t& instanceCount = 1u) {
-            this->instanceCount = instanceCount;
+        virtual uPTR(MeshBinding) increaseGeometryCount(const uint32_t& geometryCount = 1u) {
+            this->geometryCount += geometryCount;
+            return uTHIS;
+        };
+
+        // 
+        virtual uPTR(MeshBinding) setGeometryCount(const uint32_t& geometryCount = 1u) {
+            this->geometryCount = geometryCount;
             return uTHIS;
         };
 
@@ -321,8 +326,16 @@ namespace jvi {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
-            this->offsetInfo[0] = this->offsetTemp;
-            this->buildGInfo[0] = this->buildGTemp;
+            this->offsetInfo.resize(this->geometryCount + 1u);
+            for (uint32_t i = 0; i < this->geometryCount; i++) {
+                this->offsetInfo[i] = this->offsetTemp;
+                this->buildGInfo[i] = this->buildGTemp;
+
+                // Make Individual Transform Per Geometry (Restore Old Tradition)
+                if (this->rawMeshInfo[0u].hasTransform) {
+                    this->offsetInfo[i].transformOffset += this->transformStride * i;
+                }
+            }
 
             // 
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
@@ -447,7 +460,7 @@ namespace jvi {
 
         // Create Secondary Command With Pipeline
         virtual uPTR(MeshBinding) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u), const bool& conservative = false) { // UNIT ONLY!
-            if (this->instanceCount <= 0u) return uTHIS;
+            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
 
             // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -482,10 +495,10 @@ namespace jvi {
             // Now, QUAD compatible
             if (this->buildGTemp.geometry.triangles.indexType != VK_INDEX_TYPE_NONE_KHR) { // PLC Mode (for Quads)
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), vk::IndexType(this->buildGTemp.geometry.triangles.indexType));
-                rasterCommand.drawIndexed((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->instanceCount, this->offsetTemp.firstVertex, 0u, 0u);
+                rasterCommand.drawIndexed((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u, 0u);
             }
             else { // VAL Mode
-                rasterCommand.draw((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->instanceCount, this->offsetTemp.firstVertex, 0u);
+                rasterCommand.draw((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u);
             };
 
             rasterCommand.endRenderPass();
@@ -507,7 +520,7 @@ namespace jvi {
         vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE;
 
         // 
-        uint32_t primitiveCount = 0u, instanceCount = 0u;
+        uint32_t primitiveCount = 1u, geometryCount = 1u, mapCount = 0u;
 
         // 
         std::array<vkt::Vector<uint8_t>, 2> bindings = {};
@@ -572,6 +585,8 @@ namespace jvi {
 
         // 
         vkt::Vector<MeshInfo> rawMeshInfo = {};
+
+        // 
         vkt::Vector<uint32_t> rawInstanceMap = {};
         vkt::Vector<uint32_t> gpuInstanceMap = {};
 

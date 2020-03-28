@@ -124,7 +124,7 @@ void main() { // TODO: explicit sampling
 
     vec4 coloring = getDenoised(samplep,false, 9);
     vec4 reflects = getDenoised(samplep, true, denDepth);
-    if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,1.f); };
+    if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,0.f); };
     if (coloring.w <= 0.f) { coloring = vec4(0.f.xxx,1.f); };
     coloring = max(coloring, 0.f.xxxx);
     reflects = max(reflects, 0.f.xxxx);
@@ -138,5 +138,8 @@ void main() { // TODO: explicit sampling
     setColor(samplep,nwsampled);
 
     // Final Result Rendering
-    imageStore(writeImages[RENDERED],samplep,clamp(vec4(mix(nwsampled.xyz/max(nwsampled.w,1.f),reflects.xyz,reflects.w)+max(emission.xyz,0.f.xxx),1.f),0.f.xxxx,1.f.xxxx));
+    //imageStore(writeImages[RENDERED],samplep,clamp(vec4(mix(nwsampled.xyz/max(nwsampled.w,1.f),reflects.xyz,reflects.w)+max(emission.xyz,0.f.xxx),1.f),0.f.xxxx,1.f.xxxx));
+    
+    imageStore(writeImages[RENDERED],samplep,vec4(mix(vec3(coloring.xyz/max(coloring.w,1.f)*diffused.xyz)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.www),1.f));
+    //imageStore(writeImages[RENDERED],samplep,vec4(vec3(coloring.xyz/max(coloring.w,1.f)*diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
 };

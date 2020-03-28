@@ -233,14 +233,9 @@ namespace jvi {
             const auto& rtxp = this->rayTracingProperties;
             const auto& renderArea = this->context->refScissor();
 
-            this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // copy resampled data into ray tracing samples
-            for (uint32_t i = 0; i < 8; i++) {
-                rayTraceCommand.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
-                    this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
-                ) });
-            };
             rayTraceCommand.copyBuffer(this->rawSBTBuffer, this->gpuSBTBuffer, { vk::BufferCopy(this->rawSBTBuffer.offset(),this->gpuSBTBuffer.offset(),this->rayTraceInfo.groupCount() * rtxp.shaderGroupHandleSize) });
 
             // Clear NO anymore needed data
@@ -299,6 +294,14 @@ namespace jvi {
             vkt::commandBarrier(resampleCommand);
 
             // 
+            for (uint32_t i = 0; i < 8; i++) {
+                resampleCommand.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
+                    this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
+                ) });
+            };
+            vkt::commandBarrier(resampleCommand);
+
+            // 
             return uTHIS;
         };
 
@@ -332,6 +335,9 @@ namespace jvi {
             this->cmdbuf = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread));
             this->cmdbuf.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
 
+            // 
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+
             // create sampling points
             this->materials->copyBuffers(this->cmdbuf)->createDescriptorSet();
             auto I = 0u; this->node->copyMeta(this->cmdbuf)->createDescriptorSet();
@@ -349,12 +355,12 @@ namespace jvi {
 
             // first-step rendering
             this->setupBackgroundPipeline()->setupSkyboxedCommand(this->cmdbuf);
-            for (auto& M : this->node->meshes) { M->instanceCount = 0u; };
+            for (auto& M : this->node->meshes) { M->mapCount = 0u; };
 
             // draw concurrently
             for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
                 const auto I = this->node->rawInstances[i].instanceId;
-                this->node->meshes[I]->increaseInstanceCount(i);
+                this->node->meshes[I]->linkWithInstance(i);
             };
 
             // make covergence (depth) map
@@ -373,11 +379,11 @@ namespace jvi {
             vkt::commandBarrier(this->cmdbuf);
 
             // 
-            this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
             this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // FIXED FINALLY 
+            this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
             //this->saveDiffuseColor(this->cmdbuf);
 
-            //
+            // 
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 

@@ -84,7 +84,7 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
 
         }
     };
-*/
+    */
 
     //ivec2 txd = ivec2(gl_FragCoord.xy), txs = imageSize(writeImages[DIFFUSED]);
     //const vec4 dEmi = imageLoad(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1));
