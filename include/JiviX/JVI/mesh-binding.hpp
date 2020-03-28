@@ -119,12 +119,15 @@ namespace jvi {
             };
 
             // FOR CREATE! 
-            this->bottomDataCreate[0u].geometryType = this->buildGTemp.geometryType;
-            this->bottomDataCreate[0u].maxVertexCount = static_cast<uint32_t>(MaxPrimitiveCount * 3u);
-            this->bottomDataCreate[0u].maxPrimitiveCount = static_cast<uint32_t>(MaxPrimitiveCount);
-            this->bottomDataCreate[0u].indexType = VK_INDEX_TYPE_NONE_KHR;
-            this->bottomDataCreate[0u].vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-            this->bottomDataCreate[0u].allowsTransforms = true;
+            this->bottomDataCreate.resize(MaxGeometry);
+            for (auto& BC : this->bottomDataCreate) {
+                BC.geometryType = this->buildGTemp.geometryType;
+                BC.maxVertexCount = static_cast<uint32_t>(MaxPrimitiveCount * 3u);
+                BC.maxPrimitiveCount = static_cast<uint32_t>(MaxPrimitiveCount);
+                BC.indexType = VK_INDEX_TYPE_NONE_KHR;
+                BC.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+                BC.allowsTransforms = true;
+            };
 
             // FOR CREATE! 
             this->bottomCreate.maxGeometryCount = this->bottomDataCreate.size();
@@ -280,10 +283,15 @@ namespace jvi {
                 // 
                 this->offsetTemp.primitiveOffset = bindingBuffer.offset() + attribute->offset; // !!WARNING!!
                 this->buildGTemp.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-                this->buildGTemp.geometry.triangles.vertexFormat = this->bottomDataCreate[0].vertexFormat = attribute->format;
+                this->buildGTemp.geometry.triangles.vertexFormat = attribute->format;
                 this->buildGTemp.geometry.triangles.vertexStride = bindingData.stride;
                 this->buildGTemp.geometry.triangles.vertexData = bindingBuffer;
                 this->buildGTemp.flags = { .eOpaque = 1 };
+
+                // 
+                for (auto& CR : this->bottomDataCreate) {
+                    CR.vertexFormat = attribute->format;
+                };
 
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
                 if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->buildGTemp.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
@@ -520,10 +528,10 @@ namespace jvi {
 
         // 
         //vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE;
+        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE, MaxGeometry = 8u;
 
         // 
-        uint32_t primitiveCount = 1u, geometryCount = 1u, mapCount = 0u;
+        uint32_t primitiveCount = 0u, geometryCount = 0u, mapCount = 0u;
 
         // 
         std::array<vkt::Vector<uint8_t>, 2> bindings = {};
