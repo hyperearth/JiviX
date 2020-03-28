@@ -312,6 +312,7 @@ namespace jvi {
         // TODO: Fix Quads support with Indices
         // WARNING: Quads needs only for specific games
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
+            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
             if (this->input) {
                 if (this->input->needsQuads) { // TODO: WARNING!! Attribute Indices May Broken!
                     this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
@@ -331,6 +332,7 @@ namespace jvi {
 
         // TODO: Fix Quads support with Indices
         virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
