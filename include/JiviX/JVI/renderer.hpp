@@ -347,7 +347,7 @@ namespace jvi {
             vkt::commandBarrier(this->cmdbuf);
             I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); };
             vkt::commandBarrier(this->cmdbuf);
-            I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u)); };
+            I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u))->createRasterizePipeline(); };
             vkt::commandBarrier(this->cmdbuf);
 
             // setup instanced and material data
@@ -365,23 +365,23 @@ namespace jvi {
 
             // make covergence (depth) map
             this->cmdbuf.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, vk::ClearDepthStencilValue(1.0f, 0), (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
-            I = 0u; for (auto& M : this->node->meshes) {
-                M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u), true);
-                //M->createRasterizePipeline()->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
+            for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
+                const auto& I = this->node->rawInstances[i].instanceId;
+                this->node->meshes[I]->createRasterizeCommand(this->cmdbuf, glm::uvec4(I, i, 0u, 0u), true);
             };
             vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->cmdbuf.clearDepthStencilImage(this->context->depthImage, vk::ImageLayout::eGeneral, vk::ClearDepthStencilValue(1.0f, 0), (vk::ImageSubresourceRange&)this->context->depthImage.subresourceRange);
-            I = 0u; for (auto& M : this->node->meshes) {
-                M->createRasterizeCommand(this->cmdbuf, glm::uvec4(I++, 0u, 0u, 0u));
+            for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
+                const auto& I = this->node->rawInstances[i].instanceId;
+                this->node->meshes[I]->createRasterizeCommand(this->cmdbuf, glm::uvec4(I, i, 0u, 0u));
             };
             vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // FIXED FINALLY 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
-            //this->saveDiffuseColor(this->cmdbuf);
 
             // 
             const auto& viewport = this->context->refViewport();

@@ -22,7 +22,8 @@ void main() {
     // Full Instance ID of Node (BY GEOMETRY INSTATNCE!!)
     const uint nodeMeshID = drawInfo.data.x; // Mesh ID from Node Mesh List (because indexing)
     const uint geometryInstanceID = gl_InstanceIndex; // TODO: Using In Ray Tracing (and Query) shaders!
-    const uint globalInstanceID = meshIDs[nonuniformEXT(nodeMeshID)].instanceID[geometryInstanceID];
+    const uint globalInstanceID = drawInfo.data.y; // Global Instance ID from Node instance list (raster draw-call)
+    //const uint globalInstanceID = meshIDs[nonuniformEXT(nodeMeshID)].instanceID[geometryInstanceID];
 
     // 
     const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
