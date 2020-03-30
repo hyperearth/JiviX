@@ -575,7 +575,7 @@ int main() {
     auto finalPipeline = device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo);
 
 	// 
-	int currSemaphore = -1;
+    int64_t currSemaphore = -1;
 	uint32_t currentBuffer = 0u;
     uint32_t frameCount = 0u;
 
@@ -601,13 +601,10 @@ int main() {
         glfwPollEvents();
 
         // 
-        auto n_semaphore = currSemaphore;
-        auto c_semaphore = int32_t((size_t(currSemaphore) + 1ull) % framebuffers.size());
-        currSemaphore = c_semaphore;
-
-        // acquire next image where will rendered (and get semaphore when will presented finally)
-        n_semaphore = (n_semaphore >= 0 ? n_semaphore : static_cast<int32_t>(framebuffers.size()) - 1);
-        device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[n_semaphore].semaphore, nullptr, &currentBuffer);
+        int64_t n_semaphore = currSemaphore, c_semaphore = (currSemaphore + 1) % framebuffers.size(); // Next Semaphore
+        currSemaphore = (c_semaphore = c_semaphore >= 0 ? c_semaphore : int64_t(framebuffers.size()) + c_semaphore); // Current Semaphore
+                        (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
+        device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
         //device.signalSemaphore(vk::SemaphoreSignalInfo().setSemaphore(framebuffers[n_semaphore].semaphore).setValue(1u));
 
         { // submit rendering (and wait presentation in device)
@@ -629,13 +626,21 @@ int main() {
             };
 
             // Create render submission 
-            std::vector<vk::Semaphore> waitSemaphores = { framebuffers[n_semaphore].semaphore }, signalSemaphores = { framebuffers[c_semaphore].semaphore };
-            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
-            std::array<vk::CommandBuffer, 2> XPEHb = { renderer->refCommandBuffer(), commandBuffer };
+            std::vector<vk::Semaphore> 
+                  waitSemaphores = { framebuffers[c_semaphore].presentSemaphore },
+                signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
+
+            // 
+            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR | vk::PipelineStageFlagBits::eColorAttachmentOutput };
+            std::vector<vk::CommandBuffer> XPEHb = { renderer->refCommandBuffer(), commandBuffer };
+
+            // 
+            vk::TimelineSemaphoreSubmitInfo timelineSubmit = {};
+            timelineSubmit.setSignalSemaphoreValueCount(1).setPSignalSemaphoreValues(reinterpret_cast<uint64_t*>(&n_semaphore));
+            timelineSubmit.setWaitSemaphoreValueCount(1).setPWaitSemaphoreValues(reinterpret_cast<uint64_t*>(&n_semaphore));
 
             // Submit command once
-            context->getThread()->submitCmd({ renderer->refCommandBuffer(), commandBuffer }, vk::SubmitInfo()
-                .setPCommandBuffers(XPEHb.data()).setCommandBufferCount(static_cast<uint32_t>(XPEHb.size()))
+            context->getThread()->submitCmd(XPEHb, vk::SubmitInfo()
                 .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())));
 
@@ -650,9 +655,12 @@ int main() {
             context->setDrawCount(frameCount++);
         };
 
+        // 
+        std::vector<vk::Semaphore> waitSemaphoes = { framebuffers[c_semaphore].drawSemaphore };
+
         // present for displaying of this image
         vk::Queue(queue).presentKHR(vk::PresentInfoKHR(
-            1, &framebuffers[c_semaphore].semaphore,
+            waitSemaphoes.size(), waitSemaphoes.data(), 
             1, &swapchain,
             &currentBuffer, nullptr
         ));
