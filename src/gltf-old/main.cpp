@@ -321,7 +321,7 @@ int main() {
 
         // 
         context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
-            vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = image->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = reinterpret_cast<const vkh::VkImageSubresourceRange&>(image.getImageSubresourceRange()) });
+            image.transfer(cmd);
 
             auto buffer = imageBuf.has() ? imageBuf : buffersViews[img.bufferView];
             cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{

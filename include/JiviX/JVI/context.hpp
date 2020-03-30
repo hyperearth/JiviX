@@ -315,11 +315,12 @@ namespace jvi {
 
             // 
             thread->submitOnce([&,this](vk::CommandBuffer& cmd) {
-                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
+                //vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
+                depthImage.transfer(cmd);
                 for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
-                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->frameBfImages[i]->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->frameBfImages[i]) });
-                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip0Images[i]->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->smFlip0Images[i]) });
-                    vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = this->smFlip1Images[i]->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(this->smFlip1Images[i]) });
+                    this->frameBfImages[i].transfer(cmd);
+                    this->smFlip0Images[i].transfer(cmd);
+                    this->smFlip1Images[i].transfer(cmd);
                     cmd.clearColorImage(this->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
                     cmd.clearColorImage(this->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
                     cmd.clearColorImage(this->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
