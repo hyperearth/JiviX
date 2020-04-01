@@ -80,7 +80,7 @@ namespace jvi {
             };
 
             // 
-            for (uint32_t i = 0; i < 2; i++) {
+            for (uint32_t i = 0; i < this->bindings.size(); i++) {
             //for (uint32_t i = 0; i < 1; i++) {
                 this->bindings[i] = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = MaxPrimitiveCount * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,
@@ -303,9 +303,10 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
-            buildCommand.copyBuffer(this->rawAttributes , this->gpuAttributes , { vk::BufferCopy{ this->rawAttributes .offset(), this->gpuAttributes .offset(), this->gpuAttributes .range() } });
-            buildCommand.copyBuffer(this->rawBindings   , this->gpuBindings   , { vk::BufferCopy{ this->rawBindings   .offset(), this->gpuBindings   .offset(), this->gpuBindings   .range() } });
+            buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
+            buildCommand.copyBuffer(this->rawBindings, this->gpuBindings, { vk::BufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
+            if (this->input) { this->input->copyMeta(buildCommand); };
             return uTHIS;
         };
 
@@ -320,7 +321,7 @@ namespace jvi {
                     this->manifestIndex(vk::IndexType::eUint32);
                     this->setPrimitiveCount(vkt::tiled(this->input->currentUnitCount,4ull)<<1u); // Quad Vertices, But Primitives Twice!
                 };
-                this->input->createRasterizePipeline()->buildGeometry(this->bindings[0u], buildCommand, meshData);
+                this->input->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], buildCommand);
                 this->setIndexCount(this->input->currentUnitCount);
 
                 // 
@@ -374,7 +375,8 @@ namespace jvi {
 
         // TODO: Fix Quads support with Indices
         virtual uPTR(MeshBinding) bindMeshInput(const vkt::uni_ptr<MeshInput>& input = {}) {
-            (this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
+            this->input = input; // Correct! 
+            //(this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
             //this->input->linkCounterBuffer(this->offsetIndirect);
             return uTHIS;
         };
