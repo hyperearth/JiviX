@@ -164,6 +164,15 @@ namespace jvi {
             };
 
             // 
+            this->pipelineInfo.colorBlendAttachmentStates[3] = vkh::VkPipelineColorBlendAttachmentState{
+                .blendEnable = true,
+                .srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+                .dstColorBlendFactor = VK_BLEND_FACTOR_DST_ALPHA,
+                .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+                .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+            };
+
+            // 
             this->pipelineInfo.stages = this->resampStages;
             this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{ .depthTestEnable = false, .depthWriteEnable = false };
             this->pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;

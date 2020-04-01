@@ -247,8 +247,8 @@ void main() { // Hi-DPI adaptation
         if (I == 1) { // Titanic OS
             const vec4 speculSample = 0.f.xxxx;//imageLoad(writeImages[REFLECTS], ivec2(lanQ));
             //imageStore(writeImages[REFLECTS], ivec2(lanQ), vec4(gSignal.xyz, speculSample.y));
-            
-            imageStore(writeImages[REFLECTS], ivec2(lanQ), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),clamp(gSignal,0.f.xxxx,65536.f.xxxx).xyz,speculSample.w < 0.9999f ? 1.f : clamp(speculSample.y,0.f,1.f)*0.3333f+0.3333f),frefl));
+            //imageStore(writeImages[REFLECTS], ivec2(lanQ), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),clamp(gSignal,0.f.xxxx,1.f.xxxx).xyz,speculSample.w < 0.9999f ? 1.f : clamp(speculSample.y,0.f,1.f)*0.3333f+0.3333f),frefl));
+              imageStore(writeImages[REFLECTS], ivec2(lanQ), vec4(mix(speculSample.xyz/max(speculSample.w,1.f),clamp(gSignal,0.f.xxxx,1.f.xxxx).xyz,speculSample.w < 0.9999f ? 1.f : clamp(speculSample.y,0.f,1.f)*0.3333f+0.3333f),1.f));
         };
 
         subgroupBarrier();

@@ -117,6 +117,22 @@ void main() { // TODO: explicit sampling
     const vec4 specular = texelFetch(frameBuffers[SPECULAR],samplep,0);
     const vec4 diffused = texelFetch(frameBuffers[COLORING],samplep,0);
 
+    // 
+    const vec4 colourSample = texelFetch(frameBuffers[COLORING],samplep,0);
+    const vec4 normalSample = texelFetch(frameBuffers[NORMALED],samplep,0);
+    const vec4 worldsSample = texelFetch(frameBuffers[SAMPLEPT],samplep,0);
+    const vec4 emitedSample = texelFetch(frameBuffers[EMISSION],samplep,0);
+    const vec4 speculSample = texelFetch(frameBuffers[SPECULAR],samplep,0);
+    const vec4 geompsSample = texelFetch(frameBuffers[POSITION],samplep,0);
+    const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
+
+    // 
+    vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
+    vec3 origin = worldsSample.xyz;
+    vec3 normal = normalSample.xyz;
+    vec3 geonrm = texelFetch(frameBuffers[GEONORML],samplep,0).xyz;
+
+
     int denDepth = 3;
     if (specular.y > 0.3333f) denDepth = 5;
     if (specular.y > 0.6666f) denDepth = 7;
@@ -134,12 +150,14 @@ void main() { // TODO: explicit sampling
     vec4 newdpixel = vec4((diffused.xyz/diffused.w)*(coloring.xyz/coloring.w),1.f);
 
     // 
+    const float inIOR = 1.f, outIOR = 1.6666f;
+    const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f,speculSample.z);
+
+    // 
     vec4 nwsampled = newdpixel;//resampled+clamp(newdpixel,0.f.xxxx,1.f.xxxx);
     setColor(samplep,nwsampled);
 
     // Final Result Rendering
     //imageStore(writeImages[RENDERED],samplep,clamp(vec4(mix(nwsampled.xyz/max(nwsampled.w,1.f),reflects.xyz,reflects.w)+max(emission.xyz,0.f.xxx),1.f),0.f.xxxx,1.f.xxxx));
-    
-    imageStore(writeImages[RENDERED],samplep,vec4(mix(vec3(coloring.xyz/max(coloring.w,1.f)*diffused.xyz)+max(emission.xyz,0.f.xxx),reflects.xyz,reflects.www),1.f));
-    //imageStore(writeImages[RENDERED],samplep,vec4(vec3(coloring.xyz/max(coloring.w,1.f)*diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
+      imageStore(writeImages[RENDERED],samplep,vec4(mix(vec3(coloring.xyz/max(coloring.w,1.f)*diffused.xyz)+max(emission.xyz,0.f.xxx),reflects.xyz/max(reflects.w,1.f),frefl),1.f));
 };
