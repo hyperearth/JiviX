@@ -1,10 +1,10 @@
 #version 460 core // #
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
-#extension GL_EXT_ray_query            : require
+//#extension GL_EXT_ray_query            : require
 #include "./driver.glsl"
 
-layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
+//layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 
 // 
 layout (location = 0) in vec4 fPosition;

@@ -1,6 +1,6 @@
 #version 460 core // #
 #extension GL_GOOGLE_include_directive  : require
-
+#define TRANSFORM_FEEDBACK
 #include "./driver.glsl"
 
 layout (triangles) in;
@@ -26,8 +26,8 @@ void main() {
     const vec4 dp1 = gPosition[1] - gPosition[0], dp2 = gPosition[2] - gPosition[0];
     const vec4 tx1 = gTexcoord[1] - gTexcoord[0], tx2 = gTexcoord[2] - gTexcoord[0];
     const vec3 normal = normalize(cross(dp1.xyz, dp2.xyz));
-    const vec2 size  = textureSize(frameBuffers[POSITION], 0);
-    const vec2 pixelShift = (staticRandom2() - 0.5f) / size;
+    //const vec2 size  = textureSize(frameBuffers[POSITION], 0);
+    //const vec2 pixelShift = (staticRandom2() - 0.5f) / size;
 
     [[unroll]] for (uint i=0u;i<3u;i++) { // 
         gl_Position = gl_in[i].gl_Position;
@@ -42,10 +42,10 @@ void main() {
         const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
         const vec3 tangent = (dp1.xyz * tx2.yyy - dp2.xyz * tx1.yyy) * coef;
         const vec3 binorml = (dp1.xyz * tx2.xxx - dp2.xyz * tx1.xxx) * coef;
-        if (!hasNormal (meshInfo[drawInfo.data.x])) { fNormal  = vec4(normal, 0.f); };
+        if (!hasNormal()) { fNormal  = vec4(normal, 0.f); };
 
         // 
-        if (!hasTangent(meshInfo[drawInfo.data.x])) { 
+        if (!hasTangent()) { 
             fTangent .xyz = tangent; //- dot(fNormal.xyz,tangent.xyz)*fNormal.xyz;
             fBinormal.xyz = binorml; //- dot(fNormal.xyz,binorml.xyz)*fNormal.xyz;
         } else {

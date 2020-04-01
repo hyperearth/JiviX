@@ -22,4 +22,9 @@
 
 precision highp float;
 precision highp int;
+
+#ifdef TRANSFORM_FEEDBACK
+#include "./tf.glsl"
+#else
 #include "./index.glsl"
+#endif
