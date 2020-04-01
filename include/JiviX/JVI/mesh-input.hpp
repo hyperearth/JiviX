@@ -166,15 +166,16 @@ namespace jvi {
                 buildCommand.pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
 
                 // No need more indices... (SSBO used instead)
-                buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
+                //buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
 
-                //if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
-                //    const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
-                //    buildCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
-                //    buildCommand.drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
-                //} else { // VAL Mode
-                //    buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
-                //};
+                // 
+                if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
+                    const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
+                    buildCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                    buildCommand.drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
+                } else { // VAL Mode
+                    buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
+                };
 
                 buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand.endRenderPass();

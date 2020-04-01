@@ -20,9 +20,9 @@ layout (location = 3) out vec4 gTangent;
 void main() { // Cross-Lake
     const int IdxType = int(drawInfo.data[1])-1;
     uint32_t idx = uint32_t(gl_VertexIndex.x); // Default Index of Vertice
-    if (IdxType == IndexU8 ) { idx = load_u8 (idx*1u, 0u, true); };
-    if (IdxType == IndexU16) { idx = load_u16(idx*2u, 0u, true); };
-    if (IdxType == IndexU32) { idx = load_u32(idx*4u, 0u, true); };
+    //if (IdxType == IndexU8 ) { idx = load_u8 (idx*1u, 0u, true); };
+    //if (IdxType == IndexU16) { idx = load_u16(idx*2u, 0u, true); };
+    //if (IdxType == IndexU32) { idx = load_u32(idx*4u, 0u, true); };
 
     // Use Apple-Like Attributes
     const vec4 iPosition = get_vec4(idx, 0u);
