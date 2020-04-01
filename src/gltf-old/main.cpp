@@ -224,12 +224,12 @@ int main() {
     std::string wrn = "";
 
     // 
-    const float unitScale = 100.f;
-    const float unitHeight = -0.f;
+    const float unitScale = 1.f;
+    const float unitHeight = -32.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     // 
@@ -424,13 +424,13 @@ int main() {
                     const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
                     // 
-                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
-                    vector.rangeInfo() = stride * attribute.count;
+                    //auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
+                    //auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                    //vector.rangeInfo() = stride * attribute.count;
 
                     //
-                    //auto vector = buffersViews[attribute.bufferView];
-                    //auto stride = attribute.ByteStride(BV);
+                    auto vector = buffersViews[attribute.bufferView];
+                    auto stride = attribute.ByteStride(BV);
 
                     // 
                     uint32_t location = 0u;
@@ -448,7 +448,7 @@ int main() {
 
                     // 
                     mInput->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
-                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = 0u });
+                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = uint32_t(attribute.byteOffset) });
                 }
                 else if (NM[i] == "TANGENT") { // STUB for Tangents
                     auto& attribute = primitive.attributes.find("NORMAL") != primitive.attributes.end() ? model.accessors[primitive.attributes.find("NORMAL")->second] : model.accessors[primitive.attributes.find("POSITION")->second];
@@ -456,13 +456,13 @@ int main() {
                     const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
                     // 
-                    auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                    auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
-                    vector.rangeInfo() = stride * attribute.count;
+                    //auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
+                    //auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                    //vector.rangeInfo() = stride * attribute.count;
 
                     //
-                    //auto vector = buffersViews[attribute.bufferView];
-                    //auto stride = attribute.ByteStride(BV);
+                    auto vector = buffersViews[attribute.bufferView];
+                    auto stride = attribute.ByteStride(BV);
 
                     // 
                     auto type = VK_FORMAT_R32G32B32_SFLOAT;
@@ -473,7 +473,7 @@ int main() {
 
                     // 
                     mInput->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
-                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = 0u }, false);
+                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = uint32_t(attribute.byteOffset) }, false);
                 };
             };
 
