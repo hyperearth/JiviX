@@ -227,7 +227,7 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     };
 
 /* //DEBUG!
-#ifdef CONSERVATIVE
+#ifndef CONSERVATIVE
     if (colored.w > 0.001f && diffuseColor.w > 0.001f) {
         const vec3 cameraSample = vec4(fPosition.xyz,1.f)*modelview;
         vec3 origin = vec3(fPosition.xyz), raydir = (modelview * normalize(cameraSample.xyz)).xyz;
@@ -244,8 +244,8 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
 
 // IT'S REPLACEMENT OF SSLR (i.e. ASR, "Almost Screen Reflection")
 // Anti-Aliasing and Transparency TBA
-#ifdef CONSERVATIVE // Full Version of Ray Tracing 
-    if (/*colored.w > 0.001f &&*/ diffuseColor.w > 0.001f) {
+#ifndef CONSERVATIVE // Full Version of Ray Tracing 
+    if (colored.w > 0.001f && diffuseColor.w > 0.001f) {
         const vec3 cameraSample = vec4(fPosition.xyz,1.f)*modelview;
         vec3 forigin = vec3(fPosition.xyz), fraydir = (modelview * normalize(cameraSample.xyz)).xyz;
         vec3 fnormal = normalize(gNormal.xyz);//(modelview * normalize(gNormal.xyz)).xyz;
@@ -264,7 +264,7 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
             vec4 gEnergy = vec4(1.f.xxxx), gSignal = vec4(0.f.xxx,1.f);
             if ( I == 0 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
 
-            for (uint i=0;i<2;i++) { // 
+            for (uint i=0;i<1;i++) { // 
                 XHIT result = traceRays(origin, raydir, normal, 10000.f);
 
                 // 
