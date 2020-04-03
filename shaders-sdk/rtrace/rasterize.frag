@@ -254,7 +254,7 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
             vec4 gEnergy = vec4(1.f.xxxx), gSignal = vec4(0.f.xxx,1.f);
             if ( I == 0 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
 
-            for (uint i=0;i<1;i++) { // 
+            for (uint i=0;i<2;i++) { // 
                 XHIT result = traceRays(origin, raydir, normal, 10000.f);
 
                 // 

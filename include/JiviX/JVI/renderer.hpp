@@ -205,7 +205,7 @@ namespace jvi {
             };
 
             // 
-            this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // 
             for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
@@ -395,14 +395,6 @@ namespace jvi {
             // 
             this->setupRayTracingPipeline()->setupRayTraceCommand(this->cmdbuf); // FIXED FINALLY 
             this->setupResamplingPipeline()->setupResampleCommand(this->cmdbuf);
-
-            // 
-            //for (uint32_t i = 0; i < 8; i++) {
-            //    this->cmdbuf.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
-            //        this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
-            //    ) });
-            //};
-            //vkt::commandBarrier(this->cmdbuf);
 
             // 
             this->cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});

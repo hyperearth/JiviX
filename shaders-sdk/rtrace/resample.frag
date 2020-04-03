@@ -26,20 +26,20 @@ const vec2 shift[9] = {
 };
 
 
-bool checkCorrect(in vec4 positions, in vec2 i2fxm) {
+bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
     for (int i=0;i<9;i++) {
         const vec2 offt = shift[i];
 
-        vec4 almostpos = vec4(texture(frameBuffers[POSITION],i2fxm+offt).xyz,1.f), worldspos = almostpos; // get world space from pixel
-        vec4 normaling = vec4(texture(frameBuffers[NORMALEF],i2fxm+offt).xyz,1.f);
-        almostpos = vec4(world2screen(almostpos.xyz),1.f);//, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
+        vec4 worldspos = vec4(texture(frameBuffers[POSITION],i2fxm+offt).xyz,1.f);
+        vec4 almostpos = vec4(world2screen(worldspos.xyz),1.f);
+        //almostpos.y *= -1.f;
 
-        if (abs(almostpos.z-positions.z) < 0.0001f && dot(gNormal.xyz,normaling.xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f) {
+        if (abs(almostpos.z-screenSample.z) < 0.0001f && length(almostpos.xy-screenSample.xy) < 4.f && dot(gNormal.xyz,texture(frameBuffers[NORMALEF],i2fxm+offt).xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f) {
             return true;
         };
     };
     return false;
-}
+};
 
 // WE NEEDS: 
 // - GL_NV_shader_atomic_float

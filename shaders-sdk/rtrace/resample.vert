@@ -34,7 +34,7 @@ void main() {
         gl_Position = vec4(world2screen(positions.xyz),1.f), gl_Position.y *= -1.f, gl_PointSize = 1.f;
         gColor = clamp(diffcolor, 0.001f, 10000000.f);
         gSpecular = vec4(speccolor.xyz,1.f);
-        gSample = vec4(vec3(gl_Position.x,gl_Position.y*-1.f,gl_Position.z),1.f);
+        gSample = vec4(gl_Position.xyz,1.f), gSample.y *= -1.f;
         gNormal = vec4(normaling.xyz,1.f);
         gRescolor = msaacolor;
         wPosition = positions;
