@@ -20,9 +20,32 @@ vec4 shiftByPixel(in vec4 wpos, inout uvec2 seed){
     return vec4(divW(vec4(sspos * modelview, 1.f) * projection), 1.f);
 };
 
+// 
+vec4 getIndirect(in ivec2 map){
+    const ivec2 size = imageSize(writeImages[DIFFUSED]);
+    //vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
+    //return samples;
+    //return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1));
+    return texelFetch(frameBuffers[RAYQUERY],ivec2(map.x,size.y-map.y-1),0);
+};
+
 
 // TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
+    uvec2 lanQ = gl_LaunchIDEXT.xy;
+    launchSize = gl_LaunchSizeEXT.xy;
+
+    { // Store for Diffuse
+        const vec4 directSample = getIndirect(ivec2(lanQ));
+        const vec4 locateSample = 0.f.xxxx;//imageLoad(writeImages[SAMPLING], ivec2(lanQ));
+        const vec4 speculSample = 0.f.xxxx;//imageLoad(writeImages[REFLECTS], ivec2(lanQ));
+        imageStore(writeImages[DIFFUSED], ivec2(lanQ), directSample);
+        imageStore(writeImages[REFLECTS], ivec2(lanQ), speculSample);
+    };
+
+    subgroupBarrier();
+
+/*
     ShadowsRay.position  = PrimaryRay.position  = vec4(0.f);
     ShadowsRay.normals   = PrimaryRay.normals   = vec4(0.f);
     ShadowsRay.fdata.xyz = PrimaryRay.fdata.xyz = vec3(0.f,0.f,10000.f); //gl_HitTEXT
@@ -253,4 +276,5 @@ void main() { // Hi-DPI adaptation
 
         subgroupBarrier();
     };
+    */
 };

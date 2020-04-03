@@ -1,10 +1,12 @@
 #version 460 core // #
 #extension GL_GOOGLE_include_directive  : require
+#extension GL_EXT_ray_query             : require
 #define TRANSFORM_FEEDBACK
 #include "./driver.glsl"
 
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
+layout ( binding = 4, set = 0 ) uniform accelerationStructureEXT Scene;
 
 // 
 layout (location = 0) in vec4 gPosition[];

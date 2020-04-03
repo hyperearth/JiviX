@@ -13,6 +13,7 @@ vec4 getIndirect(in ivec2 map){
     //vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
     //return samples;
     return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1));
+    //return texelFetch(frameBuffers[RAYQUERY],ivec2(map),0);
 };
 
 vec4 getReflection(in ivec2 map){
@@ -132,12 +133,13 @@ void main() { // TODO: explicit sampling
     vec3 normal = normalSample.xyz;
     vec3 geonrm = texelFetch(frameBuffers[GEONORML],samplep,0).xyz;
 
-
+    // 
     int denDepth = 3;
     if (specular.y > 0.3333f) denDepth = 5;
     if (specular.y > 0.6666f) denDepth = 7;
     if (specular.y > 0.9999f) denDepth = 9;
 
+    // 
     vec4 coloring = getDenoised(samplep,false, 9);
     vec4 reflects = getDenoised(samplep, true, denDepth);
     if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,0.f); };

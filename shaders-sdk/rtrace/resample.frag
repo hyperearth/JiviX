@@ -10,7 +10,7 @@ layout (location = 2) in vec4 gNormal;
 layout (location = 3) in vec4 wPosition;
 layout (location = 4) in vec4 gSpecular;
 layout (location = 5) in vec4 gRescolor;
-
+ 
 //gRescolor
 layout (location = DIFFUSED) out vec4 oDiffused;
 layout (location = SAMPLING) out vec4 oSampling;

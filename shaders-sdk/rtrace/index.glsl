@@ -1,23 +1,26 @@
 // #
 // Re-Sampling
-#define DIFFUSED 0
-#define SAMPLING 1
-#define NORMALED 2
-#define REFLECTS 3
-#define RESCOLOR 4
-#define RENDERED 5
+#define DIFFUSED 0 // Indrect diffuse
+#define SAMPLING 1 // Positions
+#define NORMALED 2 // Mapped normals
+#define REFLECTS 3 // Specular color
+#define RESCOLOR 4 // ???
+#define RENDERED 5 // Denoised
 //#define DIFFUSED_FLIP1 0//2
 //#define SAMPLING_FLIP1 1//3
 
 // Rasterization or First Step
-#define COLORING 0
-#define POSITION 1
-#define NORMALED 2
-#define TANGENTS 3
-#define EMISSION 4
-#define SPECULAR 5
-#define GEONORML 6
-#define SAMPLEPT 7
+#define COLORING 0 // Diffuse color
+#define POSITION 1 // Noisy positions
+//#define NORMALED 2 // Normals (Mapped), REPLACED BY Ray Queries
+#define TANGENTS 3 // Tangents
+#define EMISSION 4 // Emissive 
+#define SPECULAR 5 // PBR Data
+#define GEONORML 6 // Not mapped
+#define SAMPLEPT 7 // Conservative 
+
+
+#define RAYQUERY 2
 
 // TODO: Materials
 struct RayPayloadData {
