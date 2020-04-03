@@ -63,7 +63,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
         rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT,
             0xFF, forigin + faceforward(normal.xyz,-raydir.xyz,normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
 
-        while((I++) < 1) {
+        while((I++) < 2) {
             bool complete = !rayQueryProceedEXT(rayQuery);
 
             // Full Instance ID of Node (BY GEOMETRY INSTATNCE!!)
