@@ -17,11 +17,9 @@ layout (location = 5) flat in uvec4 uData;
 // 
 layout (location = COLORING) out vec4 colored;
 layout (location = POSITION) out vec4 samples;
-layout (location = NORMALED) out vec4 normals;
-//layout (location = TANGENTS) out vec4 tangent;
+layout (location = NORMALEF) out vec4 normals;
 layout (location = EMISSION) out vec4 emission;
 layout (location = SPECULAR) out vec4 specular;
-//layout (location = GEONORML) out vec4 geonormal;
 layout (location = SAMPLEPT) out vec4 gsamplept; 
 
 layout (location = RFLVALUE) out vec4 reflval;
@@ -197,32 +195,24 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     TBN[2] = gNormal;
     
     // 
-    reflval = vec4(gSkyColor, 0.f);
-    diffuse = vec4(1.f.xxx, 0.f);
-    
-    // 
     if (diffuseColor.w > 0.001f) {
 #ifndef CONSERVATIVE
-        //samples = 0.f.xxxx;
         colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
         gsamplept = vec4(fPosition.xyz,1.f); // used for ray-start position
         emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
         specular = vec4(specularColor.xyz*specularColor.w,1.f);
-#else
-        samples = vec4(fPosition.xyz,1.f); // covered center of pixel (used for resampling tests)
 
         // Initial
         reflval = vec4(gSkyColor, 1.f);
         diffuse = vec4(1.f.xxx, 1.f);
-        normals = vec4(gNormal.xyz,1.f);
+        normals = vec4(gNormal.xyz, 1.f);
+#else
+        // For Reprojection (COVER)
+        samples = vec4(fPosition.xyz,1.f);
+        normals = vec4(gNormal.xyz, 1.f);
 #endif
         gl_FragDepth = gl_FragCoord.z;
     } else {
-        colored = 0.f.xxxx;
-        specular = 0.f.xxxx;
-        emission = 0.f.xxxx;
-        samples = vec4(0.f.xxx,0.f.x);
-        gsamplept = vec4(0.f.xxx,0.f.x);
         gl_FragDepth = 1.f;
     };
 

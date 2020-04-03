@@ -21,9 +21,9 @@ void main() {
     const ivec2 f2fx = ivec2(gl_VertexIndex, gl_InstanceIndex);
     const ivec2 i2fx = ivec2(size.x,size.y-f2fx.y-1);
 
-    // 
-    const vec4 positions = imageLoad(writeImages[SAMPLING],f2fx); // from previous frame 
-    const vec4 diffcolor = imageLoad(writeImages[DIFFUSED],f2fx); // 
+    // FROM PREVIOUS FRAME!!
+    const vec4 positions = imageLoad(writeImages[SAMPLING],f2fx);
+    const vec4 diffcolor = imageLoad(writeImages[DIFFUSED],f2fx);
     const vec4 normaling = imageLoad(writeImages[NORMALED],f2fx);
     const vec4 speccolor = imageLoad(writeImages[REFLECTS],f2fx);
     const vec4 msaacolor = imageLoad(writeImages[RESCOLOR],f2fx);

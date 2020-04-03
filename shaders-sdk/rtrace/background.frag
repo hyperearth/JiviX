@@ -8,7 +8,7 @@ layout ( location = 1 ) in vec4 position;
 
 layout (location = COLORING) out vec4 colored;
 layout (location = POSITION) out vec4 samples;
-layout (location = NORMALED) out vec4 normals;
+layout (location = NORMALEF) out vec4 normals;
 layout (location = SAMPLEPT) out vec4 samplep;
 layout (location = RAYQUERY) out vec4 diffuse; 
 layout (location = RFLVALUE) out vec4 reflval;

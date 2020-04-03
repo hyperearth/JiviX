@@ -10,10 +10,7 @@ layout (local_size_x = 16u, local_size_y = 12u) in;
 // 
 vec4 getIndirect(in ivec2 map){
     const ivec2 size = imageSize(writeImages[DIFFUSED]);
-    //vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
-    //return samples;
     return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1));
-    //return texelFetch(frameBuffers[RAYQUERY],ivec2(map),0);
 };
 
 vec4 getReflection(in ivec2 map){
@@ -22,13 +19,11 @@ vec4 getReflection(in ivec2 map){
 };
 
 vec4 getNormal(in ivec2 coord){
-    vec4 normals = vec4(texelFetch(frameBuffers[NORMALED],ivec2(coord),0).xyz, 0.f);
-    return normals;
+    return vec4(texelFetch(frameBuffers[NORMALEF],ivec2(coord),0).xyz, 0.f);
 };
 
 vec4 getPosition(in ivec2 coord){
-    vec4 position = vec4(texelFetch(frameBuffers[POSITION],ivec2(coord),0).xyz, 0.f);
-    return position;
+    return vec4(texelFetch(frameBuffers[POSITION],ivec2(coord),0).xyz, 0.f);;
 };
 
 vec4 getColor(in ivec2 map){
@@ -120,7 +115,7 @@ void main() { // TODO: explicit sampling
 
     // 
     const vec4 colourSample = texelFetch(frameBuffers[COLORING],samplep,0);
-    const vec4 normalSample = texelFetch(frameBuffers[NORMALED],samplep,0);
+    const vec4 normalSample = texelFetch(frameBuffers[NORMALEF],samplep,0);
     const vec4 worldsSample = texelFetch(frameBuffers[SAMPLEPT],samplep,0);
     const vec4 emitedSample = texelFetch(frameBuffers[EMISSION],samplep,0);
     const vec4 speculSample = texelFetch(frameBuffers[SPECULAR],samplep,0);
@@ -148,18 +143,15 @@ void main() { // TODO: explicit sampling
     reflects = max(reflects, 0.f.xxxx);
 
     // 
-    vec4 resampled = getColor(samplep);
-    vec4 newdpixel = vec4((diffused.xyz/diffused.w)*(coloring.xyz/coloring.w),1.f);
+    //vec4 resampled = getColor(samplep);
 
     // 
     const float inIOR = 1.f, outIOR = 1.6666f;
     const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f,speculSample.z);
 
     // 
-    vec4 nwsampled = newdpixel;//resampled+clamp(newdpixel,0.f.xxxx,1.f.xxxx);
-    setColor(samplep,nwsampled);
+    setColor(samplep, vec4((diffused.xyz/diffused.w)*(coloring.xyz/coloring.w),1.f));
 
     // Final Result Rendering
-    //imageStore(writeImages[RENDERED],samplep,clamp(vec4(mix(nwsampled.xyz/max(nwsampled.w,1.f),reflects.xyz,reflects.w)+max(emission.xyz,0.f.xxx),1.f),0.f.xxxx,1.f.xxxx));
-      imageStore(writeImages[RENDERED],samplep,vec4(mix(vec3(coloring.xyz/max(coloring.w,1.f)*diffused.xyz)+max(emission.xyz,0.f.xxx),reflects.xyz/max(reflects.w,1.f),frefl),1.f));
+    imageStore(writeImages[RENDERED],samplep,vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 };

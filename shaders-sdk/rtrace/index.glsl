@@ -5,6 +5,7 @@
 #define RESCOLOR 2 // ???
 #define REFLECTS 3 // Specular color
 #define RENDERED 4 // Denoised
+#define NORMALED 5
 //#define DIFFUSED_FLIP1 0//2
 //#define SAMPLING_FLIP1 1//3
 
@@ -15,7 +16,7 @@
 #define RFLVALUE 3 // Reflection Color
 #define EMISSION 4 // Emissive 
 #define SPECULAR 5 // PBR Data
-#define NORMALED 6 // Mapped Normals
+#define NORMALEF 6 // Mapped Normals
 #define SAMPLEPT 7 // Conservative Positions
 
 

@@ -13,7 +13,7 @@ layout (location = 5) flat in uvec4 uData;
 // 
 layout (location = COLORING) out vec4 colored;
 layout (location = POSITION) out vec4 samples;
-layout (location = NORMALED) out vec4 normals;
+layout (location = NORMALEF) out vec4 normals;
 layout (location = TANGENTS) out vec4 tangent;
 layout (location = EMISSION) out vec4 emission;
 layout (location = SPECULAR) out vec4 specular;
