@@ -28,7 +28,7 @@ bool checkCorrect(in vec4 positions, in vec2 i2fxm) {
         const vec2 offt = shift[i];
 
         vec4 almostpos = vec4(texture(frameBuffers[POSITION],i2fxm+offt).xyz,1.f), worldspos = almostpos; // get world space from pixel
-        vec4 normaling = vec4(texture(frameBuffers[GEONORML],i2fxm+offt).xyz,1.f);
+        vec4 normaling = vec4(texture(frameBuffers[NORMALED],i2fxm+offt).xyz,1.f);
         almostpos = vec4(world2screen(almostpos.xyz),1.f);//, almostpos.y *= -1.f, almostpos.xyz /= almostpos.w; // make-screen-space from world space
 
         if (abs(almostpos.z-positions.z) < 0.0001f && dot(gNormal.xyz,normaling.xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f) {

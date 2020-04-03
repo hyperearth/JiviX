@@ -17,12 +17,14 @@ layout (location = 5) flat in uvec4 uData;
 // 
 layout (location = COLORING) out vec4 colored;
 layout (location = POSITION) out vec4 samples;
-//layout (location = NORMALED) out vec4 normals;
-layout (location = TANGENTS) out vec4 tangent;
+layout (location = NORMALED) out vec4 normals;
+//layout (location = TANGENTS) out vec4 tangent;
 layout (location = EMISSION) out vec4 emission;
 layout (location = SPECULAR) out vec4 specular;
-layout (location = GEONORML) out vec4 geonormal;
+//layout (location = GEONORML) out vec4 geonormal;
 layout (location = SAMPLEPT) out vec4 gsamplept; 
+
+layout (location = RFLVALUE) out vec4 reflval;
 layout (location = RAYQUERY) out vec4 diffuse; 
 
 
@@ -35,6 +37,7 @@ struct XHIT {
 
     vec4 geoNormal;
     vec4 mapNormal;
+    vec4 origin;
     //vec4 tangent;
 };
 
@@ -42,9 +45,9 @@ struct XHIT {
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
     XHIT result; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin;
     result. diffuseColor = vec4(1.f.xxxx);
-    result.emissionColor = vec4(0.f.xxxx);
+    result.emissionColor = vec4(gSkyColor,0.f.x);
     result. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
-    result.specularColor = vec4(0.f.xxxx); // TODO: Correct Specular Initial
+    result.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
     result.geoNormal = vec4(vec3(0.f,1.f,0.f),lastMax);
     result.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
     //result.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
@@ -52,10 +55,11 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
     float fullLength = 0.f;
     vec3 forigin = lastOrigin; // REQUIRED!
     bool restart = false;
-    rayQueryEXT rayQuery;
 
     // 
-    while((R++) < 4) { // restart needs for transparency (after every resolve)
+    XHIT processing = result;
+    while((R++) < 1) { // restart needs for transparency (after every resolve)
+        rayQueryEXT rayQuery;
         rayQueryInitializeEXT(rayQuery, Scene,
             gl_RayFlagsTerminateOnFirstHitEXT|gl_RayFlagsOpaqueEXT,
             0xFF, forigin + faceforward(normal.xyz,-raydir.xyz,normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
@@ -76,7 +80,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
                 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, true);
                 primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, true); 
                 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true);
-                tHit = length(rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true)-forigin.xyz);
+                tHit = rayQueryGetIntersectionTEXT(rayQuery, true);
             } else {
                 nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, false); // Mesh ID from Node Mesh List (because indexing)
                 geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, false); // TODO: Using In Ray Tracing (and Query) shaders!
@@ -84,8 +88,11 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
                 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, false);
                 primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, false); 
                 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false);
-                tHit = length(rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false)-forigin.xyz);
+                tHit = rayQueryGetIntersectionTEXT(rayQuery, false);
             };
+
+            // TODO: ???
+            origin += raydir*tHit;
 
             // 
             if (lastMax > tHit) { lastOrigin = origin, lastMax = tHit; // type definition
@@ -118,16 +125,17 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
                 const MaterialUnit unit = materials[0u].data[meshInfo[nodeMeshID].materialID];
                 const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
                 if (diffuseColor.w > 0.001f) { // Only When Opaque!
-                    result. diffuseColor = diffuseColor;//toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
-                    result.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
-                    result. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
-                    result.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
+                    processing. diffuseColor = diffuseColor;//toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
+                    processing.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
+                    processing. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
+                    processing.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
 
                     // 
-                    result.geoNormal = gNormal;
-                    result.mapNormal = vec4(normalize(mat3x3(gTangent.xyz,gBinormal.xyz,gNormal.xyz) * normalize(result.normalsColor.xyz * 2.f - 1.f)),1.f);
-                    result.geoNormal.w = fullLength;
-                    //result.tangent = gTangent; // UNUSED
+                    processing.geoNormal = gNormal;
+                    processing.mapNormal = vec4(normalize(mat3x3(gTangent.xyz,gBinormal.xyz,gNormal.xyz) * normalize(processing.normalsColor.xyz * 2.f - 1.f)),1.f);
+                    processing.geoNormal.w = fullLength + lastMax;
+                    processing.origin = vec4(lastOrigin,1.f);
+                    //processing.tangent = gTangent; // UNUSED
                 } else { // It's transparent, need ray-trace again! (but with another position)
                     if (complete) { restart = true; };
                 };
@@ -143,7 +151,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
     };
 
     // 
-    return result;
+    return processing;///(fullLength >= (maxT-1.f)) ? result : processing;
 };
 
 // 
@@ -160,8 +168,18 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     
     // 
     mat3x3 TBN = mat3x3(normalize(gTangent.xyz),normalize(gBinormal),normalize(fNormal.xyz));
-    vec3 gNormal = normalize(TBN*(normalsColor.xyz * 2.f - 1.f));
+    vec3 gNormal = normalize(TBN*normalize(normalsColor.xyz * 2.f - 1.f));
 
+    // 
+    colored   = 0.f.xxxx;
+    specular  = 0.f.xxxx;
+    emission  = 0.f.xxxx;
+    normals   = vec4(0.f.xxx, 0.f.x);
+    samples   = vec4(0.f.xxx, 0.f);
+    gsamplept = vec4(0.f.xxx, 0.f);
+    diffuse = vec4(gSkyColor, 0.f);
+    reflval = vec4(gSkyColor, 0.f);
+    
     // 
     if (diffuseColor.w > 0.001f) {
 #ifndef CONSERVATIVE
@@ -176,38 +194,119 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
         gsamplept = 0.f.xxxx;
         specular = 0.f.xxxx;
         emission = 0.f.xxxx;
+        reflval = vec4(gSkyColor, 1.f);
 #endif
-        geonormal = vec4(normalize(fNormal.xyz),1.f);
-        //normals = vec4(gNormal.xyz,1.f);
-        tangent = vec4(gTangent.xyz,1.f);
+        normals = vec4(gNormal.xyz,1.f);
         gl_FragDepth = gl_FragCoord.z;
     } else {
         colored = 0.f.xxxx;
         specular = 0.f.xxxx;
         emission = 0.f.xxxx;
-        //normals = vec4(0.f.xx,0.f.xx);
-        tangent = vec4(0.f.xxx,0.f.x);
         samples = vec4(0.f.xxx,0.f.x);
         gsamplept = vec4(0.f.xxx,0.f.x);
-        geonormal = vec4(0.f.xxx,0.f.x);
         gl_FragDepth = 1.f;
     };
 
 // IT'S REPLACEMENT OF SSLR (i.e. ASR, "Almost Screen Reflection")
 // Anti-Aliasing and Transparency TBA
+
+#ifdef CONSERVATIVE
+    const vec3 cameraSample = vec4(fPosition.xyz,1.f)*modelview;
+    vec3 origin = vec3(fPosition.xyz), raydir = (modelview * normalize(cameraSample.xyz)).xyz, lastOrigin = origin;
+    vec3 normal = normalize( faceforward(gNormal.xyz.xyz, raydir.xyz, gNormal.xyz).xyz);//(modelview * normalize(gNormal.xyz)).xyz;
+    XHIT result = traceRays(origin, normalize(reflect(raydir,normal)), normal, 10000.f);
+    if (result.geoNormal.w <= 9999.f) {
+        reflval = vec4(max(result.diffuseColor.xyz-result.emissionColor.xyz,0.f.xxx)+result.emissionColor.xyz,1.f);
+    } else {
+        reflval = vec4(gSkyColor,1.f);
+    };
+#endif
+
+/*
 #ifdef CONSERVATIVE // Full Version of Ray Tracing 
     const vec3 cameraSample = vec4(fPosition.xyz,1.f)*modelview;
     vec3 origin = vec3(fPosition.xyz), raydir = (modelview * normalize(cameraSample.xyz)).xyz, lastOrigin = origin;
     vec3 normal = normalize(gNormal.xyz);//(modelview * normalize(gNormal.xyz)).xyz;
 
-    for (uint i=0;i<1;i++) {
-        XHIT result = traceRays(origin,raydir = normalize(reflect(raydir, normal)), normal, 10000.f);
+    const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
+    const uint packed = pack32(u16vec2(gl_FragCoord.xy));
+    const float inIOR = 1.f, outIOR = 1.6666f;
+
+    uvec2 seed = uvec2(packed,rdata.x);
+    for (uint I=0;I<2;I++) {
+        vec3 normal = normal;
+        vec3 raydir = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, raydir.xyz, TBN, specularColor.y);
+        vec3 origin = origin;
         
-        if (result.geoNormal.w <= 9999.f) { diffuse = vec4(max(result.diffuseColor.xyz-result.emissionColor.xyz,0.f.xxx)+result.emissionColor.xyz,1.f); };
+        vec4 gEnergy = vec4(1.f.xxxx);
+        vec4 gSignal = vec4(0.f.xxx,1.f);
+        for (uint i=0;i<2;i++) {
+            XHIT result = traceRays(origin, raydir, normal, 10000.f);
+
+            // 
+            if (I == 0) { // for diffuse
+                const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
+                const vec3 lightd = normalize(lightp.xyz - origin.xyz);
+                const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
+
+                XHIT result = traceRays(origin, lightd, normal, 10000.f);
+                float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
+                float mvalue = min(sdepth, result.geoNormal.w);
+
+                if ( sdepth >= mvalue ) { // If intersects with light
+                    const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
+                    gSignal += vec4(gEnergy.xyz * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, gNormal.xyz ), 0.f, 1.f) * lightc, 0.f);
+                };
+            }
+
+            // 
+            float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
+            float mvalue = min(result.geoNormal.w, 10000.f);
+
+            // power of reflection
+            float reflectionPower = mix(clamp(pow(1.0f + dot(raydir.xyz, result.mapNormal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, result.specularColor.z);
+            bool couldReflection = random(seed) <= reflectionPower;
+
+            // 
+            if ( sdepth == mvalue ) {
+                
+            } else 
+            if ( mvalue == result.geoNormal.w ) {
+                if (couldReflection) {
+                    gEnergy *= vec4(mix(1.f.xxx, result.diffuseColor.xyz, result.specularColor.zzz), 1.f);
+                } else {
+                    gSignal.xyz += i > 0 ? gEnergy.xyz * result.emissionColor.xyz * result.emissionColor.w : 0.f.xxx;
+                    gEnergy *= vec4(max(i > 0 ? max(result.diffuseColor.xyz - clamp(result.emissionColor.xyz*result.emissionColor.w,0.f.xxx,1.f.xxx), 0.f.xxx) : 1.f.xxx, 0.f.xxx), 1.f);
+                };
+            } else {
+                gSignal.xyz += gSkyColor;
+            }
+
+            // 
+            if (result.diffuseColor.w > 0.001f) { // Reflection
+                raydir.xyz = (i == 0 && I == 1 || couldReflection) ? 
+                    reflectGlossy(seed, raydir.xyz, mat3x3(gTangent.xyz,gNormal.xyz,result.geoNormal.xyz), result.specularColor.y) : 
+                    randomHemisphereCosine(seed, mat3x3(gTangent.xyz,result.geoNormal.xyz,result.geoNormal.xyz));
+            } else { // Fully Transparent, Continue...
+                raydir.xyz = normalize(raydir.xyz);
+            };
+
+            // 
+            normal.xyz = result.mapNormal.xyz;
+            origin.xyz = result.origin.xyz;
+            origin.xyz += faceforward(result.geoNormal.xyz,-raydir.xyz,result.geoNormal.xyz) * 0.0001f + raydir.xyz * 0.0001f;
+            if ((dot(gEnergy.xyz,1.f.xxx)/3.f) <= 0.001f || result.geoNormal.w >= 9999.f || dot(raydir.xyz,result.geoNormal.xyz) <= 0.f) { break; }; //
+
+            // 
+            if (I == 0) { diffuse = gSignal; };
+            if (I == 1) { reflval = gSignal; };
+        };
     };
 #endif
+*/
 
     //ivec2 txd = ivec2(gl_FragCoord.xy), txs = imageSize(writeImages[DIFFUSED]);
     //const vec4 dEmi = imageLoad(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1));
     //imageStore(writeImages[DIFFUSED], ivec2(txd.x,txs.y-txd.y-1), vec4(emissionColor.xyz*emissionColor.w,0.f)+dEmi);
 };
+//

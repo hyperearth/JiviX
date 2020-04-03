@@ -9,9 +9,10 @@ layout ( location = 1 ) in vec4 position;
 layout (location = COLORING) out vec4 colored;
 layout (location = POSITION) out vec4 samples;
 //layout (location = NORMALED) out vec4 normals;
-layout (location = TANGENTS) out vec4 tangent;
+//layout (location = TANGENTS) out vec4 tangent;
 layout (location = SAMPLEPT) out vec4 samplep;
 layout (location = RAYQUERY) out vec4 diffuse; 
+layout (location = RFLVALUE) out vec4 reflval;
 
 // 
 void main() {
@@ -26,8 +27,9 @@ void main() {
     //samples = vec4(vec4(normalize(position.xyz)*10000.f,1.f)*modelviewInv,1.f);
     samples = samplep = vec4(origin+direct*10000.f,1.f);
     colored = vec4(gSkyColor,1.f);
-    diffuse = vec4(gSkyColor,1.f);
-    tangent = vec4(vec3(0.f,1.f,0.f), 1.f);
+    diffuse = vec4(1.f.xxx,  1.f);
+    reflval = vec4(gSkyColor,1.f);
+    //tangent = vec4(vec3(0.f,1.f,0.f), 1.f);
     //normals = vec4(normalize((modelview * normalize(vec3(0.f, 0.f, 1.f))).xyz), 1.f);
 
     gl_FragDepth = 1.f; 

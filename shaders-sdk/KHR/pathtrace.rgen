@@ -22,13 +22,24 @@ vec4 shiftByPixel(in vec4 wpos, inout uvec2 seed){
 
 // 
 vec4 getIndirect(in ivec2 map){
-    const ivec2 size = imageSize(writeImages[DIFFUSED]);
+    const ivec2 size = textureSize(frameBuffers[RAYQUERY],0);
     //vec4 samples = imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); samples = max(samples, 0.001f); samples.xyz /= samples.w;
     //return samples;
     //return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1));
     return texelFetch(frameBuffers[RAYQUERY],ivec2(map.x,size.y-map.y-1),0);
 };
 
+vec4 getReflection(in ivec2 map){
+    const ivec2 size = textureSize(frameBuffers[RFLVALUE],0);
+    //return imageLoad(writeImages[REFLECTS],ivec2(map.x,size.y-map.y-1));
+    return texelFetch(frameBuffers[RFLVALUE],ivec2(map.x,size.y-map.y-1),0);
+};
+
+vec4 getPosition(in ivec2 map){
+    const ivec2 size = textureSize(frameBuffers[POSITION],0);
+    //return imageLoad(writeImages[REFLECTS],ivec2(map.x,size.y-map.y-1));
+    return texelFetch(frameBuffers[POSITION],ivec2(map.x,size.y-map.y-1),0);
+};
 
 // TODO: Hybrid Path Tracing
 void main() { // Hi-DPI adaptation
@@ -37,10 +48,11 @@ void main() { // Hi-DPI adaptation
 
     { // Store for Diffuse
         const vec4 directSample = getIndirect(ivec2(lanQ));
-        const vec4 locateSample = 0.f.xxxx;//imageLoad(writeImages[SAMPLING], ivec2(lanQ));
-        const vec4 speculSample = 0.f.xxxx;//imageLoad(writeImages[REFLECTS], ivec2(lanQ));
+        const vec4 locateSample = getPosition(ivec2(lanQ));
+        const vec4 speculSample = getReflection(ivec2(lanQ));//imageLoad(writeImages[REFLECTS], ivec2(lanQ));
         imageStore(writeImages[DIFFUSED], ivec2(lanQ), directSample);
         imageStore(writeImages[REFLECTS], ivec2(lanQ), speculSample);
+        imageStore(writeImages[SAMPLING], ivec2(lanQ), locateSample);
     };
 
     subgroupBarrier();

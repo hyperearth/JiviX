@@ -131,7 +131,7 @@ void main() { // TODO: explicit sampling
     vec3 raydir = (modelview * normalize(cameraSample.xyz)).xyz;
     vec3 origin = worldsSample.xyz;
     vec3 normal = normalSample.xyz;
-    vec3 geonrm = texelFetch(frameBuffers[GEONORML],samplep,0).xyz;
+    vec3 geonrm = normalSample.xyz;//texelFetch(frameBuffers[GEONORML],samplep,0).xyz;
 
     // 
     int denDepth = 3;

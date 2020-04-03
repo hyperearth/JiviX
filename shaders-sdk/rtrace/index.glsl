@@ -2,7 +2,7 @@
 // Re-Sampling
 #define DIFFUSED 0 // Indrect diffuse
 #define SAMPLING 1 // Positions
-#define NORMALED 2 // Mapped normals
+//#define NORMALED 2 // Mapped normals
 #define REFLECTS 3 // Specular color
 #define RESCOLOR 4 // ???
 #define RENDERED 5 // Denoised
@@ -12,15 +12,13 @@
 // Rasterization or First Step
 #define COLORING 0 // Diffuse color
 #define POSITION 1 // Noisy positions
-//#define NORMALED 2 // Normals (Mapped), REPLACED BY Ray Queries
-#define TANGENTS 3 // Tangents
+#define RAYQUERY 2 // Indirect Illumination
+#define RFLVALUE 3 // Reflection Color
 #define EMISSION 4 // Emissive 
 #define SPECULAR 5 // PBR Data
-#define GEONORML 6 // Not mapped
-#define SAMPLEPT 7 // Conservative 
+#define NORMALED 6 // Mapped Normals
+#define SAMPLEPT 7 // Conservative Positions
 
-
-#define RAYQUERY 2
 
 // TODO: Materials
 struct RayPayloadData {
@@ -488,6 +486,7 @@ vec3 screen2world(in vec3 origin){
 
 
 // Some Settings
-const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
+//const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
+#define gSkyColor vec3(0.9f,0.98,0.999f)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
 #define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
