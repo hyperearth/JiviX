@@ -2,10 +2,9 @@
 // Re-Sampling
 #define DIFFUSED 0 // Indrect diffuse
 #define SAMPLING 1 // Positions
-//#define NORMALED 2 // Mapped normals
+#define RESCOLOR 2 // ???
 #define REFLECTS 3 // Specular color
-#define RESCOLOR 4 // ???
-#define RENDERED 5 // Denoised
+#define RENDERED 4 // Denoised
 //#define DIFFUSED_FLIP1 0//2
 //#define SAMPLING_FLIP1 1//3
 
@@ -489,4 +488,5 @@ vec3 screen2world(in vec3 origin){
 //const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
 #define gSkyColor vec3(0.9f,0.98,0.999f)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
-#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+//#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, gSkyColor, gSignal.xyz),0.f.xxx), gEnergy *= 0.f
