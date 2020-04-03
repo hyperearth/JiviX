@@ -95,8 +95,6 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
 
             // 
             if (lastMax > tHit) { lastOrigin = origin, lastMax = tHit; // type definition
-                if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
-
                 const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
                 uvec3 idx3 = uvec3(primitiveID*3u+0u,primitiveID*3u+1u,primitiveID*3u+2u);
                 if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, nodeMeshID),load_u32(idx3.y*1u, 8u, nodeMeshID),load_u32(idx3.z*1u, 8u, nodeMeshID)); };
@@ -140,10 +138,11 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
 
                     processing.origin = vec4(lastOrigin,1.f);
                     //processing.tangent = gTangent; // UNUSED
+
+                    if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
                 } else { // It's transparent, need ray-trace again! (but with another position)
                     if (complete) { restart = true; };
                 };
-                
             };
 
             if (complete) { break; };
