@@ -16,7 +16,7 @@ namespace jvi {
 
         // 
         virtual vkt::uni_ptr<Thread> sharedPtr() { return shared_from_this(); };
-        virtual vkt::uni_ptr<const Thread> sharedPtr() const { return shared_from_this(); };
+        //virtual vkt::uni_ptr<Thread> sharedPtr() const { return shared_from_this(); };
 
         // TODO: create dedicated thread pool
         virtual uPTR(Thread) createThreadPool() {

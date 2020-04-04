@@ -17,7 +17,7 @@ namespace jvi {
 
         // 
         virtual vkt::uni_ptr<Node> sharedPtr() { return shared_from_this(); };
-        virtual vkt::uni_ptr<const Node> sharedPtr() const { return shared_from_this(); };
+        //virtual vkt::uni_ptr<Node> sharedPtr() const { return shared_from_this(); };
 
         //
         virtual uPTR(Node) construct() {

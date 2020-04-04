@@ -28,7 +28,7 @@ namespace jvi {
 
         // 
         virtual vkt::uni_ptr<Context> sharedPtr() { return shared_from_this(); };
-        virtual vkt::uni_ptr<const Context> sharedPtr() const { return shared_from_this(); };
+        //virtual vkt::uni_ptr<Context> sharedPtr() const { return shared_from_this(); };
 
         // 
         virtual uPTR(Context) construct() {

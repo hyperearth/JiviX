@@ -34,7 +34,7 @@ namespace jvi {
 
         // 
         virtual vkt::uni_ptr<Material> sharedPtr() { return shared_from_this(); };
-        virtual vkt::uni_ptr<const Material> sharedPtr() const { return shared_from_this(); };
+        //virtual vkt::uni_ptr<Material> sharedPtr() const { return shared_from_this(); };
 
         // 
         virtual uPTR(Material) construct() {

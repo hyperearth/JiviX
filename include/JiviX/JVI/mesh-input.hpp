@@ -18,6 +18,10 @@ namespace jvi {
         ~MeshInput() {};
 
         // 
+        virtual vkt::uni_ptr<MeshInput> sharedPtr() { return shared_from_this(); };
+        //virtual vkt::uni_ptr<MeshInput> sharedPtr() const { return shared_from_this(); };
+
+        // 
         virtual uPTR(MeshInput) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
@@ -195,7 +199,7 @@ namespace jvi {
 
         // 
         template<class T = uint8_t>
-        inline uPTR(MeshInput) addBinding(const vkt::Vector<T>& rawData, const vkt::uni_arg<vkh::VkVertexInputBindingDescription>& binding = vkh::VkVertexInputBindingDescription{}) {
+        inline uPTR(MeshInput) addBinding(const vkt::Vector<T>& rawData, vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -220,7 +224,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) addAttribute(const vkt::uni_arg<vkh::VkVertexInputAttributeDescription>& attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
+        virtual uPTR(MeshInput) addAttribute(vkt::uni_arg<vkh::VkVertexInputAttributeDescription> attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
             const uintptr_t bindingID = this->lastBindID;//attribute->binding;
             const uintptr_t locationID = attribute->location;
             this->vertexInputAttributeDescriptions.resize(locationID + 1u);
