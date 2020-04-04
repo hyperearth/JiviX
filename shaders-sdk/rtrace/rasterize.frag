@@ -2,9 +2,11 @@
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
 #extension GL_EXT_ray_query            : require
+#extension GL_ARB_post_depth_coverage  : require
 #include "./driver.glsl"
 
 layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
+layout ( post_depth_coverage ) in;
 layout ( early_fragment_tests ) in; // Reduce Lag Rate! (but transparency may broken!)
 // Прозрачность с новой прошивкой починим! @RED21
 
@@ -293,7 +295,9 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
                         gSignal.xyz += gEnergy.xyz * result.emissionColor.xyz * result.emissionColor.w;
                         gEnergy *= vec4(max(result.diffuseColor.xyz - clamp(result.emissionColor.xyz*result.emissionColor.w,0.f.xxx,1.f.xxx), 0.f.xxx), 1.f);
                     };
-                };
+                } else { // VOID!
+                    gEnergy *= vec4(0.f.xxxx);
+                }
 
                 // 
                 raydir.xyz = couldReflection ? 
