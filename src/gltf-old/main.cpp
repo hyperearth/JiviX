@@ -572,7 +572,7 @@ int main() {
     pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
     pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
-    auto finalPipeline = device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo);
+    auto finalPipeline = vkt::handleHpp(device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo));
 
 	// 
     int64_t currSemaphore = -1;

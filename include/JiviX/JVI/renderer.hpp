@@ -141,7 +141,7 @@ namespace jvi {
             this->skyboxedInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->skyboxedInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->skyboxedInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
-            this->backgroundState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->skyboxedInfo);
+            this->backgroundState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->skyboxedInfo));
 
             return uTHIS;
         };
@@ -182,7 +182,7 @@ namespace jvi {
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
-            this->resamplingState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
+            this->resamplingState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
 
             // 
             return uTHIS;
@@ -230,7 +230,7 @@ namespace jvi {
                 //vkh::VkComputePipelineCreateInfo denoiseInfo = {};
                 //denoiseInfo.layout = this->context->unifiedPipelineLayout;
                 //denoiseInfo.stage = this->denoiseStage;
-                this->denoiseState = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->denoiseStage), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache());
+                this->denoiseState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->denoiseStage), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
             }
 
             // 

@@ -116,7 +116,7 @@ namespace jvi {
                 this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->transformPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
-                this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
+                this->quadGenerator = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache()));
 
                 // 
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
@@ -332,7 +332,7 @@ namespace jvi {
             };
 
             // 
-            this->transformState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
+            this->transformState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
 
             // 
             return uTHIS;

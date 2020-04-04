@@ -462,12 +462,12 @@ namespace jvi {
             };
 
             // 
-            this->rasterizationState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
+            this->rasterizationState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
 
             // 
             this->pipelineInfo.rasterizationState.pNext = &conserv;
             this->pipelineInfo.stages = this->ctages;
-            this->covergenceState = driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo);
+            this->covergenceState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
 
             // 
             return uTHIS;
