@@ -135,11 +135,28 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
 
                     // 
                     processing.geoNormal = gNormal;
-                    processing.mapNormal = vec4(normalize(mat3x3(gTangent.xyz,gBinormal.xyz,gNormal.xyz) * normalize(processing.normalsColor.xyz * 2.f - 1.f)),1.f);
-                    processing.geoNormal.w = fullLength + lastMax;
                     processing.gBinormal = gBinormal;
-                    processing.gTangent = gTangent;
+                    processing.gTangent  = gTangent;
 
+                    // FIX NORMAL ISSUE (04.04.2020)
+                    processing.geoNormal.xyz = normalize(processing.geoNormal.xyz * normalTransform * normInTransform);
+                    processing.gBinormal.xyz = normalize(processing.gBinormal.xyz * normalTransform * normInTransform);
+                    processing.gTangent .xyz = normalize(processing.gTangent .xyz * normalTransform * normInTransform);
+
+                    // Mapping
+                    processing.geoNormal.xyz = normalize(faceforward(processing.geoNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
+                    processing.mapNormal = vec4(normalize(mat3x3(processing.gTangent.xyz, processing.gBinormal.xyz, processing.geoNormal.xyz) * normalize(processing.normalsColor.xyz * 2.f - 1.f)), 1.f);
+                    processing.geoNormal.w = fullLength + lastMax;
+
+                    // Normalize
+                    processing.geoNormal.xyz = normalize(processing.geoNormal.xyz);
+                    processing.gTangent.xyz = normalize(processing.gTangent.xyz);
+                    processing.gBinormal.xyz = normalize(processing.gBinormal.xyz);
+
+                    // Fix light leaks
+                    processing.mapNormal.xyz = normalize(faceforward(processing.mapNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
+
+                    // Use real origin
                     processing.origin = vec4(lastOrigin,1.f);
                     //processing.tangent = gTangent; // UNUSED
 
@@ -169,14 +186,16 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
 void directLight(in vec4 sphere, in vec3 origin, in vec3 normal, inout uvec2 seed, inout vec4 gSignal, inout vec4 gEnergy){
     const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
     const vec3 lightd = normalize(lightp.xyz - origin.xyz);
-    const vec3 lightc = 512.f.xxx;//32.f*4096.f.xxx/(sphere.w*sphere.w);
+    const vec3 lightc = 512.f.xxx;
 
-    float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w);
-     XHIT result = traceRays(origin, lightd, normal, sdepth = sdepth <= 0.f ? 10000.f : sdepth);
+    if ( dot(normal, lightd) >= 0.f ) {
+        float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w);
+        XHIT result = traceRays(origin, lightd, normal, sdepth = sdepth <= 0.f ? 10000.f : sdepth);
 
-    if ( min(sdepth, result.geoNormal.w) >= sdepth ) { // If intersects with light
-        const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
-        gSignal += vec4(gEnergy.xyz * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, normal.xyz ), 0.f, 1.f) * lightc, 0.f);
+        if ( min(sdepth, result.geoNormal.w) >= sdepth ) { // If intersects with light
+            const float cos_a_max = sqrt(1.f - clamp(sphere.w * sphere.w / dot(sphere.xyz-origin.xyz, sphere.xyz-origin.xyz), 0.f, 1.f));
+            gSignal += vec4(gEnergy.xyz * 2.f * (1.f - cos_a_max) * clamp(dot( lightd, normal.xyz ), 0.f, 1.f) * lightc, 0.f);
+        };
     };
 };
 
@@ -257,6 +276,7 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
         const vec3 cameraSample = vec4(fPosition.xyz,1.f)*modelview;
         vec3 forigin = vec3(fPosition.xyz), fraydir = (modelview * normalize(cameraSample.xyz)).xyz;
         vec3 fnormal = normalize(gNormal.xyz);//(modelview * normalize(gNormal.xyz)).xyz;
+        TBN[2] = normalize(faceforward(TBN[2], fraydir.xyz, TBN[2]));
 
         const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
         const uint packed = pack32(u16vec2(gl_FragCoord.xy));
@@ -267,12 +287,12 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
         uvec2 seed = uvec2(packed,rdata.x);
         for (uint I=0;I<2;I++) {
             vec3 raydir = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, fraydir.xyz, TBN, specularColor.y);
-            vec3 origin = forigin, normal = normalize(faceforward(fnormal.xyz.xyz, fraydir.xyz, fnormal.xyz).xyz);
-
+            vec3 origin = forigin, normal = normalize(faceforward(fnormal.xyz, fraydir.xyz, fnormal.xyz));
+            
             vec4 gEnergy = vec4(1.f.xxxx), gSignal = vec4(0.f.xxx,1.f);
             if ( I == 0 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
 
-            for (uint i=0;i<2;i++) { // 
+            for (uint i=0;i<3;i++) { // 
                 XHIT result = traceRays(origin, raydir, normal, 10000.f);
 
                 // 
@@ -300,13 +320,15 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
                 }
 
                 // 
+                const mat3x3 TBN = mat3x3(result.gTangent.xyz,result.gBinormal.xyz,result.mapNormal.xyz);
                 raydir.xyz = couldReflection ? 
-                    reflectGlossy(seed, raydir.xyz, mat3x3(result.gTangent.xyz,result.gBinormal.xyz,result.mapNormal.xyz), result.specularColor.y) : 
-                    randomHemisphereCosine(seed, mat3x3(result.gTangent.xyz,result.gBinormal.xyz,result.mapNormal.xyz));
+                    reflectGlossy(seed, raydir.xyz, TBN, result.specularColor.y) : 
+                    randomHemisphereCosine(seed, TBN);
 
                 // 
-                normal.xyz = result.mapNormal.xyz;
-                normal = normalize(faceforward(normal.xyz.xyz, raydir.xyz, normal.xyz).xyz);
+                normal.xyz = result.mapNormal.xyz = normalize(faceforward(result.mapNormal.xyz, -raydir.xyz, result.geoNormal.xyz));
+
+                // 
                 origin.xyz = result.origin.xyz;
                 origin.xyz += faceforward(result.geoNormal.xyz,-raydir.xyz,result.geoNormal.xyz) * 0.0001f + raydir.xyz * 0.0001f;
                 if ((dot(gEnergy.xyz,1.f.xxx)/3.f) <= 0.001f || result.geoNormal.w >= 9999.f || dot(raydir.xyz,result.geoNormal.xyz) <= 0.f) { break; }; //
