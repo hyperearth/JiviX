@@ -5,6 +5,8 @@
 #include "./driver.glsl"
 
 layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
+layout ( early_fragment_tests ) in; // Reduce Lag Rate! (but transparency may broken!)
+// Прозрачность с новой прошивкой починим! @RED21
 
 // 
 layout (location = 0) in vec4 fPosition;
@@ -60,7 +62,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
     XHIT processing = result;
     while((R++) < 4) { // restart needs for transparency (after every resolve)
         rayQueryEXT rayQuery;
-        rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT,
+        rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT,
             0xFF, forigin + faceforward(normal.xyz,-raydir.xyz,normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
 
         while((I++) < 2) {
@@ -196,22 +198,37 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
     // 
     if (diffuseColor.w > 0.001f) {
 #ifndef CONSERVATIVE
-        colored = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz,1.f);
-        gsamplept = vec4(fPosition.xyz,1.f); // used for ray-start position
-        emission = vec4(emissionColor.xyz*emissionColor.w,1.f);
-        specular = vec4(specularColor.xyz*specularColor.w,1.f);
+        colored   = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz, 1.f);
+        gsamplept = vec4(fPosition.xyz                    , 1.f); // used for ray-start position
+        emission  = vec4(emissionColor.xyz*emissionColor.w, 1.f);
+        specular  = vec4(specularColor.xyz*specularColor.w, 1.f);
 
         // Initial
-        reflval = vec4(gSkyColor, 1.f);
-        diffuse = vec4(1.f.xxx, 1.f);
+        reflval = vec4(gSkyColor  , 1.f);
+        diffuse = vec4(1.f.xxx    , 1.f);
         normals = vec4(gNormal.xyz, 1.f);
 #else
         // For Reprojection (COVER)
-        samples = vec4(fPosition.xyz,1.f);
-        normals = vec4(gNormal.xyz, 1.f);
+        samples = vec4(fPosition.xyz, 1.f);
+        normals = vec4(gNormal.xyz,   1.f);
 #endif
         gl_FragDepth = gl_FragCoord.z;
     } else {
+#ifndef CONSERVATIVE
+        colored   = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz, 0.f);
+        gsamplept = vec4(fPosition.xyz, 0.f); // used for ray-start position
+        emission  = vec4(gSkyColor    , 0.f);
+        specular  = vec4(0.f.xxx      , 0.f);
+
+        // Initial
+        reflval = vec4(gSkyColor  , 0.f);
+        diffuse = vec4(1.f.xxx    , 0.f);
+        normals = vec4(gNormal.xyz, 0.f);
+#else
+        // For Reprojection (COVER)
+        samples = vec4(fPosition.xyz, 0.f);
+        normals = vec4(gNormal.xyz  , 0.f);
+#endif
         gl_FragDepth = 1.f;
     };
 
