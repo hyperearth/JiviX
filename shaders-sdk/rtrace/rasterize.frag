@@ -65,7 +65,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
     while((R++) < 4) { // restart needs for transparency (after every resolve)
         rayQueryEXT rayQuery;
         rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT,
-            0xFF, forigin + faceforward(normal.xyz,-raydir.xyz,normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
+            0xFF, (forigin = lastOrigin) + faceforward(normal.xyz,raydir.xyz,-normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
 
         while((I++) < 2) {
             bool complete = !rayQueryProceedEXT(rayQuery);
@@ -98,7 +98,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
             //origin += raydir*tHit;
 
             // 
-            if (lastMax > tHit) { lastOrigin = origin, lastMax = tHit; // type definition
+            if (tHit < lastMax) { lastOrigin = origin, lastMax = tHit; // Choice Only MINIMAL
                 const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
                 uvec3 idx3 = uvec3(primitiveID*3u+0u,primitiveID*3u+1u,primitiveID*3u+2u);
                 if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, nodeMeshID),load_u32(idx3.y*1u, 8u, nodeMeshID),load_u32(idx3.z*1u, 8u, nodeMeshID)); };
@@ -128,15 +128,18 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
                 const MaterialUnit unit = materials[0u].data[meshInfo[nodeMeshID].materialID];
                 const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
                 if (diffuseColor.w > 0.001f) { // Only When Opaque!
+                    //lastOrigin = origin, lastMax = tHit;
+
+                    // 
                     processing. diffuseColor = diffuseColor;//toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
                     processing.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
                     processing. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
                     processing.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
 
                     // 
-                    processing.geoNormal = gNormal;
-                    processing.gBinormal = gBinormal;
-                    processing.gTangent  = gTangent;
+                    processing.geoNormal = normalize(gNormal);
+                    processing.gBinormal = normalize(gBinormal);
+                    processing.gTangent  = normalize(gTangent);
 
                     // FIX NORMAL ISSUE (04.04.2020)
                     processing.geoNormal.xyz = normalize(processing.geoNormal.xyz * normalTransform * normInTransform);
@@ -157,7 +160,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
                     processing.mapNormal.xyz = normalize(faceforward(processing.mapNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
 
                     // Use real origin
-                    processing.origin = vec4(lastOrigin,1.f);
+                    processing.origin = vec4(lastOrigin, 1.f);
                     //processing.tangent = gTangent; // UNUSED
 
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
@@ -174,8 +177,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
         rayQueryTerminateEXT(rayQuery);
 
         // 
-        fullLength += lastMax, forigin = lastOrigin;
-        if (!restart || fullLength >= (maxT-1.f)) { break; } else { restart = false; }; // With Correction* 
+        if (!restart || (fullLength += lastMax) >= (maxT-0.1f)) { break; } else { restart = false; }; // With Correction* 
     };
 
     // 
@@ -186,7 +188,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
 void directLight(in vec4 sphere, in vec3 origin, in vec3 normal, inout uvec2 seed, inout vec4 gSignal, inout vec4 gEnergy){
     const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
     const vec3 lightd = normalize(lightp.xyz - origin.xyz);
-    const vec3 lightc = 512.f.xxx;
+    const vec3 lightc = 1024.f.xxx;
 
     if ( dot(normal, lightd) >= 0.f ) {
         float sdepth = raySphereIntersect(origin.xyz,lightd,sphere.xyz,sphere.w);
@@ -225,8 +227,8 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
         specular  = vec4(specularColor.xyz*specularColor.w, 1.f);
 
         // Initial
-        reflval = vec4(gSkyColor  , 1.f);
-        diffuse = vec4(1.f.xxx    , 1.f);
+        reflval = vec4(0.f.xxx    , 1.f);
+        diffuse = vec4(0.f.xxx    , 1.f);
         normals = vec4(gNormal.xyz, 1.f);
 #else
         // For Reprojection (COVER)
@@ -238,12 +240,12 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
 #ifndef CONSERVATIVE
         colored   = vec4(max(vec4(diffuseColor.xyz-clamp(emissionColor.xyz*emissionColor.w,0.f.xxx,1.f.xxx),0.f),0.f.xxxx).xyz, 0.f);
         gsamplept = vec4(fPosition.xyz, 0.f); // used for ray-start position
-        emission  = vec4(gSkyColor    , 0.f);
+        emission  = vec4(0.f.xxx      , 0.f);
         specular  = vec4(0.f.xxx      , 0.f);
 
         // Initial
-        reflval = vec4(gSkyColor  , 0.f);
-        diffuse = vec4(1.f.xxx    , 0.f);
+        reflval = vec4(0.f.xxx    , 0.f);
+        diffuse = vec4(0.f.xxx    , 0.f);
         normals = vec4(gNormal.xyz, 0.f);
 #else
         // For Reprojection (COVER)
@@ -287,8 +289,9 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
         uvec2 seed = uvec2(packed,rdata.x);
         for (uint I=0;I<2;I++) {
             vec3 raydir = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, fraydir.xyz, TBN, specularColor.y);
-            vec3 origin = forigin, normal = normalize(faceforward(fnormal.xyz, fraydir.xyz, fnormal.xyz));
-            
+            vec3 origin = forigin, normal = normalize(faceforward(fnormal.xyz, fraydir.xyz, TBN[2]));
+            raydir.xyz = normalize(faceforward(raydir.xyz, raydir.xyz, -TBN[2]));
+
             vec4 gEnergy = vec4(1.f.xxxx), gSignal = vec4(0.f.xxx,1.f);
             if ( I == 0 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
 
@@ -326,6 +329,9 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
                     randomHemisphereCosine(seed, TBN);
 
                 // 
+                raydir.xyz = normalize(faceforward(raydir.xyz, raydir.xyz, -result.geoNormal.xyz));
+
+                // 
                 normal.xyz = result.mapNormal.xyz = normalize(faceforward(result.mapNormal.xyz, -raydir.xyz, result.geoNormal.xyz));
 
                 // 
@@ -338,8 +344,8 @@ void main() { // hasTexcoord(meshInfo[drawInfo.data.x])
             };
 
             // 
-            if (I == 0) { diffuse = vec4(gSignal.xyz,1.f); };
-            if (I == 1) { reflval = vec4(gSignal.xyz,1.f); };
+            if (I == 0) { diffuse = vec4(gSignal.xyz, 1.f); };
+            if (I == 1) { reflval = vec4(clamp(gSignal.xyz,0.f.xxx,1.f.xxx), 1.f); };
         };
     };
 #endif
