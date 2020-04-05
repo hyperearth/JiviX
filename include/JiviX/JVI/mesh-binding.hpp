@@ -256,7 +256,7 @@ namespace jvi {
         };
 
         // 
-        template<class T = uint8_t>
+        //template<class T = uint8_t>
         inline uPTR(MeshBinding) setBinding(vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = binding->binding;
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
