@@ -71,13 +71,13 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) setContext(const vkt::uni_ptr<Context>& context) {
+        virtual uPTR(Node) setContext(vkt::uni_ptr<Context> context) {
             this->context = context;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Node) setThread(const vkt::uni_ptr<Thread>& thread) {
+        virtual uPTR(Node) setThread(vkt::uni_ptr<Thread> thread) {
             this->thread = thread;
             return uTHIS;
         };
@@ -97,7 +97,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) pushInstance(const vkt::uni_arg<vkh::VsGeometryInstance>& instance = vkh::VsGeometryInstance{}) {
+        virtual uPTR(Node) pushInstance(vkt::uni_arg<vkh::VsGeometryInstance> instance = vkh::VsGeometryInstance{}) {
             if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->geometryCount > 0) {
                 const auto instanceID = this->instanceCounter++;
                 const auto meshID = instance->instanceId;

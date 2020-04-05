@@ -48,7 +48,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Material) setContext(const std::shared_ptr<Context>& context) {
+        virtual uPTR(Material) setContext(std::shared_ptr<Context> context) {
             this->context = context;
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->materialDescriptorSetLayout,this->thread->getDescriptorPool());
             return uTHIS;

@@ -152,6 +152,18 @@ namespace jvi {
         };
 
         // 
+        virtual uPTR(MeshBinding) setThread(vkt::uni_ptr<Thread> thread) {
+            this->thread = thread;
+            return uTHIS;
+        };
+
+        // 
+        virtual uPTR(MeshBinding) setDriver(vkt::uni_ptr<Driver> driver = {}) {
+            this->driver = driver;
+            return uTHIS;
+        };
+
+        // 
         virtual vkt::Vector<uint8_t>& getBindingBuffer(const uintptr_t& i = 0u) {
             return this->bindings[i];
         };
@@ -207,12 +219,6 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) setThread(const vkt::uni_ptr<Thread>& thread) {
-            this->thread = thread;
-            return uTHIS;
-        };
-
-        // 
         virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type = vk::IndexType::eNoneKHR) {
             this->rawMeshInfo[0u].indexType = uint32_t(this->buildGTemp.geometry.triangles.indexType = VkIndexType(type)) + 1u;
             return uTHIS;
@@ -221,12 +227,6 @@ namespace jvi {
         // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 65536u * 3u) { this->setPrimitiveCount(std::min(uint32_t(vkt::tiled(count, 3u)), uint32_t(this->MaxPrimitiveCount))); return uTHIS; };
         virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 65536u) { this->primitiveCount = this->offsetTemp.primitiveCount = std::min(uint32_t(count), uint32_t(this->MaxPrimitiveCount)); return uTHIS; };
-
-        // 
-        virtual uPTR(MeshBinding) setDriver(const vkt::uni_ptr<Driver>& driver = {}){
-            this->driver = driver;
-            return uTHIS;
-        };
 
         // 
         virtual uPTR(MeshBinding) linkWithInstance(const uint32_t& mapID = 0u) {
@@ -374,7 +374,7 @@ namespace jvi {
         };
 
         // TODO: Fix Quads support with Indices
-        virtual uPTR(MeshBinding) bindMeshInput(const vkt::uni_ptr<MeshInput>& input = {}) {
+        virtual uPTR(MeshBinding) bindMeshInput(vkt::uni_ptr<MeshInput> input = {}) {
             this->input = input; // Correct! 
             //(this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
             //this->input->linkCounterBuffer(this->offsetIndirect);

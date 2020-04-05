@@ -52,7 +52,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Context) setThread(const vkt::uni_ptr<Thread>& thread) {
+        virtual uPTR(Context) setThread(vkt::uni_ptr<Thread> thread) {
             this->thread = thread;
             return uTHIS;
         };

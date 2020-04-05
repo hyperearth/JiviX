@@ -25,7 +25,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Thread) setDriver(const vkt::uni_ptr<Driver>& driver) {
+        virtual uPTR(Thread) setDriver(vkt::uni_ptr<Driver> driver) {
             this->driver = driver;
             return uTHIS;
         };
