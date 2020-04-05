@@ -6,7 +6,7 @@
 namespace jvi {
     class Thread : public std::enable_shared_from_this<Thread> { public: 
         Thread() {};
-        Thread(const vkt::uni_ptr<Driver>& driver) { // derrivate from driver framework
+        Thread(vkt::uni_ptr<Driver> driver) { // derrivate from driver framework
             this->driver = driver;
             this->queue = *driver;
             this->commandPool = *driver;

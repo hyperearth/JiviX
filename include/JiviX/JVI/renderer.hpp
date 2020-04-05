@@ -12,13 +12,13 @@ namespace jvi {
     // TODO: Descriptor Sets
     class Renderer : public std::enable_shared_from_this<Renderer> { public: // 
         Renderer(){};
-        Renderer(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        Renderer(vkt::uni_ptr<Context> context) : context(context) { this->construct(); };
         //Renderer(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Renderer() {};
 
         // 
         virtual vkt::uni_ptr<Renderer> sharedPtr() { return shared_from_this(); };
-        //virtual vkt::uni_ptr<Renderer> sharedPtr() const { return shared_from_this(); };
+        //virtual vkt::uni_ptr<Renderer> sharedPtr() const { return std::shared_ptr<Renderer>(shared_from_this()); };
 
         // 
         virtual uPTR(Renderer) construct() {
@@ -57,7 +57,7 @@ namespace jvi {
         }
 
         // 
-        virtual uPTR(Renderer) linkMaterial(vkt::uni_ptr<Material>& materials) {
+        virtual uPTR(Renderer) linkMaterial(vkt::uni_ptr<Material> materials) {
             this->materials = materials;
             if (this->materials->descriptorSet) {
                 this->context->descriptorSets[4] = this->materials->descriptorSet;
@@ -66,7 +66,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) linkNode(vkt::uni_ptr<Node>& node) {
+        virtual uPTR(Renderer) linkNode(vkt::uni_ptr<Node> node) {
             this->node = node;
             if (this->node->meshDataDescriptorSet) { this->context->descriptorSets[0] = this->node->meshDataDescriptorSet; };
             if (this->node->bindingsDescriptorSet) { this->context->descriptorSets[1] = this->node->bindingsDescriptorSet; };
@@ -96,8 +96,8 @@ namespace jvi {
 
             // 
             const auto& rtxp = rayTracingProperties;
-            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(allocInfo, vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } });
+            this->rawSBTBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuSBTBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::BufferAllocation>(allocInfo, vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }));
 
             // create for KHR compatible and comfort
             this->rgenSBTPtr = vkt::Vector<glm::u64vec4>(this->gpuSBTBuffer.getAllocation(), this->gpuSBTBuffer.offset(), this->gpuSBTBuffer.stride());

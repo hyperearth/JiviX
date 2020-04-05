@@ -197,6 +197,7 @@ int main() {
 	auto framebuffers = fw->createSwapchainFramebuffer(swapchain, renderPass);
 	auto queue = fw->getQueue();
 	auto commandPool = fw->getCommandPool();
+    auto allocator = fw->getAllocator();
 
     // OpenGL Context
     glfwMakeContextCurrent(manager.window);
@@ -206,14 +207,16 @@ int main() {
     auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
     auto viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
-    // 
+    // initialize renderer
     auto context = jvx::Context(fw);
+    
+    // Initialize late
     auto mesh = jvx::MeshBinding(context);
     auto node = jvx::Node(context);
-    auto material = jvx::Material(context);
     auto renderer = jvx::Renderer(context);
+    auto material = jvx::Material(context);
 
-    // initialize renderer
+    // 
     context->initialize(canvasWidth, canvasHeight);
     renderer->linkMaterial(material)->linkNode(node);
 
@@ -262,10 +265,10 @@ int main() {
 
     // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
-        cpuBuffers.push_back(vkt::Vector<>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+        cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
             .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
-        }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+        }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
         // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
@@ -294,17 +297,23 @@ int main() {
     };
 
     // 
+    auto allocInfo = vkt::MemoryAllocationInfo{};
+    allocInfo.device = fw->getDevice();
+    allocInfo.memoryProperties = fw->getMemoryProperties().memoryProperties;
+    allocInfo.dispatch = fw->getDispatch();
+
+    // 
     std::vector<vk::Sampler> samplers = {};
     std::vector<vkt::ImageRegion> images = {};
     for (uint32_t i = 0; i < model.images.size(); i++) {
         const auto& img = model.images[i];
 
         // 
-        images.push_back(vkt::ImageRegion(fw->getAllocator(), vkh::VkImageCreateInfo{
+        images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw->getAllocator(), vkh::VkImageCreateInfo{
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .extent = {uint32_t(img.width),uint32_t(img.height),1u},
             .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-        }, VMA_MEMORY_USAGE_GPU_ONLY, vkh::VkImageViewCreateInfo{
+        }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
             .format = VK_FORMAT_R8G8B8A8_UNORM,
         }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
             .magFilter = VK_FILTER_LINEAR,
@@ -319,10 +328,10 @@ int main() {
         // 
         vkt::Vector<> imageBuf = {};
         if (img.image.size() > 0u) {
-            imageBuf = vkt::Vector<>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
                 .size = img.image.size(),
                 .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-            }, VMA_MEMORY_USAGE_CPU_TO_GPU);
+            }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             memcpy(imageBuf.data(), &img.image[0u], img.image.size());
         };
 

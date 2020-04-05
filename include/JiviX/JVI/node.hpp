@@ -11,13 +11,13 @@ namespace jvi {
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Node : public std::enable_shared_from_this<Node> { public: friend Renderer;
         Node() {};
-        Node(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        Node(vkt::uni_ptr<Context> context) : context(context) { this->construct(); };
         //Node(Context* context) : context(context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Node() {};
 
         // 
         virtual vkt::uni_ptr<Node> sharedPtr() { return shared_from_this(); };
-        //virtual vkt::uni_ptr<Node> sharedPtr() const { return shared_from_this(); };
+        //virtual vkt::uni_ptr<Node> sharedPtr() const { return std::shared_ptr<Node>(shared_from_this()); };
 
         //
         virtual uPTR(Node) construct() {
@@ -29,11 +29,11 @@ namespace jvi {
             this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             // 
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU);
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } });
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }));
 
             // 
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // FOR BUILD! 
             this->instancHeadInfo = vkh::VkAccelerationStructureBuildGeometryInfoKHR{};
@@ -338,10 +338,10 @@ namespace jvi {
                 }, this->driver->getDispatch());
 
                 // TODO: fix memoryProperties issue
-                TempBuffer = vkt::Vector<uint8_t>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
+                TempBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
-                });
+                }));
 
                 // 
                 this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u, &vkh::VkBindAccelerationStructureMemoryInfoKHR{
@@ -360,10 +360,10 @@ namespace jvi {
                 }, this->driver->getDispatch());
 
                 // 
-                this->gpuScratchBuffer = vkt::Vector<uint8_t>(driver->getAllocator(), vkh::VkBufferCreateInfo{
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
                     .usage = { .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 }
-                }, VMA_MEMORY_USAGE_GPU_ONLY);
+                }, VMA_MEMORY_USAGE_GPU_ONLY));
             };
 
             // 
