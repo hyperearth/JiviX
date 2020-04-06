@@ -205,37 +205,39 @@ namespace jvi {
 
             this->setupResamplingPipeline();
 
-            // 
+            // Compute ray-tracing (RTX)
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
             this->cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             this->cmdbuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
             this->cmdbuf.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
             this->cmdbuf.dispatch(vkt::tiled(renderArea.extent.width, 16u), vkt::tiled(renderArea.extent.height, 12u), 1u);
             vkt::commandBarrier(this->cmdbuf);
 
-            // 
+            // Make resampling pipeline 
             this->setupResampleCommand(this->cmdbuf);
             vkt::commandBarrier(this->cmdbuf);
 
-            // 
+            // Denoise diffuse data
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
             this->cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             this->cmdbuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->denoiseState);
             this->cmdbuf.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
             this->cmdbuf.dispatch(vkt::tiled(renderArea.extent.width, 16u), vkt::tiled(renderArea.extent.height, 12u), 1u);
             vkt::commandBarrier(this->cmdbuf);
 
-            // 
-            this->cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            this->cmdbuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->reflectState);
-            this->cmdbuf.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            this->cmdbuf.dispatch(vkt::tiled(renderArea.extent.width, 16u), vkt::tiled(renderArea.extent.height, 12u), 1u);
-            vkt::commandBarrier(this->cmdbuf);
-
-            // 
+            // Use that version as previous frame
             for (uint32_t i = 0; i < 8; i++) {
                 this->cmdbuf.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
                     this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
                 ) });
             };
+            vkt::commandBarrier(this->cmdbuf);
+
+            // Denoise reflection data
+            this->cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            this->cmdbuf.bindPipeline(vk::PipelineBindPoint::eCompute, this->reflectState);
+            this->cmdbuf.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
+            this->cmdbuf.dispatch(vkt::tiled(renderArea.extent.width, 16u), vkt::tiled(renderArea.extent.height, 12u), 1u);
             vkt::commandBarrier(this->cmdbuf);
 
             // 

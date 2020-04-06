@@ -17,12 +17,13 @@ vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeImages[REF
 vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[REFLECTP]); return imageLoad(writeImages[REFLECTP],ivec2(map.x,size.y-map.y-1)); };
 
 // 
-void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeImages[COLORING]); imageStore(writeImages[COLORING],ivec2(map.x,size.y-map.y-1),color); };
+//void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeImages[COLORING]); imageStore(writeImages[COLORING],ivec2(map.x,size.y-map.y-1),color); };
 void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeImages[REFLECLR]); imageStore(writeImages[REFLECLR],ivec2(map.x,size.y-map.y-1),color); };
 
 // FOR REPLACEMENT by Texcoord, Material ID, Data
-vec4 getEmission   (in ivec2 map) { const ivec2 size = imageSize(writeImages[EMISSION]); return imageLoad(writeImages[EMISSION],ivec2(map.x,size.y-map.y-1)); };
-vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeImages[COLORING]); return imageLoad(writeImages[COLORING],ivec2(map.x,size.y-map.y-1)); };
+//vec4 getEmission   (in ivec2 map) { const ivec2 size = imageSize(writeImages[EMISSION]); return imageLoad(writeImages[EMISSION],ivec2(map.x,size.y-map.y-1)); };
+//vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeImages[COLORING]); return imageLoad(writeImages[COLORING],ivec2(map.x,size.y-map.y-1)); };
+vec4 getData      (in ivec2 map) { const ivec2 size = imageSize(writeImages[MATERIAL]); return imageLoad(writeImages[MATERIAL],ivec2(map.x,size.y-map.y-1));  };
 
 // 
 ivec2 mapc(in ivec2 map) {
@@ -68,16 +69,30 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
 // TODO: Use Texcoord and Material ID's instead of Color, PBR-Map, Emission,  (due, needs only two or one buffers)
 void main() { // TODO: explicit sampling 
     const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_GlobalInvocationID.xy);
-    const vec4 emission = getEmission(samplep);
-    const vec4 specular = vec4(vec3(0.f,0.f,0.f),1.f); // Specular Map
-    const vec4 diffused = getColor(samplep);
-    const vec4 position = getPosition(samplep);
+    const  vec4 dataflat = getData(samplep);
+    const uvec4 datapass = floatBitsToUint(dataflat);
+    const  vec4 position = getPosition(samplep);
 
     // 
-    vec3 camera = vec4(position.xyz,1.f)*modelview;
-    vec3 raydir = (modelview * normalize(camera.xyz)).xyz;
-    vec3 origin = getPosition(samplep).xyz;
-    vec3 normal = getNormal(samplep).xyz;
+    const vec2 texcoord = unpackHalf2x16(datapass.x);
+    const bool isSkybox = uintBitsToFloat(datapass.z) <= 0.f;
+
+    // 
+    const MaterialUnit unit = materials[0u].data[datapass.y];
+          vec4 diffused = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],texcoord.xy) : unit.diffuse);
+          vec4 emission = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],texcoord.xy) : unit.emission);
+          vec4 normaled = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],texcoord.xy) : unit.normals;
+          vec4 specular = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],texcoord.xy) : unit.specular;
+
+    // 
+    diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
+    if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyColor; };
+
+    // 
+    const vec3 camera = vec4(position.xyz,1.f)*modelview;
+    const vec3 raydir = (modelview * normalize(camera.xyz)).xyz;
+    const vec3 origin = getPosition(samplep).xyz;
+    const vec3 normal = getNormal(samplep).xyz;
 
     // 
 #ifndef LATE_STAGE
@@ -100,14 +115,17 @@ void main() { // TODO: explicit sampling
 
     // 
     const float inIOR = 1.f, outIOR = 1.6666f;
-    const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, specular.z) * imageLoad(writeImages[MAPNORML], mapc(samplep)).w;
+    const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, specular.z) * (isSkybox ? 0.f : 1.f);
 
     // Currently NOT denoised! (impolated with previous frame)
     vec4 currentReflection = getReflection(samplep), previousReflection = getPReflection(samplep);
+    previousReflection = (previousReflection/max(previousReflection.w,1.f));
+     currentReflection = ( currentReflection/max( currentReflection.w,1.f));
+     
 
 #ifndef LATE_STAGE
     if (frefl > 0.f) {
-        imageStore(writeImages[REFLECLR], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.xyz,1.f),currentReflection.xyz/max(currentReflection.xyz,1.f),0.5f.xxx),0.f.xxx,1.f.xxx),1.f)); // Smoothed Reflections
+        imageStore(writeImages[REFLECLR], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f),currentReflection.xyz/max(currentReflection.w,1.f),0.5f.xxx),0.f.xxx,1.f.xxx),1.f)); // Smoothed Reflections
     };
     imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),1.f));
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));

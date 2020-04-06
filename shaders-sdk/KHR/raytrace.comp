@@ -24,7 +24,7 @@ struct XHIT {
      vec4 geoNormal;
      vec4 mapNormal;
      vec4 origin;
-    uvec4 txcmid;
+     vec4 txcmid;
 
      vec4 gTangent;
      vec4 gBinormal;
@@ -39,7 +39,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
     result.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
     result.geoNormal = vec4(vec3(0.f,1.f,0.f),lastMax);
     result.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
-    result.txcmid = uvec4(packHalf2x16(0.f.xx), 0u.x, 0u.x, 0u.x); // 
+    result.txcmid = vec4(uintBitsToFloat(packHalf2x16(0.f.xx)), 0.f, 0.f, 0.f); // 
     result.origin.xyz = origin.xyz;
     //result.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
 
@@ -146,15 +146,15 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
 
                     // Normalize
                     processing.geoNormal.xyz = normalize(processing.geoNormal.xyz);
-                    processing.gTangent.xyz = normalize(processing.gTangent.xyz);
+                    processing.gTangent .xyz = normalize(processing.gTangent.xyz);
                     processing.gBinormal.xyz = normalize(processing.gBinormal.xyz);
 
                     // Fix light leaks
                     processing.mapNormal.xyz = normalize(faceforward(processing.mapNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
 
                     // Use real origin
-                    processing.origin =  vec4(lastOrigin, 1.f);
-                    processing.txcmid = uvec4(packHalf2x16(gTexcoord.xy), meshInfo[nodeMeshID].materialID, 1u.x, 0u.x); // 
+                    processing.origin = vec4(lastOrigin, 1.f);
+                    processing.txcmid = vec4(uintBitsToFloat(packHalf2x16(gTexcoord.xy)), uintBitsToFloat(meshInfo[nodeMeshID].materialID), 1.f, 0.f); // 
                     //processing.tangent = gTangent; // UNUSED
 
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
@@ -232,16 +232,12 @@ void main() {
 
     // 
     if (RES.geoNormal.w < 9999.f) {
-        imageStore(writeImages[nonuniformEXT(EMISSION)], ivec2(lanQ), vec4(RES.emissionColor.xyz, 1.f));
-        imageStore(writeImages[nonuniformEXT(COLORING)], ivec2(lanQ), vec4(max(RES.diffuseColor.xyz - RES.emissionColor.xyz, 0.f.xxx), 1.f)); // TODO: REPLACE IT BY TEXCOORD, Material ID
         imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(1.f.xxx, 1.f));
     } else {
-        imageStore(writeImages[nonuniformEXT(EMISSION)], ivec2(lanQ), vec4(gSkyColor, 1.f));
-        imageStore(writeImages[nonuniformEXT(COLORING)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
         imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
     };
 
-    // 
+    // Reflection Color
     imageStore(writeImages[nonuniformEXT(REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
     imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
 
@@ -249,19 +245,12 @@ void main() {
     imageStore(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, 1.f));
     imageStore(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
     imageStore(writeImages[nonuniformEXT(MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
+    imageStore(writeImages[nonuniformEXT(MATERIAL)], ivec2(lanQ), (RES.txcmid));
 
-    // 
+    // Used By Reprojection (comparsion)
     imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(lanQ), vec4(RES.origin.xyz, 1.f));
     imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
-    imageStore(writeBuffer[nonuniformEXT(MATERIAL)], ivec2(lanQ), uintBitsToFloat(RES.txcmid));
-
-
-    // For Resampling Surface (comparsion)
-    //imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(invPixel), vec4(RES.origin.xyz, 1.f));
-    //imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(invPixel), vec4(RES.geoNormal.xyz, 1.f));
-
-    // TODO: Save Texcoord, Material ID buffer
-    // .. .. ..
+    imageStore(writeBuffer[nonuniformEXT(MASKDATA)], ivec2(lanQ), (RES.txcmid));
 
     // 
 #ifdef RAY_TRACE

@@ -36,8 +36,8 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
             abs(almostpos.z-screenSample.z) < 0.0001f && 
             length(almostpos.xy-screenSample.xy) < 4.f && 
             dot(gNormal.xyz,texelFetch(frameBuffers[NORMALGM], ivec2(i2fxm+offt), 0).xyz) >=0.5f && 
-            distance(wPosition.xyz,worldspos.xyz) < 0.05f && 
-            floatBitsToUint(texelFetch(frameBuffers[MATERIAL], ivec2(i2fxm+offt), 0).z) > 0u
+                            texelFetch(frameBuffers[MASKDATA], ivec2(i2fxm+offt), 0).z > 0.f &&
+            distance(wPosition.xyz,worldspos.xyz) < 0.05f
         ) { return true; };
     };
     return false;
