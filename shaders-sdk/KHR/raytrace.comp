@@ -5,6 +5,7 @@
 //#extension GL_ARB_post_depth_coverage  : require
 #include "./driver.glsl"
 
+#define RAY_TRACE
 
 // 
 layout (local_size_x = 16u, local_size_y = 12u) in; 
@@ -15,17 +16,18 @@ ivec2 launchSize = ivec2(1600, 1200);
 
 // 
 struct XHIT {
-    vec4  diffuseColor;
-    vec4 emissionColor;
-    vec4  normalsColor;
-    vec4 specularColor;
+     vec4  diffuseColor;
+     vec4 emissionColor;
+     vec4  normalsColor;
+     vec4 specularColor;
 
-    vec4 geoNormal;
-    vec4 mapNormal;
-    vec4 origin;
+     vec4 geoNormal;
+     vec4 mapNormal;
+     vec4 origin;
+    uvec4 txcmid;
 
-    vec4 gTangent;
-    vec4 gBinormal;
+     vec4 gTangent;
+     vec4 gBinormal;
 };
 
 // 
@@ -37,6 +39,8 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
     result.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
     result.geoNormal = vec4(vec3(0.f,1.f,0.f),lastMax);
     result.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
+    result.txcmid = uvec4(packHalf2x16(0.f.xx), 0u.x, 0u.x, 0u.x); // 
+    result.origin.xyz = origin.xyz;
     //result.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
 
     float fullLength = 0.f;
@@ -45,12 +49,12 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
 
     // 
     XHIT processing = result;
-    while((R++) < 4) { // restart needs for transparency (after every resolve)
+    while((R++) < 8) { // restart needs for transparency (after every resolve)
         rayQueryEXT rayQuery;
         rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT,
-            0xFF, (forigin = lastOrigin) + faceforward(normal.xyz,raydir.xyz,-normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
+            0xFF, (forigin = fullLength * raydir + result.origin.xyz) + faceforward(normal.xyz,raydir.xyz,-normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
 
-        while((I++) < 2) {
+        while((I++) < 64) {
             bool complete = !rayQueryProceedEXT(rayQuery);
 
             // Full Instance ID of Node (BY GEOMETRY INSTATNCE!!)
@@ -78,10 +82,13 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
             };
 
             // TODO: ???
-            //origin += raydir*tHit;
+            //origin = raydir*tHit + forigin;
 
             // 
             if (tHit < lastMax) { lastOrigin = origin, lastMax = tHit; // Choice Only MINIMAL
+                //processing. diffuseColor = 0.f.xxxx;
+                //processing.emissionColor = 0.f.xxxx;
+
                 const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
                 uvec3 idx3 = uvec3(primitiveID*3u+0u,primitiveID*3u+1u,primitiveID*3u+2u);
                 if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, nodeMeshID),load_u32(idx3.y*1u, 8u, nodeMeshID),load_u32(idx3.z*1u, 8u, nodeMeshID)); };
@@ -106,6 +113,9 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
                 // Native Normal Transform
                 const mat3x3 normalTransform = inverse(transpose(regen3(matras)));
                 const mat3x3 normInTransform = inverse(transpose(regen3(matra4)));
+
+                // 
+                //lastOrigin = raydir*tHit + forigin;
 
                 // 
                 const MaterialUnit unit = materials[0u].data[meshInfo[nodeMeshID].materialID];
@@ -143,7 +153,8 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
                     processing.mapNormal.xyz = normalize(faceforward(processing.mapNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
 
                     // Use real origin
-                    processing.origin = vec4(lastOrigin, 1.f);
+                    processing.origin =  vec4(lastOrigin, 1.f);
+                    processing.txcmid = uvec4(packHalf2x16(gTexcoord.xy), meshInfo[nodeMeshID].materialID, 1u.x, 0u.x); // 
                     //processing.tangent = gTangent; // UNUSED
 
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
@@ -162,6 +173,11 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT) {
         // 
         if (!restart || (fullLength += lastMax) >= (maxT-0.1f)) { break; } else { restart = false; }; // With Correction* 
     };
+
+    // 
+    //if (processing.txcmid.z <= 0u) {
+        processing.origin.xyz = processing.geoNormal.w * raydir + result.origin.xyz;
+    //};
 
     // 
     return processing;///(fullLength >= (maxT-1.f)) ? result : processing;
@@ -186,7 +202,7 @@ void directLight(in vec4 sphere, in vec3 origin, in vec3 normal, inout uvec2 see
 
 // 
 void main() {
-    uvec2 lanQ = gl_GlobalInvocationID.xy;
+    const uvec2 lanQ = gl_GlobalInvocationID.xy;
     launchSize = imageSize(writeImages[POSITION]);
 
     // 
@@ -211,33 +227,46 @@ void main() {
      vec3 geonrm = vec3(0.f);
 
     // Replacement for rasterization
-    XHIT result = traceRays(origin, raydir, normal, 10000.f);
-    mat3 TBN    = mat3(result.gTangent.xyz, result.gBinormal.xyz, result.geoNormal.xyz);
+    XHIT RES = traceRays(origin, raydir, normal, 10000.f);
+    mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
 
     // 
-    imageStore(writeImages[COLORING], ivec2(lanQ), vec4(max(result.diffuseColor.xyz - result.emissionColor.xyz, 0.f.xxx), 1.f)); // TODO: REPLACE IT BY TEXCOORD, Material ID
-    imageStore(writeImages[EMISSION], ivec2(lanQ), vec4(result.emissionColor.xyz, 1.f));
-    imageStore(writeImages[REFLECLR], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+    if (RES.geoNormal.w < 9999.f) {
+        imageStore(writeImages[nonuniformEXT(EMISSION)], ivec2(lanQ), vec4(RES.emissionColor.xyz, 1.f));
+        imageStore(writeImages[nonuniformEXT(COLORING)], ivec2(lanQ), vec4(max(RES.diffuseColor.xyz - RES.emissionColor.xyz, 0.f.xxx), 1.f)); // TODO: REPLACE IT BY TEXCOORD, Material ID
+        imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(1.f.xxx, 1.f));
+    } else {
+        imageStore(writeImages[nonuniformEXT(EMISSION)], ivec2(lanQ), vec4(gSkyColor, 1.f));
+        imageStore(writeImages[nonuniformEXT(COLORING)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+        imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+    };
 
-    // Resampling Colors
-    imageStore(writeImages[DIFFUSED], ivec2(lanQ), vec4(0.f.xxx, 1.f));
-    imageStore(writeImages[REFLECTP], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
+    // 
+    imageStore(writeImages[nonuniformEXT(REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+    imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
 
     // Will Resampled Itself (anchors)
-    imageStore(writeImages[POSITION], ivec2(lanQ), vec4(result.origin.xyz, 1.f));
-    imageStore(writeImages[GEONORML], ivec2(lanQ), vec4(result.geoNormal.xyz, 1.f));
-    imageStore(writeImages[MAPNORML], ivec2(lanQ), vec4(result.mapNormal.xyz, 1.f));
+    imageStore(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, 1.f));
+    imageStore(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
+    imageStore(writeImages[nonuniformEXT(MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
+
+    // 
+    imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(lanQ), vec4(RES.origin.xyz, 1.f));
+    imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
+    imageStore(writeBuffer[nonuniformEXT(MATERIAL)], ivec2(lanQ), uintBitsToFloat(RES.txcmid));
+
 
     // For Resampling Surface (comparsion)
-    imageStore(writeBuffers[SAMPLEPT], ivec2(lanQ), vec4(result.origin.xyz, 1.f));
-    imageStore(writeBuffers[NORMALGM], ivec2(lanQ), vec4(result.geoNormal.xyz, 1.f));
+    //imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(invPixel), vec4(RES.origin.xyz, 1.f));
+    //imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(invPixel), vec4(RES.geoNormal.xyz, 1.f));
 
     // TODO: Save Texcoord, Material ID buffer
     // .. .. ..
 
     // 
-    if (result.diffuseColor.w > 0.001f) {
-        vec3 forigin = origin, fraydir = raydir, fnormal = result.mapNormal.xyz;
+#ifdef RAY_TRACE
+    if (RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f) {
+        vec3 forigin = (origin = RES.origin.xyz), fraydir = raydir, fnormal = RES.mapNormal.xyz;
         TBN[2] = normalize(faceforward(TBN[2], fraydir.xyz, TBN[2]));
 
         // 
@@ -247,14 +276,14 @@ void main() {
 
         uvec2 seed = uvec2(packed,rdata.x);
         for (uint I=0;I<2;I++) {
-            vec3 raydir = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, fraydir.xyz, TBN, result.specularColor.y);
+            vec3 raydir = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, fraydir.xyz, TBN, RES.specularColor.y);
             vec3 origin = forigin, normal = normalize(faceforward(fnormal.xyz, fraydir.xyz, TBN[2]));
             raydir.xyz = normalize(faceforward(raydir.xyz, raydir.xyz, -TBN[2]));
 
             vec4 gEnergy = vec4(1.f.xxxx), gSignal = vec4(0.f.xxx,1.f);
             if ( I == 0 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
 
-            for (uint i=0;i<3;i++) { // 
+            for (uint i=0;i<2;i++) { // 
                 XHIT result = traceRays(origin, raydir, normal, 10000.f);
 
                 // 
@@ -303,9 +332,15 @@ void main() {
             };
 
             // 
-            if (I == 0) { imageStore(writeImages[DIFFUSED], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
-            if (I == 1) { imageStore(writeImages[REFLECLR], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
+            if (I == 0) { imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
+            if (I == 1) { 
+                const vec4 reflection = vec4(clamp(gSignal.xyz,0.f.xxx,1.f.xxx), 1.f);
+                imageStore(writeImages[nonuniformEXT(REFLECLR)], ivec2(lanQ), reflection);
+                imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), reflection); 
+            };
+            
         };
     };
+#endif
 
 };

@@ -25,6 +25,12 @@ vec4 getEmission   (in ivec2 map) { const ivec2 size = imageSize(writeImages[EMI
 vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeImages[COLORING]); return imageLoad(writeImages[COLORING],ivec2(map.x,size.y-map.y-1)); };
 
 // 
+ivec2 mapc(in ivec2 map) {
+    const ivec2 size = imageSize(writeImages[REFLECTP]);
+    return ivec2(map.x,size.y-map.y-1);
+}
+
+// 
 vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
     vec4 centerNormal = getNormal(coord);
     vec3 centerOrigin = world2screen(getPosition(coord).xyz);
@@ -74,14 +80,19 @@ void main() { // TODO: explicit sampling
     vec3 normal = getNormal(samplep).xyz;
 
     // 
+#ifndef LATE_STAGE
+    vec4 reflects = vec4(0.f.xxxx);
+    vec4 coloring = getDenoised(samplep, false, 9);
+#else // 
     int denDepth = 3;
     if (specular.y > 0.3333f) denDepth = 5;
     if (specular.y > 0.6666f) denDepth = 7;
     if (specular.y > 0.9999f) denDepth = 9;
+    vec4 reflects = getDenoised(samplep,  true, denDepth);
+    vec4 coloring = vec4(0.f.xxxx);
+#endif
 
     // 
-    vec4 coloring = getDenoised(samplep, false, 9);
-    vec4 reflects = getDenoised(samplep,  true, denDepth);
     if (reflects.w <= 0.f) { reflects = vec4(0.f.xxx,0.f); };
     if (coloring.w <= 0.f) { coloring = vec4(0.f.xxx,1.f); };
     coloring = max(coloring, 0.f.xxxx);
@@ -89,12 +100,20 @@ void main() { // TODO: explicit sampling
 
     // 
     const float inIOR = 1.f, outIOR = 1.6666f;
-    const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, specular.z);
+    const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, specular.z) * imageLoad(writeImages[MAPNORML], mapc(samplep)).w;
 
     // Currently NOT denoised! (impolated with previous frame)
     vec4 currentReflection = getReflection(samplep), previousReflection = getPReflection(samplep);
-    imageStore( writeImages[REFLECLR], samplep, reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.xyz,1.f),currentReflection.xyz/max(currentReflection.xyz,1.f),0.5f.xxx),0.f.xxx,1.f.xxx),1.f)); // Smoothed Reflections
 
-    // Final Result? Planned to move reflection pass...
-    imageStore(writeBuffers[RENDERED], samplep, vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+#ifndef LATE_STAGE
+    if (frefl > 0.f) {
+        imageStore(writeImages[REFLECLR], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.xyz,1.f),currentReflection.xyz/max(currentReflection.xyz,1.f),0.5f.xxx),0.f.xxx,1.f.xxx),1.f)); // Smoothed Reflections
+    };
+    imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),1.f));
+    //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+#else
+    imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
+    //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+#endif
+
 };
