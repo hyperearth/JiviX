@@ -28,15 +28,15 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
     for (int i=0;i<9;i++) {
         const vec2 offt = shift[i];
 
-        vec4 worldspos = vec4(texelFetch(frameBuffers[SAMPLEPT], ivec2(i2fxm+offt), 0).xyz,1.f);
+        vec4 worldspos = vec4(texture(frameBuffers[SAMPLEPT], vec2(i2fxm+offt), 0).xyz,1.f);
         vec4 almostpos = vec4(world2screen(worldspos.xyz),1.f);
         //almostpos.y *= -1.f;
 
         if (
             abs(almostpos.z-screenSample.z) < 0.0001f && 
             length(almostpos.xy-screenSample.xy) < 4.f && 
-            dot(gNormal.xyz,texelFetch(frameBuffers[NORMALGM], ivec2(i2fxm+offt), 0).xyz) >=0.5f && 
-                            texelFetch(frameBuffers[MASKDATA], ivec2(i2fxm+offt), 0).z > 0.f &&
+            dot(gNormal.xyz,    texture(frameBuffers[NORMALGM],  vec2(i2fxm+offt), 0).xyz) >=0.5f && 
+                             texelFetch(frameBuffers[MASKDATA], ivec2(i2fxm+offt), 0).z > 0.f &&
             distance(wPosition.xyz,worldspos.xyz) < 0.05f
         ) { return true; };
     };
