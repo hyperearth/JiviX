@@ -1,49 +1,42 @@
 // #
-// Re-Sampling
-#define DIFFUSED 0 // Indrect diffuse
-#define SAMPLING 1 // Positions
-#define RESCOLOR 2 // ???
-#define REFLECTS 3 // Specular color
-#define RENDERED 4 // Denoised
-#define NORMALED 5
-//#define DIFFUSED_FLIP1 0//2
-//#define SAMPLING_FLIP1 1//3
 
-// Rasterization or First Step
-#define COLORING 0 // Diffuse color
-#define POSITION 1 // Noisy positions
-#define RAYQUERY 2 // Indirect Illumination
-#define RFLVALUE 3 // Reflection Color
-#define EMISSION 4 // Emissive 
-#define SPECULAR 5 // PBR Data
-#define NORMALEF 6 // Mapped Normals
-#define SAMPLEPT 7 // Conservative Positions
+
+// Ray-Tracing Output
+#define DIFFUSED 0 // Indrect diffuse
+#define REFLECLR 1
+
+// Helping Data (may to be UNUSED)
+#define MAPNORML 2
+#define EMISSION 3
+
+// Denoised State
+#define REFLECTP 4
+
+// First Pass Data
+#define POSITION 5
+#define COLORING 6
+#define GEONORML 7
+
+// Last Action Data (another binding only)
+#define RENDERED 0
 
 
 // TODO: Materials
 struct RayPayloadData {
     uvec4 udata;
-    vec4 fdata;
-    vec4 position;
-    vec4 texcoord;
+     vec4 fdata;
+     vec4 position;
+     vec4 texcoord;
 
-    vec4 normals;
-    //vec4 normalm;
-    vec4 tangent;
-    vec4 binorml;
-    
-
-    //vec4 diffuse;
-    //vec4 specular;
-    //vec4 emission;
-    //vec4 tangents;
+     vec4 normals;
+     vec4 tangent;
+     vec4 binorml;
 };
 
 struct Binding {
     uint32_t binding;
     uint32_t stride;
     uint32_t rate;
-    //uint32_t reserved;
 };
 
 struct Attribute {
@@ -70,10 +63,8 @@ struct MaterialUnit {
 struct MeshInfo {
     uint materialID;
     uint indexType;
-    //uint hasIndex;
     uint prmCount;
     uint flags;
-    //uint hasTransform;
 };
 
 bool hasTransform(in MeshInfo meshInfo){
@@ -99,27 +90,8 @@ vec3 toLinear(in vec3 sRGB) { return mix(pow((sRGB + vec3(0.055))/vec3(1.055), v
 vec4 fromLinear(in vec4 linearRGB) { return vec4(fromLinear(linearRGB.xyz), linearRGB.w); }
 vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
 
-
-// Mesh Data Buffers
-//layout (binding = 0, set = 0, scalar) buffer Data0 { uint8_t data[]; } mesh0[];
-//layout (binding = 1, set = 0, scalar) buffer Data1 { uint8_t data[]; } mesh1[];
-//layout (binding = 2, set = 0, scalar) buffer Data2 { uint8_t data[]; } mesh2[];
-//layout (binding = 3, set = 0, scalar) buffer Data3 { uint8_t data[]; } mesh3[];
-//layout (binding = 4, set = 0, scalar) buffer Data4 { uint8_t data[]; } mesh4[];
-//layout (binding = 5, set = 0, scalar) buffer Data5 { uint8_t data[]; } mesh5[];
-//layout (binding = 6, set = 0, scalar) buffer Data6 { uint8_t data[]; } mesh6[];
-//layout (binding = 7, set = 0, scalar) buffer Data7 { uint8_t data[]; } mesh7[];
-
 // 
 layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
-//layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer mesh1[];
-//layout (binding = 2, set = 0, r8ui) readonly uniform uimageBuffer mesh2[];
-//layout (binding = 3, set = 0, r8ui) readonly uniform uimageBuffer mesh3[];
-//layout (binding = 4, set = 0, r8ui) readonly uniform uimageBuffer mesh4[];
-//layout (binding = 5, set = 0, r8ui) readonly uniform uimageBuffer mesh5[];
-//layout (binding = 6, set = 0, r8ui) readonly uniform uimageBuffer mesh6[];
-//layout (binding = 7, set = 0, r8ui) readonly uniform uimageBuffer mesh7[];
-
 #ifdef GEN_QUAD_INDEX // For Minecraft
 layout (binding = 8, set = 0, r8ui) uniform uimageBuffer index[]; // indices compatible 
 #else
@@ -144,6 +116,7 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
 layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
 layout (binding = 5, set = 1, scalar) readonly buffer MeshData { MeshInfo meshInfo[]; };
 
+// 
 struct RTXInstance {
     mat3x4 transform;
     uint32_t dontcare0;
@@ -151,6 +124,7 @@ struct RTXInstance {
     uvec2 handle;
 };
 
+// 
 layout (binding = 6, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 layout (binding = 7, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[];  // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
 
@@ -162,25 +136,8 @@ layout(push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // System Specified
 uint8_t load_u8(in uint offset, in uint binding, in uint nodeMeshID) {
-    //if (binding == 0u) { return mesh0[meshID].data[offset]; };
-    //if (binding == 1u) { return mesh1[meshID].data[offset]; };
-    //if (binding == 2u) { return mesh2[meshID].data[offset]; };
-    //if (binding == 3u) { return mesh3[meshID].data[offset]; };
-    //if (binding == 4u) { return mesh4[meshID].data[offset]; };
-    //if (binding == 5u) { return mesh5[meshID].data[offset]; };
-    //if (binding == 6u) { return mesh6[meshID].data[offset]; };
-    //if (binding == 7u) { return mesh7[meshID].data[offset]; };
-
     if (binding == 0u) { return uint8_t(imageLoad(mesh0[meshID], int(offset)).x); };
-    //if (binding == 1u) { return uint8_t(imageLoad(mesh1[meshID], int(offset)).x); };
-    //if (binding == 2u) { return uint8_t(imageLoad(mesh2[meshID], int(offset)).x); };
-    //if (binding == 3u) { return uint8_t(imageLoad(mesh3[meshID], int(offset)).x); };
-    //if (binding == 4u) { return uint8_t(imageLoad(mesh4[meshID], int(offset)).x); };
-    //if (binding == 5u) { return uint8_t(imageLoad(mesh5[meshID], int(offset)).x); };
-    //if (binding == 6u) { return uint8_t(imageLoad(mesh6[meshID], int(offset)).x); };
-    //if (binding == 7u) { return uint8_t(imageLoad(mesh7[meshID], int(offset)).x); };
     if (binding == 8u) { return uint8_t(imageLoad(index[meshID], int(offset)).x); };
-
     return uint8_t(0u);
 };
 
@@ -240,12 +197,10 @@ vec4 mul4(in vec4 v, in mat3x4 M) {
 #define IndexU32 1
 
 
-
-
-
 // Deferred and Rasterization Set
-layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
+//layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
 layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // New for FXAA shading (based on writeImages)
+layout (binding = 2, set = 2, rgba32f) uniform image2D writeBuffers[]; // For EDIT!
 //layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
 
 // Sampling And Ray Tracing Set (also, re-used from previous frame)
@@ -335,15 +290,7 @@ vec2 random2( inout uint  s ) { s += 1; return halfConstruct(hash(uvec3(QLOCK2,s
 float staticRandom () { SCLOCK += 1; return floatConstruct(hash(uvec4(SCLOCK,0u,rdata.xy))); }
 vec2  staticRandom2() { SCLOCK += 1; return  halfConstruct(hash(uvec4(SCLOCK,0u,rdata.xy))); }
 
-/*
-float rand( inout uvec2 seed ) {
-	seed += uvec2(1);
-    uvec2 q = 1103515245U * ( (seed >> 1U) ^ (seed.yx) );
-    uint  n = 1103515245U * ( (q.x) ^ (q.y >> 3U) );
-	return float(n) * (1.0 / float(0xffffffffU));
-};
-*/
-
+// 
 vec2 lcts(in vec3 direct) { return vec2(fma(atan(direct.z,direct.x),INV_TWO_PI,0.5f),acos(-direct.y)*INV_PI); };
 vec3 dcts(in vec2 hr) { 
     hr = fma(hr,vec2(TWO_PI,PI),vec2(-PI,0.f)); 

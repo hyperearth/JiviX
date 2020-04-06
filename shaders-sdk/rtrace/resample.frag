@@ -12,20 +12,18 @@ layout (location = 3) in vec4 wPosition;
 layout (location = 4) in vec4 gSpecular;
 layout (location = 5) in vec4 gRescolor;
 
-
+// 
 layout (location = DIFFUSED) out vec4 oDiffused;
-layout (location = SAMPLING) out vec4 oSampling;
-layout (location = REFLECTS) out vec4 oSpecular;
-layout (location = RESCOLOR) out vec4 oRescolor;
+layout (location = REFLECTP) out vec4 oSpecular;
 
-
+// 
 const vec2 shift[9] = {
     vec2(-1.f,-1.f),vec2(0.f,-1.f),vec2(1.f,-1.f),
     vec2(-1.f, 0.f),vec2(0.f, 0.f),vec2(1.f, 0.f),
     vec2(-1.f, 1.f),vec2(0.f, 1.f),vec2(1.f, 1.f)
 };
 
-
+// 
 bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
     for (int i=0;i<9;i++) {
         const vec2 offt = shift[i];
@@ -58,6 +56,5 @@ void main() { // Currently NO possible to compare
     if (checkCorrect(vec4(gSample.xyz,1.f), i2fxm)) {
         oDiffused = gColor;
         oSpecular = vec4(gSpecular.xyz,gSpecular.w*0.5f); // TODO: Make New Reflection Sampling
-        oRescolor = gRescolor;
     } else { discard; };
 };

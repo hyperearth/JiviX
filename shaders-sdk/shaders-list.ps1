@@ -66,10 +66,8 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     BuildCompute "resample.vert"        "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "background.frag"      "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "background.vert"      "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "pathtrace.rgen"       "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "pathtrace.rchit"      "$INDIR$RTPU" "$HRDDIR$RTPU"
-    BuildCompute "pathtrace.rmiss"      "$INDIR$RTPU" "$HRDDIR$RTPU"
     BuildCompute "quad.comp"            "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "raytrace.comp"        "$INDIR$RNDX" "$HRDDIR$RNDX"
 
     # optimize built shaders
     OptimizeMainline $RTPU

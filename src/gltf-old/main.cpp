@@ -181,8 +181,8 @@ int main() {
 	};
 
     // 
-	//uint32_t canvasWidth = 1600, canvasHeight = 1200; // For 3840x2160 Resolutions
-    uint32_t canvasWidth = 1920, canvasHeight = 1080;
+	uint32_t canvasWidth = 1600, canvasHeight = 1200; // For 3840x2160 Resolutions
+    //uint32_t canvasWidth = 1920, canvasHeight = 1080;
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
