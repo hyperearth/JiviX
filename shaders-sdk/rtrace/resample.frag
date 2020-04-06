@@ -28,11 +28,11 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
     for (int i=0;i<9;i++) {
         const vec2 offt = shift[i];
 
-        vec4 worldspos = vec4(texture(frameBuffers[POSITION],i2fxm+offt).xyz,1.f);
+        vec4 worldspos = vec4(texture(frameBuffers[SAMPLEPT],i2fxm+offt).xyz,1.f);
         vec4 almostpos = vec4(world2screen(worldspos.xyz),1.f);
         //almostpos.y *= -1.f;
 
-        if (abs(almostpos.z-screenSample.z) < 0.0001f && length(almostpos.xy-screenSample.xy) < 4.f && dot(gNormal.xyz,texture(frameBuffers[NORMALEF],i2fxm+offt).xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f) {
+        if (abs(almostpos.z-screenSample.z) < 0.0001f && length(almostpos.xy-screenSample.xy) < 4.f && dot(gNormal.xyz,texture(frameBuffers[NORMALGM],i2fxm+offt).xyz)>=0.5f && distance(wPosition.xyz,worldspos.xyz) < 0.05f) {
             return true;
         };
     };
@@ -48,7 +48,7 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
 // 
 void main() { // Currently NO possible to compare
     const ivec2 f2fx  = ivec2(gl_FragCoord.xy);
-    const ivec2 size  = ivec2(textureSize(frameBuffers[POSITION], 0));
+    const ivec2 size  = ivec2(textureSize(frameBuffers[SAMPLEPT], 0));
     const ivec2 i2fx  = ivec2(f2fx.x,size.y-f2fx.y-1);
     const  vec2 i2fxm =  vec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 

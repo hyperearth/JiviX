@@ -22,11 +22,10 @@ void main() {
     const ivec2 i2fx = ivec2(size.x,size.y-f2fx.y-1);
 
     // FROM PREVIOUS FRAME!!
-    const vec4 positions = imageLoad(writeImages[SAMPLING],f2fx);
+    const vec4 positions = imageLoad(writeImages[POSITION],f2fx);
     const vec4 diffcolor = imageLoad(writeImages[DIFFUSED],f2fx);
-    const vec4 normaling = imageLoad(writeImages[NORMALED],f2fx);
-    const vec4 speccolor = imageLoad(writeImages[REFLECTS],f2fx);
-    const vec4 msaacolor = imageLoad(writeImages[RESCOLOR],f2fx);
+    const vec4 normaling = imageLoad(writeImages[GEONORML],f2fx);
+    const vec4 speccolor = imageLoad(writeImages[REFLECLR],f2fx);
 
     // 
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
@@ -36,7 +35,6 @@ void main() {
         gSpecular = vec4(speccolor.xyz,1.f);
         gSample = vec4(gl_Position.xyz,1.f), gSample.y *= -1.f;
         gNormal = vec4(normaling.xyz,1.f);
-        gRescolor = msaacolor;
         wPosition = positions;
     };
 };

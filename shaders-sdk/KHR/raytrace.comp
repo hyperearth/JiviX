@@ -8,6 +8,7 @@
 
 // 
 layout (local_size_x = 16u, local_size_y = 12u) in; 
+layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 
 // BUT DEFAULT OVERRIDEN!
 ivec2 launchSize = ivec2(1600, 1200);
@@ -186,7 +187,7 @@ void directLight(in vec4 sphere, in vec3 origin, in vec3 normal, inout uvec2 see
 // 
 void main() {
     uvec2 lanQ = gl_GlobalInvocationID.xy;
-    launchSize = imageSize(writeImages,0);
+    launchSize = imageSize(writeImages[POSITION]);
 
     // 
     const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
@@ -199,9 +200,8 @@ void main() {
     const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
 
     //const vec2 shift = random2(uvec2(rdata[0],packed)), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
-    const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f
-    const vec3 cameraSample = vec4(worldsSample.xyz,1.f)*modelview;
-    uvec2 seed = uvec2(packed,rdata.x);
+    const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
+    uvec2 seed = uvec2(packed, rdata.x);
 
     // 
      vec3 origin = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.001f));
@@ -215,31 +215,39 @@ void main() {
     mat3 TBN    = mat3(result.gTangent.xyz, result.gBinormal.xyz, result.geoNormal.xyz);
 
     // 
-    imageStore(writeImages[DIFFUSED], pixel, vec4(0.f.xxx, 1.f));
-    imageStore(writeImages[COLORING], pixel, vec4(max(result.diffuseColor.xyz - result.emissionColor.xyz, 0.f.xxx), 1.f)); // TODO: REPLACE IT BY TEXCOORD, Material ID
-    imageStore(writeImages[EMISSION], pixel, vec4(result.emissionColor.xyz, 1.f));
-    imageStore(writeImages[REFLECTP], pixel, vec4(0.f.xxx, 1.f)); // Py-Clone
-    imageStore(writeImages[REFLECLR], pixel, vec4(0.f.xxx, 1.f));
-    imageStore(writeImages[POSITION], pixel, vec4(result.origin.xyz, 1.f));
+    imageStore(writeImages[COLORING], ivec2(lanQ), vec4(max(result.diffuseColor.xyz - result.emissionColor.xyz, 0.f.xxx), 1.f)); // TODO: REPLACE IT BY TEXCOORD, Material ID
+    imageStore(writeImages[EMISSION], ivec2(lanQ), vec4(result.emissionColor.xyz, 1.f));
+    imageStore(writeImages[REFLECLR], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+
+    // Resampling Colors
+    imageStore(writeImages[DIFFUSED], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+    imageStore(writeImages[REFLECTP], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
+
+    // Will Resampled Itself (anchors)
+    imageStore(writeImages[POSITION], ivec2(lanQ), vec4(result.origin.xyz, 1.f));
+    imageStore(writeImages[GEONORML], ivec2(lanQ), vec4(result.geoNormal.xyz, 1.f));
+    imageStore(writeImages[MAPNORML], ivec2(lanQ), vec4(result.mapNormal.xyz, 1.f));
+
+    // For Resampling Surface (comparsion)
+    imageStore(writeBuffers[SAMPLEPT], ivec2(lanQ), vec4(result.origin.xyz, 1.f));
+    imageStore(writeBuffers[NORMALGM], ivec2(lanQ), vec4(result.geoNormal.xyz, 1.f));
 
     // TODO: Save Texcoord, Material ID buffer
     // .. .. ..
 
     // 
     if (result.diffuseColor.w > 0.001f) {
-        const vec3 cameraSample = vec4(fPosition.xyz,1.f)*modelview;
         vec3 forigin = origin, fraydir = raydir, fnormal = result.mapNormal.xyz;
         TBN[2] = normalize(faceforward(TBN[2], fraydir.xyz, TBN[2]));
 
+        // 
         const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
-        const uint packed = pack32(u16vec2(gl_FragCoord.xy));
-
         const vec4 bspher = vec4(forigin,10000.f);
         const float inIOR = 1.f, outIOR = 1.6666f;
 
         uvec2 seed = uvec2(packed,rdata.x);
         for (uint I=0;I<2;I++) {
-            vec3 raydir = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, fraydir.xyz, TBN, specularColor.y);
+            vec3 raydir = I == 0 ? randomHemisphereCosine(seed, TBN) : reflectGlossy(seed, fraydir.xyz, TBN, result.specularColor.y);
             vec3 origin = forigin, normal = normalize(faceforward(fnormal.xyz, fraydir.xyz, TBN[2]));
             raydir.xyz = normalize(faceforward(raydir.xyz, raydir.xyz, -TBN[2]));
 
@@ -295,8 +303,8 @@ void main() {
             };
 
             // 
-            if (I == 0) { imageStore(writeImages[DIFFUSED], pixel, vec4(gSignal.xyz, 1.f)); };
-            if (I == 1) { imageStore(writeImages[REFLECLR], pixel, vec4(gSignal.xyz, 1.f)); };
+            if (I == 0) { imageStore(writeImages[DIFFUSED], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
+            if (I == 1) { imageStore(writeImages[REFLECLR], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
         };
     };
 

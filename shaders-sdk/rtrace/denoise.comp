@@ -70,9 +70,8 @@ void main() { // TODO: explicit sampling
     // 
     vec3 camera = vec4(position.xyz,1.f)*modelview;
     vec3 raydir = (modelview * normalize(camera.xyz)).xyz;
-    vec3 origin = worldsSample.xyz;
-    vec3 normal = normalSample.xyz;
-    vec3 geonrm = normalSample.xyz;
+    vec3 origin = getPosition(samplep).xyz;
+    vec3 normal = getNormal(samplep).xyz;
 
     // 
     int denDepth = 3;

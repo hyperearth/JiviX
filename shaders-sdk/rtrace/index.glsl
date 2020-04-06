@@ -19,6 +19,8 @@
 
 // Last Action Data (another binding only)
 #define RENDERED 0
+#define SAMPLEPT 1
+#define NORMALGM 2
 
 
 // TODO: Materials
@@ -198,10 +200,10 @@ vec4 mul4(in vec4 v, in mat3x4 M) {
 
 
 // Deferred and Rasterization Set
-//layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
+layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
+//layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
 layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // New for FXAA shading (based on writeImages)
 layout (binding = 2, set = 2, rgba32f) uniform image2D writeBuffers[]; // For EDIT!
-//layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
 
 // Sampling And Ray Tracing Set (also, re-used from previous frame)
 layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
