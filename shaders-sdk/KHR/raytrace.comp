@@ -237,7 +237,7 @@ void main() {
     // Replacement for rasterization
     XHIT SUF =                              traceRays(    origin.xyz, raydir, normal, 10000.f, false, 0.01f); // Ground-Up
     XHIT RES = SUF.diffuseColor.w <=0.99f ? traceRays(SUF.origin.xyz, raydir, normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
-         RES = SUF; // Prefer From TOP layer
+    imageStore(writeBuffer[nonuniformEXT(GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); RES = SUF; // Prefer From TOP layer (like as in Minecraft)
     //mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
 
     // 
@@ -248,21 +248,12 @@ void main() {
     };
 
     // Will Resampled Itself (anchors)
-    imageStore(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, 1.f));
+    imageStore(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w));
     imageStore(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
     imageStore(writeImages[nonuniformEXT(MATERIAL)], ivec2(lanQ), vec4(RES.txcmid));
-    imageStore(writeImages[nonuniformEXT(TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx,1.f.x));
-
-    // Reflection Color
-    imageStore(writeImages[nonuniformEXT(REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+    imageStore(writeImages[nonuniformEXT(TRANSPRV)], ivec2(lanQ), vec4(0.f.xxx, 1.f.x));
     imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
     imageStore(writeImages[nonuniformEXT(MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
-
-    // Used By Reprojection (comparsion)
-    imageStore(writeBuffer[nonuniformEXT(COLORING)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(MASKDATA)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(MATERIAL)], ivec2(lanQ)));
 
     // 
 #ifdef RAY_TRACE
@@ -354,11 +345,10 @@ void main() {
                 if (I == 0) { imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
                 if (I == 1) { 
                     const vec4 reflection = vec4(clamp(gSignal.xyz,0.f.xxx,1.f.xxx), 1.f);
-                    imageStore(writeImages[nonuniformEXT(REFLECLR)], ivec2(lanQ), reflection);
                     imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), reflection);
                 };
                 if (I == 2) {
-                    imageStore(writeImages[nonuniformEXT(TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, RES.diffuseColor.w)); // alpha channel reserved, zero always opaque type
+                    imageStore(writeImages[nonuniformEXT(TRANSPRV)], ivec2(lanQ), vec4(gSignal.xyz, RES.diffuseColor.w)); // alpha channel reserved, zero always opaque type
                 };
 
             };
@@ -366,4 +356,11 @@ void main() {
     };
 #endif
 
+    // Used By Reprojection (comparsion)
+    imageStore(writeBuffer[nonuniformEXT(COLORING)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(MASKDATA)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(MATERIAL)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(REFLECLR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(TRANSPAR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(TRANSPRV)], ivec2(lanQ)));
 };

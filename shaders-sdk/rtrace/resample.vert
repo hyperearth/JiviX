@@ -25,7 +25,7 @@ void main() {
     const vec4 positions = imageLoad(writeImages[POSITION],f2fx);
     const vec4 diffcolor = imageLoad(writeImages[DIFFUSED],f2fx);
     const vec4 normaling = imageLoad(writeImages[GEONORML],f2fx);
-    const vec4 speccolor = imageLoad(writeImages[REFLECLR],f2fx);
+    const vec4 speccolor = imageLoad(writeImages[REFLECTP],f2fx);
 
     // 
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;

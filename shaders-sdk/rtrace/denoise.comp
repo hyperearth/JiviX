@@ -7,24 +7,23 @@
 //layout ( location = 0 ) out vec4 uFragColor;
 layout (local_size_x = 16u, local_size_y = 12u) in; 
 
-// 
-vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[DIFFUSED]); return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); };
+// Not Reprojected by Previous Frame
 vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[MAPNORML]); return imageLoad(writeImages[MAPNORML],ivec2(map.x,size.y-map.y-1)); };
 vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeImages[POSITION]); return imageLoad(writeImages[POSITION],ivec2(map.x,size.y-map.y-1)); };
-vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeImages[REFLECLR]); return imageLoad(writeImages[REFLECLR],ivec2(map.x,size.y-map.y-1)); };
-vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeImages[TRANSPAR]); return imageLoad(writeImages[TRANSPAR],ivec2(map.x,size.y-map.y-1)); };
+vec4 getData       (in ivec2 map) { const ivec2 size = imageSize(writeImages[MATERIAL]); return imageLoad(writeImages[MATERIAL],ivec2(map.x,size.y-map.y-1)); };
 
-// Resampling Data
+// For current frame only
+vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[REFLECLR]); return imageLoad(writeBuffer[REFLECLR],ivec2(map.x,size.y-map.y-1)); };
+vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeBuffer[TRANSPAR]); return imageLoad(writeBuffer[TRANSPAR],ivec2(map.x,size.y-map.y-1)); };
+vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[COLORING]); return imageLoad(writeBuffer[COLORING],ivec2(map.x,size.y-map.y-1)); };
+
+// With Resampling
+vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[DIFFUSED]); return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); };
 vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[REFLECTP]); return imageLoad(writeImages[REFLECTP],ivec2(map.x,size.y-map.y-1)); };
 
 // 
-//void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeImages[COLORING]); imageStore(writeImages[COLORING],ivec2(map.x,size.y-map.y-1),color); };
-void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeImages[REFLECLR]); imageStore(writeImages[REFLECLR],ivec2(map.x,size.y-map.y-1),color); };
-
-// FOR REPLACEMENT by Texcoord, Material ID, Data
-//vec4 getEmission   (in ivec2 map) { const ivec2 size = imageSize(writeImages[EMISSION]); return imageLoad(writeImages[EMISSION],ivec2(map.x,size.y-map.y-1)); };
-//vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeImages[COLORING]); return imageLoad(writeImages[COLORING],ivec2(map.x,size.y-map.y-1)); };
-vec4 getData      (in ivec2 map) { const ivec2 size = imageSize(writeImages[MATERIAL]); return imageLoad(writeImages[MATERIAL],ivec2(map.x,size.y-map.y-1));  };
+void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[COLORING]); imageStore(writeBuffer[COLORING],ivec2(map.x,size.y-map.y-1),color); };
+void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[REFLECLR]); imageStore(writeBuffer[REFLECLR],ivec2(map.x,size.y-map.y-1),color); };
 
 // 
 ivec2 mapc(in ivec2 map) {
@@ -48,7 +47,7 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
             if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == (maxc>>1) && y == (maxc>>1)) || centerc.w <= 0.0001f) {
                 vec4 samp = 0.f.xxxx;
                 if (reflection) {
-                    samp = vec4(getReflection(map).xyz,1.f);
+                    samp = getPReflection(map);
                 } else {
                     samp = getIndirect(map);
                 };
@@ -59,10 +58,10 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
         };
     };
 
-    if (reflection) {
-        sampled.xyz /= sampled.w;
-        sampled.w = getReflection(coord).w;
-    };
+    //if (reflection) {
+    //    sampled.xyz /= sampled.w;
+    //    sampled.w = getPReflection(coord).w;
+    //};
 
     return sampled;
 };
@@ -130,16 +129,13 @@ void main() { // TODO: explicit sampling
     float alpha = (1.f-transpar.w) * (isSkybox ? 0.f : 1.f);
 
 #ifndef LATE_STAGE
-    if (frefl > 0.f) {
-        imageStore(writeImages[REFLECLR], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f),currentReflection.xyz/max(currentReflection.w,1.f),0.5f.xxx),0.f.xxx,1.f.xxx),1.f)); // Smoothed Reflections
-    };
+    imageStore(writeImages[REFLECTP], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
     imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),1.f));
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #else
     
     imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,1.f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
     imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
-
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif
 

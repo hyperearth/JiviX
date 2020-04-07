@@ -4,16 +4,13 @@
 // Ray-Tracing Output
 #define DIFFUSED 0 // Indrect Diffuse
 #define MATERIAL 1 // Texcoord, Material ID, Skybox Mask
-#define REFLECLR 2 // Reflection Pass
-#define REFLECTP 3 // Previous Frame Reflection
+#define REFLECTP 2 // Previous Frame Reflection
+#define TRANSPRV 3 // Semi-Transparent Mixing
 
 // Helping Data (may to be UNUSED)
 #define MAPNORML 4 // Mapped Normals
 #define GEONORML 5 // Geometry Normals
-
-// 
 #define POSITION 6 // Ray-Traced Position (for resampling)
-#define TRANSPAR 7 // Semi-Transparent Mixing
 
 // Last Action Data (another binding only)
 #define RENDERED 0 // Final Rendering Result
@@ -21,6 +18,9 @@
 #define NORMALGM 2 // Geometry Normal
 #define MASKDATA 3 // Material Data
 #define COLORING 4
+#define REFLECLR 5
+#define TRANSPAR 6
+#define GROUNDPS 7 // Deep Layer!!
 
 
 // TODO: Materials
