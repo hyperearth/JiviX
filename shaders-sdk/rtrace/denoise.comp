@@ -12,6 +12,7 @@ vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[DIF
 vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[MAPNORML]); return imageLoad(writeImages[MAPNORML],ivec2(map.x,size.y-map.y-1)); };
 vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeImages[POSITION]); return imageLoad(writeImages[POSITION],ivec2(map.x,size.y-map.y-1)); };
 vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeImages[REFLECLR]); return imageLoad(writeImages[REFLECLR],ivec2(map.x,size.y-map.y-1)); };
+vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeImages[TRANSPAR]); return imageLoad(writeImages[TRANSPAR],ivec2(map.x,size.y-map.y-1)); };
 
 // Resampling Data
 vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[REFLECTP]); return imageLoad(writeImages[REFLECTP],ivec2(map.x,size.y-map.y-1)); };
@@ -121,7 +122,10 @@ void main() { // TODO: explicit sampling
     vec4 currentReflection = getReflection(samplep), previousReflection = getPReflection(samplep);
     previousReflection = (previousReflection/max(previousReflection.w,1.f));
      currentReflection = ( currentReflection/max( currentReflection.w,1.f));
-     
+
+    // Can't denoised! Going deeper than "opaque" types... mixing with main color... 
+    vec4 transpar = getTransparent(samplep);
+    float alpha = transpar.w;//(1.f-diffused.w) * (isSkybox ? 0.f : 1.f);
 
 #ifndef LATE_STAGE
     if (frefl > 0.f) {
@@ -130,6 +134,7 @@ void main() { // TODO: explicit sampling
     imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),1.f));
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #else
+    imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,1.f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
     imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif

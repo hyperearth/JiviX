@@ -13,7 +13,7 @@
 
 // 
 #define POSITION 6 // Ray-Traced Position (for resampling)
-#define RESERVED 7 // ???
+#define TRANSPAR 7 // Semi-Transparent Mixing
 
 // Last Action Data (another binding only)
 #define RENDERED 0 // Final Rendering Result
