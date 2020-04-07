@@ -124,8 +124,10 @@ void main() { // TODO: explicit sampling
      currentReflection = ( currentReflection/max( currentReflection.w,1.f));
 
     // Can't denoised! Going deeper than "opaque" types... mixing with main color... 
+    //vec4 transpar = getTransparent(samplep).w;
+    //float alpha = transpar.w;
     vec4 transpar = getTransparent(samplep);
-    float alpha = transpar.w;//(1.f-diffused.w) * (isSkybox ? 0.f : 1.f);
+    float alpha = (1.f-transpar.w) * (isSkybox ? 0.f : 1.f);
 
 #ifndef LATE_STAGE
     if (frefl > 0.f) {
@@ -134,8 +136,10 @@ void main() { // TODO: explicit sampling
     imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),1.f));
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #else
-    imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
+    
     imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,1.f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
+    imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
+
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif
 

@@ -237,6 +237,7 @@ void main() {
     // Replacement for rasterization
     XHIT SUF =                              traceRays(    origin.xyz, raydir, normal, 10000.f, false, 0.01f); // Ground-Up
     XHIT RES = SUF.diffuseColor.w <=0.99f ? traceRays(SUF.origin.xyz, raydir, normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
+         RES = SUF; // Prefer From TOP layer
     //mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
 
     // 
@@ -250,7 +251,7 @@ void main() {
     imageStore(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, 1.f));
     imageStore(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
     imageStore(writeImages[nonuniformEXT(MATERIAL)], ivec2(lanQ), vec4(RES.txcmid));
-    imageStore(writeImages[nonuniformEXT(TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx,0.f.x));
+    imageStore(writeImages[nonuniformEXT(TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx,1.f.x));
 
     // Reflection Color
     imageStore(writeImages[nonuniformEXT(REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
@@ -276,10 +277,11 @@ void main() {
 
         // 
         for (uint I=0;I<3;I++) {
-            if ( I == 2 ) { RES = SUF; };
+            //if ( I == 2 ) { RES = SUF; }; // Top Layer Overlap
             if (!(RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f)) { continue; }; // useless tracing mode
-            if ( I == 2 && RES.diffuseColor.w > 0.99f ) { break; };
+            if (  RES.diffuseColor.w > 0.99f  && I == 2 ) { break; };
 
+            // 
             mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
             vec3 forigin = (origin = RES.origin.xyz), fraydir = raydir, fnormal = RES.mapNormal.xyz;
             TBN[2] = normalize(faceforward(TBN[2], fraydir.xyz, TBN[2]));
@@ -292,11 +294,12 @@ void main() {
                 vec4 gEnergy = vec4(1.f.xxxx), gSignal = vec4(0.f.xxx,1.f);
                 if ( I == 2 ) { gEnergy.xyz *= RES.diffuseColor.xyz; };
                 if ( I == 1 ) {  }; // TODO: metallic reflection
-                if ( I == 0 || I == 2 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
+                if ( I == 0 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
+                //if ( I == 0 || I == 2 ) { directLight(sphere, origin, normal, seed, gSignal, gEnergy); };
 
                 for (uint i=0;i<2;i++) { // fast trace
                     XHIT result = traceRays(origin, raydir, normal, 10000.f, true, 0.01f);
-                    if ( I == 2 && result.diffuseColor.w > 0.99f ) { break; }; // No needs for transparent layers
+                    //if ( I == 2 && result.diffuseColor.w > 0.99f ) { break; }; // No needs for transparent layers
 
                     // 
                     float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
@@ -308,12 +311,12 @@ void main() {
 
                     // 
                     if ( result.geoNormal.w >= 9999.f ) {
-                        if (I < 2) {
+                        //if (I < 2) {
                             const float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,bspher.xyz,bspher.w); mvalue = (sdepth <= 0.f ? 10000.f : sdepth);
                             BACKSKY_COLOR;
-                        } else {
-                            gEnergy *= vec4(0.f.xxxx);
-                        }
+                        //} else {
+                        //    gEnergy *= vec4(0.f.xxxx);
+                        //}
                     } else 
                     if ( result.diffuseColor.w > 0.001f ) {
                         if (couldReflection) {
@@ -355,7 +358,7 @@ void main() {
                     imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), reflection);
                 };
                 if (I == 2) {
-                    imageStore(writeImages[nonuniformEXT(TRANSPAR)], ivec2(lanQ), vec4(clamp(gSignal.xyz,0.f.xxx,1.f.xxx), RES.diffuseColor.w)); // alpha channel reserved, zero always opaque type
+                    imageStore(writeImages[nonuniformEXT(TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, RES.diffuseColor.w)); // alpha channel reserved, zero always opaque type
                 };
 
             };
