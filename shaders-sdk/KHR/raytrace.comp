@@ -251,6 +251,7 @@ void main() {
     imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(lanQ), vec4(RES.origin.xyz, 1.f));
     imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
     imageStore(writeBuffer[nonuniformEXT(MASKDATA)], ivec2(lanQ), (RES.txcmid));
+    imageStore(writeBuffer[nonuniformEXT(COLORING)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ)));
 
     // 
 #ifdef RAY_TRACE

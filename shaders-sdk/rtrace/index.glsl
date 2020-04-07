@@ -20,6 +20,7 @@
 #define SAMPLEPT 1 // Position Data
 #define NORMALGM 2 // Geometry Normal
 #define MASKDATA 3 // Material Data
+#define COLORING 4
 
 
 // TODO: Materials
