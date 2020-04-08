@@ -33,18 +33,29 @@ Planned to beat world record as most perfect and most long-time development prod
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
 
-Date:[23.03.2020]:[helix.d@IMN]
+Date:[09.04.2020]:[helix.d@IMN]
 ```
 
-## TODO Lists
+### TODO Lists (Gen 3 and 3.1)
 
 - [x] Diffuse layer with global illumination (Path Tracing)
-- [x] Reflection layers (NOT reprojected)
+- [x] Reflection layers (Partially Reprojected)
 - [x] Support of `VK_KHR_ray_tracing`
-- [x] Materials support
-- [ ] Transparency layers
-- [ ] Glossy reflections
+- [x] Materials support (Beta)
+- [x] Glossy reflections (Beta)
+- [x] Transparency layers (Alpha)
+- [ ] Better command construction
+- [ ] OpenGL compatibility (Transform Feedback and Materials)
+- [ ] New optional rasterization base (writing to dedicated buffers)
+- [ ] Adaptive denoise (i.e. depended by trace length and roughness)
+- [ ] Variable shading rate (faster ray-tracing)
+- [ ] Anti-aliasing and better denoise
+- [ ] Refraction support 
+- [ ] Water shader (for games)
+- [ ] Optifine support (Minecraft)
+- [ ] Nova renderer support (Minecraft)
 - [ ] ReShade extensions support
+
 
 ## Authors P.S.
 
