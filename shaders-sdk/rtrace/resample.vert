@@ -22,14 +22,14 @@ void main() {
     const ivec2 i2fx = ivec2(size.x,size.y-f2fx.y-1);
 
     // FROM PREVIOUS FRAME!!
-    const vec4 positions = imageLoad(writeImages[POSITION],f2fx);
-    const vec4 diffcolor = imageLoad(writeImages[DIFFUSED],f2fx);
-    const vec4 normaling = imageLoad(writeImages[GEONORML],f2fx);
-    const vec4 speccolor = imageLoad(writeImages[REFLECTP],f2fx);
+    const vec4 positions = imageLoad(writeImages[IW_POSITION],f2fx);
+    const vec4 diffcolor = imageLoad(writeImages[IW_INDIRECT],f2fx);
+    const vec4 normaling = imageLoad(writeImages[IW_GEONORML],f2fx);
+    const vec4 speccolor = imageLoad(writeImages[IW_REFLECLR],f2fx);
 
     // 
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
-    if (diffcolor.w > 0.f && imageLoad(writeImages[MATERIAL],f2fx).z > 0.f && imageLoad(writeImages[nonuniformEXT(DIFFUSED)],f2fx).w > 0.01f) { // set into current 
+    if (diffcolor.w > 0.f && imageLoad(writeImages[IW_MATERIAL],f2fx).z > 0.f && imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)],f2fx).w > 0.01f) { // set into current 
         gl_Position = vec4(world2screen(positions.xyz),1.f), gl_Position.y *= -1.f, gl_PointSize = 1.f;
         gColor = clamp(diffcolor, 0.001f, 10000000.f);
         gSpecular = vec4(speccolor.xyz,1.f);

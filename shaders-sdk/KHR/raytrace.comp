@@ -7,7 +7,7 @@
 
 // 
 #define RAY_TRACE
-//#define FAST_TRANSPARENT // Can be denoised, but with WRONG results!
+//#define FAST_BW_TRANSPARENT // Can be denoised, but with WRONG results!
 //#define TOP_LAYERED // Has reflection problems
 
 // 
@@ -136,7 +136,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                     processing. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
                     processing.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
 
-#ifdef FAST_TRANSPARENT
+#ifdef FAST_BW_TRANSPARENT
                     //processing.diffuseColor.w = 1.f;
 #endif
 
@@ -219,7 +219,7 @@ vec3 refractive(in vec3 dir) {
 // 
 void main() {
     const uvec2 lanQ = gl_GlobalInvocationID.xy;
-    launchSize = imageSize(writeImages[POSITION]);
+    launchSize = imageSize(writeImages[IW_POSITION]);
 
     // 
     const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
@@ -242,30 +242,30 @@ void main() {
      vec3 geonrm = vec3(0.f);
 
     // Replacement for rasterization
-#ifdef FAST_TRANSPARENT
+#ifdef FAST_BW_TRANSPARENT
     XHIT SUF =                              traceRays(    origin.xyz, raydir, normal, 10000.f, true, 0.01f); // Ground-Up
 #else
     XHIT SUF =                              traceRays(    origin.xyz, raydir, normal, 10000.f, false, 0.01f); // Ground-Up
 #endif
 
     XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, raydir, normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
-    imageStore(writeBuffer[nonuniformEXT(GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); RES = SUF; // Prefer From TOP layer (like as in Minecraft)
+    imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); RES = SUF; // Prefer From TOP layer (like as in Minecraft)
     //mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
 
     // 
     if (RES.geoNormal.w < 9999.f) {
-        imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(1.f.xxx, 1.f));
+        imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(1.f.xxx, 1.f));
     } else {
-        imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
+        imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
     };
 
     // Will Resampled Itself (anchors)
-    imageStore(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w));
-    imageStore(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
-    imageStore(writeImages[nonuniformEXT(MATERIAL)], ivec2(lanQ), vec4(RES.txcmid  ));
-    imageStore(writeImages[nonuniformEXT(TRANSPRV)], ivec2(lanQ), vec4(0.f.xxx, 0.f));
-    imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
-    imageStore(writeImages[nonuniformEXT(MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
+    imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w));
+    imageStore(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
+    imageStore(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ), vec4(RES.txcmid  ));
+    imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx, 0.f));
+    imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
+    imageStore(writeImages[nonuniformEXT(IW_MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
 
     // 
 #ifdef RAY_TRACE
@@ -279,7 +279,7 @@ void main() {
         const float inIOR = 1.f, outIOR = 1.6666f;
 
         // 
-#ifdef FAST_TRANSPARENT
+#ifdef FAST_BW_TRANSPARENT
         for (uint I=0;I<2;I++) {
 #else
         for (uint I=0;I<3;I++) {
@@ -300,7 +300,7 @@ void main() {
 
                 vec4 gEnergy = vec4(1.f.xxxx), gSignal = vec4(0.f.xxx,1.f);
 
-#ifdef FAST_TRANSPARENT // need additional buffer for reprojection
+#ifdef FAST_BW_TRANSPARENT // need additional buffer for reprojection
                 // use transaprency with coloring (experimental)
                 //if ( I == 0 && RES.diffuseColor.w < 0.99f ) { gEnergy.xyz *= RES.diffuseColor.xyz; };
 #endif
@@ -365,13 +365,13 @@ void main() {
                 };
 
                 // 
-                if (I == 0) { imageStore(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
+                if (I == 0) { imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
                 if (I == 1) { 
                     const vec4 reflection = vec4(clamp(gSignal.xyz,0.f.xxx,1.f.xxx), 1.f);
-                    imageStore(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ), reflection);
+                    imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), reflection);
                 };
                 if (I == 2) {
-                    imageStore(writeImages[nonuniformEXT(TRANSPRV)], ivec2(lanQ), vec4(gSignal.xyz, SUF.txcmid.z)); // alpha channel reserved, zero always opaque type
+                    imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, SUF.txcmid.z)); // alpha channel reserved, zero always opaque type
                 };
 
             };
@@ -380,10 +380,10 @@ void main() {
 #endif
 
     // Used By Reprojection (comparsion)
-    imageStore(writeBuffer[nonuniformEXT(COLORING)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(DIFFUSED)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(SAMPLEPT)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(POSITION)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(NORMALGM)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(GEONORML)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(MASKDATA)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(MATERIAL)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(REFLECLR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(REFLECTP)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(TRANSPAR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(TRANSPRV)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_INDIRECT)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_GEONORML)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_MATERIAL)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_REFLECLR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_TRANSPAR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ)));
 };

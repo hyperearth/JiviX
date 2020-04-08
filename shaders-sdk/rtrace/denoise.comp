@@ -8,26 +8,26 @@
 layout (local_size_x = 16u, local_size_y = 12u) in; 
 
 // Not Reprojected by Previous Frame
-vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[MAPNORML]); return imageLoad(writeImages[MAPNORML],ivec2(map.x,size.y-map.y-1)); };
-vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeImages[POSITION]); return imageLoad(writeImages[POSITION],ivec2(map.x,size.y-map.y-1)); };
-vec4 getData       (in ivec2 map) { const ivec2 size = imageSize(writeImages[MATERIAL]); return imageLoad(writeImages[MATERIAL],ivec2(map.x,size.y-map.y-1)); };
+vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MAPNORML]); return imageLoad(writeImages[IW_MAPNORML],ivec2(map.x,size.y-map.y-1)); };
+vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_POSITION]); return imageLoad(writeImages[IW_POSITION],ivec2(map.x,size.y-map.y-1)); };
+vec4 getData       (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MATERIAL]); return imageLoad(writeImages[IW_MATERIAL],ivec2(map.x,size.y-map.y-1)); };
 
 // For current frame only
-vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[REFLECLR]); return imageLoad(writeBuffer[REFLECLR],ivec2(map.x,size.y-map.y-1)); };
-vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeBuffer[TRANSPAR]); return imageLoad(writeBuffer[TRANSPAR],ivec2(map.x,size.y-map.y-1)); };
-vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[COLORING]); return imageLoad(writeBuffer[COLORING],ivec2(map.x,size.y-map.y-1)); };
+vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],ivec2(map.x,size.y-map.y-1)); };
+vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_TRANSPAR]); return imageLoad(writeBuffer[BW_TRANSPAR],ivec2(map.x,size.y-map.y-1)); };
+vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
 
 // With Resampling
-vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[DIFFUSED]); return imageLoad(writeImages[DIFFUSED],ivec2(map.x,size.y-map.y-1)); };
-vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[REFLECTP]); return imageLoad(writeImages[REFLECTP],ivec2(map.x,size.y-map.y-1)); };
+vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
+vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],ivec2(map.x,size.y-map.y-1)); };
 
 // 
-void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[COLORING]); imageStore(writeBuffer[COLORING],ivec2(map.x,size.y-map.y-1),color); };
-void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[REFLECLR]); imageStore(writeBuffer[REFLECLR],ivec2(map.x,size.y-map.y-1),color); };
+void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); imageStore(writeBuffer[BW_INDIRECT],ivec2(map.x,size.y-map.y-1),color); };
+void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[BW_REFLECLR]); imageStore(writeBuffer[BW_REFLECLR],ivec2(map.x,size.y-map.y-1),color); };
 
 // 
 ivec2 mapc(in ivec2 map) {
-    const ivec2 size = imageSize(writeImages[REFLECTP]);
+    const ivec2 size = imageSize(writeImages[IW_REFLECLR]);
     return ivec2(map.x,size.y-map.y-1);
 }
 
@@ -68,7 +68,7 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
 
 // TODO: Use Texcoord and Material ID's instead of Color, PBR-Map, Emission,  (due, needs only two or one buffers)
 void main() { // TODO: explicit sampling 
-    const ivec2 size = imageSize(writeImages[DIFFUSED]), samplep = ivec2(gl_GlobalInvocationID.xy);
+    const ivec2 size = imageSize(writeImages[IW_INDIRECT]), samplep = ivec2(gl_GlobalInvocationID.xy);
     const  vec4 dataflat = getData(samplep);
     const uvec4 datapass = floatBitsToUint(dataflat);
     const  vec4 position = getPosition(samplep);
@@ -133,14 +133,14 @@ void main() { // TODO: explicit sampling
     float alpha = (transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f);
 
 #ifndef LATE_STAGE
-    imageStore(writeImages[REFLECTP], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
-    imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
-    //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+    imageStore(writeImages[IW_REFLECLR], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
+    imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
+    //imageStore(writeBuffer[BW_RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #else
     
-    imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,1.f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
-    imageStore(writeBuffer[RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
-    //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+    imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,1.f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
+    imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
+    //imageStore(writeBuffer[BW_RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif
 
 };

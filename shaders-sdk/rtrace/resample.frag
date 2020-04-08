@@ -13,8 +13,8 @@ layout (location = 4) in vec4 gSpecular;
 layout (location = 5) in vec4 gRescolor;
 
 // 
-layout (location = DIFFUSED) out vec4 oDiffused;
-layout (location = REFLECTP) out vec4 oSpecular;
+layout (location = IW_INDIRECT) out vec4 oDiffused;
+layout (location = IW_REFLECLR) out vec4 oSpecular;
 
 // 
 const vec2 shift[9] = {
@@ -28,17 +28,17 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
     for (int i=0;i<9;i++) {
         const vec2 offt = shift[i];
 
-        vec4 worldspos = vec4(texture(frameBuffers[SAMPLEPT], vec2(i2fxm+offt), 0).xyz,1.f);
+        vec4 worldspos = vec4(texture(frameBuffers[BW_POSITION], vec2(i2fxm+offt), 0).xyz,1.f);
         vec4 almostpos = vec4(world2screen(worldspos.xyz),1.f);
         //almostpos.y *= -1.f;
 
         if (
             abs(almostpos.z-screenSample.z) < 0.0001f && 
             length(almostpos.xy-screenSample.xy) < 4.f && 
-            dot(gNormal.xyz,    texture(frameBuffers[NORMALGM],  vec2(i2fxm+offt), 0).xyz) >=0.5f && 
-                             texelFetch(frameBuffers[MASKDATA], ivec2(i2fxm+offt), 0).z > 0.f &&
+            dot(gNormal.xyz,    texture(frameBuffers[BW_GEONORML],  vec2(i2fxm+offt), 0).xyz) >=0.5f && 
+                             texelFetch(frameBuffers[BW_MATERIAL], ivec2(i2fxm+offt), 0).z > 0.f &&
             distance(wPosition.xyz,worldspos.xyz) < 0.05f || 
-            (i == 4 && texelFetch(frameBuffers[COLORING], ivec2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
+            (i == 4 && texelFetch(frameBuffers[BW_INDIRECT], ivec2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
         ) { return true; };
     };
     return false;
@@ -53,7 +53,7 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
 // 
 void main() { // Currently NO possible to compare
     const ivec2 f2fx  = ivec2(gl_FragCoord.xy);
-    const ivec2 size  = ivec2(textureSize(frameBuffers[SAMPLEPT], 0));
+    const ivec2 size  = ivec2(textureSize(frameBuffers[BW_POSITION], 0));
     const ivec2 i2fx  = ivec2(f2fx.x,size.y-f2fx.y-1);
     const  vec2 i2fxm = gl_FragCoord.xy; //vec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 

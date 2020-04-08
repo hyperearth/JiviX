@@ -28,7 +28,7 @@ void main() {
     const vec4 dp1 = gPosition[1] - gPosition[0], dp2 = gPosition[2] - gPosition[0];
     const vec4 tx1 = gTexcoord[1] - gTexcoord[0], tx2 = gTexcoord[2] - gTexcoord[0];
     const vec3 normal = normalize(cross(dp1.xyz, dp2.xyz));
-    //const vec2 size  = textureSize(frameBuffers[POSITION], 0);
+    //const vec2 size  = textureSize(frameBuffers[IW_POSITION], 0);
     //const vec2 pixelShift = (staticRandom2() - 0.5f) / size;
 
     [[unroll]] for (uint i=0u;i<3u;i++) { // 
