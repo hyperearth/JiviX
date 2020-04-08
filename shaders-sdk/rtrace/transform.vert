@@ -16,7 +16,7 @@ layout (location = 1) out vec4 gTexcoord;
 layout (location = 2) out vec4 gNormal;
 layout (location = 3) out vec4 gTangent;
 
-// 
+// Should to able used by OpenGL
 void main() { // Cross-Lake
     const int IdxType = int(drawInfo.data[1])-1;
     uint32_t idx = uint32_t(gl_VertexIndex.x); // Default Index of Vertice

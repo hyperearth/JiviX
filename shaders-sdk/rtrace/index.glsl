@@ -192,18 +192,16 @@ vec4 mul4(in vec4 v, in mat3x4 M) {
     return vec4(v*M,1.f);
 }
 
+// 
 #define IndexU8 1000265000
 #define IndexU16 0
 #define IndexU32 1
 
 
 // Deferred and Rasterization Set
-layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];
-//layout (binding = 0, set = 2) uniform texture2D frameBuffers[];
-layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // New for FXAA shading (based on writeImages)
+layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];  // Sampled by gl_FragCoord.xy
+layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // Will used by rasterization stage (writing)
 layout (binding = 2, set = 2, rgba32f) uniform image2D writeBuffer[]; // For EDIT!
-
-// Sampling And Ray Tracing Set (also, re-used from previous frame)
 layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
 
 // Material Set

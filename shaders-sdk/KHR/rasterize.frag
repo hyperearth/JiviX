@@ -18,7 +18,7 @@ layout (location = 3) in vec4 fTangent;
 layout (location = 4) in vec4 fBinormal;
 layout (location = 5) flat in uvec4 uData;
 
-// 
+// Will RE-enabled for different buffers (optimization stage)
 void main() {
     
 };

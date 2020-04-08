@@ -4,6 +4,7 @@
 #define TRANSFORM_FEEDBACK
 #include "./driver.glsl"
 
+// 
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 layout ( binding = 4, set = 0 ) uniform accelerationStructureEXT Scene;
@@ -23,7 +24,7 @@ layout (location = 3, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 48) out vec4
 layout (location = 4, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 64) out vec4 fBinormal;
 //layout (location = 5) flat out uvec4 uData;
 
-// 
+// Should to able used by OpenGL
 void main() {
     const vec4 dp1 = gPosition[1] - gPosition[0], dp2 = gPosition[2] - gPosition[0];
     const vec4 tx1 = gTexcoord[1] - gTexcoord[0], tx2 = gTexcoord[2] - gTexcoord[0];
