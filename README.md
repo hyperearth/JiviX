@@ -36,7 +36,7 @@ Planned to beat world record as most perfect and most long-time development prod
 Date:[09.04.2020]:[helix.d@IMN]
 ```
 
-### TODO Lists (Gen 3 and 3.1)
+### TODO Lists (Gen 3 and Next)
 
 - [x] Diffuse layer with global illumination (Path Tracing)
 - [x] Reflection layers (Partially Reprojected)
