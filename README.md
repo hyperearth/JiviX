@@ -40,7 +40,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 
 - [x] Diffuse layer with global illumination (Path Tracing)
 - [x] Reflection layers (Partially Reprojected)
-- [x] Support of `VK_KHR_ray_tracing`
+- [x] Support of `VK_KHR_ray_tracing` (used `GLSL_EXT_ray_query` in Compute shader)
 - [x] Materials support (Beta)
 - [x] Glossy reflections (Beta)
 - [x] Transparency layers (Alpha)
