@@ -86,6 +86,7 @@ void main() { // TODO: explicit sampling
 
     // experimental (unused for alpha transparency)
     //if (diffused.w < 0.99f && !isSkybox) { diffused.xyz = 1.f.xxx, diffused.w = 1.f; } // doesnt't working
+    //if (diffused.w < 0.99f) { diffused.xyz = 1.f.xxx; };
 
     // 
     diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
@@ -129,11 +130,11 @@ void main() { // TODO: explicit sampling
     //vec4 transpar = getTransparent(samplep).w;
     //float alpha = transpar.w;
     vec4 transpar = getTransparent(samplep);
-    float alpha = (transpar.w) * (isSkybox ? 0.f : 1.f);
+    float alpha = (transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f);
 
 #ifndef LATE_STAGE
     imageStore(writeImages[REFLECTP], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
-    imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),1.f));
+    imageStore(writeBuffer[RENDERED],     (samplep), vec4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
     //imageStore(writeBuffer[RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #else
     
