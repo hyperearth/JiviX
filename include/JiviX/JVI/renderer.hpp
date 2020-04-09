@@ -172,8 +172,15 @@ namespace jvi {
                 this->context->createRenderPass();
             };
 
-            // TODO: Dedicated Command
+            // TODO: Build in Dedicated Command
             auto I = 0u; for (auto& M : this->node->meshes) { M->createRasterizePipeline()->createAccelerationStructure(); };
+
+            // first-step rendering
+            for (auto& M : this->node->meshes) { M->mapCount = 0u; };
+            for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
+                const auto I = this->node->rawInstances[i].instanceId;
+                this->node->meshes[I]->linkWithInstance(i);
+            };
 
             // create sampling points
             this->materials->createDescriptorSet();
@@ -213,23 +220,17 @@ namespace jvi {
 
             // prepare meshes for ray-tracing
             this->materials->copyBuffers(cmdBuf);
-            auto I = 0u; this->node->copyMeta(cmdBuf);
+            auto I = 0u;
             {
-                I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf);
-            };
+                I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf); 
+                this->node->copyMeta(cmdBuf);
+            }; 
             if (parameters.eEnableBuildGeometry) {
                 I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
             };
             if (parameters.eEnableBuildAccelerationStructure) {
                 I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
                 this->node->buildAccelerationStructure(cmdBuf);
-            };
-
-            // first-step rendering
-            for (auto& M : this->node->meshes) { M->mapCount = 0u; };
-            for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
-                const auto I = this->node->rawInstances[i].instanceId;
-                this->node->meshes[I]->linkWithInstance(i);
             };
 
             // Compute ray-tracing (RTX)
