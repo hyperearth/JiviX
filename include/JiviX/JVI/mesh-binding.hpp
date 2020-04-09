@@ -540,7 +540,7 @@ namespace jvi {
         // 
         std::array<vkt::Vector<uint8_t>, 2> bindings = {};
 #ifdef ENABLE_OPENGL_INTEROP
-        std::array<std::pair<GLuint, GLuint>, 1> bindingsOGL = {};
+        std::array<std::pair<GLuint, GLuint>, 2> bindingsOGL = {};
 #endif
         std::array<uint32_t, 1> bindRange = {0};
 
