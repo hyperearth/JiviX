@@ -42,6 +42,17 @@ namespace jvi {
             hasTangent : 1;
     };
 
+    struct CommandOptions {
+        uint8_t
+            eEnableBuildGeometry : 1,
+            eEnableBuildAccelerationStructure : 1,
+            eEnableDenoise : 1,
+            eEnableRasterization : 1,
+            eEnableRayTracing : 1,
+            eEnableResampling: 1
+            ;
+    };
+
     constexpr uint32_t DEFAULT_STRIDE = 80u;
     constexpr uint32_t MAX_VERT_COUNT = 65536u;
     constexpr uint32_t MAX_PRIM_COUNT = 65536u * 3u;

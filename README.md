@@ -44,8 +44,8 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Materials support (Beta)
 - [x] Glossy reflections (Beta)
 - [x] Transparency layers (Alpha)
+- [x] Better command construction (Alpha)
 - [ ] New FPS counter (TODO)
-- [ ] Better command construction
 - [ ] HDRI background image and equirectangular projection
 - [ ] OpenGL compatibility (Transform Feedback and Materials)
 - [ ] New optional rasterization base (writing to dedicated buffers)

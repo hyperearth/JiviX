@@ -188,7 +188,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<vk::CommandBuffer> cmdBuf = {}, uint8_t parameters = 0xFF) { // setup Commands
+        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<vk::CommandBuffer> cmdBuf = {}, CommandOptions parameters = {1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -204,42 +204,49 @@ namespace jvi {
 
             // 
             cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
-
-            // 
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
-            // create sampling points
-            this->materials->copyBuffers(cmdBuf);
+            // 
+            if (parameters.eEnableRasterization) {
+                // TODO: RE-ENABLE Rasterization Stage
+            };
 
             // prepare meshes for ray-tracing
+            this->materials->copyBuffers(cmdBuf);
             auto I = 0u; this->node->copyMeta(cmdBuf);
-            I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf);
-            I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
-            I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
-
-            // setup instanced and material data
-            this->node->buildAccelerationStructure(cmdBuf);
+            {
+                I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf);
+            };
+            if (parameters.eEnableBuildGeometry) {
+                I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
+            };
+            if (parameters.eEnableBuildAccelerationStructure) {
+                I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
+                this->node->buildAccelerationStructure(cmdBuf);
+            };
 
             // first-step rendering
             for (auto& M : this->node->meshes) { M->mapCount = 0u; };
-
-            // draw concurrently
             for (uint32_t i = 0; i < this->node->instanceCounter; i++) {
                 const auto I = this->node->rawInstances[i].instanceId;
                 this->node->meshes[I]->linkWithInstance(i);
             };
 
             // Compute ray-tracing (RTX)
-            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
-            cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
-            cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
-            vkt::commandBarrier(cmdBuf);
+            if (parameters.eEnableRayTracing) {
+                this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+                cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+                cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
+                cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
+                cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+                vkt::commandBarrier(cmdBuf);
+            };
 
             // Make resampling pipeline 
-            this->setupResampleCommand(cmdBuf);
-            vkt::commandBarrier(cmdBuf);
+            if (parameters.eEnableResampling) {
+                this->setupResampleCommand(cmdBuf);
+                vkt::commandBarrier(cmdBuf);
+            };
 
             // Denoise diffuse data
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
@@ -250,12 +257,14 @@ namespace jvi {
             vkt::commandBarrier(cmdBuf);
 
             // Use that version as previous frame
-            for (uint32_t i = 0; i < 8; i++) {
-                cmdBuf->copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
-                    this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
-                ) });
+            if (parameters.eEnableResampling) {
+                for (uint32_t i = 0; i < 8; i++) {
+                    cmdBuf->copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
+                        this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
+                    ) });
+                };
+                vkt::commandBarrier(cmdBuf);
             };
-            vkt::commandBarrier(cmdBuf);
 
             // Denoise reflection data
             cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
