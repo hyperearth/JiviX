@@ -195,7 +195,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<vk::CommandBuffer> cmdBuf = {}, CommandOptions parameters = {1u,1u,1u,1u,1u,1u}) { // setup Commands
+        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<vk::CommandBuffer> cmdBuf = {}, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -214,27 +214,27 @@ namespace jvi {
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // 
-            if (parameters.eEnableRasterization) {
+            if (parameters->eEnableRasterization) {
                 // TODO: RE-ENABLE Rasterization Stage
             };
 
             // prepare meshes for ray-tracing
             this->materials->copyBuffers(cmdBuf);
             auto I = 0u;
-            {
+            if (parameters->eEnableCopyMeta) {
                 I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf); 
                 this->node->copyMeta(cmdBuf);
-            }; 
-            if (parameters.eEnableBuildGeometry) {
+            };
+            if (parameters->eEnableBuildGeometry) {
                 I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
             };
-            if (parameters.eEnableBuildAccelerationStructure) {
+            if (parameters->eEnableBuildAccelerationStructure) {
                 I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
                 this->node->buildAccelerationStructure(cmdBuf);
             };
 
             // Compute ray-tracing (RTX)
-            if (parameters.eEnableRayTracing) {
+            if (parameters->eEnableRayTracing) {
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
                 cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
                 cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
@@ -244,7 +244,7 @@ namespace jvi {
             };
 
             // Make resampling pipeline 
-            if (parameters.eEnableResampling) {
+            if (parameters->eEnableResampling) {
                 this->setupResampleCommand(cmdBuf);
                 vkt::commandBarrier(cmdBuf);
             };
@@ -258,7 +258,7 @@ namespace jvi {
             vkt::commandBarrier(cmdBuf);
 
             // Use that version as previous frame
-            if (parameters.eEnableResampling) {
+            if (parameters->eEnableResampling) {
                 for (uint32_t i = 0; i < 8; i++) {
                     cmdBuf->copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
                         this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}

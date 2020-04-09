@@ -44,6 +44,7 @@ namespace jvi {
 
     struct CommandOptions {
         uint8_t
+            eEnableCopyMeta: 1,
             eEnableBuildGeometry : 1,
             eEnableBuildAccelerationStructure : 1,
             eEnableDenoise : 1,
