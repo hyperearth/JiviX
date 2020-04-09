@@ -234,7 +234,7 @@ namespace jvi {
             cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
             cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 16u), vkt::tiled(renderArea.extent.height, 12u), 1u);
+            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(cmdBuf);
 
             // Make resampling pipeline 
@@ -246,7 +246,7 @@ namespace jvi {
             cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->denoiseState);
             cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 16u), vkt::tiled(renderArea.extent.height, 12u), 1u);
+            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(cmdBuf);
 
             // Use that version as previous frame
@@ -261,7 +261,7 @@ namespace jvi {
             cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->reflectState);
             cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 16u), vkt::tiled(renderArea.extent.height, 12u), 1u);
+            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(cmdBuf);
 
             // 

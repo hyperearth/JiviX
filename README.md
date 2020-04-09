@@ -31,6 +31,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - General To Do   : Add Transform Feedback support
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
+- Replacement Of  : Project "Satellite" ("engine", 2017)
 
 Date:[09.04.2020]:[helix.d@IMN]
 ```
@@ -43,6 +44,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Materials support (Beta)
 - [x] Glossy reflections (Beta)
 - [x] Transparency layers (Alpha)
+- [ ] New FPS counter (TODO)
 - [ ] Better command construction
 - [ ] HDRI background image and equirectangular projection
 - [ ] OpenGL compatibility (Transform Feedback and Materials)

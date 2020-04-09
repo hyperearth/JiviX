@@ -5,7 +5,7 @@
 // 
 //layout ( location = 0 ) in vec2 vcoord;
 //layout ( location = 0 ) out vec4 uFragColor;
-layout (local_size_x = 16u, local_size_y = 12u) in; 
+layout (local_size_x = 32u, local_size_y = 24u) in; 
 
 // Not Reprojected by Previous Frame
 vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MAPNORML]); return imageLoad(writeImages[IW_MAPNORML],ivec2(map.x,size.y-map.y-1)); };
