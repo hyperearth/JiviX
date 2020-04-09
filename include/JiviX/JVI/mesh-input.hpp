@@ -4,7 +4,7 @@
 #include "./driver.hpp"
 #include "./thread.hpp"
 #include "./context.hpp"
-#include "./mesh.hpp"
+
 
 namespace jvi {
 
