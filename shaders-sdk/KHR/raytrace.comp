@@ -267,6 +267,8 @@ void main() {
     imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
     imageStore(writeImages[nonuniformEXT(IW_MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
 
+    vec4 adaptiveData = 10000.f.xxxx;
+
     // 
 #ifdef RAY_TRACE
     if ( RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f || SUF.diffuseColor.w > 0.001f && SUF.geoNormal.w < 9999.f ) {
@@ -358,10 +360,14 @@ void main() {
                     // 
                     origin.xyz = result.origin.xyz;
                     origin.xyz += faceforward(result.geoNormal.xyz,-raydir.xyz,result.geoNormal.xyz) * 0.0001f + raydir.xyz * 0.0001f;
+
+                    // 
+                    if ( i == 0 ) { adaptiveData[I] = result.geoNormal.w; }; // length of ray for adaptive denoise
                     if ((dot(gEnergy.xyz,1.f.xxx)/3.f) <= 0.001f || result.geoNormal.w >= 9999.f || dot(raydir.xyz,result.geoNormal.xyz) <= 0.f) { break; }; //
 
                     // 
                     directLight(sphere, origin, normal, seed, gSignal, gEnergy);
+                    
                 };
 
                 // 
@@ -374,12 +380,15 @@ void main() {
                     imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, SUF.txcmid.z)); // alpha channel reserved, zero always opaque type
                 };
 
+                // 
+                
             };
         };
     };
 #endif
 
     // Used By Reprojection (comparsion)
+    imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ), adaptiveData); // For Adaptive Denoise
     imageStore(writeBuffer[nonuniformEXT(BW_INDIRECT)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_GEONORML)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ)));

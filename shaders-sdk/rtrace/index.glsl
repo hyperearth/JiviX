@@ -9,6 +9,7 @@
 #define IW_MAPNORML 4 // Mapped Normals
 #define IW_GEONORML 5 // Geometry Normals
 #define IW_POSITION 6 // Ray-Traced Position (for resampling)
+#define IW_ADAPTIVE 7 // Adaptive Data (reflection length, etc.)
 
 // Last Action Data (another binding only)
 #define BW_INDIRECT 0
