@@ -60,10 +60,10 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [ ] Nova renderer support (Minecraft)
 - [ ] ReShade extensions support
 
-`*   Means shared array of buffer views for complex Node class`
-`**  Use OpenGL version of transform feedback`
-`*** There is no priority, we prefer live testing and have MVP soon as possible`
-`MWP: Minimal Valuable Product`
+- `*   Means shared array of buffer views for complex Node class`
+- `**  Use OpenGL version of transform feedback`
+- `*** There is no priority, we prefer live testing and have MVP soon as possible`
+- `MWP: Minimal Valuable Product`
 
 
 ## Authors P.S.
