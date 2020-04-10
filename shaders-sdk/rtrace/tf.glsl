@@ -15,23 +15,31 @@ struct Attribute {
 };
 
 layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer buffers[8u];
+#ifdef GEN_QUAD_INDEX
+layout (binding = 1, set = 0, r8ui)          uniform uimageBuffer indices;
+#else
 layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer indices;
+#endif
 layout (binding = 2, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
 layout (binding = 3, set = 0, scalar) readonly buffer Attributes { Attribute attributes[]; };
 layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
+// 
 bool hasTransform(){
     return bool(bitfieldExtract(drawInfo.data[3],0,1));
 };
 
+// 
 bool hasNormal(){
     return bool(bitfieldExtract(drawInfo.data[3],1,1));
 };
 
+// 
 bool hasTexcoord(){
     return bool(bitfieldExtract(drawInfo.data[3],2,1));
 };
 
+// 
 bool hasTangent(){
     return bool(bitfieldExtract(drawInfo.data[3],3,1));
 };

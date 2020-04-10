@@ -115,19 +115,22 @@ namespace jvi {
                 buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
             };
 
-            // TODO: Add QUADs support for GEN-2.0
+            // NO! Please, re-make QUAD internally!
             if (buildCommand && this->needsQuads) {
                 this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->transformPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
-                this->quadGenerator = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache()));
+                if (!this->quadGenerator) {
+                     this->quadGenerator = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache()));
+                };
+                this->manifestIndex(vk::IndexType::eUint32);
 
                 // 
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
-                buildCommand.pushConstants<glm::uvec4>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, {  /* TODO: Mesh Meta */  });
+                buildCommand.pushConstants<glm::uvec4>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, {  /* TODO: Mesh Meta */ });
                 buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
-            } else 
+            };
 
             if (buildCommand && this->needUpdate) { this->needUpdate = false; // 
                 std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -220,6 +223,12 @@ namespace jvi {
             this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = rawData.range();
             this->bindings.resize(bindingID+1u);
             this->bindings[bindingID] = rawData;
+            return uTHIS;
+        };
+
+        // 
+        virtual uPTR(MeshInput) manifestIndex(const vk::IndexType& type = vk::IndexType::eNoneKHR) {
+            this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = type) + 1u;
             return uTHIS;
         };
 

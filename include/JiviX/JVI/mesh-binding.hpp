@@ -314,15 +314,13 @@ namespace jvi {
         // WARNING: Quads needs only for specific games
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
             if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
-            if (this->input) {
-                if (this->input->needsQuads) { // TODO: WARNING!! Attribute Indices May Broken!
-                    this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
-                    this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .binding = 1, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
-                    this->manifestIndex(vk::IndexType::eUint32);
-                    this->setPrimitiveCount(vkt::tiled(this->input->currentUnitCount,4ull)<<1u); // Quad Vertices, But Primitives Twice!
+            if (this->input) { // 
+                if (this->input->needsQuads) { // Quads generated internally, `currentUnitCount` for quad vertices count
+                    this->setPrimitiveCount(vkt::tiled(this->input->currentUnitCount, 6ull) << 1u);
+                } else {
+                    this->setIndexCount(this->input->currentUnitCount);
                 };
                 this->input->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], buildCommand);
-                this->setIndexCount(this->input->currentUnitCount);
 
                 // 
                 buildCommand.updateBuffer<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), { this->offsetTemp });
