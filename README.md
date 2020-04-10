@@ -67,7 +67,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - `*  : Means shared array of buffer views for complex Node class`
 - `** : Use OpenGL version of transform feedback`
 - `***: There is no priority, we prefer live testing and have MVP soon as possible`
-- `MWP: Minimal Valuable Product`
+- `MVP: Minimal Valuable Product`
 
 
 ## Authors P.S.
