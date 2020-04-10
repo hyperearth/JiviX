@@ -45,18 +45,28 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Glossy reflections (Beta)
 - [x] Transparency layers (Alpha)
 - [x] Better command construction (Alpha)
-- [ ] New FPS counter (TODO)
-- [ ] HDRI background image and equirectangular projection
-- [ ] OpenGL compatibility (Transform Feedback and Materials)
+- [ ] Advanced FPS counter (TODO)
+- [ ] Dedicated array of buffer view, instead of `BindingID*` itself (TODO)
+- [ ] HDRI background image and equirectangular projection (TODO)
+- [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
 - [ ] New optional rasterization base (writing to dedicated buffers)
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
 - [ ] Variable shading rate (faster ray-tracing)
 - [ ] Anti-aliasing and better denoise
 - [ ] Refraction support 
+- [ ] Some unit-tests `***`
 - [ ] Water shader (for games)
 - [ ] Optifine support (Minecraft)
 - [ ] Nova renderer support (Minecraft)
 - [ ] ReShade extensions support
+
+`*   Means shared array of buffer views for complex Node class`
+
+`**  Use OpenGL version of transform feedback`
+
+`*** There is no priority, we prefer live testing and have MVP soon as possible`
+
+`MWP: Minimal Valuable Product`
 
 
 ## Authors P.S.
