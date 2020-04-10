@@ -218,11 +218,11 @@ namespace jvi {
             };
 
             // prepare meshes for ray-tracing
-            this->materials->copyBuffers(cmdBuf);
             auto I = 0u;
             if (parameters->eEnableCopyMeta) {
                 cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
                 I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf); 
+                this->materials->copyBuffers(cmdBuf);
                 this->node->copyMeta(cmdBuf);
             };
             if (parameters->eEnableBuildGeometry) {
