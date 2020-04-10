@@ -45,6 +45,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Glossy reflections (Beta)
 - [x] Transparency layers (Alpha)
 - [x] Better command construction (Alpha)
+- [x] Rise quads support (WIP)
 - [ ] Advanced FPS counter (TODO)
 - [ ] Dedicated array of buffer view, instead of `BindingID*` itself (TODO)
 - [ ] HDRI background image and equirectangular projection (TODO)
