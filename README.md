@@ -54,16 +54,18 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [ ] Variable shading rate (faster ray-tracing)
 - [ ] Anti-aliasing and better denoise
 - [ ] Refraction support 
-- [ ] Some unit-tests `***`
+- [ ] Some unit-tests`***`
 - [ ] Water shader (for games)
 - [ ] Optifine support (Minecraft)
 - [ ] Nova renderer support (Minecraft)
 - [ ] ReShade extensions support
 
+
 ### Remarks...
-- `*   Means shared array of buffer views for complex Node class`
-- `**  Use OpenGL version of transform feedback`
-- `*** There is no priority, we prefer live testing and have MVP soon as possible`
+
+- `*  : Means shared array of buffer views for complex Node class`
+- `** : Use OpenGL version of transform feedback`
+- `***: There is no priority, we prefer live testing and have MVP soon as possible`
 - `MWP: Minimal Valuable Product`
 
 
