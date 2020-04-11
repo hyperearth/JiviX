@@ -212,6 +212,7 @@ int main() {
     
     // Initialize late
     auto mesh = jvx::MeshBinding(context);
+    auto bvse = jvx::BufferViewSet(context);
     auto node = jvx::Node(context);
     auto renderer = jvx::Renderer(context);
     auto material = jvx::Material(context);
@@ -287,13 +288,13 @@ int main() {
         */
     };
 
-
     // buffer views
     std::vector<vkt::Vector<uint8_t>> buffersViews = {};
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
         const auto& BV = model.bufferViews[i];
         const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
         buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull));
+        bvse->pushBufferView(buffersViews.back());
     };
 
     // 
@@ -366,8 +367,7 @@ int main() {
 
     // Material 
     for (uint32_t i = 0; i < model.materials.size(); i++) {
-        const auto& mat = model.materials[i];
-        jvi::MaterialUnit mdk = {};
+        const auto& mat = model.materials[i]; jvi::MaterialUnit mdk = {};
         mdk.diffuseTexture = mat.pbrMetallicRoughness.baseColorTexture.index;
         mdk.normalsTexture = mat.normalTexture.index;
         mdk.specularTexture = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
@@ -385,6 +385,7 @@ int main() {
         material->pushMaterial(mdk);
     };
 
+
     // BRICK GAME BANK
 
     // Gonki  //
@@ -397,6 +398,7 @@ int main() {
     //   []   //   []   //   []   //   [][] //
     // []{}[] // [][][] // [][][] // [][]   //
     // []  [] // [][][] // []  [] //   [][] //
+
 
     // Meshes (only one primitive supported)
     for (uint32_t j = 0; j < model.meshes.size(); j++) {
@@ -426,7 +428,7 @@ int main() {
 
             // 
             const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount,3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount);
+            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
             meshes.push_back(mBinding); mBinding->bindMeshInput(mInput);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
             mBinding->setIndexCount(PrimitiveCount);
@@ -436,17 +438,7 @@ int main() {
             for (uint32_t i = 0u; i < NM.size(); i++) {
                 if (primitive.attributes.find(NM[i]) != primitive.attributes.end()) { // Vertices
                     auto& attribute = model.accessors[primitive.attributes.find(NM[i])->second];
-                    const auto& BV = model.bufferViews[attribute.bufferView];
-                    const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
-
-                    // 
-                    //auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                    //auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
-                    //vector.rangeInfo() = stride * attribute.count;
-
-                    //
-                    auto vector = buffersViews[attribute.bufferView];
-                    auto stride = attribute.ByteStride(BV);
+                    auto  stride = attribute.ByteStride(model.bufferViews[attribute.bufferView]);
 
                     // 
                     uint32_t location = 0u;
@@ -463,37 +455,27 @@ int main() {
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
-                    mInput->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
+                    mInput->addBinding(attribute.bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
                     mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = uint32_t(attribute.byteOffset) });
                 }
                 else if (NM[i] == "TANGENT") { // STUB for Tangents
                     auto& attribute = primitive.attributes.find("NORMAL") != primitive.attributes.end() ? model.accessors[primitive.attributes.find("NORMAL")->second] : model.accessors[primitive.attributes.find("POSITION")->second];
-                    const auto& BV = model.bufferViews[attribute.bufferView];
-                    const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
+                    auto  stride = attribute.ByteStride(model.bufferViews[attribute.bufferView]);
 
                     // 
-                    //auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                    //auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
-                    //vector.rangeInfo() = stride * attribute.count;
-
-                    //
-                    auto vector = buffersViews[attribute.bufferView];
-                    auto stride = attribute.ByteStride(BV);
-
-                    // 
-                    auto type = VK_FORMAT_R32G32B32_SFLOAT;
+                    auto  type = VK_FORMAT_R32G32B32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_VEC4) type = VK_FORMAT_R32G32B32A32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_VEC3) type = VK_FORMAT_R32G32B32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_VEC2) type = VK_FORMAT_R32G32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
 
                     // 
-                    mInput->addBinding(vector, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
+                    mInput->addBinding(attribute.bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
                     mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = uint32_t(attribute.byteOffset) }, false);
                 };
             };
 
-            if (primitive.indices >= 0) {
+            if (primitive.indices >= 0) { // determine index type
                 auto& attribute = model.accessors[primitive.indices];
                 //auto& bufferView = buffersViews[attribute.bufferView];
                 const auto& BV = model.bufferViews[attribute.bufferView];
@@ -501,11 +483,12 @@ int main() {
 
                 // 
                 auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
-                auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
-                vector.rangeInfo() = stride * attribute.count;
+                //auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
+                //vector.rangeInfo() = stride * attribute.count;
 
-                // determine index type
-                mInput->setIndexData(vector, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
+                // 
+                mInput->setIndexData(attribute.bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
+                mInput->setIndexCount(attribute.count)->setIndexOffset(attribute.byteOffset);
             };
 
             node->pushMesh(mesh->setMaterialID(primitive.material)->increaseGeometryCount()->sharedPtr());
@@ -521,6 +504,7 @@ int main() {
         localTransform *= glm::dmat4(gnode.scale.size() >= 3 ? glm::scale(glm::make_vec3(gnode.scale.data())) : glm::dmat4(1.0));
         localTransform *= glm::dmat4((gnode.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(gnode.rotation.data())) : glm::dmat4(1.0)));
 
+        // 
         if (gnode.mesh >= 0) {
             auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
             node->pushInstance(vkh::VsGeometryInstance{
@@ -532,6 +516,7 @@ int main() {
             });
         };
 
+        // 
         if (gnode.children.size() > 0 && gnode.mesh < 0) {
             for (int n = 0; n < gnode.children.size(); n++) {
                 if (recursive >= 0) (*vertexLoader)(model.nodes[gnode.children[n]], glm::dmat4(inTransform) * glm::dmat4(localTransform), recursive - 1);

@@ -7,7 +7,12 @@
 #include "./JVI/mesh-input.hpp"
 
 namespace jvx { 
-    class MeshBinding : public Wrap<jvi::MeshBinding> { 
+    class BufferViewSet : public Wrap<jvi::BufferViewSet> {
+    public: using T = jvi::BufferViewSet;
+        BufferViewSet(Context context) { object = std::make_shared<jvi::BufferViewSet>(context); };
+    };
+
+    class MeshBinding : public Wrap<jvi::MeshBinding> {
     public: using T = jvi::MeshBinding;
         MeshBinding(Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, vk::DeviceSize MaxStride = jvi::DEFAULT_STRIDE) { object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, MaxStride); };
     };

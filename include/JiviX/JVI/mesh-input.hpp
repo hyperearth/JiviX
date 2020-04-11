@@ -4,7 +4,7 @@
 #include "./driver.hpp"
 #include "./thread.hpp"
 #include "./context.hpp"
-
+#include "./bview-set.hpp"
 
 namespace jvi {
 
@@ -62,7 +62,7 @@ namespace jvi {
                 .dstArrayElement = 0u,
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-            }).offset<vk::DescriptorBufferInfo>() = gpuBindings;
+                }).offset<vk::DescriptorBufferInfo>() = gpuBindings;
 
             // 
             this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -70,7 +70,7 @@ namespace jvi {
                 .dstArrayElement = 0u,
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-            }).offset<vk::DescriptorBufferInfo>() = gpuAttributes;
+                }).offset<vk::DescriptorBufferInfo>() = gpuAttributes;
 
             // 
             for (uint32_t j = 0; j < this->bindings.size(); j++) {
@@ -79,32 +79,33 @@ namespace jvi {
                     .dstArrayElement = j,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                }).offset<vk::BufferView>(0u) = this->bindings[j].createBufferView(vk::Format::eR8Uint);
+                    }).offset<vk::BufferView>(0u) = this->bvs->get(this->bindings[j]).createBufferView(vk::Format::eR8Uint);
             };
 
-            if (this->indexData.has()) {
+            // 
+            if (this->indexData) {
                 auto& handle = this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 1u,
                     .dstArrayElement = 0u,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                }).offset<vk::BufferView>(0u) = this->indexData.createBufferView(vk::Format::eR8Uint);
+                    }).offset<vk::BufferView>(0u) = this->bvs->get(*this->indexData).createBufferView(vk::Format::eR8Uint);
             };
 
             // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(
                 this->descriptorSetHelper.setDescriptorSet((this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetHelper))[0])
-            ), {});
+                ), {});
 
             return uTHIS;
-        }
+        };
 
         // 
         virtual uPTR(MeshInput) copyMeta(vk::CommandBuffer buildCommand = {}) {
             buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
             buildCommand.copyBuffer(this->rawBindings, this->gpuBindings, { vk::BufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() } });
             return uTHIS;
-        }
+        };
 
         // Record Geometry (Transform Feedback)
         virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, vk::CommandBuffer buildCommand = {}) { // 
@@ -132,10 +133,11 @@ namespace jvi {
                 buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
             };
 
-            if (buildCommand && this->needUpdate) { this->needUpdate = false; // 
+            if (buildCommand && this->needUpdate) {
+                this->needUpdate = false; // 
                 std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
                 buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
-                for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
+                for (auto& B : this->bindings) { if (this->bvs->get(B).has()) { const uintptr_t i = I++; buffers[i] = this->bvs->get(B).buffer(); offsets[i] = this->bvs->get(B).offset(); }; };
 
                 // 
                 const auto& viewport = this->context->refViewport();
@@ -170,7 +172,7 @@ namespace jvi {
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
                 buildCommand.bindVertexBuffers(0u, buffers, offsets);
-                buildCommand.pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
+                buildCommand.pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
 
                 // No need more indices... (SSBO used instead)
                 //buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
@@ -178,9 +180,10 @@ namespace jvi {
                 // 
                 if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
                     const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
-                    buildCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), this->indexType);
+                    buildCommand.bindIndexBuffer(this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
                     buildCommand.drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
-                } else { // VAL Mode
+                }
+                else { // VAL Mode
                     buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
                 };
 
@@ -190,19 +193,19 @@ namespace jvi {
                 //buildCommand.endDebugUtilsLabelEXT(this->driver->getDispatch());
                 //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
                 //vkt::commandBarrier(buildCommand);
-            }
+            };
 
             if (DirectCommand) {
                 vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
                 this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
-            }
+            };
 
             return uTHIS;
         };
 
         // 
         template<class T = uint8_t>
-        inline uPTR(MeshInput) addBinding(const vkt::Vector<T>& rawData, vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
+        inline uPTR(MeshInput) addBinding(const uint32_t& rawData, vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
             this->vertexInputBindingDescriptions[bindingID] = binding;
@@ -220,7 +223,7 @@ namespace jvi {
 
             // 
             this->bindRange.resize(bindingID + 1u);
-            this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = rawData.range();
+            this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = this->bvs->get(rawData).range();
             this->bindings.resize(bindingID+1u);
             this->bindings[bindingID] = rawData;
             return uTHIS;
@@ -244,7 +247,7 @@ namespace jvi {
 
             // 
             if (locationID == 0u && NotStub && this->indexType == vk::IndexType::eNoneKHR) {
-                this->currentUnitCount = this->bindRange[bindingID] / this->bindings[bindingID].stride();
+                this->currentUnitCount = this->bindRange[bindingID] / this->bvs->get(this->bindings[bindingID]).stride();
             };
 
             // 
@@ -263,44 +266,40 @@ namespace jvi {
         };
 
         // 
+        virtual uPTR(MeshInput) setIndexOffset(const vk::DeviceSize& offset = 0ull) { this->indexOffset = offset; return uTHIS; };
+        virtual uPTR(MeshInput) setIndexCount(const uint32_t& count = 65536u * 3u) { this->currentUnitCount = count; return uTHIS; };
+        virtual uPTR(MeshInput) setPrimitiveCount(const uint32_t& count = 65536u) { this->setIndexCount(count * 3u); return uTHIS; };
+
+        // 
         template<class T = uint8_t>
-        inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type) {
+        inline uPTR(MeshInput) setIndexData(const uint32_t& rawIndices, const vk::IndexType& type) {
+        //inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type) {
             vk::DeviceSize count = 0u; uint32_t stride = 1u;
-            if (rawIndices.has()) {
+            //if (rawIndices) {
                 switch (type) { // 
-                    case vk::IndexType::eUint32:   count = rawIndices->range() / (stride = 4u); break;
-                    case vk::IndexType::eUint16:   count = rawIndices->range() / (stride = 2u); break;
-                    case vk::IndexType::eUint8EXT: count = rawIndices->range() / (stride = 1u); break;
+                    case vk::IndexType::eUint32:   count = this->bvs->get(rawIndices)->range() / (stride = 4u); break;
+                    case vk::IndexType::eUint16:   count = this->bvs->get(rawIndices)->range() / (stride = 2u); break;
+                    case vk::IndexType::eUint8EXT: count = this->bvs->get(rawIndices)->range() / (stride = 1u); break;
                     default: count = 0u;
                 };
-            };
-
-            /* // 
-            if (!this->indexData.has()) {
-                this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 1u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                }).offset<vk::BufferView>() = rawIndices.createBufferView(vk::Format::eR8Uint);
-            };*/
+            //};
 
             // 
-            this->indexData = rawIndices;
-            this->indexType = (rawIndices.has() && type != vk::IndexType::eNoneKHR) ? type : vk::IndexType::eNoneKHR;
+            this->indexData = rawIndices; // 
+            this->indexType = (this->indexData && type != vk::IndexType::eNoneKHR) ? type : vk::IndexType::eNoneKHR;
 
             // 
             if (this->indexType != vk::IndexType::eNoneKHR) {
-                this->currentUnitCount = rawIndices.range() / stride;
+                this->currentUnitCount = this->bvs->get(rawIndices).range() / stride;
             };
 
             return uTHIS;
         };
 
         // 
-        virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint32); };
-        virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint16); };
-        virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint8EXT); };
+        //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint32); };
+        //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint16); };
+        //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices, vk::IndexType::eUint8EXT); };
         virtual uPTR(MeshInput) setIndexData() { return this->setIndexData({}, vk::IndexType::eNoneKHR); };
 
         // some type dependent
@@ -357,6 +356,12 @@ namespace jvi {
             return uTHIS;
         };
 
+        // 
+        virtual uPTR(MeshInput) linkBViewSet(const vkt::uni_ptr<BufferViewSet>& bufferViewSet = {}) {
+            this->bvs = bufferViewSet;
+            return uTHIS;
+        };
+
     protected: friend Node; friend Renderer; // Partitions
         uint64_t checkoutPointData = 0ull;
         MeshInfo meta = {};
@@ -370,23 +375,25 @@ namespace jvi {
 
         // 
         std::vector<vkh::VkVertexInputBindingDescription> vertexInputBindingDescriptions = {};
-        vkt::Vector<vkh::VkVertexInputBindingDescription> rawBindings = {};
-        vkt::Vector<vkh::VkVertexInputBindingDescription> gpuBindings = {};
+        vkt::Vector<vkh::VkVertexInputBindingDescription> rawBindings = {}, gpuBindings = {};
 
         // 
         std::vector<vkh::VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
-        vkt::Vector<vkh::VkVertexInputAttributeDescription> rawAttributes = {};
-        vkt::Vector<vkh::VkVertexInputAttributeDescription> gpuAttributes = {};
+        vkt::Vector<vkh::VkVertexInputAttributeDescription> rawAttributes = {}, gpuAttributes = {};
 
         // 
-        std::vector<vkt::Vector<uint8_t>> bindings = {};
+        //std::vector<vkt::Vector<uint8_t>> bindings = {};
+        std::vector<uint32_t> bindings = {};
         std::vector<uint32_t> bindRange = { 0 };
         vkt::Vector<MeshInfo> rawMeshInfo = { }; // BROKEN?!
         vk::IndexType indexType = vk::IndexType::eNoneKHR;
 
         // 
-        vkt::Vector<uint8_t> indexData = {};
+        //vkt::Vector<uint8_t> indexData = {};
+        vk::DeviceSize indexOffset = 0ull;
+        std::optional<uint32_t> indexData;
         vkt::Vector<uint32_t> counterData = {};
+        vkt::uni_ptr<BufferViewSet> bvs = {};
         uint32_t lastBindID = 0u;
         //size_t primitiveCount = 0u;
 

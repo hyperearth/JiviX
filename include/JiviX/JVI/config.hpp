@@ -20,6 +20,7 @@ namespace jvi {
     class Context;
     class MeshInput;
     class MeshBinding;
+    class BufferViewSet;
 
 #define uPTR(NAME) vkt::uni_ptr<NAME>
 #ifdef NATIVE_SHARED_PTR
