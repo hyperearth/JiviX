@@ -508,10 +508,10 @@ namespace jvi {
             // Now, QUAD compatible
             if (this->buildGTemp.geometry.triangles.indexType != VK_INDEX_TYPE_NONE_KHR) { // PLC Mode (for Quads)
                 rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), vk::IndexType(this->buildGTemp.geometry.triangles.indexType));
-                rasterCommand.drawIndexed((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u, 0u);
+                rasterCommand.drawIndexed((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u, 0u);
             }
             else { // VAL Mode
-                rasterCommand.draw((this->rawMeshInfo[0u].prmCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u);
+                rasterCommand.draw((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u);
             };
 
             rasterCommand.endRenderPass();

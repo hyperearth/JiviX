@@ -34,8 +34,11 @@ namespace jvi {
     struct MeshInfo {
         uint32_t materialID = 0u;
         uint32_t indexType = 0u;
-        uint32_t prmCount = 0u;
-        //uint32_t flags = 0u;
+        union {
+            uint32_t primitiveCount = 0u;
+            uint32_t indexID; // for geometry build
+        };
+
         uint32_t
             hasTransform : 1,
             hasNormal : 1,

@@ -58,7 +58,7 @@ namespace jvi {
 
             // 
             this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 2u,
+                .dstBinding = 0u,
                 .dstArrayElement = 0u,
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
@@ -66,36 +66,19 @@ namespace jvi {
 
             // 
             this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 3u,
+                .dstBinding = 1u,
                 .dstArrayElement = 0u,
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 }).offset<vk::DescriptorBufferInfo>() = gpuAttributes;
 
             // 
-            for (uint32_t j = 0; j < this->bindings.size(); j++) {
-                auto& handle = this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 0u,
-                    .dstArrayElement = j,
-                    .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                    }).offset<vk::BufferView>(0u) = this->bvs->get(this->bindings[j]).createBufferView(vk::Format::eR8Uint);
-            };
-
-            // 
-            if (this->indexData) {
-                auto& handle = this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 1u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                    }).offset<vk::BufferView>(0u) = this->bvs->get(*this->indexData).createBufferView(vk::Format::eR8Uint);
-            };
-
-            // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(
                 this->descriptorSetHelper.setDescriptorSet((this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetHelper))[0])
-                ), {});
+            ), {});
+
+            // 
+            if (this->bvs) { this->bvs->createDescriptorSet(); };
 
             return uTHIS;
         };
@@ -116,8 +99,13 @@ namespace jvi {
                 buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
             };
 
+            // 
+            meta.indexID = *this->indexData;
+            //meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
+            meta.indexType = int32_t(this->indexType) + 1;
+
             // NO! Please, re-make QUAD internally!
-            if (buildCommand && this->needsQuads) {
+            if (buildCommand && this->needsQuads) { // TODO: scratch buffer
                 this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->transformPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
@@ -129,11 +117,12 @@ namespace jvi {
                 // 
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
-                buildCommand.pushConstants<glm::uvec4>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, {  /* TODO: Mesh Meta */ });
+                buildCommand.pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
                 buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
             };
 
             if (buildCommand && this->needUpdate) {
+
                 this->needUpdate = false; // 
                 std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
                 buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
@@ -157,9 +146,15 @@ namespace jvi {
                 // 
                 auto offsetsInfo = vkh::VkAccelerationStructureBuildOffsetInfoKHR{ .primitiveCount = 0u };
 
-                // 
-                meta.prmCount = uint32_t(this->currentUnitCount) / 3u;
+                // TODO: Fix Vertex Count for Quads
+                meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
                 meta.indexType = int32_t(this->indexType) + 1;
+
+                // 
+                if (this->bvs) {
+                    this->descriptorSet.resize(2u);
+                    this->descriptorSet[1u] = this->bvs->getDescriptorSet();
+                };
 
                 // 
                 vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
@@ -211,15 +206,7 @@ namespace jvi {
             this->vertexInputBindingDescriptions[bindingID] = binding;
             this->vertexInputBindingDescriptions[bindingID].binding = static_cast<uint32_t>(bindingID);
             this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
-
-            /* // 
-            this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 0u,
-                .dstArrayElement = uint32_t(bindingID),
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-            }).offset<vk::BufferView>() = rawData.createBufferView(vk::Format::eR8Uint);
-            */
+            this->rawBindings[bindingID].binding = rawData;
 
             // 
             this->bindRange.resize(bindingID + 1u);
@@ -313,11 +300,16 @@ namespace jvi {
             const auto& TFI = vk::PipelineRasterizationStateStreamCreateInfoEXT().setRasterizationStream(0u);
 
             // 
-            this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 8u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
-            this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
-            this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } });
-            this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } });
+            //this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 16u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+            this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } });
+            this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } });
             this->transformSetLayout[0] = driver->getDevice().createDescriptorSetLayout(transformSetLayoutHelper);
+
+            // 
+            if (this->bvs) {
+                this->transformSetLayout.resize(2u);
+                this->transformSetLayout[1] = this->bvs->getDescriptorLayout();
+            };
 
             // 
             std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
@@ -368,8 +360,8 @@ namespace jvi {
 
         // 
         vk::PipelineLayout transformPipelineLayout = {};
-        std::vector<vk::DescriptorSet> descriptorSet = { {} };
-        std::vector<VkDescriptorSetLayout> transformSetLayout = { {} };
+        std::vector<vk::DescriptorSet> descriptorSet = { {}, {} };
+        std::vector<VkDescriptorSetLayout> transformSetLayout = { {}, {} };
         vkh::VsDescriptorSetLayoutCreateInfoHelper transformSetLayoutHelper = {};
         vkh::VsDescriptorSetCreateInfoHelper descriptorSetHelper = {};
 
