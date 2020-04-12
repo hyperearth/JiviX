@@ -101,7 +101,6 @@ namespace jvi {
 
             // 
             meta.indexID = *this->indexData;
-            //meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
             meta.indexType = int32_t(this->indexType) + 1;
 
             // NO! Please, re-make QUAD internally!
@@ -112,17 +111,18 @@ namespace jvi {
                 if (!this->quadGenerator) {
                      this->quadGenerator = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache()));
                 };
-                this->manifestIndex(vk::IndexType::eUint32);
 
                 // 
                 buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 buildCommand.pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
                 buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
+
+                // Now should to be triangles!
+                this->manifestIndex(vk::IndexType::eUint32)->setIndexCount(vkt::tiled(this->currentUnitCount, 4ull) * 6u);
             };
 
             if (buildCommand && this->needUpdate) {
-
                 this->needUpdate = false; // 
                 std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
                 buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
