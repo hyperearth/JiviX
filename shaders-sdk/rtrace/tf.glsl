@@ -1,7 +1,8 @@
 
 
 struct Binding {
-    uint32_t binding;
+    //uint32_t binding;
+    uint32_t bufvsd;
     uint32_t stride;
     uint32_t rate;
     //uint32_t reserved;
@@ -14,51 +15,52 @@ struct Attribute {
     uint32_t offset;
 };
 
-layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer buffers[8u];
+// 
 #ifdef GEN_QUAD_INDEX
-layout (binding = 1, set = 0, r8ui)          uniform uimageBuffer indices;
+layout (binding = 0, set = 1, r8ui)          uniform uimageBuffer buffers[256u];
 #else
-layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer indices;
+layout (binding = 0, set = 1, r8ui) readonly uniform uimageBuffer buffers[256u];
 #endif
-layout (binding = 2, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
-layout (binding = 3, set = 0, scalar) readonly buffer Attributes { Attribute attributes[]; };
+
+// 
+layout (binding = 0, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
+layout (binding = 1, set = 0, scalar) readonly buffer Attributes { Attribute attributes[]; };
 layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // 
-bool hasTransform(){
+bool hasTransform() {
     return bool(bitfieldExtract(drawInfo.data[3],0,1));
 };
 
 // 
-bool hasNormal(){
+bool hasNormal() {
     return bool(bitfieldExtract(drawInfo.data[3],1,1));
 };
 
 // 
-bool hasTexcoord(){
+bool hasTexcoord() {
     return bool(bitfieldExtract(drawInfo.data[3],2,1));
 };
 
 // 
-bool hasTangent(){
+bool hasTangent() {
     return bool(bitfieldExtract(drawInfo.data[3],3,1));
 };
 
 
 // System Specified
-uint8_t load_u8(in uint offset, in uint binding, in bool idx) {
-    if (idx) { return uint8_t(imageLoad(indices, int(offset)).x); };
-    return uint8_t(imageLoad(buffers[nonuniformEXT(binding)], int(offset)).x);
+uint8_t load_u8(in uint offset, in uint bufferID) {
+    return uint8_t(imageLoad(buffers[nonuniformEXT(bufferID)], int(offset)).x);
 };
 
 // System Specified
-uint16_t load_u16(in uint offset, in uint binding, in bool idx) {
-    return pack16(u8vec2(load_u8(offset,binding,idx),load_u8(offset+1u,binding,idx)));
+uint16_t load_u16(in uint offset, in uint bufferID) {
+    return pack16(u8vec2(load_u8(offset,bufferID),load_u8(offset+1u,bufferID)));
 };
 
 // System Specified
-uint32_t load_u32(in uint offset, in uint binding, in bool idx) {
-    return pack32(u16vec2(load_u16(offset,binding,idx),load_u16(offset+2u,binding,idx)));
+uint32_t load_u32(in uint offset, in uint bufferID) {
+    return pack32(u16vec2(load_u16(offset,bufferID),load_u16(offset+2u,bufferID)));
 };
 
 // TODO: Add Uint16_t, Uint32_t, Float16_t Support
@@ -72,10 +74,10 @@ vec4 get_vec4(in uint idx, in uint loc) {
     
     // 
     //if (binding.stride >  0u) vec = vec4(0.f,0.f,1.f,0.f);
-    if (binding.stride >  0u) vec[0] = uintBitsToFloat(load_u32(boffset +  0u, attrib.binding, false));
-    if (binding.stride >  4u) vec[1] = uintBitsToFloat(load_u32(boffset +  4u, attrib.binding, false));
-    if (binding.stride >  8u) vec[2] = uintBitsToFloat(load_u32(boffset +  8u, attrib.binding, false));
-    if (binding.stride > 12u) vec[3] = uintBitsToFloat(load_u32(boffset + 12u, attrib.binding, false));
+    if (binding.stride >  0u) vec[0] = uintBitsToFloat(load_u32(boffset +  0u, binding.bufvsd));
+    if (binding.stride >  4u) vec[1] = uintBitsToFloat(load_u32(boffset +  4u, binding.bufvsd));
+    if (binding.stride >  8u) vec[2] = uintBitsToFloat(load_u32(boffset +  8u, binding.bufvsd));
+    if (binding.stride > 12u) vec[3] = uintBitsToFloat(load_u32(boffset + 12u, binding.bufvsd));
     
     // 
     return vec;

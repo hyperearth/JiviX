@@ -62,10 +62,12 @@ struct MaterialUnit {
 };
 
 struct MeshInfo {
-    uint materialID;
-    uint indexType;
-    uint prmCount;
-    uint flags;
+    uint32_t materialID;
+    uint32_t indexType;
+    uint32_t primitiveCount;
+    //uint32_t indexID;
+
+    uint32_t flags;
 };
 
 bool hasTransform(in MeshInfo meshInfo){
