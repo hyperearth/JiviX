@@ -46,7 +46,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Transparency layers (Alpha)
 - [x] Better command construction (Alpha)
 - [x] Dedicated array of buffer view, instead of `BindingID*` itself (Alpha)
-- [x] Rise quads support (WIP)
+- [x] Rise quads support (Alpha)
 - [ ] Advanced FPS counter (TODO)
 - [ ] HDRI background image and equirectangular projection (TODO)
 - [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
@@ -54,7 +54,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
 - [ ] Variable shading rate (faster ray-tracing)
 - [ ] Anti-aliasing and better denoise
-- [ ] Refraction support 
+- [ ] Refraction support
 - [ ] Some unit-tests`***`
 - [ ] Water shader (for games)
 - [ ] Optifine support (Minecraft)
@@ -65,7 +65,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 ### Remarks...
 
 - `*  : Means shared array of buffer views for complex Node class`
-- `** : Use OpenGL version of transform feedback`
+- `** : Use OpenGL version of transform feedback, uses GL import`
 - `***: There is no priority, we prefer live testing and have MVP soon as possible`
 - `MVP: Minimal Valuable Product`
 
