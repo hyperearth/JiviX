@@ -91,7 +91,7 @@ namespace jvi {
         };
 
         // Record Geometry (Transform Feedback)
-        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, vk::CommandBuffer buildCommand = {}) { // 
+        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
             bool DirectCommand = false;
 
             // 
@@ -113,10 +113,10 @@ namespace jvi {
                 };
 
                 // 
-                buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
-                buildCommand.bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
-                buildCommand.pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
-                buildCommand.dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
+                buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
+                buildCommand->bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
+                buildCommand->pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
+                buildCommand->dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
 
                 // Now should to be triangles!
                 this->manifestIndex(vk::IndexType::eUint32)->setIndexCount(vkt::tiled(this->currentUnitCount, 4ull) * 6u);
@@ -158,16 +158,16 @@ namespace jvi {
 
                 // 
                 vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
-                buildCommand.updateBuffer(counterData.buffer(), counterData.offset(), sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), &offsetsInfo); // Nullify Counters
-                buildCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
-                buildCommand.beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
-                buildCommand.setViewport(0, { viewport });
-                buildCommand.setScissor(0, { renderArea });
-                buildCommand.bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() }, { OutPut->range() }, this->driver->getDispatch()); //!!WARNING!!
-                buildCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
-                buildCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
-                buildCommand.bindVertexBuffers(0u, buffers, offsets);
-                buildCommand.pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
+                buildCommand->updateBuffer(counterData.buffer(), counterData.offset(), sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), &offsetsInfo); // Nullify Counters
+                buildCommand->beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
+                buildCommand->beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand->setViewport(0, { viewport });
+                buildCommand->setScissor(0, { renderArea });
+                buildCommand->bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() }, { OutPut->range() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
+                buildCommand->bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
+                buildCommand->bindVertexBuffers(0u, buffers, offsets);
+                buildCommand->pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
 
                 // No need more indices... (SSBO used instead)
                 //buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
@@ -175,16 +175,16 @@ namespace jvi {
                 // 
                 if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
                     const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
-                    buildCommand.bindIndexBuffer(this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
-                    buildCommand.drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
+                    buildCommand->bindIndexBuffer(this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
+                    buildCommand->drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
                 }
                 else { // VAL Mode
-                    buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
+                    buildCommand->draw(this->currentUnitCount, 1u, 0u, 0u);
                 };
 
-                buildCommand.endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
-                buildCommand.endRenderPass();
-                vkt::debugLabel(buildCommand, "Ending building geometry data...", this->driver->getDispatch());
+                buildCommand->endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand->endRenderPass();
+                vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
                 //buildCommand.endDebugUtilsLabelEXT(this->driver->getDispatch());
                 //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
                 //vkt::commandBarrier(buildCommand);

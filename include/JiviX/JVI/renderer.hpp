@@ -205,7 +205,7 @@ namespace jvi {
             };
 
             // 
-            bool cmdArg = !(!cmdBuf || !(*cmdBuf));
+            bool cmdArg = cmdBuf.has() && *cmdBuf; //!(!cmdBuf || !(*cmdBuf));
             if (!cmdArg && !cmdbuf) { this->cmdbuf = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread)); };
             if (!cmdArg) { cmdBuf = this->cmdbuf; };
 
