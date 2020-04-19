@@ -188,6 +188,11 @@ namespace jvi {
                 //buildCommand.endDebugUtilsLabelEXT(this->driver->getDispatch());
                 //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
                 //vkt::commandBarrier(buildCommand);
+
+                // 
+                this->offsetMeta.firstVertex = 0u;
+                this->offsetMeta.primitiveOffset = 0ull; // TODO: import all primitives count from InputBinding
+                this->offsetMeta.primitiveCount = vkt::tiled(this->currentUnitCount, 3ull);
             };
 
             if (DirectCommand) {
@@ -196,6 +201,16 @@ namespace jvi {
             };
 
             return uTHIS;
+        };
+
+        // 
+        virtual vk::AccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() {
+            return this->offsetMeta;
+        };
+
+        // 
+        virtual const vk::AccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() const {
+            return this->offsetMeta;
         };
 
         // 
@@ -396,6 +411,7 @@ namespace jvi {
         // 
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
+        vk::AccelerationStructureBuildOffsetInfoKHR offsetMeta = {};
 
         // 
         vkh::VkComputePipelineCreateInfo quadInfo = {};
