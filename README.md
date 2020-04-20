@@ -52,11 +52,12 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Better command construction (Alpha)
 - [x] Dedicated array of buffer view, instead of `BindingID*` itself (Alpha)
 - [x] Rise quads support (Alpha)
-- [ ] Advanced FPS counter (TODO)
-- [ ] HDRI background image and equirectangular projection (TODO)
-- [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
-- [ ] New optional rasterization base (writing to dedicated buffers)
+- [ ] Geometry shader in resampling (Planned)
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
+- [ ] New optional rasterization base (writing to dedicated buffers)
+- [ ] HDRI background image and equirectangular projection (TODO)
+- [ ] Advanced FPS counter (TODO)
+- [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
 - [ ] Variable shading rate (faster ray-tracing)
 - [ ] Anti-aliasing and better denoise
 - [ ] Refraction support
