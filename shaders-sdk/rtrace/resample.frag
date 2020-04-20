@@ -33,7 +33,8 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
         //almostpos.y *= -1.f;
 
         if (
-            abs(almostpos.z-screenSample.z) < 0.0001f && 
+            //abs(screenSample.z-almostpos.z) < 0.0001f && 
+            (screenSample.z-almostpos.z) < 0.0001f && // Reserved for FOG 
             length(almostpos.xy-screenSample.xy) < 4.f && 
             dot(gNormal.xyz,    texture(frameBuffers[BW_GEONORML],  vec2(i2fxm+offt), 0).xyz) >=0.5f && 
                              texelFetch(frameBuffers[BW_MATERIAL], ivec2(i2fxm+offt), 0).z > 0.f &&

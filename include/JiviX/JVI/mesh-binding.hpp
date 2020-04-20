@@ -37,8 +37,8 @@ namespace jvi {
             this->gpuMaterialIDs = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 64ull, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // ALPHA_TEST
-            this->offsetIndirectPtr = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
-            this->offsetIndirect = vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            //this->offsetIndirectPtr = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            //this->offsetIndirect = vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             /*
             thread->submitOnce([&, this](vk::CommandBuffer& cmd) {
@@ -116,12 +116,12 @@ namespace jvi {
             };
 
             // 
-            this->offsetTemp = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
-                .primitiveCount = 1u,
-                .primitiveOffset = 0u,
-                .firstVertex = 0u, 
-                .transformOffset = 0u
-            };
+            //this->offsetTemp = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
+            //    .primitiveCount = 1u,
+            //    .primitiveOffset = 0u,
+            //    .firstVertex = 0u, 
+            //    .transformOffset = 0u
+            //};
 
             // FOR CREATE! 
             this->bottomDataCreate.resize(MaxGeometry);
@@ -231,7 +231,7 @@ namespace jvi {
 
         // TODO: Add QUADs support for GEN-2.0
         virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 65536u * 3u) { this->setPrimitiveCount(std::min(uint32_t(vkt::tiled(count, 3u)), uint32_t(this->MaxPrimitiveCount))); return uTHIS; };
-        virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 65536u) { this->primitiveCount = this->offsetTemp.primitiveCount = std::min(uint32_t(count), uint32_t(this->MaxPrimitiveCount)); return uTHIS; };
+        virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 65536u) { this->primitiveCount = std::min(uint32_t(count), uint32_t(this->MaxPrimitiveCount)); return uTHIS; };
 
         // 
         virtual uPTR(MeshBinding) linkWithInstance(const uint32_t& mapID = 0u) {
@@ -253,7 +253,7 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
-            this->offsetTemp.transformOffset = transformData.offset();
+            //this->offsetTemp.transformOffset = transformData.offset(); //!!
             this->buildGTemp.geometry.triangles.transformData = transformData;
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
@@ -271,7 +271,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // DEPRECATED!
         virtual uPTR(MeshBinding) setAttribute(vkt::uni_arg<vkh::VkVertexInputAttributeDescription> attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
             const uintptr_t bindingID = attribute->binding;
             const uintptr_t locationID = attribute->location;
@@ -286,7 +286,7 @@ namespace jvi {
                 const auto& bindingBuffer = this->bindings[bindingID];
 
                 // 
-                this->offsetTemp.primitiveOffset = bindingBuffer.offset() + attribute->offset; // !!WARNING!!
+                //this->offsetTemp.primitiveOffset = bindingBuffer.offset() + attribute->offset; // !!WARNING!!
                 this->buildGTemp.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
                 this->buildGTemp.geometry.triangles.vertexFormat = attribute->format;
                 this->buildGTemp.geometry.triangles.vertexStride = bindingData.stride;
@@ -330,8 +330,8 @@ namespace jvi {
                 I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], buildCommand);
 
                 // 
-                buildCommand.updateBuffer<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), { this->offsetTemp });
-                buildCommand.updateBuffer<uint64_t>(this->offsetIndirectPtr.buffer(), this->offsetIndirectPtr.offset(), { this->offsetIndirect.deviceAddress() });
+                //buildCommand.updateBuffer<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), { this->offsetTemp });
+                //buildCommand.updateBuffer<uint64_t>(this->offsetIndirectPtr.buffer(), this->offsetIndirectPtr.offset(), { this->offsetIndirect.deviceAddress() });
             };
             return uTHIS;
         };
@@ -342,19 +342,19 @@ namespace jvi {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
-            if (this->geometryCount > this->offsetInfo.size()) { this->offsetInfo.resize(this->geometryCount); };
+            //if (this->geometryCount > this->offsetInfo.size()) { this->offsetInfo.resize(this->geometryCount); };
             if (this->geometryCount > this->buildGInfo.size()) { this->buildGInfo.resize(this->geometryCount); };
 
             // 
             for (uint32_t i = 0; i < this->geometryCount; i++) {
-                this->offsetInfo[i] = this->offsetTemp;
+                //this->offsetInfo[i] = this->offsetTemp;
                 this->buildGInfo[i] = this->buildGTemp;
 
                 // Make Individual Transform Per Geometry (Restore Old Tradition)
                 if (this->rawMeshInfo[0u].hasTransform) {
-                    this->offsetInfo[i].transformOffset += this->transformStride * i;
-                }
-            }
+                    //this->offsetInfo[i].transformOffset += this->transformStride * i;
+                };
+            };
 
             // 
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
@@ -363,7 +363,7 @@ namespace jvi {
             this->bdHeadInfo.scratchData = this->gpuScratchBuffer;
             this->bdHeadInfo.update = this->needsUpdate;
 
-            // 
+            // Use Temporary Array of Pointers (from Geometry Inputs)
             std::vector<vk::AccelerationStructureBuildOffsetInfoKHR*> offsets = {};
             for (auto& I : inputs) {
                 offsets.push_back(&I->getOffsetMeta());
@@ -522,13 +522,13 @@ namespace jvi {
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
 
             // Now, QUAD compatible
-            if (this->buildGTemp.geometry.triangles.indexType != VK_INDEX_TYPE_NONE_KHR) { // PLC Mode (for Quads)
-                rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), vk::IndexType(this->buildGTemp.geometry.triangles.indexType));
-                rasterCommand.drawIndexed((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u, 0u);
-            }
-            else { // VAL Mode
-                rasterCommand.draw((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u);
-            };
+            //if (this->buildGTemp.geometry.triangles.indexType != VK_INDEX_TYPE_NONE_KHR) { // PLC Mode (for Quads)
+            //    rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), vk::IndexType(this->buildGTemp.geometry.triangles.indexType));
+            //    rasterCommand.drawIndexed((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u, 0u);
+            //}
+            //else { // VAL Mode
+            //    rasterCommand.draw((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u);
+            //};
 
             rasterCommand.endRenderPass();
             vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
@@ -593,11 +593,11 @@ namespace jvi {
 
         // TODO: OFFSET DEPRECATED
         // CAN BE MULTIPLE! (single element of array, array of array[0])
-        vkt::Vector<uint64_t>                                         offsetIndirectPtr {};
-        vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetIndirect {};
-        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
-        vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsetPtr = {};
-        vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
+        //vkt::Vector<uint64_t>                                         offsetIndirectPtr {};
+        //vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetIndirect {};
+        //std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
+        //vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsetPtr = {};
+        //vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
 
         // But used only one, due transform feedback shaders used... 
         // CAN BE MULTIPLE! (single element of array, array of array[0])
