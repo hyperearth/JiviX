@@ -103,7 +103,7 @@ namespace jvi {
             this->bdHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
             this->bdHeadInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-            this->bdHeadInfo.geometryArrayOfPointers = false; // MARK TRUE FOR INDIRECT BUILDING!!
+            this->bdHeadInfo.geometryArrayOfPointers = true; // MARK TRUE FOR INDIRECT BUILDING!!
 
             // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)
             this->buildGTemp = vkh::VkAccelerationStructureGeometryKHR{ .flags = {.eOpaque = 1 } };
@@ -112,9 +112,12 @@ namespace jvi {
                 .vertexStride = MaxStride,
                 .indexType = VK_INDEX_TYPE_NONE_KHR,
             };
+
+            // 
             this->offsetTemp = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
                 .primitiveCount = 1u,
                 .primitiveOffset = 0u,
+                .firstVertex = 0u, 
                 .transformOffset = 0u
             };
 
@@ -617,6 +620,7 @@ namespace jvi {
         VmaAllocation allocation = {};
 
         // 
+        vkt::Vector<uint32_t> materialIDs = {}; // TODO: Individual Meterial ID per Geometry Inputs (will usefull for Minecraft chunk)
         std::vector<vkt::uni_ptr<MeshInput>> inputs = {};
         vkt::uni_ptr<Driver> driver = {};
         vkt::uni_ptr<Thread> thread = {};

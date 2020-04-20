@@ -47,9 +47,10 @@ namespace jvi {
             this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryKHR{ };
             this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryInstancesDataKHR{ .data = this->gpuInstances };
             this->offsetsInfo[0u] = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
-                .primitiveCount = 0u,
-                .primitiveOffset = 0u,
-                .transformOffset = 0u
+                .primitiveCount = 0u, // How many instances used... 
+                .primitiveOffset = 0u, // Where read on buffer...
+                .firstVertex = 0u, // What is first instance defined...
+                .transformOffset = 0u // WTF?..
             };
 
             // FOR CREATE!

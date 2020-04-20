@@ -182,6 +182,7 @@ namespace jvi {
                     buildCommand->draw(this->currentUnitCount, 1u, 0u, 0u);
                 };
 
+                // 
                 buildCommand->endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->endRenderPass();
                 vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
@@ -190,8 +191,8 @@ namespace jvi {
                 //vkt::commandBarrier(buildCommand);
 
                 // 
-                this->offsetMeta.firstVertex = 0u;
-                this->offsetMeta.primitiveOffset = 0ull; // TODO: import all primitives count from InputBinding
+                this->offsetMeta.firstVertex = 0u; // First Vertex ID by geometry input (from Mesh Binding)
+                this->offsetMeta.primitiveOffset = 0ull; // Applicable only for Vertex Buffers
                 this->offsetMeta.primitiveCount = vkt::tiled(this->currentUnitCount, 3ull);
             };
 
