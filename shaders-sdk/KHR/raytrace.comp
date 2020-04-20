@@ -124,8 +124,11 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                 // 
                 //lastOrigin = raydir*tHit + forigin;
 
+#define MatID geomMTs[nonuniformEXT(/* {TODO: First Material From Instance} + */ nodeMeshID)].materialID[geometryInstanceID]
+
                 // 
-                const MaterialUnit unit = materials[0u].data[meshInfo[nodeMeshID].materialID];
+                //const MaterialUnit unit = materials[0u].data[meshInfo[nodeMeshID].materialID];
+                const MaterialUnit unit = materials[0u].data[MatID]; // NEW! 20.04.2020
                 const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
                 if (diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
                     //lastOrigin = origin, lastMax = tHit;
@@ -165,7 +168,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
                     // Use real origin
                     processing.origin = vec4(lastOrigin, 1.f);
-                    processing.txcmid = vec4(uintBitsToFloat(packUnorm2x16(fract(gTexcoord.xy))), uintBitsToFloat(meshInfo[nodeMeshID].materialID), 1.f, 0.f); // 
+                    processing.txcmid = vec4(uintBitsToFloat(packUnorm2x16(fract(gTexcoord.xy))), uintBitsToFloat(MatID), 1.f, 0.f); // 
                     //processing.tangent = gTangent; // UNUSED
 
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };

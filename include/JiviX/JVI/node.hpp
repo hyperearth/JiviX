@@ -208,6 +208,19 @@ namespace jvi {
                 };
             };
 
+            { // [2] material IDs
+                auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 8u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = uint32_t(meshCount),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                });
+
+                for (uint32_t i = 0; i < meshCount; i++) {
+                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuMaterialIDs;
+                };
+            };
+
             // [3] acceleration structure
             if (this->accelerationStructure) {
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{

@@ -33,6 +33,8 @@ namespace jvi {
             this->gpuBindings = vkt::Vector<VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
             this->rawAttributes = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             this->gpuAttributes = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawMaterialIDs = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 64ull, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuMaterialIDs = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 64ull, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // ALPHA_TEST
             this->offsetIndirectPtr = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
@@ -215,11 +217,11 @@ namespace jvi {
             return this->indexData->info.handle;
         };
 
-        // 
-        virtual uPTR(MeshBinding) setMaterialID(const uint32_t& materialID = 0u) {
-            this->rawMeshInfo[0u].materialID = materialID;
-            return uTHIS;
-        };
+        // OBSOLETE! Needs Instance Based Material ID!
+        //virtual uPTR(MeshBinding) setFirstMaterial(const uint32_t& materialID = 0u) {
+        //    this->rawMeshInfo[0u].materialID = materialID;
+        //    return uTHIS;
+        //};
 
         // 
         virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type = vk::IndexType::eNoneKHR) {
@@ -237,9 +239,9 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // DEPRECATED
         virtual uPTR(MeshBinding) increaseGeometryCount(const uint32_t& geometryCount = 1u) {
-            this->geometryCount += geometryCount;
+            //this->geometryCount += geometryCount;
             return uTHIS;
         };
 
@@ -309,6 +311,7 @@ namespace jvi {
             buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
             buildCommand.copyBuffer(this->rawBindings, this->gpuBindings, { vk::BufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
+            buildCommand.copyBuffer(this->rawMaterialIDs, this->gpuMaterialIDs, { vk::BufferCopy{ this->rawMaterialIDs.offset(), this->gpuMaterialIDs.offset(), this->gpuMaterialIDs.range() } });
             if (this->inputs.size() > 0) { for (auto& I : this->inputs) { I->copyMeta(buildCommand); }; };
             return uTHIS;
         };
@@ -381,9 +384,12 @@ namespace jvi {
             return uTHIS;
         };
 
-        // TODO: Rename function into `addMeshInput`, add OpenGL version...
-        virtual uPTR(MeshBinding) bindMeshInput(vkt::uni_ptr<MeshInput> input = {}) {
+        // 
+        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input = {}, const uint32_t& materialID = 0u) {
+            uintptr_t ID = this->inputs.size();
+            this->geometryCount++;
             this->inputs.push_back(input); // Correct! 
+            this->rawMaterialIDs[ID] = materialID;
             //(this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
             //this->input->linkCounterBuffer(this->offsetIndirect);
             return uTHIS;
@@ -620,8 +626,11 @@ namespace jvi {
         VmaAllocation allocation = {};
 
         // 
-        vkt::Vector<uint32_t> materialIDs = {}; // TODO: Individual Meterial ID per Geometry Inputs (will usefull for Minecraft chunk)
+        vkt::Vector<uint32_t> rawMaterialIDs = {};
+        vkt::Vector<uint32_t> gpuMaterialIDs = {};
         std::vector<vkt::uni_ptr<MeshInput>> inputs = {};
+
+        // 
         vkt::uni_ptr<Driver> driver = {};
         vkt::uni_ptr<Thread> thread = {};
         vkt::uni_ptr<Context> context = {};
