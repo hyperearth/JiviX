@@ -36,6 +36,9 @@ namespace jvi {
             this->rawMaterialIDs = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 64ull, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             this->gpuMaterialIDs = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 64ull, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
+            // 
+            this->counterData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 4u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_TO_CPU));
+
             // ALPHA_TEST
             //this->offsetIndirectPtr = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
             //this->offsetIndirect = vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
@@ -151,6 +154,12 @@ namespace jvi {
             // FOR QUADS RESERVED!
             this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
             //this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .binding = 1, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
+
+            // 
+            const glm::uvec4 initialCount = glm::uvec4(0u);
+            this->thread->submitOnce([&](const vk::CommandBuffer& cmdbuf) {
+                cmdbuf.updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &initialCount);
+            });
 
             // 
             return uTHIS;
@@ -316,20 +325,15 @@ namespace jvi {
             return uTHIS;
         };
 
-        // TODO: Fix Quads support with Indices
-        // WARNING: Quads needs only for specific games
+        // 
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
             if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
-            for (auto& I : this->inputs) {
-                if (I->needsQuads) { // Quads generated internally, `currentUnitCount` for quad vertices count
-                    this->setPrimitiveCount(vkt::tiled(I->currentUnitCount, 6ull) << 1u);
-                }
-                else {
-                    this->setIndexCount(I->currentUnitCount);
-                };
-                I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], buildCommand);
+            this->primitiveCount = 0u;
+            for (auto& I : this->inputs) { // Quads not needed...
+                I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount*3u,0u,0u,0u), buildCommand);
+                this->primitiveCount += vkt::tiled(I->currentUnitCount, 3ull); // TODO: De-Facto primitive count... 
 
-                // 
+                // ??
                 //buildCommand.updateBuffer<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), { this->offsetTemp });
                 //buildCommand.updateBuffer<uint64_t>(this->offsetIndirectPtr.buffer(), this->offsetIndirectPtr.offset(), { this->offsetIndirect.deviceAddress() });
             };
@@ -626,6 +630,7 @@ namespace jvi {
         VmaAllocation allocation = {};
 
         // 
+        vkt::Vector<uint32_t> counterData = {};
         vkt::Vector<uint32_t> rawMaterialIDs = {};
         vkt::Vector<uint32_t> gpuMaterialIDs = {};
         std::vector<vkt::uni_ptr<MeshInput>> inputs = {};

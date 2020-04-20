@@ -31,7 +31,6 @@ namespace jvi {
 
             // 
             this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vk::ShaderStageFlagBits::eCompute);
-            this->counterData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_TO_CPU));
 
             // for faster code, pre-initialize
             this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
@@ -91,7 +90,7 @@ namespace jvi {
         };
 
         // Record Geometry (Transform Feedback)
-        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
+        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, const vkt::Vector<uint32_t>& counterData, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
             bool DirectCommand = false;
 
             // 
@@ -158,7 +157,7 @@ namespace jvi {
 
                 // 
                 vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
-                buildCommand->updateBuffer(counterData.buffer(), counterData.offset(), sizeof(vkh::VkAccelerationStructureBuildOffsetInfoKHR), &offsetsInfo); // Nullify Counters
+                //buildCommand->updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &offsetsInfo); // Nullify Counters
                 buildCommand->beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
                 buildCommand->beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->setViewport(0, { viewport });
@@ -190,8 +189,8 @@ namespace jvi {
                 //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
                 //vkt::commandBarrier(buildCommand);
 
-                // 
-                this->offsetMeta.firstVertex = 0u; // First Vertex ID by geometry input (from Mesh Binding)
+                // TODO: De-Facto primitive count...
+                this->offsetMeta.firstVertex = offsetHelp->x; // First Vertex ID by geometry input (from Mesh Binding)
                 this->offsetMeta.primitiveOffset = 0ull; // Applicable only for Vertex Buffers
                 this->offsetMeta.primitiveCount = vkt::tiled(this->currentUnitCount, 3ull);
             };
@@ -400,7 +399,7 @@ namespace jvi {
         //vkt::Vector<uint8_t> indexData = {};
         vk::DeviceSize indexOffset = 0ull;
         std::optional<uint32_t> indexData;
-        vkt::Vector<uint32_t> counterData = {};
+        
         vkt::uni_ptr<BufferViewSet> bvs = {};
         uint32_t lastBindID = 0u;
         //size_t primitiveCount = 0u;
