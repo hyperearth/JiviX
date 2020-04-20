@@ -12,6 +12,8 @@ Planned to beat world record as most perfect and most long-time development prod
 - [MineRTX](https://github.com/hyperearth/MineRTX), spin-off project for add RTX ray tracing for Minecraft (Java Edition)...
 - [hE-ART](https://github.com/hyperearth/hE-ART), terminal of projects, central...
 - [TankAPI](https://github.com/world8th/vRt/tree/TankAPI) itself, moved into as part of vRt project. 
+- [My Discord](https://discord.gg/NqjBJsG), but currently we have no focus for them... 
+- [My Puzzle](https://vk.cc/afiR3v) for psychologists, psychoanalysts, psychotherapists and students ...
 
 ## Tech Spec
 
@@ -74,3 +76,4 @@ Date:[09.04.2020]:[helix.d@IMN]
 
 - helix.d@IMN
 - RTX@NVIDIA
+
