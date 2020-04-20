@@ -6,6 +6,7 @@ Real-Time oriented Vulkan API rendering and computing library...
 Writing for C++20 prior...
 Planned to beat world record as most perfect and most long-time development product...
 
+
 ## Additional Links
 
 - [VKt/VKh](https://github.com/world8th/vkt), simpler and unified helpers and mini-framework for Vulkan API... **Required** for the project!
@@ -14,6 +15,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - [TankAPI](https://github.com/world8th/vRt/tree/TankAPI) itself, moved into as part of vRt project. 
 - [My Discord](https://discord.gg/NqjBJsG), but currently we have no focus for them... 
 - [My Puzzle](https://vk.cc/afiR3v) for psychologists, psychoanalysts, psychotherapists and students ...
+
 
 ## Tech Spec
 
@@ -37,6 +39,7 @@ Planned to beat world record as most perfect and most long-time development prod
 
 Date:[09.04.2020]:[helix.d@IMN]
 ```
+
 
 ### TODO Lists (Gen 3 and Next)
 
