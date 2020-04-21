@@ -13,7 +13,7 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer;
         MeshBinding() {};
-        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, vk::DeviceSize MaxStride = DEFAULT_STRIDE) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), MaxStride(MaxStride){ this->construct(); };
+        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, vk::DeviceSize MaxStride = DEFAULT_STRIDE, vk::DeviceSize MaxGeometry = 16ull) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), MaxStride(MaxStride), MaxGeometry(MaxGeometry) { this->construct(); };
         ~MeshBinding() {};
 
         // 
@@ -550,7 +550,7 @@ namespace jvi {
 
         // 
         //vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE, MaxGeometry = 8u;
+        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE, MaxGeometry = 16u;
 
         // `primitiveCount` should to be counter!
         uint32_t primitiveCount = 0u, geometryCount = 0u, mapCount = 0u;
