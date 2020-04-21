@@ -109,6 +109,8 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
     mat4 projectionInv; 
     mat3x4 modelview;   
     mat3x4 modelviewInv; 
+    mat3x4 modelviewPrev;   
+    mat3x4 modelviewPrevInv; 
     uvec4 mdata;        // mesh mutation or modification data
     //uvec2 tdata, rdata; // first for time, second for randoms
     uvec2 tdata;

@@ -221,7 +221,11 @@ namespace jvi {
             // prepare meshes for ray-tracing
             auto I = 0u;
             if (parameters->eEnableCopyMeta) {
-                cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
+                //cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
+                cmdBuf->copyBuffer(context->uniformGPUData, context->uniformGPUData, { vk::BufferCopy(context->uniformGPUData.offset() + offsetof(Matrices, modelview ), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev),  96ull) }); // reserve previous projection (for adaptive denoise)
+                cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection   ), 224ull) });
+                cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, mdata     ), context->uniformGPUData.offset() + offsetof(Matrices, mdata        ),  32ull) });
+
                 I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf); 
                 this->materials->copyBuffers(cmdBuf);
                 this->node->copyMeta(cmdBuf);

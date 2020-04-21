@@ -12,6 +12,8 @@ namespace jvi {
         glm::mat4 projectionInv = glm::mat4(1.f);
         glm::mat3x4 modelview = glm::mat3x4(1.f);
         glm::mat3x4 modelviewInv = glm::mat3x4(1.f);
+        glm::mat3x4 modelviewPrev = glm::mat3x4(1.f);
+        glm::mat3x4 modelviewPrevInv = glm::mat3x4(1.f);
         glm::uvec4 mdata = glm::uvec4(0u);                         // mesh mutation or modification data
         //glm::uvec2 tdata = glm::uvec2(0u), rdata = glm::uvec2(0u); // first for time, second for randoms
         glm::uvec2 tdata = glm::uvec2(0u);
