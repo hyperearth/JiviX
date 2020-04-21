@@ -76,6 +76,15 @@ Date:[09.04.2020]:[helix.d@IMN]
 - `MVP: Minimal Valuable Product`
 
 
+### About Minecraft Mod Idea... 
+
+- Vulkan API can import OpenGL buffer data only using copy, OpenGL can import memory directly from Vulkan API. 
+- Minecraft can use Vulkan API using JNI, JavaCPP, LWJGL-3... 
+- Always communication using LONG type in Java and uint64_t in C++ 
+- LWJGL-3 or Java **can't** resolve conflicts with `VkDeviceOrHostAddressKHR` or `VkDeviceOrHostAddressConstKHR` due same LONG type... 
+- Any native pointers in Java are LONG type... 
+
+
 ## Authors P.S.
 
 - helix.d@IMN
