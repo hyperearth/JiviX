@@ -64,6 +64,7 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     BuildCompute "transform.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "transform.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "resample.frag"        "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "resample.geom"        "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "resample.vert"        "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "quad.comp"            "$INDIR$RTPU" "$HRDDIR$RTPU"
     BuildCompute "raytrace.comp"        "$INDIR$RNDX" "$HRDDIR$RNDX"

@@ -52,7 +52,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Better command construction (Alpha)
 - [x] Dedicated array of buffer view, instead of `BindingID*` itself (Alpha)
 - [x] Rise quads support (Alpha)
-- [ ] Geometry shader in resampling (Planned)
+- [x] Geometry shader in resampling (Reserved)
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
 - [ ] New optional rasterization base (writing to dedicated buffers)
 - [ ] HDRI background image and equirectangular projection (TODO)

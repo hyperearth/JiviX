@@ -39,11 +39,12 @@ namespace jvi {
             // 
             this->resampStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.geom.spv"), vk::ShaderStageFlagBits::eGeometry),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)
             });
 
             return uTHIS;
-        }
+        };
 
         // 
         virtual uPTR(Renderer) linkMaterial(vkt::uni_ptr<Material> materials) {
