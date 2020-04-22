@@ -51,6 +51,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Transparency layers (Alpha)
 - [x] Better command construction (Alpha)
 - [x] Dedicated array of buffer view, instead of `BindingID*` itself (Alpha)
+- [x] Transform Feedback for Tesselation and Geometry shaders support (Alpha)
 - [x] Rise quads support (Alpha)
 - [x] Geometry shader in resampling (Reserved)
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
