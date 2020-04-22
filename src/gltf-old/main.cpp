@@ -209,9 +209,9 @@ int main() {
 
     // initialize renderer
     auto context = jvx::Context(fw);
-    
+
     // Initialize late
-    auto mesh = jvx::MeshBinding(context);
+    auto mesh = jvx::MeshBinding(context, 2048ull * 64ull, 80U, 1u);
     auto bvse = jvx::BufferViewSet(context);
     auto node = jvx::Node(context);
     auto renderer = jvx::Renderer(context);
@@ -228,13 +228,13 @@ int main() {
     std::string wrn = "";
 
     // 
-    const float unitScale = 100.f;
-    const float unitHeight = -0.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    //const float unitScale = 100.f;
+    //const float unitHeight = -0.f;
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
 
-    //const float unitScale = 1.f;
-    //const float unitHeight = -32.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
+    const float unitScale = 1.f;
+    const float unitHeight = -32.f;
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
 
     //const float unitScale = 1.f;
     //const float unitHeight = -0.f;
