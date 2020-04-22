@@ -41,7 +41,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 ```
 
 
-### TODO Lists (Gen 3 and Next)
+### TODO Lists (Gen 3...)
 
 - [x] Diffuse layer with global illumination (Path Tracing)
 - [x] Reflection layers (Partially Reprojected)
@@ -59,13 +59,18 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [ ] HDRI background image and equirectangular projection (TODO)
 - [ ] Advanced FPS counter (TODO)
 - [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
-- [ ] Variable shading rate (faster ray-tracing)
-- [ ] Anti-aliasing and better denoise
 - [ ] Refraction support
 - [ ] Some unit-tests`***`
 - [ ] Water shader (for games)
 - [ ] Optifine support (Minecraft)
 - [ ] Nova renderer support (Minecraft)
+
+
+### TODO Lists (Gen-4 or Beyond)
+
+- [ ] Variable shading rate (faster ray-tracing)
+- [ ] Anti-aliasing and advanced denoise
+- [ ] Fog and better transparency support 
 - [ ] ReShade extensions support
 
 
