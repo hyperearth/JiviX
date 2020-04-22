@@ -368,7 +368,7 @@ namespace jvi {
             this->bdHeadInfo.update = this->needsUpdate;
 
             // Use Temporary Array of Pointers (from Geometry Inputs)
-            std::vector<vk::AccelerationStructureBuildOffsetInfoKHR*> offsets = {};
+            std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsets = {};
             for (auto& I : inputs) {
                 offsets.push_back(&I->getOffsetMeta());
             };

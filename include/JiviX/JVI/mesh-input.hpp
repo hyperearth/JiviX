@@ -21,6 +21,9 @@ namespace jvi {
         virtual vkt::uni_ptr<MeshInput> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<MeshInput> sharedPtr() const { return std::shared_ptr<MeshInput>(shared_from_this()); };
 
+        //
+        virtual uPTR(MeshInput) makeQuad(const bool& quad = true) { this->needsQuads = quad; return uTHIS; };
+
         // 
         virtual uPTR(MeshInput) construct() {
             this->driver = context->getDriver();
@@ -99,9 +102,18 @@ namespace jvi {
             };
 
             // 
-            meta.indexID = *this->indexData;
-            meta.indexType = int32_t(this->indexType) + 1;
+            if (this->indexData) {
+                meta.indexID = *this->indexData;
+                meta.indexType = int32_t(this->indexType) + 1;
+            };
 
+            // 
+            if (this->bvs) {
+                this->descriptorSet.resize(2u);
+                this->descriptorSet[1u] = this->bvs->getDescriptorSet();
+            };
+
+            // INCOMPATIBLE WITH OPENGL!
             // NO! Please, re-make QUAD internally!
             if (buildCommand && this->needsQuads) { // TODO: scratch buffer
                 this->needsQuads = false; // FOR MINECRAFT ONLY! 
@@ -112,13 +124,20 @@ namespace jvi {
                 };
 
                 // 
+                const uint32_t ucount = vkt::tiled(this->currentUnitCount, 1024ull);
+
+                // 
                 buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand->bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 buildCommand->pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
-                buildCommand->dispatch(vkt::tiled(this->currentUnitCount, 1024ull), 1u, 1u);
+
+                // INCOMPATIBLE WITH OPENGL!
+                buildCommand->dispatch(ucount, 1u, 1u);
+                vkt::commandBarrier(buildCommand);
 
                 // Now should to be triangles!
-                this->manifestIndex(vk::IndexType::eUint32)->setIndexCount(vkt::tiled(this->currentUnitCount, 4ull) * 6u);
+                this->setIndexData(meta.indexID, this->indexType)->setIndexCount(vkt::tiled(this->currentUnitCount, 4ull) * 6u);
+                //this->manifestIndex(vk::IndexType::eUint32)->setIndexCount(quadIndiceCount);
             };
 
             if (buildCommand && this->needUpdate) {
@@ -148,12 +167,6 @@ namespace jvi {
                 // TODO: Fix Vertex Count for Quads
                 meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
                 meta.indexType = int32_t(this->indexType) + 1;
-
-                // 
-                if (this->bvs) {
-                    this->descriptorSet.resize(2u);
-                    this->descriptorSet[1u] = this->bvs->getDescriptorSet();
-                };
 
                 // 
                 vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
@@ -204,12 +217,12 @@ namespace jvi {
         };
 
         // 
-        virtual vk::AccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() {
+        virtual vkh::VkAccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() {
             return this->offsetMeta;
         };
 
         // 
-        virtual const vk::AccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() const {
+        virtual const vkh::VkAccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() const {
             return this->offsetMeta;
         };
 
@@ -233,7 +246,11 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshInput) manifestIndex(const vk::IndexType& type = vk::IndexType::eNoneKHR) {
-            this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = type) + 1u;
+            if (this->rawMeshInfo.has()) {
+                this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = type) + 1u;
+            } else {
+                this->indexType = type;
+            }
             return uTHIS;
         };
 
@@ -257,6 +274,10 @@ namespace jvi {
                 if (locationID == 1u && NotStub) { rawMeshInfo[0].hasTexcoord = meta.hasTexcoord = 1; };
                 if (locationID == 2u && NotStub) { rawMeshInfo[0].hasNormal = meta.hasNormal = 1; };
                 if (locationID == 3u && NotStub) { rawMeshInfo[0].hasTangent = meta.hasTangent = 1; };
+
+                if (locationID == 0u && NotStub && this->needsQuads) { // PIDORS IN MICROSOFT!
+                    this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = vk::IndexType::eUint32) + 1u;
+                };
             } else {
                 if (locationID == 1u && NotStub) { meta.hasTexcoord = 1; };
                 if (locationID == 2u && NotStub) { meta.hasNormal = 1; };
@@ -285,7 +306,6 @@ namespace jvi {
                     default: count = 0u;
                 };
             //};
-
             // 
             this->indexData = rawIndices; // 
             this->indexType = (this->indexData && type != vk::IndexType::eNoneKHR) ? type : vk::IndexType::eNoneKHR;
@@ -411,7 +431,7 @@ namespace jvi {
         // 
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-        vk::AccelerationStructureBuildOffsetInfoKHR offsetMeta = {};
+        vkh::VkAccelerationStructureBuildOffsetInfoKHR offsetMeta = {};
 
         // 
         vkh::VkComputePipelineCreateInfo quadInfo = {};
