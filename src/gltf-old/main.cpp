@@ -211,7 +211,7 @@ int main() {
     auto context = jvx::Context(fw);
 
     // Initialize late
-    auto mesh = jvx::MeshBinding(context, 2048ull * 64ull, 80U, 1u);
+    auto mesh = jvx::MeshBinding(context, 2048ull * 64ull, 1u);
     auto bvse = jvx::BufferViewSet(context);
     auto node = jvx::Node(context);
     auto renderer = jvx::Renderer(context);
@@ -232,13 +232,13 @@ int main() {
     //const float unitHeight = -0.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
 
-    const float unitScale = 1.f;
-    const float unitHeight = -32.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
-
     //const float unitScale = 1.f;
-    //const float unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
+    //const float unitHeight = -32.f;
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
+
+    const float unitScale = 1.f;
+    const float unitHeight = -0.f;
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
 
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -420,15 +420,15 @@ int main() {
             };
 
             // 
-            vk::DeviceSize MaxStride = sizeof(glm::vec4);
-            for (uint32_t i = 0u; i < model.bufferViews.size(); i++) {
-                const auto& BV = model.bufferViews[i];
-                MaxStride = std::max(vk::DeviceSize(BV.byteStride), MaxStride);
-            };
+            //vk::DeviceSize MaxStride = 80ull;
+            //for (uint32_t i = 0u; i < model.bufferViews.size(); i++) {
+            //    const auto& BV = model.bufferViews[i];
+            //    MaxStride = std::max(vk::DeviceSize(BV.byteStride), MaxStride);
+            //};
 
             // 
             const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount,3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
+            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount, 1ull); mInput->linkBViewSet(bvse);
             meshes.push_back(mBinding); mBinding->addMeshInput(mInput, primitive.material);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
             mBinding->setIndexCount(PrimitiveCount);

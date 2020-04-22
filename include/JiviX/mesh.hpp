@@ -14,7 +14,7 @@ namespace jvx {
 
     class MeshBinding : public Wrap<jvi::MeshBinding> {
     public: using T = jvi::MeshBinding;
-        MeshBinding(Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, vk::DeviceSize MaxStride = jvi::DEFAULT_STRIDE, vk::DeviceSize MaxGeometry = 16ull) { object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, MaxStride, MaxGeometry); };
+        MeshBinding(Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, vk::DeviceSize MaxGeometry = 16ull) { object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, MaxGeometry); };
     };
 
     class MeshInput : public Wrap<jvi::MeshInput> {

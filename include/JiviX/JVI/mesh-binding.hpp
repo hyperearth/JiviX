@@ -13,7 +13,7 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer;
         MeshBinding() {};
-        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, vk::DeviceSize MaxStride = DEFAULT_STRIDE, vk::DeviceSize MaxGeometry = 16ull) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), MaxStride(MaxStride), MaxGeometry(MaxGeometry) { this->construct(); };
+        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, vk::DeviceSize MaxGeometry = 16ull) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), MaxGeometry(MaxGeometry) { this->construct(); };
         ~MeshBinding() {};
 
         // 
