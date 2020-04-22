@@ -136,7 +136,9 @@ namespace jvi {
                 vkt::commandBarrier(buildCommand);
 
                 // Now should to be triangles!
-                this->setIndexData(meta.indexID, this->indexType)->setIndexCount(vkt::tiled(this->currentUnitCount, 4ull) * 6u);
+                if (this->indexData) {
+                    this->setIndexData(meta.indexID, this->indexType)->setIndexCount(vkt::tiled(this->currentUnitCount, 4ull) * 6u);
+                };
                 //this->manifestIndex(vk::IndexType::eUint32)->setIndexCount(quadIndiceCount);
             };
 

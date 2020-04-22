@@ -13,7 +13,7 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer;
         MeshBinding() {};
-        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, vk::DeviceSize MaxGeometry = 16ull) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), MaxGeometry(MaxGeometry) { this->construct(); };
+        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
         ~MeshBinding() {};
 
         // 
@@ -24,6 +24,9 @@ namespace jvi {
         virtual uPTR(MeshBinding) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
+
+            // 
+            if (this->GeometryInitial.size() <= 0ull) { this->GeometryInitial.push_back(MaxPrimitiveCount); };
 
             // 
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
@@ -118,23 +121,15 @@ namespace jvi {
                 .indexType = VK_INDEX_TYPE_NONE_KHR,
             };
 
-            // 
-            //this->offsetTemp = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
-            //    .primitiveCount = 1u,
-            //    .primitiveOffset = 0u,
-            //    .firstVertex = 0u, 
-            //    .transformOffset = 0u
-            //};
-
             // FOR CREATE! 
-            this->bottomDataCreate.resize(MaxGeometry);
+            this->bottomDataCreate.resize(GeometryInitial.size()); uintptr_t I = 0ull;
             for (auto& BC : this->bottomDataCreate) {
                 BC.geometryType = this->buildGTemp.geometryType;
-                BC.maxVertexCount = static_cast<uint32_t>(MaxPrimitiveCount * 3u);
-                BC.maxPrimitiveCount = static_cast<uint32_t>(MaxPrimitiveCount);
+                BC.maxVertexCount = static_cast<uint32_t>(GeometryInitial[I] * 3u);
+                BC.maxPrimitiveCount = static_cast<uint32_t>(GeometryInitial[I]);
                 BC.indexType = VK_INDEX_TYPE_NONE_KHR;
                 BC.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
-                BC.allowsTransforms = true;
+                BC.allowsTransforms = true; I++;
             };
 
             // FOR CREATE! 
@@ -550,7 +545,8 @@ namespace jvi {
 
         // 
         //vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE, MaxGeometry = 16u;
+        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE;
+        std::vector<vk::DeviceSize> GeometryInitial = { MAX_PRIM_COUNT };
 
         // `primitiveCount` should to be counter!
         uint32_t primitiveCount = 0u, geometryCount = 0u, mapCount = 0u;

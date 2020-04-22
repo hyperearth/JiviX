@@ -211,7 +211,7 @@ int main() {
     auto context = jvx::Context(fw);
 
     // Initialize late
-    auto mesh = jvx::MeshBinding(context, 2048ull * 64ull, 1u);
+    auto mesh = jvx::MeshBinding(context, 2048ull * 64ull);
     auto bvse = jvx::BufferViewSet(context);
     auto node = jvx::Node(context);
     auto renderer = jvx::Renderer(context);
@@ -428,7 +428,7 @@ int main() {
 
             // 
             const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount,3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount, 1ull); mInput->linkBViewSet(bvse);
+            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
             meshes.push_back(mBinding); mBinding->addMeshInput(mInput, primitive.material);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
             mBinding->setIndexCount(PrimitiveCount);
