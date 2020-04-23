@@ -23,12 +23,30 @@ void main() {
     const ivec2 i2fx = ivec2(size.x,size.y-f2fx.y-1);
 
     // FROM PREVIOUS FRAME!!
-    const vec4 positions = imageLoad(writeImages[IW_POSITION],f2fx);
+          vec4 positions = imageLoad(writeImages[IW_POSITION],f2fx);
     const vec4 diffcolor = imageLoad(writeImages[IW_INDIRECT],f2fx);
     const vec4 normaling = imageLoad(writeImages[IW_GEONORML],f2fx);
     const vec4 speccolor = imageLoad(writeImages[IW_REFLECLR],f2fx);
 
     // 
+    const uvec2 iIndices = floatBitsToUint(imageLoad(writeImages[IW_GEOMETRY],f2fx).xy);
+
+    // By Geometry Data
+    const uint globalInstanceID = iIndices.y;
+    const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
+    const uint geometryInstanceID = iIndices.x;
+    mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+    if (!hasTransform(meshInfo[nodeMeshID])) {
+        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    };
+
+    // By Instance Data
+    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
+
+    // Due real-time geometry, needs to transform!
+    positions = vec4(vec4(positions * (matras), 1.f) * (matra4), 1.f);
+
+    // TODO: MESH USE TRANSFORMS!
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
     if (diffcolor.w > 0.f && imageLoad(writeImages[IW_MATERIAL],f2fx).z > 0.f && imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)],f2fx).w > 0.01f) { // set into current 
         gl_Position = vec4(world2screen(positions.xyz),1.f), gl_Position.y *= -1.f, gl_PointSize = 1.f;

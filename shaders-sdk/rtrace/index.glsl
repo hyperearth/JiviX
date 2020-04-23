@@ -1,7 +1,7 @@
 // #
 
 
-// Ray-Tracing Output
+// Ray-Tracing Data (With resampling output support!)
 #define IW_INDIRECT 0 // Indrect Diffuse
 #define IW_MATERIAL 1 // Texcoord, Material ID, Skybox Mask
 #define IW_REFLECLR 2 // Previous Frame Reflection
@@ -10,6 +10,9 @@
 #define IW_GEONORML 5 // Geometry Normals
 #define IW_POSITION 6 // Ray-Traced Position (for resampling)
 #define IW_ADAPTIVE 7 // Adaptive Data (reflection length, etc.)
+
+// Ray-Tracing Data (Without resampling output support!)
+#define IW_GEOMETRY 8
 
 // Last Action Data (another binding only)
 #define BW_INDIRECT 0
@@ -124,9 +127,14 @@ layout (binding = 5, set = 1, scalar) readonly buffer MeshData { MeshInfo meshIn
 // 
 struct RTXInstance {
     mat3x4 transform;
-    uint32_t dontcare0;
-    uint32_t dontcare1;
+    uint32_t instance_mask;
+    uint32_t offset_flags;
     uvec2 handle;
+};
+
+// 
+highp uint getMeshID(in RTXInstance instance){
+    return bitfieldExtract(instance.instance_mask, 0, 24); // only hack method support
 };
 
 // 

@@ -184,32 +184,32 @@ namespace jvi {
         };
 
         // 
-        virtual std::array<vkt::ImageRegion, 8u>& getFlip0Buffers() {
+        virtual std::array<vkt::ImageRegion, 12u>& getFlip0Buffers() {
             return this->smFlip0Images;
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 8u>& getFlip0Buffers() const {
+        virtual const std::array<vkt::ImageRegion, 12u>& getFlip0Buffers() const {
             return this->smFlip0Images;
         }
 
         // 
-        virtual std::array<vkt::ImageRegion, 8u>& getFlip1Buffers() {
+        virtual std::array<vkt::ImageRegion, 12u>& getFlip1Buffers() {
             return this->smFlip1Images;
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 8u>& getFlip1Buffers() const {
+        virtual const std::array<vkt::ImageRegion, 12u>& getFlip1Buffers() const {
             return this->smFlip1Images;
         }
 
         // 
-        virtual std::array<vkt::ImageRegion, 8u>& getFrameBuffers() {
+        virtual std::array<vkt::ImageRegion, 12u>& getFrameBuffers() {
             return this->frameBfImages;
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 8u>& getFrameBuffers() const {
+        virtual const std::array<vkt::ImageRegion, 12u>& getFrameBuffers() const {
             return this->frameBfImages;
         }
 
@@ -227,7 +227,7 @@ namespace jvi {
 
             // 
             for (uint32_t b = 0u; b < 8u; b++) { // 
-                deferredAttachments[b] = frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
@@ -240,11 +240,12 @@ namespace jvi {
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
                 }));
+                if (b < 8u) { deferredAttachments[b] = frameBfImages[b]; };
             };
 
             // 
-            for (uint32_t b=0u;b<8u;b++) { // 
-                smpFlip0Attachments[b] = smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+            for (uint32_t b=0u;b<12u;b++) { // 
+                smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
@@ -257,8 +258,10 @@ namespace jvi {
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
                 }));
+                if (b < 8u) { smpFlip0Attachments[b] = smFlip0Images[b]; };
 
-                smpFlip1Attachments[b] = smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+
+                smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
@@ -271,6 +274,7 @@ namespace jvi {
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
                 }));
+                if (b < 8u) { smpFlip1Attachments[b] = smFlip1Images[b]; };
             };
 
             // 
@@ -329,13 +333,10 @@ namespace jvi {
             thread->submitOnce([&,this](vk::CommandBuffer& cmd) {
                 //vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
                 depthImage.transfer(cmd);
-                for (uint32_t i = 0u; i < 8u; i++) { // Definitely Not an Hotel
-                    this->frameBfImages[i].transfer(cmd);
-                    this->smFlip0Images[i].transfer(cmd);
-                    this->smFlip1Images[i].transfer(cmd);
-                    cmd.clearColorImage(this->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
-                    cmd.clearColorImage(this->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
-                    cmd.clearColorImage(this->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
+                for (uint32_t i = 0u; i < 12u; i++) { // Definitely Not an Hotel
+                    this->smFlip1Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
+                    this->smFlip0Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
+                    this->frameBfImages[i].transfer(cmd); cmd.clearColorImage(this->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
                 };
             });
 
@@ -352,7 +353,7 @@ namespace jvi {
             this->materialDescriptorSetLayoutHelper = {};
 
             // Raw Data
-            for (uint32_t b=0u;b<8u;b++) { // For Ray Tracers
+            for (uint32_t b=0u;b<2u;b++) { // For Ray Tracers
                 this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount =   64u, .stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } },vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1});
             };
 
@@ -407,13 +408,13 @@ namespace jvi {
                 { // 
                     vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                         .dstBinding = 0u,
-                        .descriptorCount = 8u,
+                        .descriptorCount = 12u,
                         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                     });
 
                     // 
                     //memcpy(&handle, &frameBfImages[0u].getDescriptor(), sizeof(vk::DescriptorImageInfo) * 8u);
-                    for (uint32_t i = 0; i < 8u; i++) {
+                    for (uint32_t i = 0; i < 12u; i++) {
                         handle.offset<VkDescriptorImageInfo>(i) = frameBfImages[i].getDescriptor();
                     };
                 }
@@ -421,12 +422,12 @@ namespace jvi {
                 { //
                     vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                         .dstBinding = 1u,
-                        .descriptorCount = 8u,
+                        .descriptorCount = 12u,
                         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                     });
 
                     // 
-                    for (uint32_t i = 0; i < 8u; i++) {
+                    for (uint32_t i = 0; i < 12u; i++) {
                         handle.offset<VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
                             .magFilter = VK_FILTER_LINEAR,
                             .minFilter = VK_FILTER_LINEAR,
@@ -439,12 +440,12 @@ namespace jvi {
                 { // 
                     vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                         .dstBinding = 2u,
-                        .descriptorCount = 8u,
+                        .descriptorCount = 12u,
                         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                     });
 
                     // 
-                    for (uint32_t i = 0; i < 8u; i++) {
+                    for (uint32_t i = 0; i < 12u; i++) {
                         handle.offset<VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).setSampler({}).getDescriptor();
                     };
                 }
@@ -459,13 +460,13 @@ namespace jvi {
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
-                    .descriptorCount = 8u,
+                    .descriptorCount = 12u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                 });
 
                 // 
                 //memcpy(&handle, &smFlip0Images[0u].getDescriptor(), sizeof(vk::DescriptorImageInfo) * 8u);
-                for (uint32_t i = 0; i < 8u; i++) {
+                for (uint32_t i = 0; i < 12u; i++) {
                     handle.offset<VkDescriptorImageInfo>(i) = smFlip0Images[i].getDescriptor();
                 };
 
@@ -479,13 +480,13 @@ namespace jvi {
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
-                    .descriptorCount = 8u,
+                    .descriptorCount = 12u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
                 });
 
                 // 
                 //memcpy(&handle, &smFlip1Images[0u].getDescriptor(), sizeof(vk::DescriptorImageInfo) * 8u);
-                for (uint32_t i = 0; i < 8u; i++) {
+                for (uint32_t i = 0; i < 12u; i++) {
                     handle.offset<VkDescriptorImageInfo>(i) = smFlip1Images[i].getDescriptor();
                 };
 
@@ -531,9 +532,9 @@ namespace jvi {
         //Matrices uniformData = {};
 
         // Image Buffers
-        std::array<vkt::ImageRegion, 8u> smFlip0Images = {};
-        std::array<vkt::ImageRegion, 8u> smFlip1Images = {}; // Path Tracing
-        std::array<vkt::ImageRegion, 8u> frameBfImages = {}; // Rasterization
+        std::array<vkt::ImageRegion, 12u> smFlip0Images = {};
+        std::array<vkt::ImageRegion, 12u> smFlip1Images = {}; // Path Tracing
+        std::array<vkt::ImageRegion, 12u> frameBfImages = {}; // Rasterization
         std::array<vk::DescriptorSet, 5u> descriptorSets = {};
         vkt::ImageRegion depthImage = {};
 

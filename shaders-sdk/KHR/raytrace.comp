@@ -31,6 +31,7 @@ struct XHIT {
 
      vec4 gTangent;
      vec4 gBinormal;
+    uvec4 gIndices;
 };
 
 // 
@@ -171,6 +172,8 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                     processing.txcmid = vec4(uintBitsToFloat(packUnorm2x16(fract(gTexcoord.xy))), uintBitsToFloat(MatID), 1.f, 0.f); // 
                     //processing.tangent = gTangent; // UNUSED
 
+                    processing.gIndices = uvec4(geometryInstanceID, globalInstanceID, 0u, 0u); // already nodeMeshID used by instance
+
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
                 } else { // It's transparent, need ray-trace again! (but with another position)
                     if (complete) { restart = true; };
@@ -220,6 +223,12 @@ vec3 refractive(in vec3 dir) {
 };
 
 // 
+mat3x4 inverse(in mat3x4 imat) {
+    mat4x4 mt4 = transpose(inverse(transpose(mat4(imat[0],imat[1],imat[2],vec4(0.f,0.f,0.f,1.f)))));
+    return mat3x4(mt4[0u],mt4[1u],mt4[2u]);
+};
+
+// 
 void main() {
     const uvec2 lanQ = gl_GlobalInvocationID.xy;
     launchSize = imageSize(writeImages[IW_POSITION]);
@@ -262,14 +271,36 @@ void main() {
         imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
     };
 
+    // By Geometry Data
+    const uint globalInstanceID = RES.gIndices.y;
+    const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
+    const uint geometryInstanceID = RES.gIndices.x;
+    mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+    if (!hasTransform(meshInfo[nodeMeshID])) {
+        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    };
+
+    // By Instance Data
+    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
+
+    // transform into initial
+    const vec4 instanceRel = vec4(vec4(vec4(RES.origin.xyz,1.f) * inverse(matra4), 1.f) * inverse(matras), 1.f);
+
+    // Problem: NOT enough slots for writables
+    // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 
+    //imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(RES.origin .xyz, RES.geoNormal.w));
+      imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(instanceRel.xyz, RES.geoNormal.w));
+      imageStore(writeImages[nonuniformEXT(IW_GEOMETRY)], ivec2(lanQ), uintBitsToFloat(uvec4(RES.gIndices.xy, SUF.gIndices.xy)));
+
+
     // Will Resampled Itself (anchors)
-    imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w));
     imageStore(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
     imageStore(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ), vec4(RES.txcmid  ));
     imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx, 0.f));
     imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
     imageStore(writeImages[nonuniformEXT(IW_MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
 
+    //
     vec4 adaptiveData = 10000.f.xxxx;
 
     // 
@@ -393,7 +424,8 @@ void main() {
     // Used By Reprojection (comparsion)
     imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ), adaptiveData); // For Adaptive Denoise
     imageStore(writeBuffer[nonuniformEXT(BW_INDIRECT)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w)); // Stay The Same... 
+    //imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ))); // Broken!
     imageStore(writeBuffer[nonuniformEXT(BW_GEONORML)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_MATERIAL)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_REFLECLR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ)));
