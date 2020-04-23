@@ -72,7 +72,8 @@ namespace jvi {
 
             { //
                 this->indexData = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = MaxPrimitiveCount * sizeof(uint32_t) * 3u,
+                    //.size = MaxPrimitiveCount * sizeof(uint32_t) * 3u,
+                    .size = sizeof(uint32_t) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eSharedDeviceAddress = 1 },
                 }));
                 this->rawMeshInfo[0u].indexType = uint32_t(vk::IndexType::eNoneKHR) + 1u;
@@ -91,7 +92,7 @@ namespace jvi {
             for (uint32_t i = 0; i < this->bindings.size(); i++) {
             //for (uint32_t i = 0; i < 1; i++) {
                 this->bindings[i] = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = MaxPrimitiveCount * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,
+                    .size = (i == 0 ? MaxPrimitiveCount : 1u) * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
                 }));
 
