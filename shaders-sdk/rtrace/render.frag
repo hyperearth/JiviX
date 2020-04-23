@@ -12,10 +12,10 @@ layout ( location = 0 ) in vec2 vcoord;
 
 // 
 void main() { // TODO: explicit sampling 
-    const ivec2 size = imageSize(writeImages[IW_RENDERED]), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
+    const ivec2 size = textureSize(renderBuffers[BW_RENDERED], 0), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
     
     // Final Result Rendering
     vec4 zero = 0.f.xxxx;
-    //uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);// = imageLoad(writeImages[BW_RENDERED], samplep);
-    uFragColor = vec4(imageLoad(writeImages[IW_RENDERED], samplep).xyz, 1.f);
+    uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);// = imageLoad(writeImages[BW_RENDERED], samplep);
+    //uFragColor = texture(renderBuffers[BW_RENDERED], vcoord);
 };

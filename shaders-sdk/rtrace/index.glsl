@@ -13,7 +13,6 @@
 
 // Ray-Tracing Data (Without resampling output support!)
 #define IW_GEOMETRY 8
-#define IW_RENDERED 9
 
 // Last Action Data (another binding only)
 #define BW_INDIRECT 0
@@ -23,7 +22,8 @@
 #define BW_GROUNDPS 4 // Deep Layer!!
 #define BW_GEONORML 5 // Geometry Normal
 #define BW_POSITION 6 // Position Data
-#define BW_RENDERED 7 // Final Rendering Result
+#define BW_ADAPTIVE 7 // Final Rendering Result
+#define BW_RENDERED 8
 
 
 // TODO: Materials

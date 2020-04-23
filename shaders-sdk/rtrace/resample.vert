@@ -40,15 +40,12 @@ void main() {
         matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
     };
 
-    // By Instance Data
-    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
-
     // TODO: MESH USE TRANSFORMS!
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
     if (diffcolor.w > 0.f && imageLoad(writeImages[IW_MATERIAL],f2fx).z > 0.f && imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)],f2fx).w > 0.01f) { // set into current 
 
         // Due real-time geometry, needs to transform!
-        positions.xyz = mul4(mul4(vec4(positions.xyz, 1.f), matras), matra4).xyz;
+        positions.xyz = mul4(mul4(vec4(positions.xyz, 1.f), matras), rtxInstances[globalInstanceID].transform).xyz;
 
         //
         gl_Position = vec4(world2screen(positions.xyz),1.f), gl_Position.y *= -1.f, gl_PointSize = 1.f;
