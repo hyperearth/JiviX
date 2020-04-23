@@ -264,7 +264,7 @@ namespace jvi {
 
             // Use that version as previous frame
             if (parameters->eEnableResampling) {
-                for (uint32_t i = 0; i < 8; i++) {
+                for (uint32_t i = 0; i < 12u; i++) {
                     cmdBuf->copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
                         this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
                     ) });

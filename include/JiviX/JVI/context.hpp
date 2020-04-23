@@ -226,7 +226,7 @@ namespace jvi {
             allocInfo.dispatch = driver->getDispatch();
 
             // 
-            for (uint32_t b = 0u; b < 8u; b++) { // 
+            for (uint32_t b = 0u; b < 12u; b++) { // 
                 frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
