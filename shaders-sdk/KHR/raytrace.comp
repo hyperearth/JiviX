@@ -32,6 +32,7 @@ struct XHIT {
      vec4 gTangent;
      vec4 gBinormal;
     uvec4 gIndices;
+    mat4x4 gObject;
 };
 
 // 
@@ -49,6 +50,8 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     result.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
     result.txcmid = vec4(uintBitsToFloat(packUnorm2x16(0.f.xx)), 0.f, 0.f, 0.f); // 
     result.origin.xyz = origin.xyz;
+    result.gIndices = uvec4(0u);
+    result.gObject = mat4x4(vec4(1.f,0.f,0.f,0.f), vec4(0.f,1.f,0.f,0.f), vec4(0.f,0.f,1.f,0.f), vec4(0.f,0.f,0.f,1.f));
     //result.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
 
     float fullLength = 0.f;
@@ -69,6 +72,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
             uint primitiveID = -1, nodeMeshID = -1, geometryInstanceID = -1, globalInstanceID = -1;
             vec2 baryCoord = vec2(0.f,0.f);
             float tHit = lastMax;
+            mat3x4 worldToObject;
 
             // 
             if (complete) {
@@ -79,6 +83,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                 primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, true); 
                 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true);
                 tHit = rayQueryGetIntersectionTEXT(rayQuery, true);
+                worldToObject = transpose(rayQueryGetIntersectionWorldToObjectEXT(rayQuery, true));
             } else {
                 nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, false); // Mesh ID from Node Mesh List (because indexing)
                 geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, false); // TODO: Using In Ray Tracing (and Query) shaders!
@@ -87,7 +92,10 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                 primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, false); 
                 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false);
                 tHit = rayQueryGetIntersectionTEXT(rayQuery, false);
+                worldToObject = transpose(rayQueryGetIntersectionWorldToObjectEXT(rayQuery, false));
             };
+
+            //worldToObject = transpose(mat4x4(worldToObject[0], worldToObject[1], worldToObject[2], vec4(0.f,0.f,0.f,1.f)));
 
             // TODO: ???
             //origin = raydir*tHit + forigin;
@@ -172,6 +180,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                     processing.txcmid = vec4(uintBitsToFloat(packUnorm2x16(fract(gTexcoord.xy))), uintBitsToFloat(MatID), 1.f, 0.f); // 
                     //processing.tangent = gTangent; // UNUSED
 
+                    processing.gObject = transpose(mat4x4(worldToObject[0], worldToObject[1], worldToObject[2], vec4(0.f,0.f,0.f,1.f)));//worldToObject;
                     processing.gIndices = uvec4(geometryInstanceID, globalInstanceID, 0u, 0u); // already nodeMeshID used by instance
 
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
@@ -223,9 +232,9 @@ vec3 refractive(in vec3 dir) {
 };
 
 // 
-mat3x4 inverse(in mat3x4 imat) {
-    mat4x4 mt4 = transpose(inverse(transpose(mat4(imat[0],imat[1],imat[2],vec4(0.f,0.f,0.f,1.f)))));
-    return mat3x4(mt4[0u],mt4[1u],mt4[2u]);
+mat4x4 inverse(in mat3x4 imat) {
+    //return inverse(transpose(mat4x4(imat[0],imat[1],imat[2],vec4(0.f,0.f,0.f,1.f))));
+    return transpose(inverse(mat4x4(imat[0],imat[1],imat[2],vec4(0.f,0.f,0.f,1.f))));
 };
 
 // 
@@ -275,16 +284,19 @@ void main() {
     const uint globalInstanceID = RES.gIndices.y;
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
     const uint geometryInstanceID = RES.gIndices.x;
-    mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
-    if (!hasTransform(meshInfo[nodeMeshID])) {
-        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
-    };
+    //mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+    //if (!hasTransform(meshInfo[nodeMeshID])) {
+    //    matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    //};
 
     // By Instance Data
-    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
+    //const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
 
     // transform into initial
-    const vec4 instanceRel = vec4(vec4(vec4(RES.origin.xyz,1.f) * inverse(matra4), 1.f) * inverse(matras), 1.f);
+    vec4 instanceRel = vec4(RES.origin.xyz,1.f);
+    instanceRel =RES.gObject * instanceRel;
+    //instanceRel = inverse(matras) * inverse(matra4) * instanceRel;
+    instanceRel = instanceRel/instanceRel.w;
 
     // Problem: NOT enough slots for writables
     // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 

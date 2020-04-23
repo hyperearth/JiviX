@@ -13,6 +13,7 @@
 
 // Ray-Tracing Data (Without resampling output support!)
 #define IW_GEOMETRY 8
+#define IW_RENDERED 9
 
 // Last Action Data (another binding only)
 #define BW_INDIRECT 0

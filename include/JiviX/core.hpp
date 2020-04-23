@@ -45,9 +45,9 @@ namespace jvx {
     };
 
 #define CALLIFY(NAME)\
-     template<class... A> inline decltype(auto) NAME(A... args) { return object->NAME(); };\
-     template<class... A> inline decltype(auto) NAME(A... args) const { return object->NAME(); }
-
+     template<class... A> inline decltype(auto) NAME(A... args) { return object->NAME(args...); };\
+     template<class... A> inline decltype(auto) NAME(A... args) const { return object->NAME(args...); }
+ 
     // 
     class Material;
     class Renderer;
