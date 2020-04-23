@@ -41,7 +41,7 @@ void main() {
     };
 
     // By Instance Data
-    const mat3x4 matra4 = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));//rtxInstances[globalInstanceID].transform;
+    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
 
     // TODO: MESH USE TRANSFORMS!
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
