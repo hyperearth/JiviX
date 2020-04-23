@@ -67,6 +67,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 
 ### TODO Lists (Gen-4 or Beyond)
 
+- [ ] DLSS 2.0?
 - [ ] Variable shading rate (faster ray-tracing)
 - [ ] Anti-aliasing and advanced denoise
 - [ ] Fog and better transparency support 
