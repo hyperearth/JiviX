@@ -218,7 +218,7 @@ int main() {
     auto material = jvx::Material(context);
 
     // 
-    context->initialize(canvasWidth, canvasHeight);
+    context.initialize(canvasWidth, canvasHeight); // experimental: callify
     renderer->linkMaterial(material)->linkNode(node);
 
     // 
@@ -310,7 +310,7 @@ int main() {
         const auto& img = model.images[i];
 
         // 
-        images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw->getAllocator(), vkh::VkImageCreateInfo{
+        images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .extent = {uint32_t(img.width),uint32_t(img.height),1u},
             .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
@@ -329,7 +329,7 @@ int main() {
         // 
         vkt::Vector<> imageBuf = {};
         if (img.image.size() > 0u) {
-            imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+            imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
                 .size = img.image.size(),
                 .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
             }, VMA_MEMORY_USAGE_CPU_TO_GPU));

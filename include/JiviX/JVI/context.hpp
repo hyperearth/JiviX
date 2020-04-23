@@ -184,6 +184,16 @@ namespace jvi {
         };
 
         // 
+        virtual std::array<vkt::ImageRegion, 8u>& getFlip0Buffers() {
+            return this->smFlip0Images;
+        }
+
+        // 
+        virtual const std::array<vkt::ImageRegion, 8u>& getFlip0Buffers() const {
+            return this->smFlip0Images;
+        }
+
+        // 
         virtual std::array<vkt::ImageRegion, 8u>& getFlip1Buffers() {
             return this->smFlip1Images;
         }

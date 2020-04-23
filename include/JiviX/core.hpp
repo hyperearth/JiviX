@@ -44,6 +44,10 @@ namespace jvx {
         vkt::uni_ptr<T> object = {};
     };
 
+#define CALLIFY(NAME)\
+     template<class... A> inline decltype(auto) NAME(A... args) { return object->NAME(); };\
+     template<class... A> inline decltype(auto) NAME(A... args) const { return object->NAME(); }
+
     // 
     class Material;
     class Renderer;
