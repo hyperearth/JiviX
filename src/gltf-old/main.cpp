@@ -597,6 +597,9 @@ int main() {
     //auto sps = vkh::VkVertexInputBindingDescription{};
     //auto spc = sizeof(sps);
 
+    vk::SemaphoreCreateInfo sci = {};
+    vk::Semaphore sem = device.createSemaphore(sci);
+
 	// 
 	while (!glfwWindowShouldClose(manager.window)) {
         glfwPollEvents();
@@ -605,6 +608,12 @@ int main() {
         int64_t n_semaphore = currSemaphore, c_semaphore = (currSemaphore + 1) % framebuffers.size(); // Next Semaphore
         currSemaphore = (c_semaphore = c_semaphore >= 0 ? c_semaphore : int64_t(framebuffers.size()) + c_semaphore); // Current Semaphore
                         (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
+
+        // 
+        vk::Device(device).waitForFences({ framebuffers[c_semaphore].waitFence }, true, 30ull * 1000ull * 1000ull * 1000ull);
+        vk::Device(device).resetFences({ framebuffers[c_semaphore].waitFence });
+
+        // 
         device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
         //device.signalSemaphore(vk::SemaphoreSignalInfo().setSemaphore(framebuffers[n_semaphore].semaphore).setValue(1u));
 
@@ -627,30 +636,23 @@ int main() {
             };
 
             // Create render submission 
-            std::vector<vk::Semaphore> 
-                  waitSemaphores = { framebuffers[c_semaphore].presentSemaphore },
-                signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
-
-            // 
-            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR | vk::PipelineStageFlagBits::eColorAttachmentOutput };
-            std::vector<vk::CommandBuffer> XPEHb = { renderer->refCommandBuffer(), commandBuffer };
-
-            // 
-            vk::TimelineSemaphoreSubmitInfo timelineSubmit = {};
-            timelineSubmit.setSignalSemaphoreValueCount(1).setPSignalSemaphoreValues(reinterpret_cast<uint64_t*>(&n_semaphore));
-            timelineSubmit.setWaitSemaphoreValueCount(1).setPWaitSemaphoreValues(reinterpret_cast<uint64_t*>(&n_semaphore));
+            std::vector<vk::Semaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { sem };
+            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
 
             // Submit command once
-            context->getThread()->submitCmd(XPEHb, vk::SubmitInfo()
+            vk::Queue(queue).submit({ vk::SubmitInfo()
+                .setPCommandBuffers(&renderer->refCommandBuffer()).setCommandBufferCount(1u)
                 .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
-                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())));
+                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, {});
 
             // 
-            //auto checkpointData = context->getThread()->getQueue().getCheckpointDataNV(fw->getDispatch());
-            //for (auto& c : checkpointData) {
-            //    const auto str = reinterpret_cast<char*>(c.pCheckpointMarker);
-            //    std::cerr << std::string(str) << std::endl;
-            //}
+            waitSemaphores = { sem }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
+
+            // Submit command once
+            vk::Queue(queue).submit({ vk::SubmitInfo()
+                .setPCommandBuffers(&commandBuffer).setCommandBufferCount(1u)
+                .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
+                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, framebuffers[c_semaphore].waitFence);
 
             // 
             context->setDrawCount(frameCount++);
