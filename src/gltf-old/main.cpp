@@ -597,8 +597,8 @@ int main() {
     //auto sps = vkh::VkVertexInputBindingDescription{};
     //auto spc = sizeof(sps);
 
-    vk::SemaphoreCreateInfo sci = {};
-    vk::Semaphore sem = device.createSemaphore(sci);
+    //vk::SemaphoreCreateInfo sci = {};
+    //vk::Semaphore sem = device.createSemaphore(sci);
 
 	// 
 	while (!glfwWindowShouldClose(manager.window)) {
@@ -636,7 +636,7 @@ int main() {
             };
 
             // Create render submission 
-            std::vector<vk::Semaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { sem };
+            std::vector<vk::Semaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
             std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
 
             // Submit command once
@@ -646,7 +646,7 @@ int main() {
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, {});
 
             // 
-            waitSemaphores = { sem }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
+            waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
 
             // Submit command once
             vk::Queue(queue).submit({ vk::SubmitInfo()
