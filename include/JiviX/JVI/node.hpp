@@ -41,11 +41,11 @@ namespace jvi {
             this->instancHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->instancPtr = this->instancInfo.data()).ptr());
             this->instancHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-            this->instancHeadInfo.geometryArrayOfPointers = false;
+            this->instancHeadInfo.geometryArrayOfPointers = true;
 
             // FOR BUILD! // originally, it should to be array (like as old version of LancER)
             this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryKHR{ };
-            this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryInstancesDataKHR{ .data = this->gpuInstances };
+            this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryInstancesDataKHR{ .arrayOfPointers = false, .data = this->gpuInstances };
             this->offsetsInfo[0u] = vkh::VkAccelerationStructureBuildOffsetInfoKHR{
                 .primitiveCount = 0u, // How many instances used... 
                 .primitiveOffset = 0u, // Where read on buffer...
@@ -59,7 +59,7 @@ namespace jvi {
             this->topDataCreate[0u].maxVertexCount = 0u;
             this->topDataCreate[0u].indexType = VK_INDEX_TYPE_NONE_KHR;
             this->topDataCreate[0u].vertexFormat = VK_FORMAT_UNDEFINED;
-            this->topDataCreate[0u].allowsTransforms = false;
+            this->topDataCreate[0u].allowsTransforms = true;
 
             // FOR CREATE!
             this->topCreate.maxGeometryCount = this->topDataCreate.size();
