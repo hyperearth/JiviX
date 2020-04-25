@@ -252,7 +252,7 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) setGeometryCount(const uint32_t& geometryCount = 1u) {
-            this->geometryCount = geometryCount;
+            //this->geometryCount = geometryCount;
             return uTHIS;
         };
 
@@ -323,18 +323,18 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
-            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u;
+            if (this->inputs.size() <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u;
 
             // 
-            if (this->geometryCount > this->offsetInfo.size()) { this->offsetInfo.resize(this->geometryCount); };
+            if (this->inputs.size() > this->offsetInfo.size()) { this->offsetInfo.resize(this->inputs.size()); };
             uint32_t i = 0; for (auto& I : this->inputs) { // Quads not needed...
                 I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount*3u,0u,0u,0u), buildCommand);
 
                 // TODO: De-Factro Primitive Count
                 this->offsetInfo[i] = this->offsetTemp;
-                this->offsetInfo[i].firstVertex = 0ull;
+                this->offsetInfo[i].firstVertex = 0u; //this->primitiveCount * 3u; // 0u;
                 this->offsetInfo[i].primitiveCount = vkt::tiled(I->currentUnitCount, 3ull);
-                this->offsetInfo[i].primitiveOffset = this->primitiveCount * 3u * 80u;
+                this->offsetInfo[i].primitiveOffset = this->bindings[i].offset() + this->primitiveCount * 3u * 80u;
                 this->primitiveCount += this->offsetInfo[i].primitiveCount; // TODO: De-Facto primitive count... 
                 if (this->rawMeshInfo[0u].hasTransform) {
                     this->offsetInfo[i].transformOffset = this->transformStride * i;
@@ -348,15 +348,15 @@ namespace jvi {
 
         // TODO: Fix Quads support with Indices
         virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
-            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
+            if (this->inputs.size() <= 0u || this->mapCount <= 0u) return uTHIS;
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             //std::vector<vkh::VkAccelerationStructureGeometryKHR> ptrs = {};
             //ptrs.push_back(reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR&>(this->buildGInfo[i] = this->buildGTemp));
 
             // 
-            if (this->geometryCount > this->buildGInfo.size()) { this->buildGInfo.resize(this->geometryCount); };
-            for (uint32_t i = 0; i < this->geometryCount; i++) {
+            if (this->inputs.size() > this->buildGInfo.size()) { this->buildGInfo.resize(this->inputs.size()); };
+            for (uint32_t i = 0; i < this->inputs.size(); i++) {
                 this->buildGInfo[i] = this->buildGTemp;
             };
 
@@ -383,7 +383,6 @@ namespace jvi {
         // 
         virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input = {}, const uint32_t& materialID = 0u) {
             uintptr_t ID = this->inputs.size();
-            this->geometryCount++;
             this->inputs.push_back(input); // Correct! 
             this->rawMaterialIDs[ID] = materialID;
             //(this->input = input)->rawMeshInfo = this->rawMeshInfo; // Share Memory
@@ -485,7 +484,7 @@ namespace jvi {
 
         // Create Secondary Command With Pipeline
         virtual uPTR(MeshBinding) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u), const bool& conservative = false) { // UNIT ONLY!
-            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
+            if (this->inputs.size() <= 0u || this->mapCount <= 0u) return uTHIS;
 
             // 
             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -520,10 +519,10 @@ namespace jvi {
             // Now, QUAD compatible
             //if (this->buildGTemp.geometry.triangles.indexType != VK_INDEX_TYPE_NONE_KHR) { // PLC Mode (for Quads)
             //    rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), vk::IndexType(this->buildGTemp.geometry.triangles.indexType));
-            //    rasterCommand.drawIndexed((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u, 0u);
+            //    rasterCommand.drawIndexed((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, inputs.size(), this->offsetTemp.firstVertex, 0u, 0u);
             //}
             //else { // VAL Mode
-            //    rasterCommand.draw((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, this->geometryCount, this->offsetTemp.firstVertex, 0u);
+            //    rasterCommand.draw((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, inputs.size(), this->offsetTemp.firstVertex, 0u);
             //};
 
             rasterCommand.endRenderPass();
@@ -546,7 +545,7 @@ namespace jvi {
         std::vector<vk::DeviceSize> GeometryInitial = { MAX_PRIM_COUNT };
 
         // `primitiveCount` should to be counter!
-        uint32_t primitiveCount = 0u, geometryCount = 0u, mapCount = 0u;
+        uint32_t primitiveCount = 0u, mapCount = 0u;
 
         // 
         std::array<vkt::Vector<uint8_t>, 2> bindings = {};

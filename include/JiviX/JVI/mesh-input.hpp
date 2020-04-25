@@ -163,6 +163,7 @@ namespace jvi {
                 // 
                 auto offsetsInfo = glm::uvec4(0u);
                 buildCommand->updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &offsetsInfo); // Nullify Counters
+                vkt::commandBarrier(buildCommand);
 
                 // TODO: Fix Vertex Count for Quads
                 meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
