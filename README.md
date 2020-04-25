@@ -92,6 +92,11 @@ Date:[09.04.2020]:[helix.d@IMN]
 - Any native pointers in Java are LONG type... 
 
 
+### Used Symbolic Links!
+
+Clone with `git clone -c core.symlinks=true https://github.com/hyperearth/LancER.git --recursive`
+
+
 ## Authors P.S.
 
 - helix.d@IMN
