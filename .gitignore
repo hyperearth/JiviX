@@ -134,19 +134,3 @@ build-clion/*
 */build-clion/
 */build-clion/*
 
-# Unlink VKT and VKH
-include/vkt/*
-include/vkh/*
-include/vkt2/*
-include/vkt
-include/vkh
-include/vkt2
-
-# Unlink VKT and VKH (any directory)
-*/include/vkt/*
-*/include/vkh/*
-*/include/vkt2/*
-*/include/vkt
-*/include/vkh
-*/include/vkt2
-
