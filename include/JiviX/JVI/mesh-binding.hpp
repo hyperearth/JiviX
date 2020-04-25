@@ -361,7 +361,7 @@ namespace jvi {
             // 
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
             this->bdHeadInfo.dstAccelerationStructure = this->accelerationStructure;
-            this->bdHeadInfo.ppGeometries = (this->buildGPtr = this->buildGInfo.data());
+            this->bdHeadInfo.ppGeometries = (this->buildGPtr = this->buildGInfo.data()).ptr();
             this->bdHeadInfo.scratchData = this->gpuScratchBuffer;
             this->bdHeadInfo.update = this->needsUpdate;
 
@@ -379,10 +379,10 @@ namespace jvi {
             // 
             if (buildCommand) {
                 vkt::debugLabel(buildCommand, "Begin building bottom acceleration structure...", this->driver->getDispatch());
-                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>(&(this->offsetPtr = offsets.data())), this->driver->getDispatch()); this->needsUpdate = true;
+                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = offsets.data()).ptr()), this->driver->getDispatch()); this->needsUpdate = true;
                 vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch()); this->needsUpdate = true;
             } else {
-                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>(&(this->offsetPtr = offsets.data())), this->driver->getDispatch());
+                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = offsets.data()).ptr()), this->driver->getDispatch());
             };
 
             //
@@ -602,7 +602,7 @@ namespace jvi {
         //vkt::Vector<uint64_t>                                         offsetIndirectPtr {};
         //vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetIndirect {};
         //std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
-        vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsetPtr = {};
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>   offsetPtr = {};
         //vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
 
         // But used only one, due transform feedback shaders used... 
