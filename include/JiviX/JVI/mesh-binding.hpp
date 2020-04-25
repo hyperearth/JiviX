@@ -326,18 +326,23 @@ namespace jvi {
             if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u;
 
             // 
-            auto offsetsInfo = glm::uvec4(0u);
-            buildCommand.updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &offsetsInfo); // Nullify Counters
+            if (this->geometryCount > this->offsetInfo.size()) { this->offsetInfo.resize(this->geometryCount); };
+            uint32_t i = 0; for (auto& I : this->inputs) { // Quads not needed...
+                I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount*3u,0u,0u,0u), buildCommand);
+
+                // TODO: De-Factro Primitive Count
+                this->offsetInfo[i] = this->offsetTemp;
+                this->offsetInfo[i].firstVertex = 0ull;
+                this->offsetInfo[i].primitiveCount = vkt::tiled(I->currentUnitCount, 3ull);
+                this->offsetInfo[i].primitiveOffset = this->primitiveCount * 3u * 80u;
+                this->primitiveCount += vkt::tiled(I->currentUnitCount, 3ull); // TODO: De-Facto primitive count... 
+                if (this->rawMeshInfo[0u].hasTransform) {
+                    this->offsetInfo[i].transformOffset = this->transformStride * i;
+                };
+                i++;
+            };
 
             // 
-            for (auto& I : this->inputs) { // Quads not needed...
-                I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount*3u,0u,0u,0u), buildCommand);
-                this->primitiveCount += vkt::tiled(I->currentUnitCount, 3ull); // TODO: De-Facto primitive count... 
-
-                // ??
-                //buildCommand.updateBuffer<vkh::VkAccelerationStructureBuildOffsetInfoKHR>(this->offsetIndirect.buffer(), this->offsetIndirect.offset(), { this->offsetTemp });
-                //buildCommand.updateBuffer<uint64_t>(this->offsetIndirectPtr.buffer(), this->offsetIndirectPtr.offset(), { this->offsetIndirect.deviceAddress() });
-            };
             return uTHIS;
         };
 
@@ -353,9 +358,6 @@ namespace jvi {
             if (this->geometryCount > this->buildGInfo.size()) { this->buildGInfo.resize(this->geometryCount); };
             for (uint32_t i = 0; i < this->geometryCount; i++) {
                 this->buildGInfo[i] = this->buildGTemp;
-                if (this->rawMeshInfo[0u].hasTransform) {
-                    
-                };
             };
 
             // 
@@ -365,24 +367,13 @@ namespace jvi {
             this->bdHeadInfo.scratchData = this->gpuScratchBuffer;
             this->bdHeadInfo.update = this->needsUpdate;
 
-            // TODO: Fix Transform Issues
-            // Use Temporary Array of Pointers (from Geometry Inputs)
-            std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR> offsets = {};
-            uint32_t i = 0; for (auto& I : inputs) {
-                offsets.push_back(I->getOffsetMeta());
-                offsets.back().transformOffset = 0u;
-                if (this->rawMeshInfo[0u].hasTransform) {
-                    offsets.back().transformOffset = this->transformStride * (i++);
-                };
-            };
-
             // 
             if (buildCommand) {
                 vkt::debugLabel(buildCommand, "Begin building bottom acceleration structure...", this->driver->getDispatch());
-                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = offsets.data()).ptr()), this->driver->getDispatch()); this->needsUpdate = true;
+                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch()); this->needsUpdate = true;
                 vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch()); this->needsUpdate = true;
             } else {
-                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = offsets.data()).ptr()), this->driver->getDispatch());
+                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetPtr = this->offsetInfo.data()).ptr()), this->driver->getDispatch());
             };
 
             //
@@ -601,9 +592,9 @@ namespace jvi {
         // CAN BE MULTIPLE! (single element of array, array of array[0])
         //vkt::Vector<uint64_t>                                         offsetIndirectPtr {};
         //vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetIndirect {};
-        //std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
-        vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>   offsetPtr = {};
-        //vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
+        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
+        vkt::uni_arg<vkh::VkAccelerationStructureBuildOffsetInfoKHR*> offsetPtr = {};
+        vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
 
         // But used only one, due transform feedback shaders used... 
         // CAN BE MULTIPLE! (single element of array, array of array[0])

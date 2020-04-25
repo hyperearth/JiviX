@@ -63,7 +63,7 @@ namespace jvx {
         CALLIFY(createDescriptorSet);
         CALLIFY(copyMeta);
         CALLIFY(buildGeometry);
-        CALLIFY(getOffsetMeta);
+        //CALLIFY(getOffsetMeta);
         CALLIFY(addBinding);
         CALLIFY(manifestIndex);
         CALLIFY(addAttribute);

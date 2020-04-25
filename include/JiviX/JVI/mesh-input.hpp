@@ -164,7 +164,8 @@ namespace jvi {
                 };
 
                 // 
-                //auto offsetsInfo = vkh::VkAccelerationStructureBuildOffsetInfoKHR{ .primitiveCount = 0u };
+                auto offsetsInfo = glm::uvec4(0u);
+                buildCommand->updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &offsetsInfo); // Nullify Counters
 
                 // TODO: Fix Vertex Count for Quads
                 meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
@@ -177,7 +178,7 @@ namespace jvi {
                 buildCommand->beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->setViewport(0, { viewport });
                 buildCommand->setScissor(0, { renderArea });
-                buildCommand->bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() }, { OutPut->range() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand->bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() + 80u * offsetHelp->x }, { OutPut->range() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand->bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
                 buildCommand->bindVertexBuffers(0u, buffers, offsets);
@@ -203,11 +204,6 @@ namespace jvi {
                 //buildCommand.endDebugUtilsLabelEXT(this->driver->getDispatch());
                 //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
                 //vkt::commandBarrier(buildCommand);
-
-                // TODO: De-Facto primitive count...
-                this->offsetMeta.firstVertex = offsetHelp->x; // First Vertex ID by geometry input (from Mesh Binding)
-                this->offsetMeta.primitiveOffset = 0ull; // Applicable only for Vertex Buffers
-                this->offsetMeta.primitiveCount = vkt::tiled(this->currentUnitCount, 3ull);
             };
 
             if (DirectCommand) {
@@ -216,16 +212,6 @@ namespace jvi {
             };
 
             return uTHIS;
-        };
-
-        // 
-        virtual vkh::VkAccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() {
-            return this->offsetMeta;
-        };
-
-        // 
-        virtual const vkh::VkAccelerationStructureBuildOffsetInfoKHR& getOffsetMeta() const {
-            return this->offsetMeta;
         };
 
         // 
@@ -437,7 +423,7 @@ namespace jvi {
         // 
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-        vkh::VkAccelerationStructureBuildOffsetInfoKHR offsetMeta = {};
+        //vkh::VkAccelerationStructureBuildOffsetInfoKHR offsetMeta = {};
 
         // 
         vkh::VkComputePipelineCreateInfo quadInfo = {};
