@@ -176,27 +176,27 @@ int main() {
     glfwInit();
 
     // 
-	if (GLFW_FALSE == glfwVulkanSupported()) {
-		glfwTerminate(); return -1;
-	};
+    if (GLFW_FALSE == glfwVulkanSupported()) {
+        glfwTerminate(); return -1;
+    };
 
     // 
-	uint32_t canvasWidth = 1600, canvasHeight = 1200; // For 3840x2160 Resolutions
+    uint32_t canvasWidth = 1600, canvasHeight = 1200; // For 3840x2160 Resolutions
     //uint32_t canvasWidth = 1920, canvasHeight = 1080;
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	// initialize Vulkan
+    // initialize Vulkan
     fw = jvx::Driver();
-	auto instance = fw->createInstance();
-	auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
-	auto physicalDevice = fw->getPhysicalDevice(0u);
-	auto device = fw->createDevice(true,"./",false);
-	auto swapchain = fw->createSwapchain();
-	auto renderPass = fw->createRenderPass();
-	auto framebuffers = fw->createSwapchainFramebuffer(swapchain, renderPass);
-	auto queue = fw->getQueue();
-	auto commandPool = fw->getCommandPool();
+    auto instance = fw->createInstance();
+    auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
+    auto physicalDevice = fw->getPhysicalDevice(0u);
+    auto device = fw->createDevice(true, "./", false);
+    auto swapchain = fw->createSwapchain();
+    auto renderPass = fw->createRenderPass();
+    auto framebuffers = fw->createSwapchainFramebuffer(swapchain, renderPass);
+    auto queue = fw->getQueue();
+    auto commandPool = fw->getCommandPool();
     auto allocator = fw->getAllocator();
 
     // OpenGL Context
@@ -244,23 +244,20 @@ int main() {
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
 
     // 
-    if (!wrn.empty()) {  printf("Warn : %s\n", wrn.c_str()); }
-    if (!err.empty()) {  printf("Error: %s\n", err.c_str()); }
+    if (!wrn.empty()) { printf("Warn : %s\n", wrn.c_str()); }
+    if (!err.empty()) { printf("Error: %s\n", err.c_str()); }
     if (!ret) { printf("Failed to parse glTF\n"); return -1; }
 
     // 
     using mat4_t = glm::mat3x4;
 
     // Every mesh will have transform buffer per internal instances
-    std::vector<jvx::MeshInput> meshes = {};
-    //std::vector<jvx::MeshBinding> mesh = {};
-    //std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
-    std::vector<mat4_t> rawTransforms = {};
-    vkt::Vector<mat4_t> cpuTransforms = {}, gpuTransforms = {};
+    std::vector<jvx::MeshBinding> meshes = {};
+    std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
 
     // Transform Data Buffer
     //std::vector<vkt::Vector<mat4_t>> gpuInstancedTransformPerMesh = {};
-    //std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
+    std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
@@ -272,7 +269,7 @@ int main() {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
             .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
-        }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
+            }, VMA_MEMORY_USAGE_CPU_TO_GPU)));
 
         // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
@@ -284,7 +281,7 @@ int main() {
             .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
         }, VMA_MEMORY_USAGE_GPU_ONLY));
 
-        // 
+        //
         vkt::submitOnce(fw->getDevice(), fw->getQueue(), fw->getCommandPool(), [&](const vk::CommandBuffer& cmd) {
             cmd.copyBuffer(cpuBuffers.back().buffer(), gpuBuffers.back().buffer(), { vk::BufferCopy(cpuBuffers.back().offset(), gpuBuffers.back().offset(), cpuBuffers.back().range()) });
         });
@@ -317,14 +314,14 @@ int main() {
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .extent = {uint32_t(img.width),uint32_t(img.height),1u},
             .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-        }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
-            .format = VK_FORMAT_R8G8B8A8_UNORM,
-        }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        })));
+            }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
+                .format = VK_FORMAT_R8G8B8A8_UNORM,
+            }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
+                .magFilter = VK_FILTER_LINEAR,
+                .minFilter = VK_FILTER_LINEAR,
+                .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                })));
 
         // 
         auto image = images.back();
@@ -335,7 +332,7 @@ int main() {
             imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
                 .size = img.image.size(),
                 .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-            }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+                }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             memcpy(imageBuf.data(), &img.image[0u], img.image.size());
         };
 
@@ -352,7 +349,7 @@ int main() {
                 .imageOffset = {0u,0u,0u},
                 .imageExtent = {uint32_t(img.width),uint32_t(img.height),1u},
             } });
-        });
+            });
 
         material->pushSampledImage(image);
     };
@@ -365,7 +362,7 @@ int main() {
             .minFilter = VK_FILTER_LINEAR,
             .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
             .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT
-        }));
+            }));
     };
 
     // Material 
@@ -376,7 +373,7 @@ int main() {
         mdk.specularTexture = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
         mdk.emissionTexture = mat.emissiveTexture.index;
         mdk.specular = glm::vec4(1.f, mat.pbrMetallicRoughness.roughnessFactor, mat.pbrMetallicRoughness.metallicFactor, 0.f);
-        mdk.normals = glm::vec4(0.5f,0.5f,1.0f,1.f);
+        mdk.normals = glm::vec4(0.5f, 0.5f, 1.0f, 1.f);
 
         if (mat.emissiveFactor.size() > 0) {
             mdk.emission = glm::vec4(mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2], 0.f);
@@ -409,7 +406,7 @@ int main() {
 
         // Make Instanced Primitives
         //for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
-        for (uint32_t v = 0; v < std::min(meshData.primitives.size(),1ull); v++) {
+        for (uint32_t v = 0; v < std::min(meshData.primitives.size(), 1ull); v++) {
             const auto& primitive = meshData.primitives[v];
 
             // 
@@ -417,10 +414,11 @@ int main() {
             if (primitive.indices >= 0) {
                 vertexCount = model.accessors[primitive.indices].count;
                 if (model.accessors[primitive.indices].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) { ctype = true; };
-            } else 
-            if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
-                vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
-            };
+            }
+            else
+                if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
+                    vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
+                };
 
             // 
             //vk::DeviceSize MaxStride = 80ull;
@@ -430,12 +428,11 @@ int main() {
             //};
 
             // 
-            const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount,3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-            jvx::MeshInput mInput(context); //jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
-            mInput->linkBViewSet(bvse);
-            meshes.push_back(mInput); //mBinding->addMeshInput(mInput, primitive.material);
-            auto& mesh = meshes.back(); //rawTransforms.push_back({});
-            //mBinding->setIndexCount(PrimitiveCount);
+            const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount, 3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
+            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
+            meshes.push_back(mBinding); mBinding->addMeshInput(mInput, primitive.material);
+            auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
+            mBinding->setIndexCount(PrimitiveCount);
 
             // 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
@@ -495,18 +492,11 @@ int main() {
                 mInput->setIndexCount(attribute.count)->setIndexOffset(attribute.byteOffset);
             };
 
-            //meshset->addMeshInput();
+            node->pushMesh(mesh);
         };
     };
 
     // 
-    std::vector<vk::DeviceSize> sizes = {};
-    for (auto& mi : meshes) {
-        sizes.push_back(mi->getIndexCount());
-    };
-
-    // 
-    jvx::MeshBinding meshset(context, 1024ull * 1024ull, sizes);
     std::shared_ptr<std::function<void(const tinygltf::Node&, glm::dmat4, int)>> vertexLoader = {};
     vertexLoader = std::make_shared<std::function<void(const tinygltf::Node&, glm::dmat4, int)>>([&](const tinygltf::Node& gnode, glm::dmat4 inTransform, int recursive)->void {
         auto localTransform = glm::dmat4(1.0);
@@ -516,9 +506,15 @@ int main() {
         localTransform *= glm::dmat4((gnode.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(gnode.rotation.data())) : glm::dmat4(1.0)));
 
         // 
-        if (gnode.mesh >= 0) { // load mesh object (it just vector of primitives)
-            meshset->addMeshInput(meshes[gnode.mesh], model.meshes[gnode.mesh].primitives[0].material);
-            rawTransforms.push_back(mat4_t(localTransform));
+        if (gnode.mesh >= 0) {
+            auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
+            node->pushInstance(vkh::VsGeometryInstance{
+                .transform = mat4_t(glm::transpose(glm::dmat4(inTransform) * glm::dmat4(localTransform))),
+                .instanceId = uint32_t(gnode.mesh), // MeshID
+                .mask = 0xff,
+                .instanceOffset = 0u,
+                .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
+                });
         };
 
         // 
@@ -527,7 +523,7 @@ int main() {
                 if (recursive >= 0) (*vertexLoader)(model.nodes[gnode.children[n]], glm::dmat4(inTransform) * glm::dmat4(localTransform), recursive - 1);
             };
         };
-    });
+        });
 
     // load scene
     uint32_t sceneID = 0;
@@ -539,46 +535,9 @@ int main() {
 
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., unitHeight-2.f, -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., unitHeight - 2.f, -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
     };
-
-
-    // 
-    gpuTransforms = vkt::Vector<mat4_t>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-        .size = rawTransforms.size() * sizeof(mat4_t),
-        .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
-    }, VMA_MEMORY_USAGE_GPU_ONLY));
-
-    // 
-    cpuTransforms = vkt::Vector<mat4_t>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-        .size = rawTransforms.size() * sizeof(mat4_t),
-        .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-    }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-
-    // 
-    meshset->setTransformData(gpuTransforms);
-
-    // 
-    node->pushInstance(vkh::VsGeometryInstance{
-        .transform = mat4_t(1.f),
-        .instanceId = uint32_t(node->pushMesh(meshset)), // MeshID
-        .mask = 0xff,
-        .instanceOffset = 0u,
-        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
-    });
-
-    // 
-    if (rawTransforms.size() > 0ull) {
-        memcpy(cpuTransforms.data(), rawTransforms.data(), rawTransforms.size() * sizeof(mat4_t));
-
-        //
-        vkt::submitOnce(fw->getDevice(), fw->getQueue(), fw->getCommandPool(), [&](const vk::CommandBuffer& cmd) {
-            cmd.copyBuffer(cpuTransforms.buffer(), gpuTransforms.buffer(), { vk::BufferCopy(cpuTransforms.offset(), gpuTransforms.offset(), cpuTransforms.range()) });
-        });
-    };
-
-
 
     // 
     glm::dvec3 eye = glm::dvec3(5.f, 2.f, 2.f);
@@ -607,19 +566,19 @@ int main() {
     pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
         vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
         vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-    });
+        });
     pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
     pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->renderPass;//context->refRenderPass();
     pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
     pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
-    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState,vk::DynamicState>({vk::DynamicState::eScissor, vk::DynamicState::eViewport});
+    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState, vk::DynamicState>({ vk::DynamicState::eScissor, vk::DynamicState::eViewport });
     auto finalPipeline = vkt::handleHpp(device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo));
 
-	// 
+    // 
     int64_t currSemaphore = -1;
-	uint32_t currentBuffer = 0u;
+    uint32_t currentBuffer = 0u;
     uint32_t frameCount = 0u;
 
     // set GLFW callbacks
@@ -642,16 +601,16 @@ int main() {
     //vk::SemaphoreCreateInfo sci = {};
     //vk::Semaphore sem = device.createSemaphore(sci);
 
-	// 
-	while (!glfwWindowShouldClose(manager.window)) {
+    // 
+    while (!glfwWindowShouldClose(manager.window)) {
         glfwPollEvents();
 
         // 
         int64_t n_semaphore = currSemaphore, c_semaphore = (currSemaphore + 1) % framebuffers.size(); // Next Semaphore
         currSemaphore = (c_semaphore = c_semaphore >= 0 ? c_semaphore : int64_t(framebuffers.size()) + c_semaphore); // Current Semaphore
-                        (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
+        (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
 
-        // 
+// 
         vk::Device(device).waitForFences({ framebuffers[c_semaphore].waitFence }, true, 30ull * 1000ull * 1000ull * 1000ull);
         vk::Device(device).resetFences({ framebuffers[c_semaphore].waitFence });
 
@@ -705,15 +664,15 @@ int main() {
 
         // present for displaying of this image
         vk::Queue(queue).presentKHR(vk::PresentInfoKHR(
-            waitSemaphoes.size(), waitSemaphoes.data(), 
+            waitSemaphoes.size(), waitSemaphoes.data(),
             1, &swapchain,
             &currentBuffer, nullptr
         ));
 
-	};
+    };
 
     // 
-	glfwDestroyWindow(manager.window);
-	glfwTerminate();
+    glfwDestroyWindow(manager.window);
+    glfwTerminate();
     return 0;
 };
