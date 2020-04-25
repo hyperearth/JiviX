@@ -335,7 +335,7 @@ namespace jvi {
                 this->offsetInfo[i].firstVertex = 0ull;
                 this->offsetInfo[i].primitiveCount = vkt::tiled(I->currentUnitCount, 3ull);
                 this->offsetInfo[i].primitiveOffset = this->primitiveCount * 3u * 80u;
-                this->primitiveCount += vkt::tiled(I->currentUnitCount, 3ull); // TODO: De-Facto primitive count... 
+                this->primitiveCount += this->offsetInfo[i].primitiveCount; // TODO: De-Facto primitive count... 
                 if (this->rawMeshInfo[0u].hasTransform) {
                     this->offsetInfo[i].transformOffset = this->transformStride * i;
                 };

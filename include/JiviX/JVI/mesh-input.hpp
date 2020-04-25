@@ -113,7 +113,6 @@ namespace jvi {
                 this->descriptorSet[1u] = this->bvs->getDescriptorSet();
             };
 
-            // INCOMPATIBLE WITH OPENGL!
             // NO! Please, re-make QUAD internally!
             if (buildCommand && this->needsQuads) { // TODO: scratch buffer
                 this->needsQuads = false; // FOR MINECRAFT ONLY! 
@@ -124,22 +123,20 @@ namespace jvi {
                 };
 
                 // 
-                const uint32_t ucount = vkt::tiled(this->currentUnitCount, 1024ull);
+                const auto originalCt = this->currentUnitCount;
+                const uint32_t ucount = vkt::tiled(originalCt, 1024ull);
 
                 // 
                 buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand->bindPipeline(vk::PipelineBindPoint::eCompute, this->quadGenerator);
                 buildCommand->pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
-
-                // INCOMPATIBLE WITH OPENGL!
                 buildCommand->dispatch(ucount, 1u, 1u);
                 vkt::commandBarrier(buildCommand);
 
                 // Now should to be triangles!
                 if (this->indexData) {
-                    this->setIndexData(meta.indexID, this->indexType)->setIndexCount(vkt::tiled(this->currentUnitCount, 4ull) * 6u);
+                    this->setIndexData(meta.indexID, this->indexType)->manifestIndex(vk::IndexType::eUint32)->setIndexCount(vkt::tiled(originalCt, 4ull) * 6u);
                 };
-                //this->manifestIndex(vk::IndexType::eUint32)->setIndexCount(quadIndiceCount);
             };
 
             if (buildCommand && this->needUpdate) {
