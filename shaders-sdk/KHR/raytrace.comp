@@ -62,7 +62,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     XHIT processing = result;
     while((R++) < 16) { // restart needs for transparency (after every resolve)
         rayQueryEXT rayQuery;
-        rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT,
+        rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
             0xFF, (forigin = fullLength * raydir + result.origin.xyz) + faceforward(normal.xyz,raydir.xyz,-normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
 
         while((I++) < 64) {
@@ -274,7 +274,7 @@ void main() {
     XHIT SUF =                              traceRays(    origin.xyz, raydir, normal, 10000.f, false, 0.01f); // Ground-Up
 #endif
 
-    XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(fraydir.xyz), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
+    XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir.xyz), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
     imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); XHIT GRD = RES; RES = SUF; // Prefer From TOP layer (like as in Minecraft)
     //mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
 
@@ -302,7 +302,6 @@ void main() {
     //imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(RES.origin .xyz, RES.geoNormal.w));
       imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(instanceRel.xyz, RES.geoNormal.w));
       imageStore(writeImages[nonuniformEXT(IW_GEOMETRY)], ivec2(lanQ), uintBitsToFloat(uvec4(RES.gIndices.xy, SUF.gIndices.xy)));
-
 
     // Will Resampled Itself (anchors)
     imageStore(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ), vec4(RES.geoNormal.xyz, 1.f));
@@ -333,7 +332,7 @@ void main() {
 #endif
             //if ( I == 2 ) { RES = SUF; }; // Top Layer Overlap
             if (!(RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f)) { continue; }; // useless tracing mode
-            if (  RES.diffuseColor.w > 0.99f  && I == 2 ) { break; };
+            if (  RES.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // still needs shading, except surface transparency
 
             // 
             mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
@@ -424,9 +423,6 @@ void main() {
                 if (I == 2) {
                     imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, SUF.txcmid.z)); // alpha channel reserved, zero always opaque type
                 };
-
-                // 
-                
             };
         };
     };
