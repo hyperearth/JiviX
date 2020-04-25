@@ -274,8 +274,8 @@ void main() {
     XHIT SUF =                              traceRays(    origin.xyz, raydir, normal, 10000.f, false, 0.01f); // Ground-Up
 #endif
 
-    XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, raydir, normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
-    imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); RES = SUF; // Prefer From TOP layer (like as in Minecraft)
+    XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(fraydir.xyz), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
+    imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); XHIT GRD = RES; RES = SUF; // Prefer From TOP layer (like as in Minecraft)
     //mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
 
     // 
@@ -359,7 +359,7 @@ void main() {
 
                 // 
                 for (uint i=0;i<2;i++) { // fast trace
-                    XHIT result = traceRays(origin, raydir, normal, 10000.f, true, 0.01f);
+                    XHIT result = i == 0 && I == 2 ? GRD : traceRays(origin, raydir, normal, 10000.f, true, 0.01f); // Useless to tracing for transparency...
                     //if ( I == 2 && result.diffuseColor.w > 0.99f ) { break; }; // No needs for transparent layers
 
                     // 
