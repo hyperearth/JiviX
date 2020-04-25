@@ -547,7 +547,7 @@ int main() {
     // 
     gpuTransforms = vkt::Vector<mat4_t>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
         .size = rawTransforms.size() * sizeof(mat4_t),
-        .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+        .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
     }, VMA_MEMORY_USAGE_GPU_ONLY));
 
     // 

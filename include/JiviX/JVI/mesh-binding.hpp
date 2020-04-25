@@ -259,7 +259,7 @@ namespace jvi {
         // 
         virtual uPTR(MeshBinding) setTransformData(const vkt::Vector<glm::mat3x4>& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
             //this->offsetTemp.transformOffset = transformData.offset(); //!!
-            this->buildGTemp.geometry.triangles.transformData = transformData;
+            this->buildGTemp.geometry.triangles.transformData = transformData.deviceAddress();
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
             return uTHIS;
@@ -323,8 +323,13 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) buildGeometry(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
-            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
-            this->primitiveCount = 0u;
+            if (this->geometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u;
+
+            // 
+            auto offsetsInfo = glm::uvec4(0u);
+            buildCommand.updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &offsetsInfo); // Nullify Counters
+
+            // 
             for (auto& I : this->inputs) { // Quads not needed...
                 I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount*3u,0u,0u,0u), buildCommand);
                 this->primitiveCount += vkt::tiled(I->currentUnitCount, 3ull); // TODO: De-Facto primitive count... 
@@ -348,6 +353,9 @@ namespace jvi {
             if (this->geometryCount > this->buildGInfo.size()) { this->buildGInfo.resize(this->geometryCount); };
             for (uint32_t i = 0; i < this->geometryCount; i++) {
                 this->buildGInfo[i] = this->buildGTemp;
+                if (this->rawMeshInfo[0u].hasTransform) {
+                    
+                };
             };
 
             // 
@@ -624,7 +632,7 @@ namespace jvi {
         VmaAllocation allocation = {};
 
         // 
-        vkt::Vector<uint32_t> counterData = {};
+        vkt::Vector<glm::uvec4> counterData = {};
         vkt::Vector<uint32_t> rawMaterialIDs = {};
         vkt::Vector<uint32_t> gpuMaterialIDs = {};
         std::vector<vkt::uni_ptr<MeshInput>> inputs = {};

@@ -164,7 +164,7 @@ namespace jvi {
                 };
 
                 // 
-                auto offsetsInfo = vkh::VkAccelerationStructureBuildOffsetInfoKHR{ .primitiveCount = 0u };
+                //auto offsetsInfo = vkh::VkAccelerationStructureBuildOffsetInfoKHR{ .primitiveCount = 0u };
 
                 // TODO: Fix Vertex Count for Quads
                 meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
