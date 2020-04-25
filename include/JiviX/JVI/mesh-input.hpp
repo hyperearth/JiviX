@@ -170,12 +170,11 @@ namespace jvi {
 
                 // 
                 vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
-                //buildCommand->updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &offsetsInfo); // Nullify Counters
                 buildCommand->beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
                 buildCommand->beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->setViewport(0, { viewport });
                 buildCommand->setScissor(0, { renderArea });
-                buildCommand->bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() + 80u * offsetHelp->x }, { OutPut->range() }, this->driver->getDispatch()); //!!WARNING!!
+                buildCommand->bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() + 80u * offsetHelp->x }, { OutPut->range() - (80u * offsetHelp->x) }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand->bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
                 buildCommand->bindVertexBuffers(0u, buffers, offsets);
