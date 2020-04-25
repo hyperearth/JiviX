@@ -398,20 +398,17 @@ namespace jvi {
         vkt::Vector<vkh::VkVertexInputAttributeDescription> rawAttributes = {}, gpuAttributes = {};
 
         // 
-        //std::vector<vkt::Vector<uint8_t>> bindings = {};
-        std::vector<uint32_t> bindings = {};
-        std::vector<uint32_t> bindRange = { 0 };
+        std::vector<uint32_t> bindings = {}, bindRange = { 0 };
         vkt::Vector<MeshInfo> rawMeshInfo = { }; // BROKEN?!
         vk::IndexType indexType = vk::IndexType::eNoneKHR;
 
         // 
-        //vkt::Vector<uint8_t> indexData = {};
         vk::DeviceSize indexOffset = 0ull;
         std::optional<uint32_t> indexData;
-        
+
+        // 
         vkt::uni_ptr<BufferViewSet> bvs = {};
         uint32_t lastBindID = 0u;
-        //size_t primitiveCount = 0u;
 
         // 
         vk::DeviceSize currentUnitCount = 0u;
