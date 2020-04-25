@@ -296,6 +296,10 @@ namespace jvi {
         virtual uPTR(MeshInput) setPrimitiveCount(const uint32_t& count = 65536u) { this->setIndexCount(count * 3u); return uTHIS; };
 
         // 
+        virtual const vk::DeviceSize& getIndexCount() const { return this->currentUnitCount; };
+        virtual vk::DeviceSize& getIndexCount() { return this->currentUnitCount; };
+
+        // 
         template<class T = uint8_t>
         inline uPTR(MeshInput) setIndexData(const uint32_t& rawIndices, const vk::IndexType& type) {
         //inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices, const vk::IndexType& type) {

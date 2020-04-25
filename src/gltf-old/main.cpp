@@ -252,12 +252,15 @@ int main() {
     using mat4_t = glm::mat3x4;
 
     // Every mesh will have transform buffer per internal instances
-    std::vector<jvx::MeshBinding> meshes = {};
-    std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
+    std::vector<jvx::MeshInput> meshes = {};
+    //std::vector<jvx::MeshBinding> mesh = {};
+    //std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
+    std::vector<mat4_t> rawTransforms = {};
+    vkt::Vector<mat4_t> cpuTransforms = {}, gpuTransforms = {};
 
     // Transform Data Buffer
     //std::vector<vkt::Vector<mat4_t>> gpuInstancedTransformPerMesh = {};
-    std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
+    //std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
@@ -428,10 +431,11 @@ int main() {
 
             // 
             const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount,3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
-            meshes.push_back(mBinding); mBinding->addMeshInput(mInput, primitive.material);
-            auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
-            mBinding->setIndexCount(PrimitiveCount);
+            jvx::MeshInput mInput(context); //jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
+            mInput->linkBViewSet(bvse);
+            meshes.push_back(mInput); //mBinding->addMeshInput(mInput, primitive.material);
+            auto& mesh = meshes.back(); //rawTransforms.push_back({});
+            //mBinding->setIndexCount(PrimitiveCount);
 
             // 
             std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
@@ -491,11 +495,18 @@ int main() {
                 mInput->setIndexCount(attribute.count)->setIndexOffset(attribute.byteOffset);
             };
 
-            node->pushMesh(mesh);
+            //meshset->addMeshInput();
         };
     };
 
     // 
+    std::vector<vk::DeviceSize> sizes = {};
+    for (auto& mi : meshes) {
+        sizes.push_back(mi->getIndexCount());
+    };
+
+    // 
+    jvx::MeshBinding meshset(context, 1024ull * 1024ull, sizes);
     std::shared_ptr<std::function<void(const tinygltf::Node&, glm::dmat4, int)>> vertexLoader = {};
     vertexLoader = std::make_shared<std::function<void(const tinygltf::Node&, glm::dmat4, int)>>([&](const tinygltf::Node& gnode, glm::dmat4 inTransform, int recursive)->void {
         auto localTransform = glm::dmat4(1.0);
@@ -505,15 +516,9 @@ int main() {
         localTransform *= glm::dmat4((gnode.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(gnode.rotation.data())) : glm::dmat4(1.0)));
 
         // 
-        if (gnode.mesh >= 0) {
-            auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
-            node->pushInstance(vkh::VsGeometryInstance{
-                .transform = mat4_t(glm::transpose(glm::dmat4(inTransform) * glm::dmat4(localTransform))),
-                .instanceId = uint32_t(gnode.mesh), // MeshID
-                .mask = 0xff,
-                .instanceOffset = 0u,
-                .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
-            });
+        if (gnode.mesh >= 0) { // load mesh object (it just vector of primitives)
+            meshset->addMeshInput(meshes[gnode.mesh], model.meshes[gnode.mesh].primitives[0].material);
+            rawTransforms.push_back(mat4_t(localTransform));
         };
 
         // 
@@ -537,6 +542,43 @@ int main() {
             (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., unitHeight-2.f, -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
     };
+
+
+    // 
+    gpuTransforms = vkt::Vector<mat4_t>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+        .size = rawTransforms.size() * sizeof(mat4_t),
+        .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+    }, VMA_MEMORY_USAGE_GPU_ONLY));
+
+    // 
+    cpuTransforms = vkt::Vector<mat4_t>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
+        .size = rawTransforms.size() * sizeof(mat4_t),
+        .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+    }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+
+    // 
+    meshset->setTransformData(gpuTransforms);
+
+    // 
+    node->pushInstance(vkh::VsGeometryInstance{
+        .transform = mat4_t(1.f),
+        .instanceId = uint32_t(node->pushMesh(meshset)), // MeshID
+        .mask = 0xff,
+        .instanceOffset = 0u,
+        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
+    });
+
+    // 
+    if (rawTransforms.size() > 0ull) {
+        memcpy(cpuTransforms.data(), rawTransforms.data(), rawTransforms.size() * sizeof(mat4_t));
+
+        //
+        vkt::submitOnce(fw->getDevice(), fw->getQueue(), fw->getCommandPool(), [&](const vk::CommandBuffer& cmd) {
+            cmd.copyBuffer(cpuTransforms.buffer(), gpuTransforms.buffer(), { vk::BufferCopy(cpuTransforms.offset(), gpuTransforms.offset(), cpuTransforms.range()) });
+        });
+    };
+
+
 
     // 
     glm::dvec3 eye = glm::dvec3(5.f, 2.f, 2.f);

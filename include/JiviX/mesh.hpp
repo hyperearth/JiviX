@@ -9,6 +9,7 @@
 namespace jvx { 
     class BufferViewSet : public Wrap<jvi::BufferViewSet> {
     public: using T = jvi::BufferViewSet;
+        BufferViewSet() {};
         BufferViewSet(Context context) { object = std::make_shared<jvi::BufferViewSet>(context); };
 
         CALLIFY(sharedPtr);
@@ -24,8 +25,9 @@ namespace jvx {
 
     class MeshBinding : public Wrap<jvi::MeshBinding> {
     public: using T = jvi::MeshBinding;
+        MeshBinding() {};
         MeshBinding(Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, GeometryInitial); };
- 
+
         CALLIFY(sharedPtr);
         CALLIFY(setThread);
         CALLIFY(setDriver);
@@ -53,6 +55,7 @@ namespace jvx {
 
     class MeshInput : public Wrap<jvi::MeshInput> {
     public: using T = jvi::MeshInput;
+        MeshInput() {};
         MeshInput(Context context) { object = std::make_shared<jvi::MeshInput>(context); };
 
         CALLIFY(sharedPtr);
