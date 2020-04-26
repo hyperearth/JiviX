@@ -40,7 +40,7 @@ namespace jvi {
             this->gpuMaterialIDs = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 64ull, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // 
-            this->counterData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 4u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_TO_CPU));
+            this->counterData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 4u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // ALPHA_TEST
             //this->offsetIndirectPtr = vkt::Vector<uint64_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackCounterBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
@@ -317,6 +317,7 @@ namespace jvi {
             buildCommand.copyBuffer(this->rawBindings, this->gpuBindings, { vk::BufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() } });
             buildCommand.copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
             buildCommand.copyBuffer(this->rawMaterialIDs, this->gpuMaterialIDs, { vk::BufferCopy{ this->rawMaterialIDs.offset(), this->gpuMaterialIDs.offset(), this->gpuMaterialIDs.range() } });
+            buildCommand.updateBuffer<glm::uvec4>(counterData.buffer(), counterData.offset(), { glm::uvec4(0u) }); // Nullify Counters
             if (this->inputs.size() > 0) { for (auto& I : this->inputs) { I->copyMeta(buildCommand); }; };
             return uTHIS;
         };
@@ -330,20 +331,27 @@ namespace jvi {
                 this->offsetInfo.resize(this->inputs.size()); 
                 this->offsetPtr.resize(this->inputs.size());
             };
-            uint32_t i = 0; for (auto& I : this->inputs) { // Quads not needed...
-                I->createRasterizePipeline()->createDescriptorSet()->buildGeometry(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount*3u,0u,0u,0u), buildCommand);
+
+            // Rigid Type?
+            //buildCommand.updateBuffer<glm::uvec4>(counterData.buffer(), counterData.offset(), { glm::uvec4(0u) }); // Nullify Counters
+
+            // 
+            uint32_t i = 0; for (auto& I : this->inputs) { // Quads needs to format...
+                I->createRasterizePipeline()->createDescriptorSet()->formatQuads(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount*3u,0u,0u,0u), buildCommand);
 
                 // TODO: De-Factro Primitive Count
                 this->offsetInfo[i] = this->offsetTemp;
                 this->offsetInfo[i].firstVertex = 0u; //this->primitiveCount * 3u; // 0u;
                 this->offsetInfo[i].primitiveCount = vkt::tiled(I->currentUnitCount, 3ull);
                 this->offsetInfo[i].primitiveOffset = this->bindings[0u].offset() + this->primitiveCount * 3u * 80u;
+
+                // build geometry as triangles
+                I->buildGeometry(this->bindings[0u], this->counterData, glm::u64vec4(this->primitiveCount * 3u, this->offsetInfo[i].primitiveOffset, 0u, 0u), buildCommand);
+
+                // 
                 this->primitiveCount += this->offsetInfo[i].primitiveCount; // TODO: De-Facto primitive count... 
-                if (this->rawMeshInfo[0u].hasTransform) {
-                    this->offsetInfo[i].transformOffset = this->transformStride * i;
-                };
-                this->offsetPtr[i] = &this->offsetInfo[i];
-                i++;
+                if (this->rawMeshInfo[0u].hasTransform) { this->offsetInfo[i].transformOffset = this->transformStride * i; };
+                this->offsetPtr[i] = &this->offsetInfo[i]; i++;
             };
 
             // 
@@ -471,6 +479,7 @@ namespace jvi {
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
+
             //this->pipelineInfo.rasterizationState.pNext = &conserv;
 
             // 

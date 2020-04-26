@@ -92,8 +92,8 @@ namespace jvi {
             return uTHIS;
         };
 
-        // Record Geometry (Transform Feedback)
-        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, const vkt::Vector<uint32_t>& counterData, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
+        // 
+        virtual uPTR(MeshInput) formatQuads(const vkt::Vector<uint8_t>& OutPut, const vkt::Vector<uint32_t>& counterData, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
             bool DirectCommand = false;
 
             // 
@@ -103,8 +103,8 @@ namespace jvi {
 
             // 
             if (this->indexData) {
-                meta.indexID = *this->indexData;
-                meta.indexType = int32_t(this->indexType) + 1;
+                this->meta.indexID = *this->indexData;
+                this->meta.indexType = int32_t(this->indexType) + 1;
             };
 
             // 
@@ -119,7 +119,7 @@ namespace jvi {
                 this->quadInfo.layout = this->transformPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
                 if (!this->quadGenerator) {
-                     this->quadGenerator = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache()));
+                    this->quadGenerator = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), vk::PipelineLayout(this->quadInfo.layout), driver->getPipelineCache()));
                 };
 
                 // 
@@ -135,10 +135,40 @@ namespace jvi {
 
                 // Now should to be triangles!
                 if (this->indexData) {
-                    this->setIndexData(meta.indexID, this->indexType)->manifestIndex(vk::IndexType::eUint32)->setIndexCount(vkt::tiled(originalCt, 4ull) * 6u);
+                    this->setIndexData(this->meta.indexID, this->indexType)->manifestIndex(vk::IndexType::eUint32)->setIndexCount(vkt::tiled(originalCt, 4ull) * 6u);
                 };
             };
 
+            if (DirectCommand) {
+                vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
+                this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
+            };
+
+            return uTHIS;
+        };
+
+        // Record Geometry (Transform Feedback)
+        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, const vkt::Vector<uint32_t>& counterData, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
+            bool DirectCommand = false;
+
+            // 
+            if (!buildCommand || ignoreIndirection) {
+                buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
+            };
+
+            // 
+            if (this->indexData) {
+                this->meta.indexID = *this->indexData;
+                this->meta.indexType = int32_t(this->indexType) + 1;
+            };
+
+            // 
+            if (this->bvs) {
+                this->descriptorSet.resize(2u);
+                this->descriptorSet[1u] = this->bvs->getDescriptorSet();
+            };
+
+            // 
             if (buildCommand && this->needUpdate) {
                 this->needUpdate = false; // 
                 std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
@@ -160,24 +190,22 @@ namespace jvi {
                     vk::ClearDepthStencilValue(1.0f, 0)
                 };
 
-                // 
-                auto offsetsInfo = glm::uvec4(0u);
-                buildCommand->updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &offsetsInfo); // Nullify Counters
-                vkt::commandBarrier(buildCommand);
-
                 // TODO: Fix Vertex Count for Quads
-                meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
-                meta.indexType = int32_t(this->indexType) + 1;
+                this->meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
+                this->meta.indexType = int32_t(this->indexType) + 1;
 
-                // 
-                uintptr_t gOffset = offsetHelp->y;//0ull;//80u * offsetHelp->x;
+                // Unable to reset transform feedback???
+                const auto gOffset = offsetHelp->y;
 
                 // 
                 vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
+                buildCommand->updateBuffer<glm::uvec4>(counterData.buffer(), counterData.offset(), { glm::uvec4(0u) }); // Nullify Counters
+                vkt::commandBarrier(buildCommand);
+
                 buildCommand->beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
-                buildCommand->beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->setViewport(0, { viewport });
                 buildCommand->setScissor(0, { renderArea });
+                buildCommand->beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() + gOffset }, { OutPut->range() - gOffset }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
                 buildCommand->bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
@@ -201,6 +229,8 @@ namespace jvi {
                 buildCommand->endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
                 buildCommand->endRenderPass();
                 vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
+                vkt::commandBarrier(buildCommand); // dont transform feedback
+
                 //buildCommand.endDebugUtilsLabelEXT(this->driver->getDispatch());
                 //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
                 //vkt::commandBarrier(buildCommand);
