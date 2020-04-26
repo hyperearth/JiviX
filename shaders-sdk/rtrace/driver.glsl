@@ -3,6 +3,7 @@
 #extension GL_EXT_samplerless_texture_functions : require
 #extension GL_EXT_nonuniform_qualifier          : require
 #extension GL_EXT_control_flow_attributes       : require
+#extension GL_ARB_shader_clock                  : require
 
 #extension GL_EXT_shader_explicit_arithmetic_types         : require
 #extension GL_EXT_shader_explicit_arithmetic_types_int8    : require

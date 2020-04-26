@@ -288,7 +288,7 @@ highp vec2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03F
 //float random( vec2  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 //float random( vec3  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 //float random( vec4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
-  #define QLOCK2 clockRealtime2x32EXT()
+  #define QLOCK2 (clockRealtime2x32EXT()+clock2x32ARB())
   uint SCLOCK = 0u;
 //#define QLOCK2 uvec2(0u,0u)
 
