@@ -93,7 +93,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) formatQuads(const vkt::Vector<uint8_t>& OutPut, const vkt::Vector<uint32_t>& counterData, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
+        virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
             bool DirectCommand = false;
 
             // 
@@ -147,102 +147,8 @@ namespace jvi {
             return uTHIS;
         };
 
-        // Record Geometry (Transform Feedback)
-        virtual uPTR(MeshInput) buildGeometry(const vkt::Vector<uint8_t>& OutPut, const vkt::Vector<uint32_t>& counterData, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
-            bool DirectCommand = false;
-
-            // 
-            if (!buildCommand || ignoreIndirection) {
-                buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
-            };
-
-            // 
-            if (this->indexData) {
-                this->meta.indexID = *this->indexData;
-                this->meta.indexType = int32_t(this->indexType) + 1;
-            };
-
-            // 
-            if (this->bvs) {
-                this->descriptorSet.resize(2u);
-                this->descriptorSet[1u] = this->bvs->getDescriptorSet();
-            };
-
-            // 
-            if (buildCommand && this->needUpdate) {
-                this->needUpdate = false; // 
-                std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
-                buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
-                for (auto& B : this->bindings) { if (this->bvs->get(B).has()) { const uintptr_t i = I++; buffers[i] = this->bvs->get(B).buffer(); offsets[i] = this->bvs->get(B).offset(); }; };
-
-                // 
-                const auto& viewport = this->context->refViewport();
-                const auto& renderArea = this->context->refScissor();
-                const auto clearValues = std::vector<vk::ClearValue>{
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                    vk::ClearDepthStencilValue(1.0f, 0)
-                };
-
-                // TODO: Fix Vertex Count for Quads
-                this->meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
-                this->meta.indexType = int32_t(this->indexType) + 1;
-
-                // Unable to reset transform feedback???
-                const auto gOffset = offsetHelp->y;
-
-                // 
-                vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
-                buildCommand->updateBuffer<glm::uvec4>(counterData.buffer(), counterData.offset(), { glm::uvec4(0u) }); // Nullify Counters
-                vkt::commandBarrier(buildCommand);
-
-                buildCommand->beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
-                buildCommand->setViewport(0, { viewport });
-                buildCommand->setScissor(0, { renderArea });
-                buildCommand->beginTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
-                buildCommand->bindTransformFeedbackBuffersEXT(0u, { OutPut.buffer() }, { OutPut.offset() + gOffset }, { OutPut->range() - gOffset }, this->driver->getDispatch()); //!!WARNING!!
-                buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
-                buildCommand->bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
-                buildCommand->bindVertexBuffers(0u, buffers, offsets);
-                buildCommand->pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
-
-                // No need more indices... (SSBO used instead)
-                //buildCommand.draw(this->currentUnitCount, 1u, 0u, 0u);
-
-                // 
-                if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
-                    const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
-                    buildCommand->bindIndexBuffer(this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
-                    buildCommand->drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
-                }
-                else { // VAL Mode
-                    buildCommand->draw(this->currentUnitCount, 1u, 0u, 0u);
-                };
-
-                // 
-                buildCommand->endTransformFeedbackEXT(0u, { counterData.buffer() }, { counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
-                buildCommand->endRenderPass();
-                vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
-                vkt::commandBarrier(buildCommand); // dont transform feedback
-
-                //buildCommand.endDebugUtilsLabelEXT(this->driver->getDispatch());
-                //buildCommand.insertDebugUtilsLabelEXT(vk::DebugUtilsLabelEXT().setColor({ 1.f,0.75,0.25f }).setPLabelName("Building Geometry Complete.."), this->driver->getDispatch());
-                //vkt::commandBarrier(buildCommand);
-            };
-
-            if (DirectCommand) {
-                vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
-                this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
-            };
-
-            return uTHIS;
-        };
+        // Record Geometry (Transform Feedback), Re-Implemented in another file... 
+        virtual uPTR(MeshInput) buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {});
 
         // 
         template<class T = uint8_t>
