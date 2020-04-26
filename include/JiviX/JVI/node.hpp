@@ -99,7 +99,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Node) pushInstance(vkt::uni_arg<vkh::VsGeometryInstance> instance = vkh::VsGeometryInstance{}) {
-            if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->inputs.size() > 0) {
+            if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->fullGeometryCount > 0) {
                 const auto instanceID = this->instanceCounter++;
                 const auto meshID = instance->instanceId;
                 this->rawInstances[instanceID] = instance; // List Of Instances
@@ -114,7 +114,7 @@ namespace jvi {
         // 
         virtual uPTR(Node) mapMeshData() {
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
-                if (this->meshes[this->mapMeshes[i]]->inputs.size() > 0 && this->meshes[this->mapMeshes[i]]->mapCount > 0) {
+                if (this->meshes[this->mapMeshes[i]]->fullGeometryCount > 0 && this->meshes[this->mapMeshes[i]]->mapCount > 0) {
                     this->rawInstances[i].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[this->mapMeshes[i]]->accelerationStructure, this->driver->getDispatch());
                 };
             };
