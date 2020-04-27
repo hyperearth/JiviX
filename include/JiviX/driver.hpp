@@ -1,7 +1,9 @@
 #pragma once
 
 #include "./core.hpp"
+#include "./JVI/config.hpp"
 #include "./JVI/driver.hpp"
+
 
 namespace jvx { 
     class Driver : public Wrap<jvi::Driver> { public: using T = jvi::Driver;
