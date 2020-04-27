@@ -6,7 +6,8 @@
 
 namespace jvx { 
     class Thread : public Wrap<jvi::Thread> { public: using T = jvi::Thread;
-        Thread(Context context) { object = std::make_shared<jvi::Thread>(context); };
+        Thread() {};
+        Thread(Driver driver) { object = std::make_shared<jvi::Thread>(driver); };
 
         CALLIFY(sharedPtr);
 

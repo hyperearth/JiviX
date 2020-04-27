@@ -5,6 +5,7 @@
 
 namespace jvx { 
     class Renderer : public Wrap<jvi::Renderer> { public: using T = jvi::Renderer;
+        Renderer() {};
         Renderer(Context context) { object = std::make_shared<jvi::Renderer>(context); };
 
         CALLIFY(sharedPtr);

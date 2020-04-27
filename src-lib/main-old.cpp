@@ -351,7 +351,7 @@ int main() {
             } });
             });
 
-        material->pushSampledImage(image);
+        material->pushSampledImage(image.getDescriptor());
     };
 
     // GLTF Samplers Support
