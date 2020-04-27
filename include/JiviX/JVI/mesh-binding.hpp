@@ -409,12 +409,22 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input = {}, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
+        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
             this->instances.push_back(instanceCount);
             for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialID; }; // TODO: Material ID per instance
             this->fullGeometryCount += instanceCount;
+            return uTHIS;
+        };
+
+        // Instanced, but with vector of materials
+        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const std::vector<uint32_t>& materialIDs) {
+            uintptr_t ID = this->inputs.size();
+            this->inputs.push_back(input); // Correct! 
+            this->instances.push_back(materialIDs.size());
+            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialIDs[i]; }; // TODO: Material ID per instance
+            this->fullGeometryCount += materialIDs.size();
             return uTHIS;
         };
 
