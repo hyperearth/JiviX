@@ -71,6 +71,8 @@ namespace jvi {
             return bufferViews;
         };
 
+        // 
+        virtual const size_t& getBufferCount() const { return bufferViews.size(); };
 
         // 
         virtual uPTR(BufferViewSet) createDescriptorSet() { // 
