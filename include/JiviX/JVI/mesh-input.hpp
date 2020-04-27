@@ -214,8 +214,8 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshInput) setIndexOffset(const vk::DeviceSize& offset = 0ull) { this->indexOffset = offset; return uTHIS; };
-        virtual uPTR(MeshInput) setIndexCount(const uint32_t& count = 65536u * 3u) { this->currentUnitCount = count; return uTHIS; };
-        virtual uPTR(MeshInput) setPrimitiveCount(const uint32_t& count = 65536u) { this->setIndexCount(count * 3u); return uTHIS; };
+        virtual uPTR(MeshInput) setIndexCount(const vk::DeviceSize& count = 65536u * 3u) { this->currentUnitCount = count; return uTHIS; };
+        virtual uPTR(MeshInput) setPrimitiveCount(const vk::DeviceSize& count = 65536u) { this->setIndexCount(count * 3u); return uTHIS; };
 
         // 
         virtual const vk::DeviceSize& getIndexCount() const { return this->currentUnitCount; };

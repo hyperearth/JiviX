@@ -33,7 +33,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(BufferViewSet) setContext(std::shared_ptr<Context> context) {
+        virtual uPTR(BufferViewSet) setContext(const vkt::uni_ptr<Context>& context) {
             this->context = context;
             return uTHIS;
         };

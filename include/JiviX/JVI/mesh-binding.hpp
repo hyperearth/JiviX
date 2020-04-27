@@ -235,8 +235,8 @@ namespace jvi {
         };
 
         // TODO: Add QUADs support for GEN-2.0
-        virtual uPTR(MeshBinding) setIndexCount(const uint32_t& count = 65536u * 3u) { this->setPrimitiveCount(std::min(uint32_t(vkt::tiled(count, 3u)), uint32_t(this->MaxPrimitiveCount))); return uTHIS; };
-        virtual uPTR(MeshBinding) setPrimitiveCount(const uint32_t& count = 65536u) { this->primitiveCount = std::min(uint32_t(count), uint32_t(this->MaxPrimitiveCount)); return uTHIS; };
+        virtual uPTR(MeshBinding) setIndexCount(const vk::DeviceSize& count = 65536u * 3u) { this->setPrimitiveCount(std::min(vk::DeviceSize(vkt::tiled(count, 3ull)), vk::DeviceSize(this->MaxPrimitiveCount))); return uTHIS; };
+        virtual uPTR(MeshBinding) setPrimitiveCount(const vk::DeviceSize& count = 65536u) { this->primitiveCount = std::min(vk::DeviceSize(count), vk::DeviceSize(this->MaxPrimitiveCount)); return uTHIS; };
 
         // 
         virtual uPTR(MeshBinding) linkWithInstance(const uint32_t& mapID = 0u) {
@@ -323,7 +323,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<vk::CommandBuffer>& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // build geometry data
+        virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<vk::CommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) { // build geometry data
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u;
 
             // 
@@ -367,7 +367,7 @@ namespace jvi {
         };
 
         // TODO: Fix Quads support with Indices
-        virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+        virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
