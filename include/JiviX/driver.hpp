@@ -22,7 +22,7 @@ namespace jvx {
         CALLIFY(getDescriptorPool);
         CALLIFY(getMemoryProperties);
         CALLIFY(getAllocator);
-        CALLIFY(submitCommandWithSync);
+        //CALLIFY(submitCommandWithSync);
         CALLIFY(getDepthImageView);
         CALLIFY(getDepthImage);
         CALLIFY(createInstance);
