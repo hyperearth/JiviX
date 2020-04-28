@@ -437,4 +437,5 @@ void main() {
     imageStore(writeBuffer[nonuniformEXT(BW_MATERIAL)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_REFLECLR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_TRANSPAR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_ADAPTIVE)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ)));
 };
