@@ -11,8 +11,8 @@ namespace jvx {
     public: using T = jvi::BufferViewSet;
         BufferViewSet() {};
         BufferViewSet(const vkt::uni_ptr<jvi::BufferViewSet>& obj) { this->object = obj; };
-        BufferViewSet(const vkt::uni_arg<jvx::Context>& context) { object = std::make_shared<jvi::BufferViewSet>(*context); };
-        BufferViewSet(const jvx::Context& context) { object = std::make_shared<jvi::BufferViewSet>(context); };
+        BufferViewSet(const vkt::uni_arg<jvx::Context>& context) { this->object = std::make_shared<jvi::BufferViewSet>(*context); };
+        BufferViewSet(const jvx::Context& context) { this->object = std::make_shared<jvi::BufferViewSet>(context); };
 
         CALLIFY(sharedPtr);
         CALLIFY(setContext);
@@ -29,8 +29,8 @@ namespace jvx {
     public: using T = jvi::MeshBinding;
         MeshBinding() {};
         MeshBinding(const vkt::uni_ptr<jvi::MeshBinding>& obj) { this->object = obj; };
-        MeshBinding(const vkt::uni_arg<jvx::Context>& context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
-        MeshBinding(const jvx::Context& context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, GeometryInitial); };
+        MeshBinding(const vkt::uni_arg<jvx::Context>& context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
+        MeshBinding(const jvx::Context& context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, GeometryInitial); };
 
         CALLIFY(sharedPtr);
         CALLIFY(setThread);
@@ -61,8 +61,8 @@ namespace jvx {
     public: using T = jvi::MeshInput;
         MeshInput() {};
         MeshInput(const vkt::uni_ptr<jvi::MeshInput>& obj) { this->object = obj; };
-        MeshInput(const vkt::uni_arg<jvx::Context>& context) { object = std::make_shared<jvi::MeshInput>(*context); };
-        MeshInput(const jvx::Context& context) { object = std::make_shared<jvi::MeshInput>(context); };
+        MeshInput(const vkt::uni_arg<jvx::Context>& context) { this->object = std::make_shared<jvi::MeshInput>(*context); };
+        MeshInput(const jvx::Context& context) { this->object = std::make_shared<jvi::MeshInput>(context); };
 
         CALLIFY(sharedPtr);
         CALLIFY(makeQuad);
