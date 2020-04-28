@@ -12,6 +12,8 @@ namespace jvx {
         Context(vkt::uni_arg<jvx::Driver> driver) { this->object = std::make_shared<jvi::Context>(*driver); };
         Context(vkt::uni_ptr<jvi::Context> obj) { this->object = obj; };
         Context(jvx::Driver driver) { this->object = std::make_shared<jvi::Context>(driver); };
+        Context(std::shared_ptr<jvi::Context>& obj) { this->object = obj; };
+        Context(std::shared_ptr<jvi::Driver>& driver) { this->object = std::make_shared<jvi::Context>(driver); };
 
         CALLIFY(sharedPtr);
         CALLIFY(setThread);

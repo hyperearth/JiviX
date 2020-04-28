@@ -9,6 +9,7 @@ namespace jvx {
     class Driver : public Wrap<jvi::Driver> { public: using T = jvi::Driver;
         Driver() { object = std::make_shared<jvi::Driver>(); };
         Driver(vkt::uni_ptr<jvi::Driver> obj) { this->object = obj; };
+        Driver(std::shared_ptr<jvi::Driver>& obj) { this->object = obj; };
 
         CALLIFY(getPhysicalDevice);
         CALLIFY(getDispatch);
