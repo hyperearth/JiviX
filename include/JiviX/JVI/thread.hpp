@@ -116,6 +116,26 @@ namespace jvi {
             });
         };
 
+        // 
+        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
+            return this->submitCmd({ cmds }, smbi);
+        };
+
+        // Async Version
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
+            return this->submitCmdAsync({ cmds }, smbi);
+        };
+
+        // 
+        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
+            return this->submitCmd(vk::CommandBuffer(cmds), smbi);
+        };
+
+        // Async Version
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
+            return this->submitCmdAsync(vk::CommandBuffer(cmds), smbi);
+        };
+
     // 
     protected: friend Thread; friend Driver; // 
         vk::Queue queue = {};

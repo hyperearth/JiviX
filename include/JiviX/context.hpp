@@ -8,10 +8,10 @@
 namespace jvx { 
     class Context : public Wrap<jvi::Context> { public: using T = jvi::Context;
         Context() {};
-        Context(const vkt::uni_ptr<jvi::Driver>& driver) { this->object = std::make_shared<jvi::Context>(driver); };
-        Context(const vkt::uni_arg<jvx::Driver>& driver) { this->object = std::make_shared<jvi::Context>(*driver); };
-        Context(const vkt::uni_ptr<jvi::Context>& obj) { this->object = obj; };
-        Context(const jvx::Driver& driver) { this->object = std::make_shared<jvi::Context>(driver); };
+        Context(vkt::uni_ptr<jvi::Driver> driver) { this->object = std::make_shared<jvi::Context>(driver); };
+        Context(vkt::uni_arg<jvx::Driver> driver) { this->object = std::make_shared<jvi::Context>(*driver); };
+        Context(vkt::uni_ptr<jvi::Context> obj) { this->object = obj; };
+        Context(jvx::Driver driver) { this->object = std::make_shared<jvi::Context>(driver); };
 
         CALLIFY(sharedPtr);
         CALLIFY(setThread);
