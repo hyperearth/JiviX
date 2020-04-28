@@ -23,6 +23,7 @@ namespace jvx {
         CALLIFY(getDescriptorSet);
         CALLIFY(createDescriptorSet);
         CALLIFY(getDescriptorLayout);
+        CALLIFY(getBufferCount);
     };
 
     class MeshBinding : public Wrap<jvi::MeshBinding> {
@@ -55,6 +56,12 @@ namespace jvx {
         CALLIFY(createAccelerationStructure);
         CALLIFY(createRasterizePipeline);
         CALLIFY(createRasterizeCommand);
+
+#ifdef ENABLE_OPENGL_INTEROP //
+        CALLIFY(getIndexBufferGL);
+        CALLIFY(getBindingBufferGL);
+#endif
+
     };
 
     class MeshInput : public Wrap<jvi::MeshInput> {
@@ -80,5 +87,7 @@ namespace jvx {
         CALLIFY(createRasterizePipeline);
         CALLIFY(linkCounterBuffer);
         CALLIFY(linkBViewSet);
+        CALLIFY(getIndexCount);
+        
     };
 };

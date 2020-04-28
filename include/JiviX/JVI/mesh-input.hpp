@@ -92,6 +92,11 @@ namespace jvi {
             return uTHIS;
         };
 
+        //
+        virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}){
+            return this->formatQuads(binding, offsetHelp, vk::CommandBuffer(*buildCommand));
+        };
+
         // 
         virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
             bool DirectCommand = false;
@@ -145,6 +150,11 @@ namespace jvi {
             };
 
             return uTHIS;
+        };
+
+        //
+        virtual uPTR(MeshInput) buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}){
+            return this->buildGeometry(binding, offsetHelp, vk::CommandBuffer(*buildCommand));
         };
 
         // Record Geometry (Transform Feedback), Re-Implemented in another file... 

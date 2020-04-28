@@ -54,14 +54,14 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
-        virtual uPTR(Material) setRawMaterials(const vkt::Vector<MaterialUnit>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
+        //
+        virtual uPTR(Material) setRawMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
             this->rawMaterials = rawMaterials; this->materialCounter = materialCounter;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Material) setGpuMaterials(const vkt::Vector<MaterialUnit>& gpuMaterials = {}) {
+        virtual uPTR(Material) setGpuMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& gpuMaterials = {}) {
             this->gpuMaterials = gpuMaterials;
             return uTHIS;
         };
