@@ -11,8 +11,8 @@ namespace jvx {
         //Thread(vkt::uni_arg<jvx::Thread> obj) { this->object = *obj; };
         Thread(vkt::uni_arg<jvx::Driver> driver) { this->object = std::make_shared<jvi::Thread>(*driver); };
         //Thread(const jvx::Driver& driver) { this->object = std::make_shared<jvi::Thread>(driver); };
-        Thread(std::shared_ptr<jvi::Thread>& obj) { this->object = obj; };
-        Thread(std::shared_ptr<jvi::Driver>& driver) { this->object = std::make_shared<jvi::Thread>(driver); };
+        Thread(std::shared_ptr<jvi::Thread> obj) { this->object = obj; };
+        Thread(std::shared_ptr<jvi::Driver> driver) { this->object = std::make_shared<jvi::Thread>(driver); };
 
         CALLIFY(sharedPtr);
         CALLIFY(createThreadPool);

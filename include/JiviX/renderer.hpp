@@ -9,7 +9,7 @@ namespace jvx {
         Renderer(vkt::uni_ptr<jvi::Renderer> obj) { this->object = obj; };
         Renderer(vkt::uni_arg<jvx::Context> context) { this->object = std::make_shared<jvi::Renderer>(*context); };
         //Renderer(jvx::Context context) { this->object = std::make_shared<jvi::Renderer>(context); };
-        Renderer(std::shared_ptr<jvi::Renderer>& obj) { this->object = obj; };
+        Renderer(std::shared_ptr<jvi::Renderer> obj) { this->object = obj; };
 
         CALLIFY(sharedPtr);
         CALLIFY(linkMaterial);

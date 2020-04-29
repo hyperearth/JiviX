@@ -9,7 +9,7 @@ namespace jvx {
         Node(vkt::uni_ptr<jvi::Node> obj) { this->object = obj; };
         Node(vkt::uni_arg<jvx::Context> context) { this->object = std::make_shared<jvi::Node>(*context); };
         //Node(jvx::Context context) { this->object = std::make_shared<jvi::Node>(context); };
-        Node(std::shared_ptr<jvi::Node>& obj) { this->object = obj; };
+        Node(std::shared_ptr<jvi::Node> obj) { this->object = obj; };
 
         CALLIFY(sharedPtr);
         CALLIFY(setContext);
