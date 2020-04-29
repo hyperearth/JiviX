@@ -430,7 +430,7 @@ int main() {
             // 
             const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount, 3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
             jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
-            meshes.push_back(mBinding); mBinding->addMeshInput(mInput, primitive.material);
+            meshes.push_back(mBinding); // mBinding->addMeshInput(mInput, primitive.material);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
             mBinding->setIndexCount(PrimitiveCount);
 
@@ -493,6 +493,7 @@ int main() {
             };
 
             node->pushMesh(mesh);
+            mBinding->addMeshInput(mInput, primitive.material);
         };
     };
 
@@ -514,7 +515,7 @@ int main() {
                 .mask = 0xff,
                 .instanceOffset = 0u,
                 .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
-                });
+            });
         };
 
         // 

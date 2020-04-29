@@ -33,8 +33,8 @@ namespace jvi {
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
 
             // create required buffers
-            this->rawBindings = vkt::Vector<VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuBindings = vkt::Vector<VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawBindings = vkt::Vector<VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription) * 8u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuBindings = vkt::Vector<VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputBindingDescription) * 8u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
             this->rawAttributes = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
             this->gpuAttributes = vkt::Vector<VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(VkVertexInputAttributeDescription) * 8u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
             this->rawMaterialIDs = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * GeometryInitial.size(), .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
@@ -73,7 +73,7 @@ namespace jvi {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vk::ShaderStageFlagBits::eFragment)
             });
 
-            { //
+            /*{ //
                 this->indexData = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = sizeof(uint32_t) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eSharedDeviceAddress = 1 },
@@ -88,11 +88,19 @@ namespace jvi {
                 glImportMemoryWin32HandleEXT(this->indexDataOGL.first, this->indexData->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->indexData->getAllocationInfo().handle);
                 glNamedBufferStorageMemEXT(this->indexDataOGL.second, MaxPrimitiveCount * sizeof(uint32_t) * 3u, this->indexDataOGL.first, 0u);
 #endif
-            };
+            };*/
+
+            // 
+            vkt::MemoryAllocationInfo almac = {};
+            almac.device = this->driver->getDevice();
+            almac.dispatch = this->driver->getDispatch();
+            almac.memoryProperties = this->driver->getMemoryProperties().memoryProperties;
+            almac.memUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+            almac.glMemory = almac.glID = 0u;
 
             // 
             for (uint32_t i = 0; i < this->bindings.size(); i++) {
-                this->bindings[i] = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
+                this->bindings[i] = vkt::Vector<uint8_t>(std::make_shared<vkt::BufferAllocation>(almac, vkh::VkBufferCreateInfo{
                     .size = (i == 0 ? MaxPrimitiveCount : 1u) * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
                 }));
@@ -103,7 +111,7 @@ namespace jvi {
                 glCreateBuffers(1u, &this->bindingsOGL[i].second);
                 glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
                 glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
-                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, MaxPrimitiveCount * 3u * sizeof(uint32_t), this->bindingsOGL[i].first, 0u);
+                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, MaxPrimitiveCount * 3u * 80u, this->bindingsOGL[i].first, 0u);
 #endif
             };
 
@@ -324,7 +332,7 @@ namespace jvi {
             buildCommand->copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
             buildCommand->copyBuffer(this->rawMaterialIDs, this->gpuMaterialIDs, { vk::BufferCopy{ this->rawMaterialIDs.offset(), this->gpuMaterialIDs.offset(), this->gpuMaterialIDs.range() } });
             buildCommand->updateBuffer<glm::uvec4>(counterData.buffer(), counterData.offset(), { glm::uvec4(0u) }); // Nullify Counters
-            if (this->inputs.size() > 0) { for (auto& I : this->inputs) { I->copyMeta(buildCommand); }; };
+            if (this->inputs.size() > 0) { for (auto& I : this->inputs) if (I.has()) { I->copyMeta(buildCommand); }; };
             return uTHIS;
         };
 
@@ -346,16 +354,18 @@ namespace jvi {
             // this->fullGeometryCount
             uint32_t f = 0, i = 0, c = 0; for (auto& I : this->inputs) { // Quads needs to format...
                 const auto uOffset = this->primitiveCount * 3u;
-                I->createRasterizePipeline()->createDescriptorSet()->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand);
+                if (I.has()) {
+                    I->createRasterizePipeline()->createDescriptorSet()->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand);
+                };
 
                 // 
                 auto offsetp = this->offsetTemp; // copy as template
-                offsetp.firstVertex = 0u; //this->primitiveCount * 3u; // 0u;
-                offsetp.primitiveCount = vkt::tiled(I->getIndexCount(), 3ull); // TODO: De-Facto primitive count...
-                offsetp.primitiveOffset = uOffset * 80u; //+ this->bindings[0u].offset();
-
-                // build geometry as triangles
-                I->buildGeometry(uTHIS, glm::u64vec4(uOffset, offsetp.primitiveOffset, 0u, 0u), buildCommand);
+                { // build geometry as triangles
+                    offsetp.firstVertex = 0u; //this->primitiveCount * 3u; // 0u;
+                    offsetp.primitiveCount = vkt::tiled(this->ranges[i], 1ull);//vkt::tiled(I->getIndexCount(), 3ull); // TODO: De-Facto primitive count...
+                    offsetp.primitiveOffset = uOffset * 80u; //+ this->bindings[0u].offset();
+                    if (I.has()) I->buildGeometry(uTHIS, glm::u64vec4(uOffset, offsetp.primitiveOffset, 0u, 0u), buildCommand);
+                };
 
                 // 
                 this->primitiveCount += offsetp.primitiveCount; 
@@ -424,10 +434,35 @@ namespace jvi {
             return uTHIS;
         };
 
+
+        // 
+        virtual uPTR(MeshBinding) addRangeInput(const vk::DeviceSize& primitiveCount, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
+            uintptr_t ID = this->inputs.size();
+            this->inputs.push_back({}); // Correct! 
+            this->ranges.push_back(primitiveCount);
+            this->instances.push_back(instanceCount);
+            for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialID; }; // TODO: Material ID per instance
+            this->fullGeometryCount += instanceCount;
+            return uTHIS;
+        };
+
+        // Instanced, but with vector of materials
+        virtual uPTR(MeshBinding) addRangeInput(const vk::DeviceSize& primitiveCount, const std::vector<uint32_t>& materialIDs) {
+            uintptr_t ID = this->inputs.size();
+            this->inputs.push_back({}); // Correct! 
+            this->ranges.push_back(primitiveCount);
+            this->instances.push_back(materialIDs.size());
+            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialIDs[i]; }; // TODO: Material ID per instance
+            this->fullGeometryCount += materialIDs.size();
+            return uTHIS;
+        };
+
+
         // 
         virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
+            this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
             this->instances.push_back(instanceCount);
             for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialID; }; // TODO: Material ID per instance
             this->fullGeometryCount += instanceCount;
@@ -438,11 +473,13 @@ namespace jvi {
         virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const std::vector<uint32_t>& materialIDs) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
+            this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
             this->instances.push_back(materialIDs.size());
             for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialIDs[i]; }; // TODO: Material ID per instance
             this->fullGeometryCount += materialIDs.size();
             return uTHIS;
         };
+
 
         // 
         virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const std::vector<int32_t>& materialIDs) {
@@ -688,6 +725,7 @@ namespace jvi {
 
         // 
         std::vector<vkt::uni_ptr<MeshInput>> inputs = {};
+        std::vector<vk::DeviceSize> ranges = {};
         std::vector<vk::DeviceSize> instances = {};
 
         // 
