@@ -14,6 +14,7 @@ namespace jvi {
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer; friend MeshInput;
         MeshBinding() {};
         MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
+        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<vk::DeviceSize>(GeometryInitial)) { this->construct(); };
         ~MeshBinding() {};
 
         // 
@@ -441,6 +442,11 @@ namespace jvi {
             for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialIDs[i]; }; // TODO: Material ID per instance
             this->fullGeometryCount += materialIDs.size();
             return uTHIS;
+        };
+
+        // 
+        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const std::vector<int32_t>& materialIDs) {
+            return this->addMeshInput(input, vkt::vector_cast<uint32_t>(materialIDs));
         };
 
         // Create Or Rebuild Acceleration Structure

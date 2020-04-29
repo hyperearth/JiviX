@@ -64,6 +64,7 @@ namespace jvx {
           MeshBinding() {};
           MeshBinding(vkt::uni_ptr<jvi::MeshBinding> obj) { this->object = obj; };
           MeshBinding(vkt::uni_arg<jvx::Context> context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
+          MeshBinding(vkt::uni_arg<jvx::Context> context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) { this->object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
           //MeshBinding(jvx::Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, GeometryInitial); };
           MeshBinding(std::shared_ptr<jvi::MeshBinding> obj) { this->object = obj; };
 
