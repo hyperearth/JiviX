@@ -322,7 +322,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) linkBViewSet(const vkt::uni_ptr<BufferViewSet>& bufferViewSet = {}) {
+        virtual uPTR(MeshInput) linkBViewSet(vkt::uni_ptr<BufferViewSet> bufferViewSet = {}) {
             this->bvs = bufferViewSet;
             return uTHIS;
         };

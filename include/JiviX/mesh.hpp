@@ -27,45 +27,6 @@ namespace jvx {
         CALLIFY(getBufferCount);
     };
 
-    class MeshBinding : public Wrap<jvi::MeshBinding> {
-    public: using T = jvi::MeshBinding;
-        MeshBinding() {};
-        MeshBinding(vkt::uni_ptr<jvi::MeshBinding> obj) { this->object = obj; };
-        MeshBinding(vkt::uni_arg<jvx::Context> context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
-        //MeshBinding(jvx::Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, GeometryInitial); };
-        MeshBinding(std::shared_ptr<jvi::MeshBinding> obj) { this->object = obj; };
-
-        CALLIFY(sharedPtr);
-        CALLIFY(setThread);
-        CALLIFY(setDriver);
-        CALLIFY(getBindingBuffer);
-        CALLIFY(getIndexBuffer);
-        CALLIFY(getBindingMemoryHandle);
-        CALLIFY(getIndexMemoryHandle);
-        CALLIFY(manifestIndex);
-        CALLIFY(setIndexCount);
-        CALLIFY(setPrimitiveCount);
-        CALLIFY(linkWithInstance);
-        CALLIFY(increaseGeometryCount);
-        CALLIFY(setGeometryCount);
-        CALLIFY(setTransformData);
-        CALLIFY(setBinding);
-        CALLIFY(setAttribute);
-        CALLIFY(copyBuffers);
-        CALLIFY(buildGeometry);
-        CALLIFY(buildAccelerationStructure);
-        CALLIFY(addMeshInput);
-        CALLIFY(createAccelerationStructure);
-        CALLIFY(createRasterizePipeline);
-        CALLIFY(createRasterizeCommand);
-
-#ifdef ENABLE_OPENGL_INTEROP //
-        CALLIFY(getIndexBufferGL);
-        CALLIFY(getBindingBufferGL);
-#endif
-
-    };
-
     class MeshInput : public Wrap<jvi::MeshInput> {
     public: using T = jvi::MeshInput;
         MeshInput() {};
@@ -91,6 +52,53 @@ namespace jvx {
         CALLIFY(linkCounterBuffer);
         CALLIFY(linkBViewSet);
         CALLIFY(getIndexCount);
+
+        vkt::uni_ptr<jvi::MeshInput> linkBViewSet(vkt::uni_arg<jvx::BufferViewSet> node) {
+            return object->linkBViewSet(node->sharedPtr());
+        };
         
     };
+
+    class MeshBinding : public Wrap<jvi::MeshBinding> {
+    public: using T = jvi::MeshBinding;
+          MeshBinding() {};
+          MeshBinding(vkt::uni_ptr<jvi::MeshBinding> obj) { this->object = obj; };
+          MeshBinding(vkt::uni_arg<jvx::Context> context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
+          //MeshBinding(jvx::Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, GeometryInitial); };
+          MeshBinding(std::shared_ptr<jvi::MeshBinding> obj) { this->object = obj; };
+
+          CALLIFY(sharedPtr);
+          CALLIFY(setThread);
+          CALLIFY(setDriver);
+          CALLIFY(getBindingBuffer);
+          CALLIFY(getIndexBuffer);
+          CALLIFY(getBindingMemoryHandle);
+          CALLIFY(getIndexMemoryHandle);
+          CALLIFY(manifestIndex);
+          CALLIFY(setIndexCount);
+          CALLIFY(setPrimitiveCount);
+          CALLIFY(linkWithInstance);
+          CALLIFY(increaseGeometryCount);
+          CALLIFY(setGeometryCount);
+          CALLIFY(setTransformData);
+          CALLIFY(setBinding);
+          CALLIFY(setAttribute);
+          CALLIFY(copyBuffers);
+          CALLIFY(buildGeometry);
+          CALLIFY(buildAccelerationStructure);
+          CALLIFY(addMeshInput);
+          CALLIFY(createAccelerationStructure);
+          CALLIFY(createRasterizePipeline);
+          CALLIFY(createRasterizeCommand);
+
+#ifdef ENABLE_OPENGL_INTEROP //
+          CALLIFY(getIndexBufferGL);
+          CALLIFY(getBindingBufferGL);
+#endif
+
+          vkt::uni_ptr<jvi::MeshBinding> addMeshInput(vkt::uni_arg<jvx::MeshInput> mesh) {
+              return object->addMeshInput(mesh->sharedPtr());
+          };
+    };
+
 };

@@ -21,5 +21,13 @@ namespace jvx {
         CALLIFY(setupRenderer);
         CALLIFY(setupCommands);
         CALLIFY(refCommandBuffer);
+
+        vkt::uni_ptr<jvi::Renderer> linkMaterial(vkt::uni_arg<jvx::Material> material) {
+            return object->linkMaterial(material->sharedPtr());
+        };
+
+        vkt::uni_ptr<jvi::Renderer> linkNode(vkt::uni_arg<jvx::Node> node) {
+            return object->linkNode(node->sharedPtr());
+        };
     };
 };

@@ -56,5 +56,8 @@ namespace jvx {
     class Driver;
     class Mesh;
     class Node;
+    class MeshInput;
+    class MeshBinding;
+    class BufferViewSet;
 
 };

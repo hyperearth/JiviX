@@ -23,5 +23,9 @@ namespace jvx {
         CALLIFY(createDescriptorSet);
         CALLIFY(buildAccelerationStructure);
         CALLIFY(createAccelerationStructure);
+
+        uintptr_t pushMesh(vkt::uni_arg<jvx::MeshBinding> binding) {
+            return object->pushMesh(binding->sharedPtr());
+        };
     };
 };
