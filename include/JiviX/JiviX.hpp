@@ -15,4 +15,10 @@
 // TODO: Ray-Tracing Pipelines, Re-Sampling Pipelines, Deferred Shadings, Denoise Shaders, 
 namespace jvx {
 
+    class TestClass { public: 
+        TestClass() {
+            std::cout << "Broken?" << std::endl;
+        };
+    };
+
 };
