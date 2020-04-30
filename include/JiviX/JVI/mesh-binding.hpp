@@ -363,8 +363,9 @@ namespace jvi {
                 { // build geometry as triangles
                     offsetp.firstVertex = 0u; //this->primitiveCount * 3u; // 0u;
                     offsetp.primitiveCount = vkt::tiled(this->ranges[i], 1ull);//vkt::tiled(I->getIndexCount(), 3ull); // TODO: De-Facto primitive count...
-                    offsetp.primitiveOffset = uOffset * 80u; //+ this->bindings[0u].offset();
-                    if (I.has()) I->buildGeometry(uTHIS, glm::u64vec4(uOffset, offsetp.primitiveOffset, 0u, 0u), buildCommand);
+                    //offsetp.primitiveOffset = uOffset * 80u; //+ this->bindings[0u].offset();
+                    offsetp.firstVertex = uOffset;
+                    if (I.has()) I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * 80u, 0u, 0u), buildCommand);
                 };
 
                 // 
