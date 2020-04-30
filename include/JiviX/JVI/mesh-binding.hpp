@@ -362,13 +362,15 @@ namespace jvi {
                 auto offsetp = this->offsetTemp;
                 {
                     //offsetp.primitiveOffset = uOffset * 80u; //+ this->bindings[0u].offset();
-                    offsetp.primitiveCount = vkt::tiled(this->ranges[i], 1ull); // TODO: De-Facto primitive count...
+                    offsetp.primitiveCount = I.has() ? vkt::tiled(I->getIndexCount(), 3ull) : vkt::tiled(this->ranges[i], 1ull); // TODO: De-Facto primitive count...
                     offsetp.firstVertex = uOffset;
                     if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * 80u, 0u, 0u), buildCommand); };
                 };
 
                 // Needs Un-Use Input Geometry Count?!
-                if (I.has()) { this->primitiveCount += offsetp.primitiveCount; };
+                //if (I.has()) { 
+                    this->primitiveCount += offsetp.primitiveCount; 
+                //};
 
                 // 
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
