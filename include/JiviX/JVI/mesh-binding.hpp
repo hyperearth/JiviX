@@ -358,18 +358,17 @@ namespace jvi {
                     I->createRasterizePipeline()->createDescriptorSet()->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand);
                 };
 
-                // 
-                auto offsetp = this->offsetTemp; // copy as template
-                { // build geometry as triangles
-                    offsetp.firstVertex = 0u; //this->primitiveCount * 3u; // 0u;
-                    offsetp.primitiveCount = vkt::tiled(this->ranges[i], 1ull);//vkt::tiled(I->getIndexCount(), 3ull); // TODO: De-Facto primitive count...
+                // copy as template, use as triangle...
+                auto offsetp = this->offsetTemp;
+                {
                     //offsetp.primitiveOffset = uOffset * 80u; //+ this->bindings[0u].offset();
+                    offsetp.primitiveCount = vkt::tiled(this->ranges[i], 1ull); // TODO: De-Facto primitive count...
                     offsetp.firstVertex = uOffset;
-                    if (I.has()) I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * 80u, 0u, 0u), buildCommand);
+                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * 80u, 0u, 0u), buildCommand); };
                 };
 
-                // 
-                this->primitiveCount += offsetp.primitiveCount; 
+                // Needs Un-Use Input Geometry Count?!
+                if (I.has()) { this->primitiveCount += offsetp.primitiveCount; };
 
                 // 
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
