@@ -27,6 +27,8 @@ namespace jvx {
         CALLIFY(getDepthImage);
         CALLIFY(createInstance);
         CALLIFY(createDevice);
+        CALLIFY(getInstanceCreateInfoAddress);
+        CALLIFY(getDeviceCreateInfoAddress);
 
 #ifdef VKT_ENABLE_GLFW_SUPPORT
         CALLIFY(createWindowSurface);
