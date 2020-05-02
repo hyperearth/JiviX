@@ -252,6 +252,9 @@ void main() {
     const ivec2 sizPixel = ivec2(launchSize);
 
     // 
+    const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x))&1u);
+
+    // 
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
     const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
@@ -276,14 +279,7 @@ void main() {
 
     XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir.xyz), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
     imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); XHIT GRD = RES; RES = SUF; // Prefer From TOP layer (like as in Minecraft)
-    //mat3 TBN = mat3(RES.gTangent.xyz, RES.gBinormal.xyz, RES.geoNormal.xyz);
-
-    // 
-    if (RES.geoNormal.w < 9999.f) {
-        imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(1.f.xxx, 1.f));
-    } else {
-        imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(0.f.xxx, 1.f));
-    };
+    imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), RES.geoNormal.w < 9999.f && checker ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
 
     // By Geometry Data
     const uint globalInstanceID = RES.gIndices.y;
@@ -315,7 +311,7 @@ void main() {
 
     // 
 #ifdef RAY_TRACE
-    if ( RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f || SUF.diffuseColor.w > 0.001f && SUF.geoNormal.w < 9999.f ) {
+    if ( (RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f || SUF.diffuseColor.w > 0.001f && SUF.geoNormal.w < 9999.f) && checker ) {
         //vec3 forigin = (origin = RES.origin.xyz), fraydir = raydir, fnormal = RES.mapNormal.xyz;
         //TBN[2] = normalize(faceforward(TBN[2], fraydir.xyz, TBN[2]));
 
@@ -326,10 +322,11 @@ void main() {
 
         // 
 #ifdef FAST_BW_TRANSPARENT
-        for (uint I=0;I<2;I++) {
+        const uint MAX_ITERATION = 2u;
 #else
-        for (uint I=0;I<3;I++) {
+        const uint MAX_ITERATION = 3u;
 #endif
+        for (uint I=0;I<MAX_ITERATION;I++) {
             //if ( I == 2 ) { RES = SUF; }; // Top Layer Overlap
             if (!(RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f)) { continue; }; // useless tracing mode
             if (  RES.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // still needs shading, except surface transparency
