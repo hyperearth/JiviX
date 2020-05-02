@@ -118,14 +118,32 @@ namespace jvi {
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
             }).offset<vkh::VkDescriptorBufferInfo>() = (vkh::VkDescriptorBufferInfo&)this->gpuMaterials;
 
+            // 
+            if (this->backgroundImage) { // 
+                vkh::VsDescriptorHandle<VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 2u,
+                    .descriptorCount = uint32_t(1u),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                });
+                imagesHandle.offset<VkDescriptorImageInfo>(0) = *backgroundImage;
+            };
+
             // Reprojection WILL NOT write own depth... 
             this->context->descriptorSets[4] = this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
             this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)), {});
+
+            // 
             return uTHIS;
+        };
+
+        // 
+        virtual uPTR(Material) setBackgroundImage(const vkh::VkDescriptorImageInfo& backgroundImage = {}) {
+            this->backgroundImage = backgroundImage; return uTHIS;
         };
 
     protected: // 
         std::vector<vkh::VkDescriptorImageInfo> sampledImages = {};
+        std::optional<vkh::VkDescriptorImageInfo> backgroundImage = {};
 
         // 
         vkt::Vector<MaterialUnit> rawMaterials = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...

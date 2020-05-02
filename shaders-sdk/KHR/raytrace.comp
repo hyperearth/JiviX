@@ -42,8 +42,9 @@ uvec2 seed = uvec2(0u.xx);
 // 
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
     XHIT result; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin;
+    const vec4 skyColor = vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
     result. diffuseColor = vec4(1.f.xxxx);
-    result.emissionColor = vec4(gSkyColor,0.f.x);
+    result.emissionColor = vec4(skyColor.xyz,0.f.x);
     result. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
     result.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
     result.geoNormal = vec4(vec3(0.f,1.f,0.f),lastMax);
@@ -370,7 +371,9 @@ void main() {
                     if ( result.geoNormal.w >= 9999.f ) {
                         //if (I < 2) {
                             const float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,bspher.xyz,bspher.w); mvalue = (sdepth <= 0.f ? 10000.f : sdepth);
-                            BACKSKY_COLOR;
+                            //BACKSKY_COLOR;
+                            const vec4 skyColor = vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
+                            gSignal.xyz = max(fma(gEnergy.xyz, skyColor.xyz, gSignal.xyz),0.f.xxx), gEnergy *= 0.f;
                         //} else {
                         //    gEnergy *= vec4(0.f.xxxx);
                         //}

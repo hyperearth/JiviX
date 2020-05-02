@@ -54,10 +54,10 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Transform Feedback for Tesselation and Geometry shaders support (Alpha)
 - [x] Rise quads support (Alpha)
 - [x] Geometry shader in resampling (Reserved)
+- [x] HDRI background image and equirectangular projection (Alpha)
 - [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
 - [ ] New optional rasterization base (writing to dedicated buffers)
-- [ ] HDRI background image and equirectangular projection (TODO)
 - [ ] Advanced FPS counter (TODO)
 - [ ] Some unit-tests`***` 
 - [ ] Water shader (for games)
@@ -67,12 +67,12 @@ Date:[09.04.2020]:[helix.d@IMN]
 
 ### TODO Lists (Gen-4 or Beyond)
 
-- [ ] DLSS 2.0?
-- [ ] Variable shading rate (faster ray-tracing)
+- [x] Variable shading rate (faster ray-tracing, currently 1/2 only)
 - [ ] Anti-aliasing and advanced denoise
 - [ ] Fog and better transparency support 
 - [ ] Refraction support
 - [ ] ReShade extensions support
+- [ ] DLSS 2.0?
 
 
 ### Remarks...

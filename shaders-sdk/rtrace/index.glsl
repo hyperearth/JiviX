@@ -222,6 +222,7 @@ layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
 // Material Set
 layout (binding = 0, set = 4) uniform sampler2D textures[];
 layout (binding = 1, set = 4, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
+layout (binding = 2, set = 4) uniform sampler2D background;
 
 // 
 float raySphereIntersect(in vec3 r0, in vec3 rd, in vec3 s0, in float sr) {
@@ -329,6 +330,8 @@ vec3 randomHemisphereCosine(inout uvec2 seed) {
     const float phi = hmsm.x * TWO_PI, up = sqrt(1.0f - hmsm.y), over = sqrt(fma(up,-up,1.f));
     return normalize(vec3(cos(phi)*over,up,sin(phi)*over));
 };
+
+vec2 flip(in vec2 texcoord) { return vec2(texcoord.x, 1.f - texcoord.y); };
 
 /*
 vec3 randomHemisphereCosine(inout uvec2 seed, in mat3x3 TBN) {
@@ -447,7 +450,7 @@ vec3 screen2world(in vec3 origin){
 
 // Some Settings
 //const vec3 gSkyColor = vec3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
-#define gSkyColor vec3(0.9f,0.98,0.999f)
+//#define gSkyColor vec3(0.9f,0.98,0.999f)
 #define DIFFUSE_COLOR (diffuseColor.xyz)
 //#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
-#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, gSkyColor, gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+//#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, gSkyColor, gSignal.xyz),0.f.xxx), gEnergy *= 0.f

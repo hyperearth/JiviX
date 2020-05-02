@@ -90,14 +90,14 @@ void main() { // TODO: explicit sampling
     //if (diffused.w < 0.99f) { diffused.xyz = 1.f.xxx; };
 
     // 
-    diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
-    if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyColor; };
-
-    // 
     const vec3 camera = vec4(position.xyz,1.f)*modelview;
     const vec3 raydir = (modelview * normalize(camera.xyz)).xyz;
     const vec3 origin = getPosition(samplep).xyz;
     const vec3 normal = getNormal(samplep).xyz;
+
+    // 
+    diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
+    if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f).xyz; };
 
     // 
 #ifndef LATE_STAGE
