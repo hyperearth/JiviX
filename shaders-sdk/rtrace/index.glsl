@@ -454,3 +454,7 @@ vec3 screen2world(in vec3 origin){
 #define DIFFUSE_COLOR (diffuseColor.xyz)
 //#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, (i > 0u ? gSkyColor : 1.f.xxx), gSignal.xyz),0.f.xxx), gEnergy *= 0.f
 //#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, gSkyColor, gSignal.xyz),0.f.xxx), gEnergy *= 0.f
+
+vec4 gSkyShader(in vec3 raydir, in vec3 origin) {
+    return vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
+};

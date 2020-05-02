@@ -97,7 +97,7 @@ void main() { // TODO: explicit sampling
 
     // 
     diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
-    if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f).xyz; };
+    if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
 
     // 
 #ifndef LATE_STAGE

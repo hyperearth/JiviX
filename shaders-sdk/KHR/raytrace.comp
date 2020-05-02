@@ -42,7 +42,7 @@ uvec2 seed = uvec2(0u.xx);
 // 
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
     XHIT result; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin;
-    const vec4 skyColor = vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
+    const vec4 skyColor = gSkyShader(raydir.xyz, origin.xyz);//vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
     result. diffuseColor = vec4(1.f.xxxx);
     result.emissionColor = vec4(skyColor.xyz,0.f.x);
     result. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
@@ -260,9 +260,11 @@ void main() {
     const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
     const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
 
-    //const vec2 shift = random2(uvec2(rdata[0],packed)), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
-    const vec2 shift = 0.5f.xx, pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
+    //
     packed = pack32(u16vec2(curPixel)), seed = uvec2(packed, rdata.x);
+    const vec2 shift = random2(seed), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
+    //const vec2 shift = 0.5f.xx,                       pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
+    
 
     // 
      vec3 origin = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.001f));
@@ -365,18 +367,12 @@ void main() {
 
                     // power of reflection
                     float reflectionPower = mix(clamp(pow(1.0f + dot(raydir.xyz, result.mapNormal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, result.specularColor.z);
-                    bool couldReflection = random(seed) <= reflectionPower;
+                     bool couldReflection = random(seed) <= reflectionPower;
 
                     // 
                     if ( result.geoNormal.w >= 9999.f ) {
-                        //if (I < 2) {
-                            const float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,bspher.xyz,bspher.w); mvalue = (sdepth <= 0.f ? 10000.f : sdepth);
-                            //BACKSKY_COLOR;
-                            const vec4 skyColor = vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
-                            gSignal.xyz = max(fma(gEnergy.xyz, skyColor.xyz, gSignal.xyz),0.f.xxx), gEnergy *= 0.f;
-                        //} else {
-                        //    gEnergy *= vec4(0.f.xxxx);
-                        //}
+                        const float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,bspher.xyz,bspher.w); mvalue = (sdepth <= 0.f ? 10000.f : sdepth);
+                        gSignal.xyz = max(fma(gEnergy.xyz, result.emissionColor.xyz, gSignal.xyz) ,0.f.xxx), gEnergy *= 0.f;
                     } else 
                     if ( result.diffuseColor.w > 0.001f ) {
                         if (couldReflection) {
