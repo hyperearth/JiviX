@@ -8,15 +8,14 @@
 layout (local_size_x = 32u, local_size_y = 24u) in; 
 
 // Not Reprojected by Previous Frame
+vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_POSITION]); return imageLoad(writeBuffer[BW_POSITION],ivec2(map.x,size.y-map.y-1)); };
 vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MAPNORML]); return imageLoad(writeImages[IW_MAPNORML],ivec2(map.x,size.y-map.y-1)); };
-//vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_POSITION]); return imageLoad(writeImages[IW_POSITION],ivec2(map.x,size.y-map.y-1)); };
 vec4 getData       (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MATERIAL]); return imageLoad(writeImages[IW_MATERIAL],ivec2(map.x,size.y-map.y-1)); };
 
 // For current frame only
 vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],ivec2(map.x,size.y-map.y-1)); };
 vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_TRANSPAR]); return imageLoad(writeBuffer[BW_TRANSPAR],ivec2(map.x,size.y-map.y-1)); };
 vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
-vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_POSITION]); return imageLoad(writeBuffer[BW_POSITION],ivec2(map.x,size.y-map.y-1)); };
 
 // With Resampling
 vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
@@ -52,6 +51,7 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
                 } else {
                     samp = getIndirect(map);
                 };
+                samp.xyz = clamp(samp.xyz/max(samp.w,1.f), 0.f.xxx, 64.f.xxx)*samp.w;
 
                 sampled += samp;
                 //sampled += clamp(samp/max(samp.w,1.f),0.f.xxxx,1.f.xxxx);

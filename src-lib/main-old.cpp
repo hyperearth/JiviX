@@ -230,17 +230,17 @@ int main() {
     std::string wrn = "";
 
     // 
-    const float unitScale = 100.f;
-    const float unitHeight = -0.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    //const float unitScale = 100.f;
+    //const float unitHeight = -0.f;
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
 
     //const float unitScale = 1.f;
     //const float unitHeight = -32.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
 
-    //const float unitScale = 1.f;
-    //const float unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
+    const float unitScale = 1.f;
+    const float unitHeight = -0.f;
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
 
     //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
@@ -363,58 +363,70 @@ int main() {
         float* rgba = nullptr;
         const char* err = nullptr;
 
+        // 
+        std::vector<glm::vec4> gSkyColor = {
+            glm::vec4(0.9f,0.98,0.999f, 1.f),
+            glm::vec4(0.9f,0.98,0.999f, 1.f),
+            glm::vec4(0.9f,0.98,0.999f, 1.f),
+            glm::vec4(0.9f,0.98,0.999f, 1.f)
+        };
+
         { //
-            int ret = LoadEXR(&rgba, &width, &height, "small_cathedral_4k.exr", &err);
+            int ret = LoadEXR(&rgba, &width, &height, "spiaggia_di_mondello_4k.exr", &err);
             if (ret != 0) {
-                printf("err: %s\n", err);
-                return -1;
+                printf("err: %s\n", err); // 
+
+                // backdoor image
+                rgba = (float*)gSkyColor.data();
+                width = 2u, height = 2u;
             }
         };
 
-        // 
-        images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            .extent = {uint32_t(width),uint32_t(height),1u},
-            .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-        }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
-            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-        }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        })));
+        {
+            images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .extent = {uint32_t(width),uint32_t(height),1u},
+                .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+            }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+            }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
+                .magFilter = VK_FILTER_LINEAR,
+                .minFilter = VK_FILTER_LINEAR,
+                .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            })));
 
-        // 
-        auto image = images.back();
+            // 
+            auto image = images.back();
 
-        // 
-        vkt::Vector<> imageBuf = {};
-        if (width > 0u && height > 0u && rgba) {
-            imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                .size = width * height * sizeof(glm::vec4),
-                .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-            }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            memcpy(imageBuf.data(), rgba, width * height * sizeof(glm::vec4));
+            // 
+            vkt::Vector<> imageBuf = {};
+            if (width > 0u && height > 0u && rgba) {
+                imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
+                    .size = width * height * sizeof(glm::vec4),
+                    .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+                    }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+                memcpy(imageBuf.data(), rgba, width * height * sizeof(glm::vec4));
+            };
+
+            // 
+            context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
+                image.transfer(cmd);
+
+                auto buffer = imageBuf;
+                cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{
+                    .bufferOffset = buffer.offset(),
+                    .bufferRowLength = uint32_t(width),
+                    .bufferImageHeight = uint32_t(height),
+                    .imageSubresource = image.subresourceLayers(),
+                    .imageOffset = {0u,0u,0u},
+                    .imageExtent = {uint32_t(width),uint32_t(height),1u},
+                }});
+            });
+
+            // 
+            material->setBackgroundImage(image);
         };
-
-        // 
-        context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
-            image.transfer(cmd);
-
-            auto buffer = imageBuf;
-            cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{
-                .bufferOffset = buffer.offset(),
-                .bufferRowLength = uint32_t(width),
-                .bufferImageHeight = uint32_t(height),
-                .imageSubresource = image.subresourceLayers(),
-                .imageOffset = {0u,0u,0u},
-                .imageExtent = {uint32_t(width),uint32_t(height),1u},
-            } });
-        });
-
-        // 
-        material->setBackgroundImage(image);
     };
 
 
