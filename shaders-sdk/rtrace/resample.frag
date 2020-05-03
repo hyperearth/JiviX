@@ -39,7 +39,7 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
             dot(gNormal.xyz,    texture(frameBuffers[BW_GEONORML],  vec2(i2fxm+offt), 0).xyz) >=0.5f && 
                              texelFetch(frameBuffers[BW_MATERIAL], ivec2(i2fxm+offt), 0).z > 0.f &&
             distance(wPosition.xyz,worldspos.xyz) < 0.05f || 
-            (i == 4 && texelFetch(frameBuffers[BW_INDIRECT], ivec2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
+            false//(i == 4 && texelFetch(frameBuffers[BW_INDIRECT], ivec2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
         ) { return true; };
     };
     return false;
