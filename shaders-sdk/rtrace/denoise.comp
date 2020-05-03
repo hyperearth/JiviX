@@ -38,6 +38,7 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
 
     vec4 sampled = 0.f.xxxx; int scount = 0;
     vec4 centerc = getIndirect(coord);
+
     for (uint x=0;x<maxc;x++) {
         for (uint y=0;y<maxc;y++) {
             ivec2 map = coord+ivec2(x-(maxc>>1),y-(maxc>>1));
@@ -51,7 +52,7 @@ vec4 getDenoised(in ivec2 coord, in bool reflection, in uint maxc) {
                 } else {
                     samp = getIndirect(map);
                 };
-                samp.xyz = clamp(samp.xyz/max(samp.w,1.f), 0.f.xxx, 64.f.xxx)*samp.w;
+                samp.xyz = clamp(samp.xyz/max(samp.w,1.f), 0.f.xxx, 16.f.xxx)*samp.w;
 
                 sampled += samp;
                 //sampled += clamp(samp/max(samp.w,1.f),0.f.xxxx,1.f.xxxx);

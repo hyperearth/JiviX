@@ -411,10 +411,10 @@ void main() {
                 };
 
                 // 
+                { gSignal.xyz = clamp(gSignal.xyz,0.f.xxx,16.f.xxx); };
                 if (I == 0) { imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
-                if (I == 1) { 
-                    const vec4 reflection = vec4(clamp(gSignal.xyz,0.f.xxx,1.f.xxx), 1.f);
-                    imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), reflection);
+                if (I == 1) {
+                    imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), 1.f));
                 };
                 if (I == 2) {
                     imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, SUF.txcmid.z)); // alpha channel reserved, zero always opaque type
