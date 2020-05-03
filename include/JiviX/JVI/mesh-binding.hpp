@@ -13,8 +13,10 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer; friend MeshInput;
         MeshBinding() {};
-        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
-        MeshBinding(vkt::uni_ptr<Context> context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<vk::DeviceSize>(GeometryInitial)) { this->construct(); };
+        MeshBinding(const std::shared_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
+        MeshBinding(const std::shared_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<vk::DeviceSize>(GeometryInitial)) { this->construct(); };
+        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
+        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<vk::DeviceSize>(GeometryInitial)) { this->construct(); };
         ~MeshBinding() {};
 
         // 
@@ -171,16 +173,20 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) setThread(vkt::uni_ptr<Thread> thread) {
+        virtual uPTR(MeshBinding) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(MeshBinding) setDriver(vkt::uni_ptr<Driver> driver = {}) {
+        virtual uPTR(MeshBinding) setDriver(const vkt::uni_ptr<Driver>& driver = {}) {
             this->driver = driver;
             return uTHIS;
         };
+
+        //
+        virtual uPTR(MeshBinding) setThread(const std::shared_ptr<Thread>& thread) { return this->setThread(vkt::uni_ptr<Thread>(thread)); };
+        virtual uPTR(MeshBinding) setDriver(const std::shared_ptr<Driver>& driver) { return this->setDriver(vkt::uni_ptr<Driver>(driver)); };
 
         // 
         virtual vkt::Vector<uint8_t>& getBindingBuffer(const uintptr_t& i = 0u) {
@@ -461,7 +467,7 @@ namespace jvi {
 
 
         // 
-        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
+        virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
             this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
@@ -472,7 +478,7 @@ namespace jvi {
         };
 
         // Instanced, but with vector of materials
-        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const std::vector<uint32_t>& materialIDs) {
+        virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
             this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
@@ -484,9 +490,20 @@ namespace jvi {
 
 
         // 
-        virtual uPTR(MeshBinding) addMeshInput(vkt::uni_ptr<MeshInput> input, const std::vector<int32_t>& materialIDs) {
+        virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const std::vector<int32_t>& materialIDs) {
             return this->addMeshInput(input, vkt::vector_cast<uint32_t>(materialIDs));
         };
+
+        // 
+        virtual uPTR(MeshBinding) addMeshInput(const std::shared_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
+            return this->addMeshInput(vkt::uni_ptr<MeshInput>(input), materialID, instanceCount);
+        };
+
+        // 
+        virtual uPTR(MeshBinding) addMeshInput(const std::shared_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs) {
+            return this->addMeshInput(vkt::uni_ptr<MeshInput>(input), materialIDs);
+        };
+
 
         // Create Or Rebuild Acceleration Structure
         virtual uPTR(MeshBinding) createAccelerationStructure() {

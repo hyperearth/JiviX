@@ -13,7 +13,8 @@ namespace jvi {
     // TODO: Descriptor Sets
     class Renderer : public std::enable_shared_from_this<Renderer> { public: // 
         Renderer(){};
-        Renderer(vkt::uni_ptr<Context> context) : context(context) { this->construct(); };
+        Renderer(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        Renderer(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
         //Renderer(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Renderer() {};
 
@@ -48,7 +49,11 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) linkMaterial(vkt::uni_ptr<Material> materials) {
+        virtual uPTR(Renderer) linkMaterial(const std::shared_ptr<Material>& materials) { return this->linkMaterial(vkt::uni_ptr<Material>(materials)); };
+        virtual uPTR(Renderer) linkNode(const std::shared_ptr<Node>& node) { return this->linkNode(vkt::uni_ptr<Node>(node)); };
+
+        // 
+        virtual uPTR(Renderer) linkMaterial(const vkt::uni_ptr<Material>& materials) {
             this->materials = materials;
             if (this->materials->descriptorSet) {
                 this->context->descriptorSets[4] = this->materials->descriptorSet;
@@ -57,7 +62,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) linkNode(vkt::uni_ptr<Node> node) {
+        virtual uPTR(Renderer) linkNode(const vkt::uni_ptr<Node>& node) {
             this->node = node;
             if (this->node->meshDataDescriptorSet) { this->context->descriptorSets[0] = this->node->meshDataDescriptorSet; };
             if (this->node->bindingsDescriptorSet) { this->context->descriptorSets[1] = this->node->bindingsDescriptorSet; };

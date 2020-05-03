@@ -11,7 +11,8 @@ namespace jvi {
     class BufferViewSet : public std::enable_shared_from_this<BufferViewSet> {
     public: friend Renderer;// 
         BufferViewSet() {};
-        BufferViewSet(vkt::uni_ptr<Context> context) : context(context) { this->construct(); };
+        BufferViewSet(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        BufferViewSet(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
         //Material(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~BufferViewSet() {};
 

@@ -24,7 +24,8 @@ namespace jvi {
     // 
     class Context : public std::enable_shared_from_this<Context> { public: friend MeshInput; friend MeshBinding; friend Node; friend Driver; friend Material; friend Renderer;
         Context() {};
-        Context(vkt::uni_ptr<Driver> driver) : driver(driver) { this->construct(); };
+        Context(const vkt::uni_ptr<Driver>& driver) : driver(driver) { this->construct(); };
+        Context(const std::shared_ptr<Driver>& driver) : driver(driver) { this->construct(); };
         //Context(Driver* driver) : driver(vkt::uni_ptr(driver)) { this->construct(); };
         ~Context() {};
 
@@ -54,7 +55,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Context) setThread(vkt::uni_ptr<Thread> thread) {
+        virtual uPTR(Context) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
@@ -85,6 +86,8 @@ namespace jvi {
 
         // 
         virtual uPTR(Context) createRenderPass() { // 
+            std::cout << "Create Render Pass" << std::endl;
+
             vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
 
             for (uint32_t b=0u;b<8u;b++) {
@@ -228,7 +231,10 @@ namespace jvi {
         }
 
         // 
-        virtual uPTR(Context) createFramebuffers(const uint32_t& width = 800u, const uint32_t& height = 600u) { // 
+        virtual uPTR(Context) createFramebuffers(const uint32_t& width = 1600u, const uint32_t& height = 1200u) { // 
+            std::cout << "Create Frame Buffer" << std::endl;
+
+            // 
             std::array<VkImageView, 9u> deferredAttachments = {};
             std::array<VkImageView, 9u> smpFlip0Attachments = {};
             std::array<VkImageView, 9u> smpFlip1Attachments = {};
@@ -360,6 +366,8 @@ namespace jvi {
 
         // 
         virtual uPTR(Context) createDescriptorSetLayouts() { // reset layout descriptions
+            std::cout << "Create Descriptor Set Layouts" << std::endl;
+
             this->meshDataDescriptorSetLayoutHelper = {};
             this->bindingsDescriptorSetLayoutHelper = {};
             this->samplingDescriptorSetLayoutHelper = {};
@@ -415,6 +423,8 @@ namespace jvi {
 
         // 
         virtual uPTR(Context) createDescriptorSets() {
+            std::cout << "Create Descriptor Sets" << std::endl;
+
             if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
 
             {

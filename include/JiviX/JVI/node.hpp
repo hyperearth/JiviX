@@ -11,7 +11,8 @@ namespace jvi {
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Node : public std::enable_shared_from_this<Node> { public: friend Renderer;
         Node() {};
-        Node(vkt::uni_ptr<Context> context) : context(context) { this->construct(); };
+        Node(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        Node(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
         //Node(Context* context) : context(context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Node() {};
 
@@ -72,13 +73,13 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) setContext(vkt::uni_ptr<Context> context) {
+        virtual uPTR(Node) setContext(const vkt::uni_ptr<Context>& context) {
             this->context = context;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Node) setThread(vkt::uni_ptr<Thread> thread) {
+        virtual uPTR(Node) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
@@ -126,6 +127,9 @@ namespace jvi {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(mesh); return ptr;
         };
+
+        // 
+        virtual uintptr_t pushMesh(const std::shared_ptr<MeshBinding>& mesh) { return this->pushMesh(vkt::uni_ptr<MeshBinding>(mesh)); };
 
         /*
         // WARNING!!! NOT RECOMMENDED! 

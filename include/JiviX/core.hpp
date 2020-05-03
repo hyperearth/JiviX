@@ -30,9 +30,9 @@ namespace jvx {
         virtual operator std::shared_ptr<T> () { return object.get_shared(); };
         virtual operator std::shared_ptr<T> () const { return object.get_shared(); };
 
-        // 
-        virtual operator vkt::uni_ptr<T> () { return object; };
-        virtual operator vkt::uni_ptr<T> () const { return object; };
+        // now required explicit...
+        virtual explicit operator vkt::uni_ptr<T> () { return object; };
+        virtual explicit operator vkt::uni_ptr<T> () const { return object; };
 
         // 
         virtual T* operator->() { return object.ptr(); };

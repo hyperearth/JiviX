@@ -14,7 +14,8 @@ namespace jvi {
     class MeshInput : public std::enable_shared_from_this<MeshInput> {
     public: friend Node; friend Renderer; friend MeshBinding;
         MeshInput() {};
-        MeshInput(vkt::uni_ptr<Context> context) : context(context) { this->construct(); };
+        MeshInput(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        MeshInput(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
         ~MeshInput() {};
 
         // 
@@ -92,8 +93,13 @@ namespace jvi {
             return uTHIS;
         };
 
+        // 
+        virtual uPTR(MeshInput) formatQuads(const std::shared_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) {
+            return this->formatQuads(binding, offsetHelp, buildCommand);
+        };
+
         //
-        virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}){
+        virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) {
             return this->formatQuads(binding, offsetHelp, vk::CommandBuffer(*buildCommand));
         };
 
@@ -150,6 +156,11 @@ namespace jvi {
             };
 
             return uTHIS;
+        };
+
+        // 
+        virtual uPTR(MeshInput) buildGeometry(const std::shared_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) {
+            return this->buildGeometry(binding, offsetHelp, buildCommand);
         };
 
         //
@@ -322,7 +333,12 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) linkBViewSet(vkt::uni_ptr<BufferViewSet> bufferViewSet = {}) {
+        virtual uPTR(MeshInput) linkBViewSet(const std::shared_ptr<BufferViewSet>& bufferViewSet = {}) {
+            return this->linkBViewSet(vkt::uni_ptr<BufferViewSet>(bufferViewSet));
+        };
+
+        // 
+        virtual uPTR(MeshInput) linkBViewSet(const vkt::uni_ptr<BufferViewSet>& bufferViewSet = {}) {
             this->bvs = bufferViewSet;
             return uTHIS;
         };

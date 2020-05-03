@@ -221,7 +221,7 @@ int main() {
 
     // 
     context.initialize(canvasWidth, canvasHeight); // experimental: callify
-    renderer->linkMaterial(material)->linkNode(node);
+    renderer->linkMaterial(material->sharedPtr())->linkNode(node->sharedPtr());
 
     // 
     tinygltf::Model model = {};
@@ -505,7 +505,7 @@ int main() {
 
             // 
             const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount, 3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse);
+            jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse->sharedPtr());
             meshes.push_back(mBinding); // mBinding->addMeshInput(mInput, primitive.material);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
             mBinding->setIndexCount(PrimitiveCount);
@@ -568,8 +568,8 @@ int main() {
                 mInput->setIndexCount(attribute.count)->setIndexOffset(attribute.byteOffset);
             };
 
-            node->pushMesh(mesh);
-            mBinding->addMeshInput(mInput, primitive.material);
+            node->pushMesh(mesh->sharedPtr());
+            mBinding->addMeshInput(mInput->sharedPtr(), primitive.material);
         };
     };
 

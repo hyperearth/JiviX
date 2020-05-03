@@ -28,7 +28,8 @@ namespace jvi {
     class Material : public std::enable_shared_from_this<Material> {
     public: friend Renderer;// 
         Material() {};
-        Material(vkt::uni_ptr<Context> context) : context(context) { this->construct(); };
+        Material(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
+        Material(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
         //Material(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~Material() {};
 
