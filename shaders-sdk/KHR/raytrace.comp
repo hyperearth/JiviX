@@ -252,7 +252,7 @@ void main() {
     const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
     const ivec2 sizPixel = ivec2(launchSize);
 
-    // 
+    // WARNING! Quality may critically drop when move! 
     const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x))&1u);
 
     // 
