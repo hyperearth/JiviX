@@ -91,6 +91,7 @@ namespace jvx {
           CALLIFY(createAccelerationStructure);
           CALLIFY(createRasterizePipeline);
           CALLIFY(createRasterizeCommand);
+          CALLIFY(addRangeInput);
 
 #ifdef ENABLE_OPENGL_INTEROP //
           CALLIFY(getIndexBufferGL);

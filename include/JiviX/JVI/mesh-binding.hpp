@@ -465,6 +465,11 @@ namespace jvi {
             return uTHIS;
         };
 
+        // 
+        virtual uPTR(MeshBinding) addRangeInput(const vk::DeviceSize& primitiveCount, const std::vector<int32_t>& materialIDs) {
+            return this->addRangeInput(primitiveCount, vkt::vector_cast<uint32_t>(materialIDs));
+        };
+
 
         // 
         virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
@@ -501,6 +506,11 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) addMeshInput(const std::shared_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs) {
+            return this->addMeshInput(vkt::uni_ptr<MeshInput>(input), materialIDs);
+        };
+
+        // 
+        virtual uPTR(MeshBinding) addMeshInput(const std::shared_ptr<MeshInput>& input, const std::vector<int32_t>& materialIDs) {
             return this->addMeshInput(vkt::uni_ptr<MeshInput>(input), materialIDs);
         };
 
