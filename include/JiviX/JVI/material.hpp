@@ -119,6 +119,58 @@ namespace jvi {
             }).offset<vkh::VkDescriptorBufferInfo>() = (vkh::VkDescriptorBufferInfo&)this->gpuMaterials;
 
             // 
+            if (!this->backgroundImage) { // Make Background Image NOT Needed!
+                int width = 2u, height = 2u;
+                float* rgba = nullptr;
+                const char* err = nullptr;
+
+                // 
+                std::vector<glm::vec4> gSkyColor = {
+                    glm::vec4(0.9f,0.98,0.999f, 1.f),
+                    glm::vec4(0.9f,0.98,0.999f, 1.f),
+                    glm::vec4(0.9f,0.98,0.999f, 1.f),
+                    glm::vec4(0.9f,0.98,0.999f, 1.f)
+                };
+
+                { // 
+                    this->backgroundImageClass = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(this->driver->getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
+                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                        .extent = {uint32_t(width),uint32_t(height),1u},
+                        .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                    }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
+                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    }).setSampler(this->driver->getDevice().createSampler(vkh::VkSamplerCreateInfo{
+                        .magFilter = VK_FILTER_LINEAR,
+                        .minFilter = VK_FILTER_LINEAR,
+                        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                    }));
+
+                    //
+                    vkt::Vector<> imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
+                            .size = width * height * sizeof(glm::vec4),
+                            .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+                        }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+                    memcpy(imageBuf.data(), rgba = (float*)gSkyColor.data(), width * height * sizeof(glm::vec4));
+
+                    // 
+                    context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
+                        this->backgroundImageClass.transfer(cmd);
+
+                        auto buffer = imageBuf;
+                        cmd.copyBufferToImage(buffer.buffer(), this->backgroundImageClass.getImage(), this->backgroundImageClass.getImageLayout(), { vkh::VkBufferImageCopy{
+                            .bufferOffset = buffer.offset(),
+                            .bufferRowLength = uint32_t(width),
+                            .bufferImageHeight = uint32_t(height),
+                            .imageSubresource = this->backgroundImageClass.subresourceLayers(),
+                            .imageOffset = {0u,0u,0u},
+                            .imageExtent = {uint32_t(width),uint32_t(height),1u},
+                        } });
+                    });
+                };
+            };
+
+            // 
             if (this->backgroundImage) { // 
                 vkh::VsDescriptorHandle<VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 2u,
@@ -144,6 +196,7 @@ namespace jvi {
     protected: // 
         std::vector<vkh::VkDescriptorImageInfo> sampledImages = {};
         std::optional<vkh::VkDescriptorImageInfo> backgroundImage = {};
+        vkt::ImageRegion backgroundImageClass = {};
 
         // 
         vkt::Vector<MaterialUnit> rawMaterials = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...

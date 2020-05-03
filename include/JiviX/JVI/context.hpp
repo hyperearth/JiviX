@@ -183,6 +183,20 @@ namespace jvi {
             return uTHIS;
         };
 
+
+        // 
+        vkt::ImageRegion& getFrameBuffer(const uint32_t& I = 0u) { return this->frameBfImages[I]; };
+        const vkt::ImageRegion& getFrameBuffer(const uint32_t& I = 0u) const { return this->frameBfImages[I]; };
+
+        // 
+        vkt::ImageRegion& getFlip0Buffer(const uint32_t& I = 0u) { return this->smFlip0Images[I]; };
+        const vkt::ImageRegion& getFlip0Buffer(const uint32_t& I = 0u) const { return this->smFlip0Images[I]; };
+
+        // 
+        vkt::ImageRegion& getFlip1Buffer(const uint32_t& I = 0u) { return this->smFlip1Images[I]; };
+        const vkt::ImageRegion& getFlip1Buffer(const uint32_t& I = 0u) const { return this->smFlip1Images[I]; };
+
+
         // 
         virtual std::array<vkt::ImageRegion, 12u>& getFlip0Buffers() {
             return this->smFlip0Images;

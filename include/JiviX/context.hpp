@@ -34,6 +34,9 @@ namespace jvx {
         CALLIFY(getFlip0Buffers);
         CALLIFY(getFlip1Buffers);
         CALLIFY(getFrameBuffers);
+        CALLIFY(getFlip0Buffer);
+        CALLIFY(getFlip1Buffer);
+        CALLIFY(getFrameBuffer);
         CALLIFY(createFramebuffers);
         CALLIFY(createDescriptorSetLayouts);
         CALLIFY(createDescriptorSets);
