@@ -7,8 +7,7 @@ namespace jvx {
     class Node : public Wrap<jvi::Node> { public: using T = jvi::Node;
         Node() {};
         Node(vkt::uni_ptr<jvi::Node> obj) { this->object = obj; };
-        Node(vkt::uni_arg<jvx::Context> context) { this->object = std::make_shared<jvi::Node>(*context); };
-        //Node(jvx::Context context) { this->object = std::make_shared<jvi::Node>(context); };
+        Node(vkt::uni_arg<jvx::Context> context, const uint32_t& MaxInstanceCount = 64u) { this->object = std::make_shared<jvi::Node>(*context, MaxInstanceCount); };
         Node(std::shared_ptr<jvi::Node> obj) { this->object = obj; };
 
         CALLIFY(sharedPtr);

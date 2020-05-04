@@ -641,16 +641,6 @@ namespace jvi {
             rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, conservative ? this->covergenceState : this->rasterizationState);
             rasterCommand.bindVertexBuffers(0u, buffers, offsets);
             rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-
-            // Now, QUAD compatible
-            //if (this->buildGTemp.geometry.triangles.indexType != VK_INDEX_TYPE_NONE_KHR) { // PLC Mode (for Quads)
-            //    rasterCommand.bindIndexBuffer(this->indexData, this->indexData.offset(), vk::IndexType(this->buildGTemp.geometry.triangles.indexType));
-            //    rasterCommand.drawIndexed((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, inputs.size(), this->offsetTemp.firstVertex, 0u, 0u);
-            //}
-            //else { // VAL Mode
-            //    rasterCommand.draw((this->rawMeshInfo[0u].primitiveCount = this->primitiveCount) * 3ull, inputs.size(), this->offsetTemp.firstVertex, 0u);
-            //};
-
             rasterCommand.endRenderPass();
             vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
 

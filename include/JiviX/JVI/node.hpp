@@ -11,9 +11,8 @@ namespace jvi {
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Node : public std::enable_shared_from_this<Node> { public: friend Renderer;
         Node() {};
-        Node(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
-        Node(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
-        //Node(Context* context) : context(context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
+        Node(const vkt::uni_ptr<Context>& context, const uint32_t& MaxInstanceCount = 64u) : context(context), MaxInstanceCount(MaxInstanceCount) { this->construct(); };
+        Node(const std::shared_ptr<Context>& context, const uint32_t& MaxInstanceCount = 64u) : context(context), MaxInstanceCount(MaxInstanceCount) { this->construct(); };
         ~Node() {};
 
         // 
@@ -34,7 +33,7 @@ namespace jvi {
             this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }));
 
             // 
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * 64u, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * MaxInstanceCount, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // FOR BUILD! 
             this->instancHeadInfo = vkh::VkAccelerationStructureBuildGeometryInfoKHR{};
@@ -392,7 +391,7 @@ namespace jvi {
     protected: // 
         std::vector<vkt::uni_ptr<MeshBinding>> meshes = {}; // Mesh list as Template for Instances
         std::vector<uint32_t> mapMeshes = {};
-        uintptr_t MaxInstanceCount = 64;
+        uintptr_t MaxInstanceCount = 64u;
 
         // 
         vkt::Vector<vkh::VsGeometryInstance> rawInstances = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...

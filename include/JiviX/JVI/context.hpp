@@ -26,7 +26,6 @@ namespace jvi {
         Context() {};
         Context(const vkt::uni_ptr<Driver>& driver) : driver(driver) { this->construct(); };
         Context(const std::shared_ptr<Driver>& driver) : driver(driver) { this->construct(); };
-        //Context(Driver* driver) : driver(vkt::uni_ptr(driver)) { this->construct(); };
         ~Context() {};
 
         // 

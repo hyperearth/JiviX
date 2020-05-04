@@ -13,7 +13,6 @@ namespace jvi {
         BufferViewSet() {};
         BufferViewSet(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
         BufferViewSet(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
-        //Material(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
         ~BufferViewSet() {};
 
         // 

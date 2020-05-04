@@ -28,9 +28,8 @@ namespace jvi {
     class Material : public std::enable_shared_from_this<Material> {
     public: friend Renderer;// 
         Material() {};
-        Material(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
-        Material(const std::shared_ptr<Context>& context) : context(context) { this->construct(); };
-        //Material(Context* context) { this->context = vkt::uni_ptr<Context>(context); this->construct(); };
+        Material(const vkt::uni_ptr<Context>& context, const uint32_t& MaxMaterialCount = 64u) : context(context), MaxMaterialCount(MaxMaterialCount){ this->construct(); };
+        Material(const std::shared_ptr<Context>& context, const uint32_t& MaxMaterialCount = 64u) : context(context), MaxMaterialCount(MaxMaterialCount) { this->construct(); };
         ~Material() {};
 
         // 
@@ -43,8 +42,8 @@ namespace jvi {
             this->thread = std::make_shared<Thread>(this->driver);
 
             // 
-            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * 64u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * 64u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * MaxMaterialCount, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * MaxMaterialCount, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
             return uTHIS;
         };
 
@@ -208,6 +207,7 @@ namespace jvi {
         vk::DescriptorSet descriptorSet = {};
 
         // 
+        uintptr_t MaxMaterialCount = 64u;
         vk::DeviceSize materialCounter = 0u;
         vkt::uni_ptr<Driver> driver = {};
         vkt::uni_ptr<Thread> thread = {};
