@@ -110,10 +110,10 @@ namespace jvi {
                 // TODO: other platforms memory handling
                 // create OpenGL version of buffers
 #ifdef ENABLE_OPENGL_INTEROP
-                glCreateBuffers(1u, &this->bindingsOGL[i].second);
-                glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
-                glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
-                glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, MaxPrimitiveCount * 3u * 80u, this->bindingsOGL[i].first, 0u);
+                gl::glCreateBuffers(1u, &this->bindingsOGL[i].second);
+                gl::glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
+                gl::glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, gl::GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
+                gl::glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, MaxPrimitiveCount * 3u * 80u, this->bindingsOGL[i].first, 0u);
 #endif
             };
 
@@ -209,12 +209,12 @@ namespace jvi {
         };
 
 #ifdef ENABLE_OPENGL_INTEROP //
-        virtual GLuint& getBindingBufferGL(const uintptr_t& i = 0u) { return this->bindingsOGL[i].second; };
-        virtual const GLuint& getBindingBufferGL(const uintptr_t& i = 0u) const { return this->bindingsOGL[i].second; };
+        virtual gl::GLuint& getBindingBufferGL(const uintptr_t& i = 0u) { return this->bindingsOGL[i].second; };
+        virtual const gl::GLuint& getBindingBufferGL(const uintptr_t& i = 0u) const { return this->bindingsOGL[i].second; };
 
         // 
-        virtual GLuint& getIndexBufferGL() { return this->indexDataOGL.second; };
-        virtual const GLuint& getIndexBufferGL() const { return this->indexDataOGL.second; };
+        virtual gl::GLuint& getIndexBufferGL() { return this->indexDataOGL.second; };
+        virtual const gl::GLuint& getIndexBufferGL() const { return this->indexDataOGL.second; };
 #endif
 
         // Win32 Only (currently)
@@ -662,7 +662,7 @@ namespace jvi {
     protected: friend MeshBinding; friend Node; friend Renderer; // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indexData = {}; 
 #ifdef ENABLE_OPENGL_INTEROP
-        std::pair<GLuint, GLuint> indexDataOGL = {};
+        std::pair<gl::GLuint, gl::GLuint> indexDataOGL = {};
 #endif
 
         // 
@@ -676,7 +676,7 @@ namespace jvi {
         // 
         std::array<vkt::Vector<uint8_t>, 2> bindings = {};
 #ifdef ENABLE_OPENGL_INTEROP
-        std::array<std::pair<GLuint, GLuint>, 2> bindingsOGL = {};
+        std::array<std::pair<gl::GLuint, gl::GLuint>, 2> bindingsOGL = {};
 #endif
         std::array<uint32_t, 1> bindRange = {0};
 

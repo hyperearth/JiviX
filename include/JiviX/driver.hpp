@@ -29,6 +29,7 @@ namespace jvx {
         CALLIFY(createDevice);
         CALLIFY(getInstanceCreateInfoAddress);
         CALLIFY(getDeviceCreateInfoAddress);
+        CALLIFY(initializeGL);
 
 #ifdef VKT_ENABLE_GLFW_SUPPORT
         CALLIFY(createWindowSurface);

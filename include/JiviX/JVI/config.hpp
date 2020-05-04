@@ -4,7 +4,8 @@
 #include <chrono>
 
 #ifdef ENABLE_OPENGL_INTEROP
-#include <glad/glad.h>
+//#include <glad/glad.h>
+#include <glbinding/glbinding.h>
 #endif
 
 #include <vkt2/fw.hpp>
