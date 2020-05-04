@@ -44,8 +44,6 @@ set (SOURCES_LIST
     "./include/vkh/*.h"
     "./include/vkt2/*.hpp"
     "./include/vkt2/*.h"
-    "./include/glad/*.hpp"
-    "./include/glad/*.h"
     "./include/volk/*.hpp"
     "./include/volk/*.h"
     "./include/*.hpp"
@@ -71,7 +69,7 @@ set (SOURCES_LIST
 )
 
 # Find packages (Linux Prior)
-find_package(Vulkan QUIET)
+find_package(Vulkan REQUIRED)
 find_package(GLFW3 QUIET)
 find_package(PkgConfig QUIET)
 pkg_search_module(GLFW QUIET glfw3)
@@ -116,12 +114,12 @@ endif()
 
 # Vulkan Directories 
 if (Vulkan_INCLUDE_DIR)
-    #set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
+    set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
 endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)
-    #set (LIBS ${LIBS} ${Vulkan_LIBRARY})
+    set (LIBS ${LIBS} ${Vulkan_LIBRARY})
 endif()
 
 # GLFW 
