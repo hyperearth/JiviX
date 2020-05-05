@@ -14,7 +14,7 @@ namespace jvx {
         CALLIFY(sharedPtr);
         CALLIFY(linkMaterial);
         CALLIFY(linkNode);
-        CALLIFY(setupSkyboxedCommand);
+        CALLIFY(setupSkyboxedState);
         CALLIFY(saveDiffuseColor);
         CALLIFY(setupResamplingPipeline);
         CALLIFY(setupResampleCommand);

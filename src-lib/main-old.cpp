@@ -679,7 +679,7 @@ int main() {
     //vk::Semaphore sem = device.createSemaphore(sci);
 
     // 
-    renderer->setupCommands();
+    //renderer->setupCommands();
 
     // 
     while (!glfwWindowShouldClose(manager.window)) { // 
@@ -704,12 +704,12 @@ int main() {
 
             // Create render submission 
             std::vector<vk::Semaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
-            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
+            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
 
             // Submit command once
             //renderer->setupCommands();
             vk::Queue(queue).submit({ vk::SubmitInfo()
-                .setPCommandBuffers(&renderer->refCommandBuffer()).setCommandBufferCount(1u)
+                .setPCommandBuffers(&renderer->setupCommands()->refCommandBuffer()).setCommandBufferCount(1u)
                 .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
                 .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, {});
 

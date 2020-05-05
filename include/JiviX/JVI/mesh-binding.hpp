@@ -360,7 +360,7 @@ namespace jvi {
             // this->fullGeometryCount
             uint32_t f = 0, i = 0, c = 0; for (auto& I : this->inputs) { // Quads needs to format...
                 const auto uOffset = this->primitiveCount * 3u;
-                if (I.has()) {
+                if (I.has()) { // WARNING! Out Of Pool Memory!
                     I->createRasterizePipeline()->createDescriptorSet()->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand);
                 };
 
@@ -758,10 +758,10 @@ namespace jvi {
 
     // Implemented here due undefined type..
     uPTR(MeshInput) MeshInput::buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand) { // 
-         bool DirectCommand = false;
+         bool DirectCommand = false, HasCommand = buildCommand.has() && buildCommand && *buildCommand;
 
          // 
-         if (!buildCommand || ignoreIndirection) {
+         if (!HasCommand || ignoreIndirection) {
              buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
          };
 
@@ -778,7 +778,7 @@ namespace jvi {
          };
 
          // 
-         if (buildCommand && this->needUpdate) {
+         if (HasCommand && this->needUpdate) {
              this->needUpdate = false; // 
              std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
              buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;

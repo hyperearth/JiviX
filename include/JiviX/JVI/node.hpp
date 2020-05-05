@@ -317,8 +317,6 @@ namespace jvi {
 
             // 
             this->offsetsInfo[0u].primitiveCount = this->instanceCounter;
-
-            // 
             this->instancHeadInfo.dstAccelerationStructure = this->accelerationStructure;
             this->instancHeadInfo.ppGeometries = (this->instancPtr = this->instancInfo.data()).ptr();
             this->instancHeadInfo.scratchData = this->gpuScratchBuffer;

@@ -217,7 +217,11 @@ vec4 mul4(in vec4 v, in mat3x4 M) {
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];  // Sampled by gl_FragCoord.xy
 layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // Will used by rasterization stage (writing)
 layout (binding = 2, set = 2, rgba32f) uniform image2D writeBuffer[]; // For EDIT!
+
+// 
 layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
+layout (binding = 1, set = 3, rgba32f) uniform image2D writeImagesBack[];
+
 
 // Material Set
 layout (binding = 0, set = 4) uniform sampler2D textures[];

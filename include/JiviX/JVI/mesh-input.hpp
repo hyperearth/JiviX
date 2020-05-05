@@ -55,6 +55,9 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshInput) createDescriptorSet() { // 
+            if (this->descriptorSetInitialized) {
+                return uTHIS; // TODO: Optional Un-Protect
+            };
 
             // 
             this->descriptorSetHelper = vkh::VsDescriptorSetCreateInfoHelper(this->transformSetLayout[0], this->driver->getDescriptorPool());
@@ -82,7 +85,9 @@ namespace jvi {
 
             // 
             if (this->bvs) { this->bvs->createDescriptorSet(); };
+            this->descriptorSetInitialized = true;
 
+            // 
             return uTHIS;
         };
 
@@ -105,10 +110,10 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
-            bool DirectCommand = false;
+            bool DirectCommand = false, HasCommand = buildCommand.has() && buildCommand && *buildCommand;
 
             // 
-            if (!buildCommand || ignoreIndirection) {
+            if (!HasCommand || ignoreIndirection) {
                 buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
             };
 
@@ -125,7 +130,7 @@ namespace jvi {
             };
 
             // NO! Please, re-make QUAD internally!
-            if (buildCommand && this->needsQuads) { // TODO: scratch buffer
+            if (HasCommand && this->needsQuads) { // TODO: scratch buffer
                 this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->transformPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
@@ -279,6 +284,10 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshInput) createRasterizePipeline() {
+            if (this->transformState) {
+                return uTHIS; // TODO: Optional Un-Protect
+            };
+
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const auto& TFI = vk::PipelineRasterizationStateStreamCreateInfoEXT().setRasterizationStream(0u);
@@ -378,6 +387,7 @@ namespace jvi {
         // 
         vk::DeviceSize currentUnitCount = 0u;
         bool needsQuads = false, needUpdate = true, ignoreIndirection = false;
+        bool descriptorSetInitialized = false;
 
         // 
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};
