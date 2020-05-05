@@ -500,7 +500,7 @@ namespace jvi {
         };
 
         // Öбнулись! Nullify Rendering! Made for Minecraft... 
-        virtual uPTR(MeshBinding) resetMeshInputs(const vkt::uni_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs) {
+        virtual uPTR(MeshBinding) resetMeshInputs() {
             this->fullGeometryCount = 0ull;
             this->needsUpdate = false;
             this->ranges.resize(0u);
