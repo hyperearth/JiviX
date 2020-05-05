@@ -139,9 +139,9 @@ highp uint getMeshID(in RTXInstance instance){
 };
 
 // 
-layout (binding = 6, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
-layout (binding = 7, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[];  // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
-layout (binding = 8, set = 1, scalar) readonly buffer MeshMaterial { uint materialID[]; } geomMTs[];
+//layout (binding = 7, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
+  layout (binding = 8, set = 1, scalar) readonly buffer MeshMaterial { uint materialID[]; } geomMTs[];
+  layout (binding = 6, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 
 // 
 layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;

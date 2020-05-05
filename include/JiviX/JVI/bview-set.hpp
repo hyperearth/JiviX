@@ -91,7 +91,7 @@ namespace jvi {
 
             // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(
-                this->bufferViewSetHelper.setDescriptorSet((this->bufferViewSet = driver->getDevice().allocateDescriptorSets(this->bufferViewSetHelper))[0])
+                this->bufferViewSetHelper.setDescriptorSet((this->bufferViewSet = this->bufferViewSet.size() > 0 && this->bufferViewSet[0u] ? this->bufferViewSet : driver->getDevice().allocateDescriptorSets(this->bufferViewSetHelper))[0])
             ), {});
 
             // 

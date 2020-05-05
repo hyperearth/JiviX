@@ -80,7 +80,7 @@ namespace jvi {
 
             // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(
-                this->descriptorSetHelper.setDescriptorSet((this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetHelper))[0])
+                this->descriptorSetHelper.setDescriptorSet((this->descriptorSet = this->descriptorSet.size() > 0 && this->descriptorSet[0u] ? this->descriptorSet : driver->getDevice().allocateDescriptorSets(this->descriptorSetHelper))[0])
             ), {});
 
             // 

@@ -99,23 +99,29 @@ namespace jvi {
 
         // 
         virtual uPTR(Node) pushInstance(vkt::uni_arg<vkh::VsGeometryInstance> instance = vkh::VsGeometryInstance{}) {
-            if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->fullGeometryCount > 0) {
+            //if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->fullGeometryCount > 0) {
+            if (this->meshes[instance->instanceId]) {
                 const auto instanceID = this->instanceCounter++;
                 const auto meshID = instance->instanceId;
-                this->rawInstances[instanceID] = instance; // List Of Instances
+                //this->rawInstances[instanceID] = instance; // List Of Instances
 
-                // Add Instance ID into Mesh
+                // Add Instance ID into Mesh, and Map Instance With Mesh ID
+                this->prepareInstances.push_back(instance);
                 this->mapMeshes.push_back(meshID);
-                this->meshes[this->mapMeshes.back()]->linkWithInstance(instanceID);
+
+                // 
+                //this->meshes[meshID]->linkWithInstance(instanceID); // UnUsed for Rendering
             };
             return uTHIS;
         };
 
         // 
         virtual uPTR(Node) mapMeshData() {
+            for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); }; uintptr_t I = 0;
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
-                if (this->meshes[this->mapMeshes[i]]->fullGeometryCount > 0 && this->meshes[this->mapMeshes[i]]->mapCount > 0) {
-                    this->rawInstances[i].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(this->meshes[this->mapMeshes[i]]->accelerationStructure, this->driver->getDispatch());
+                auto& Mesh = this->meshes[this->mapMeshes[i]];
+                if (Mesh->fullGeometryCount > 0) { // Link With Found Instances?!
+                    this->prepareInstances[i].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(Mesh->linkWithInstance(I++)->accelerationStructure, this->driver->getDispatch());
                 };
             };
             return uTHIS;
@@ -282,12 +288,12 @@ namespace jvi {
 
             // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->meshDataDescriptorSetInfo.setDescriptorSet(
-                this->context->descriptorSets[0] = (this->meshDataDescriptorSet = driver->getDevice().allocateDescriptorSets(this->meshDataDescriptorSetInfo)[0])
+                this->context->descriptorSets[0] = (this->meshDataDescriptorSet = this->meshDataDescriptorSet ? this->meshDataDescriptorSet : driver->getDevice().allocateDescriptorSets(this->meshDataDescriptorSetInfo)[0])
             )),{});
 
             // 
             driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->bindingsDescriptorSetInfo.setDescriptorSet(
-                this->context->descriptorSets[1] = (this->bindingsDescriptorSet = driver->getDevice().allocateDescriptorSets(this->bindingsDescriptorSetInfo)[0])
+                this->context->descriptorSets[1] = (this->bindingsDescriptorSet = this->bindingsDescriptorSet ? this->bindingsDescriptorSet : driver->getDevice().allocateDescriptorSets(this->bindingsDescriptorSetInfo)[0])
             )),{});
 
             // remap mesh data
@@ -296,7 +302,16 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) copyMeta(const vk::CommandBuffer& copyCommand = {}) {
+        virtual uPTR(Node) copyMeta(const vk::CommandBuffer& copyCommand = {}) { // 
+            this->mapMeshData(); // Needs to Mapping! NOW!
+
+            // Selection Only Accounted Chunks
+            for (auto I = 0; I < std::min(this->prepareInstances.size(), this->rawInstances.size()); I++) {
+                auto& Mesh = this->meshes[this->prepareInstances[I].instanceId];
+                if (Mesh->fullGeometryCount > 0 && Mesh->mapCount > 0) { this->rawInstances[I] = this->prepareInstances[I]; };
+            };
+
+            // 
             vkt::commandBarrier(copyCommand);
             copyCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{.srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
 
@@ -382,7 +397,7 @@ namespace jvi {
             };
 
             // 
-            this->mapMeshData();
+            //this->mapMeshData();
             return uTHIS;
         };
 
@@ -392,6 +407,7 @@ namespace jvi {
         uintptr_t MaxInstanceCount = 64u;
 
         // 
+        std::vector<vkh::VsGeometryInstance> prepareInstances = {};
         vkt::Vector<vkh::VsGeometryInstance> rawInstances = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...
         vkt::Vector<vkh::VsGeometryInstance> gpuInstances = {};
         uint32_t instanceCounter = 0u;

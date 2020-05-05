@@ -181,7 +181,7 @@ namespace jvi {
             };
 
             // Reprojection WILL NOT write own depth... 
-            this->context->descriptorSets[4] = this->descriptorSet = driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
+            this->context->descriptorSets[4] = this->descriptorSet = this->descriptorSet ? this->descriptorSet : driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
             this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)), {});
 
             // 
