@@ -305,10 +305,10 @@ namespace jvi {
         virtual uPTR(Node) copyMeta(const vk::CommandBuffer& copyCommand = {}) { // 
             this->mapMeshData(); // Needs to Mapping! NOW!
 
-            // Selection Only Accounted Chunks
-            for (auto I = 0; I < std::min(this->prepareInstances.size(), this->rawInstances.size()); I++) {
-                auto& Mesh = this->meshes[this->prepareInstances[I].instanceId];
-                if (Mesh->fullGeometryCount > 0 && Mesh->mapCount > 0) { this->rawInstances[I] = this->prepareInstances[I]; };
+            auto I = 0u; // Selection Only Accounted Chunks
+            for (auto i = 0; i < std::min(this->prepareInstances.size(), this->rawInstances.size()); i++) {
+                auto& Instance = this->prepareInstances[i]; auto& Mesh = this->meshes[Instance.instanceId];
+                if (Mesh->fullGeometryCount > 0 && Mesh->mapCount > 0) { this->rawInstances[I++] = Instance; };
             };
 
             // 
