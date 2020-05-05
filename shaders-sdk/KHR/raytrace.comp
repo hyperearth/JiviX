@@ -314,6 +314,9 @@ void main() {
 
     // 
 #ifdef RAY_TRACE
+    if (!checker) { // TODO: Fix Broken Transparency
+        
+    } else 
     if ( (RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f || SUF.diffuseColor.w > 0.001f && SUF.geoNormal.w < 9999.f) && checker ) {
         //vec3 forigin = (origin = RES.origin.xyz), fraydir = raydir, fnormal = RES.mapNormal.xyz;
         //TBN[2] = normalize(faceforward(TBN[2], fraydir.xyz, TBN[2]));
