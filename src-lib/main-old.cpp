@@ -636,7 +636,7 @@ int main() {
     context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 10000.));
 
     // initialize program
-    renderer->setupCommands();
+    //renderer->setupCommands();
 
     //  
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
@@ -679,7 +679,10 @@ int main() {
     //vk::Semaphore sem = device.createSemaphore(sci);
 
     // 
-    while (!glfwWindowShouldClose(manager.window)) {
+    renderer->setupCommands();
+
+    // 
+    while (!glfwWindowShouldClose(manager.window)) { // 
         glfwPollEvents();
 
         // 
@@ -687,7 +690,7 @@ int main() {
         currSemaphore = (c_semaphore = c_semaphore >= 0 ? c_semaphore : int64_t(framebuffers.size()) + c_semaphore); // Current Semaphore
         (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
 
-// 
+        // 
         vk::Device(device).waitForFences({ framebuffers[c_semaphore].waitFence }, true, 30ull * 1000ull * 1000ull * 1000ull);
         vk::Device(device).resetFences({ framebuffers[c_semaphore].waitFence });
 
@@ -698,6 +701,20 @@ int main() {
         { // submit rendering (and wait presentation in device)
             std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.f}), vk::ClearDepthStencilValue(1.0f, 0) };
             Shared::TimeCallback(double(context->registerTime()->setModelView(cameraController->handle().project())->drawTime()));
+
+            // Create render submission 
+            std::vector<vk::Semaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
+            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
+
+            // Submit command once
+            //renderer->setupCommands();
+            vk::Queue(queue).submit({ vk::SubmitInfo()
+                .setPCommandBuffers(&renderer->refCommandBuffer()).setCommandBufferCount(1u)
+                .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
+                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, {});
+
+            // 
+            waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
 
             // create command buffer (with rewrite)
             vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
@@ -712,19 +729,6 @@ int main() {
                 commandBuffer.endRenderPass();
                 commandBuffer.end();
             };
-
-            // Create render submission 
-            std::vector<vk::Semaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
-            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
-
-            // Submit command once
-            vk::Queue(queue).submit({ vk::SubmitInfo()
-                .setPCommandBuffers(&renderer->refCommandBuffer()).setCommandBufferCount(1u)
-                .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
-                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, {});
-
-            // 
-            waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
 
             // Submit command once
             vk::Queue(queue).submit({ vk::SubmitInfo()

@@ -200,20 +200,25 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // TODO: Fix Command Create For Every Frame
         virtual uPTR(Renderer) setupCommands(vkt::uni_arg<vk::CommandBuffer> cmdBuf = {}, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
             // 
-            if (!initialized) {
-                this->setupRenderer();
-            };
+            if (!this->initialized) { this->setupRenderer(); };
+
+            // Use Current Command Swapness
+            auto& currentCmd = this->cmdBuf[this->current^=1];
 
             // 
-            bool cmdArg = cmdBuf.has() && *cmdBuf; //!(!cmdBuf || !(*cmdBuf));
-            if (!cmdArg && !cmdbuf) { this->cmdbuf = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread)); };
-            if (!cmdArg) { cmdBuf = this->cmdbuf; };
+            const bool hasBuf = cmdBuf.has() && cmdBuf && *cmdBuf;
+            if (!hasBuf) {
+                if (currentCmd) { vk::Device(*thread).freeCommandBuffers(vk::CommandPool(*thread), { currentCmd }); currentCmd = vk::CommandBuffer{}; };
+                if (!currentCmd) { currentCmd = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread)); };
+            } else {
+                currentCmd = cmdBuf;
+            };
 
             // 
             if (this->node->meshDataDescriptorSet) { this->context->descriptorSets[0] = this->node->meshDataDescriptorSet; };
@@ -231,76 +236,79 @@ namespace jvi {
             // prepare meshes for ray-tracing
             auto I = 0u;
             if (parameters->eEnableCopyMeta) {
-                //cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
-                cmdBuf->copyBuffer(context->uniformGPUData, context->uniformGPUData, { vk::BufferCopy(context->uniformGPUData.offset() + offsetof(Matrices, modelview ), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev),  96ull) }); // reserve previous projection (for adaptive denoise)
-                cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection   ), 224ull) });
-                cmdBuf->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, mdata     ), context->uniformGPUData.offset() + offsetof(Matrices, mdata        ),  32ull) });
+                //currentCmd->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
+                currentCmd.copyBuffer(context->uniformGPUData, context->uniformGPUData, { vk::BufferCopy(context->uniformGPUData.offset() + offsetof(Matrices, modelview ), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev),  96ull) }); // reserve previous projection (for adaptive denoise)
+                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection   ), 224ull) });
+                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, mdata     ), context->uniformGPUData.offset() + offsetof(Matrices, mdata        ),  32ull) });
 
-                I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(cmdBuf); }; vkt::commandBarrier(cmdBuf); 
-                this->materials->copyBuffers(cmdBuf);
-                this->node->copyMeta(cmdBuf);
+                I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(currentCmd); }; vkt::commandBarrier(currentCmd);
+                this->materials->copyBuffers(currentCmd);
+                this->node->copyMeta(currentCmd);
             };
             if (parameters->eEnableBuildGeometry) {
-                I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
+                I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(currentCmd);
             };
             if (parameters->eEnableBuildAccelerationStructure) {
-                I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(cmdBuf, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(cmdBuf);
-                this->node->buildAccelerationStructure(cmdBuf);
+                I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(currentCmd);
+                this->node->buildAccelerationStructure(currentCmd);
             };
 
             // Compute ray-tracing (RTX)
             if (parameters->eEnableRayTracing) {
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
-                cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-                cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
-                cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-                cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
-                vkt::commandBarrier(cmdBuf);
+                currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+                currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
+                currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
+                currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+                vkt::commandBarrier(currentCmd);
             };
 
             // Make resampling pipeline 
             if (parameters->eEnableResampling) {
-                this->setupResampleCommand(cmdBuf);
-                vkt::commandBarrier(cmdBuf);
+                this->setupResampleCommand(currentCmd);
+                vkt::commandBarrier(currentCmd);
             };
 
             // Denoise diffuse data
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
-            cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->denoiseState);
-            cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
-            vkt::commandBarrier(cmdBuf);
+            currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->denoiseState);
+            currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
+            currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+            vkt::commandBarrier(currentCmd);
 
             // Use that version as previous frame
             if (parameters->eEnableResampling) {
                 for (uint32_t i = 0; i < 12u; i++) {
-                    cmdBuf->copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
+                    currentCmd.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
                         this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
                     ) });
                 };
-                vkt::commandBarrier(cmdBuf);
+                vkt::commandBarrier(currentCmd);
             };
 
             // Denoise reflection data
-            cmdBuf->bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            cmdBuf->bindPipeline(vk::PipelineBindPoint::eCompute, this->reflectState);
-            cmdBuf->pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            cmdBuf->dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
-            vkt::commandBarrier(cmdBuf);
+            currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->reflectState);
+            currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
+            currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+            vkt::commandBarrier(currentCmd);
 
             // 
-            if (!cmdArg) { cmdBuf->end(); };
+            if (!hasBuf) { currentCmd.end(); };
             return uTHIS;
         };
 
         // 
-        vk::CommandBuffer& refCommandBuffer() { return cmdbuf; };
-        const vk::CommandBuffer& refCommandBuffer() const { return cmdbuf; };
+        vk::CommandBuffer& refCommandBuffer() { return this->cmdBuf[current]; };
+        const vk::CommandBuffer& refCommandBuffer() const { return this->cmdBuf[current]; };
 
     protected: // 
         //std::vector<vk::CommandBuffer> commands = {};
-        vk::CommandBuffer cmdbuf = {};
+        //vkt::uni_arg<vk::CommandBuffer> cmdbuf = {};
+
+        //std::array<vkt::uni_arg<vk::CommandBuffer>, 2> cmdBuf = {}; uint8_t current = 1u;
+        std::array<vk::CommandBuffer, 2> cmdBuf = {}; uint8_t current = 1u; // TODO: Comfort SWAP Class
 
         // binding data
         vkt::uni_ptr<Material> materials = {}; // materials
