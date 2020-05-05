@@ -112,6 +112,9 @@ namespace jvi {
         virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand = {}) { // 
             bool DirectCommand = false, HasCommand = buildCommand.has() && buildCommand && *buildCommand;
 
+            // Initialize Input (Early)
+            if (this->needsQuads) { this->createRasterizePipeline()->createDescriptorSet(); };
+
             // 
             if (!HasCommand || ignoreIndirection) {
                 buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
@@ -129,7 +132,7 @@ namespace jvi {
                 this->descriptorSet[1u] = this->bvs->getDescriptorSet();
             };
 
-            // NO! Please, re-make QUAD internally!
+            // NO! Please, re-make QUAD internally! (P.S. MeshBinding)
             if (HasCommand && this->needsQuads) { // TODO: scratch buffer
                 this->needsQuads = false; // FOR MINECRAFT ONLY! 
                 this->quadInfo.layout = this->transformPipelineLayout;

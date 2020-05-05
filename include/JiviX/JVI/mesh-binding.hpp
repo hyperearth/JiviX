@@ -1,4 +1,4 @@
-#pragma once // #
+﻿#pragma once // #
 
 #include "./config.hpp"
 #include "./driver.hpp"
@@ -360,9 +360,7 @@ namespace jvi {
             // this->fullGeometryCount
             uint32_t f = 0, i = 0, c = 0; for (auto& I : this->inputs) { // Quads needs to format...
                 const auto uOffset = this->primitiveCount * 3u;
-                if (I.has()) { // WARNING! Out Of Pool Memory!
-                    I->createRasterizePipeline()->createDescriptorSet()->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand);
-                };
+                if (I.has()) { I->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand); };
 
                 // copy as template, use as triangle...
                 auto offsetp = this->offsetTemp;
@@ -493,6 +491,14 @@ namespace jvi {
             return uTHIS;
         };
 
+        // Öбнулись! Nullify Rendering! Made for Minecraft... 
+        virtual uPTR(MeshBinding) resetMeshInputs(const vkt::uni_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs) {
+            this->fullGeometryCount = 0ull;
+            this->needsUpdate = false;
+            this->ranges.resize(0u);
+            this->inputs.resize(0u);
+            return uTHIS;
+        };
 
         // 
         virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const std::vector<int32_t>& materialIDs) {
@@ -759,6 +765,9 @@ namespace jvi {
     // Implemented here due undefined type..
     uPTR(MeshInput) MeshInput::buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand) { // 
          bool DirectCommand = false, HasCommand = buildCommand.has() && buildCommand && *buildCommand;
+
+         // Initialize Input
+         this->createRasterizePipeline()->createDescriptorSet();
 
          // 
          if (!HasCommand || ignoreIndirection) {

@@ -204,6 +204,7 @@ namespace jvi {
         virtual uPTR(Renderer) setupCommands(vkt::uni_arg<vk::CommandBuffer> cmdBuf = {}, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
+            const bool once = true;
 
             // 
             if (!this->initialized) { this->setupRenderer(); };
@@ -214,8 +215,9 @@ namespace jvi {
             // 
             const bool hasBuf = cmdBuf.has() && cmdBuf && *cmdBuf;
             if (!hasBuf) {
-                if (currentCmd) { vk::Device(*thread).freeCommandBuffers(vk::CommandPool(*thread), { currentCmd }); currentCmd = vk::CommandBuffer{}; };
-                if (!currentCmd) { currentCmd = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread), false, false); };
+                //if (currentCmd) { vk::Device(*thread).freeCommandBuffers(vk::CommandPool(*thread), { currentCmd }); currentCmd = vk::CommandBuffer{}; };
+                //if (!currentCmd) { currentCmd = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread), false, once); };
+                currentCmd = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread), false, once);
             } else {
                 currentCmd = cmdBuf;
             };
