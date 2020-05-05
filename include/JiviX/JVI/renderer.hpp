@@ -162,7 +162,10 @@ namespace jvi {
             resampleCommand.setScissor(0, { renderArea });
             resampleCommand.draw(renderArea.extent.width, renderArea.extent.height, 0u, 0u);
             resampleCommand.endRenderPass();
-            vkt::commandBarrier(resampleCommand);
+            //vkt::commandBarrier(resampleCommand);
+
+            // 
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // 
             return uTHIS;
@@ -272,44 +275,18 @@ namespace jvi {
             };
 
             // Denoise diffuse data
-            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
             currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->denoiseState);
             currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
             currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(currentCmd);
 
-            // Use that version as previous frame (UNABLE TO RESOLVE, NEED MUCH MORE BUFFERS, 4X MORE!)
-            /*
-            if (parameters->eEnableResampling) {
-                for (uint32_t i = 0; i < 12u; i++) {
-                    currentCmd.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
-                        this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
-                    ) });
-
-                    // required fix access
-                    //commandImageBarrier(currentCmd, this->context->smFlip0Images[i], this->context->smFlip1Images[i]);
-                };
-                vkt::commandBarrier(currentCmd);
-            };*/
-
             // Denoise reflection data
-            //this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
             currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
             currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->reflectState);
             currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
             currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(currentCmd);
-
-            // Use that version as previous frame 
-            /*if (parameters->eEnableResampling) {
-                for (uint32_t i = 0; i < 12u; i++) {
-                    currentCmd.copyImage(this->context->smFlip0Images[i], this->context->smFlip0Images[i], this->context->smFlip1Images[i], this->context->smFlip1Images[i], { vk::ImageCopy(
-                        this->context->smFlip0Images[i], vk::Offset3D{0u,0u,0u}, this->context->smFlip1Images[i], vk::Offset3D{0u,0u,0u}, vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
-                    ) });
-                };
-                vkt::commandBarrier(currentCmd);
-            };*/
 
             // 
             if (!hasBuf) { currentCmd.end(); };
