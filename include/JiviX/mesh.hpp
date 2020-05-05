@@ -12,7 +12,6 @@ namespace jvx {
         BufferViewSet() {};
         BufferViewSet(vkt::uni_ptr<jvi::BufferViewSet> obj) { this->object = obj; };
         BufferViewSet(vkt::uni_arg<jvx::Context> context) { this->object = std::make_shared<jvi::BufferViewSet>(*context); };
-        //BufferViewSet(jvx::Context context) { this->object = std::make_shared<jvi::BufferViewSet>(context); };
         BufferViewSet(std::shared_ptr<jvi::BufferViewSet> obj) { this->object = obj; };
 
         CALLIFY(sharedPtr);
@@ -32,7 +31,6 @@ namespace jvx {
         MeshInput() {};
         MeshInput(vkt::uni_ptr<jvi::MeshInput> obj) { this->object = obj; };
         MeshInput(vkt::uni_arg<jvx::Context> context) { this->object = std::make_shared<jvi::MeshInput>(*context); };
-        //MeshInput(jvx::Context context) { this->object = std::make_shared<jvi::MeshInput>(context); };
         MeshInput(std::shared_ptr<jvi::MeshInput> obj) { this->object = obj; };
 
         CALLIFY(sharedPtr);
@@ -40,7 +38,6 @@ namespace jvx {
         CALLIFY(createDescriptorSet);
         CALLIFY(copyMeta);
         CALLIFY(buildGeometry);
-        //CALLIFY(getOffsetMeta);
         CALLIFY(addBinding);
         CALLIFY(manifestIndex);
         CALLIFY(addAttribute);
@@ -52,6 +49,7 @@ namespace jvx {
         CALLIFY(linkCounterBuffer);
         CALLIFY(linkBViewSet);
         CALLIFY(getIndexCount);
+        //CALLIFY(getOffsetMeta);
 
         vkt::uni_ptr<jvi::MeshInput> linkBViewSet(vkt::uni_arg<jvx::BufferViewSet> node) {
             return object->linkBViewSet(node->sharedPtr());
@@ -65,7 +63,6 @@ namespace jvx {
           MeshBinding(vkt::uni_ptr<jvi::MeshBinding> obj) { this->object = obj; };
           MeshBinding(vkt::uni_arg<jvx::Context> context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
           MeshBinding(vkt::uni_arg<jvx::Context> context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) { this->object = std::make_shared<jvi::MeshBinding>(*context, MaxPrimitiveCount, GeometryInitial); };
-          //MeshBinding(jvx::Context context, vk::DeviceSize MaxPrimitiveCount = jvi::MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) { this->object = std::make_shared<jvi::MeshBinding>(context, MaxPrimitiveCount, GeometryInitial); };
           MeshBinding(std::shared_ptr<jvi::MeshBinding> obj) { this->object = obj; };
 
           CALLIFY(sharedPtr);
@@ -92,6 +89,7 @@ namespace jvx {
           CALLIFY(createRasterizePipeline);
           CALLIFY(createRasterizeCommand);
           CALLIFY(addRangeInput);
+          CALLIFY(resetMeshInputs);
 
 #ifdef ENABLE_OPENGL_INTEROP //
           CALLIFY(getIndexBufferGL);
