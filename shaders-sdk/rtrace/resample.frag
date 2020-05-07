@@ -11,10 +11,12 @@ layout (location = 2) in vec4 gNormal;
 layout (location = 3) in vec4 wPosition;
 layout (location = 4) in vec4 gSpecular;
 layout (location = 5) in vec4 gRescolor;
+layout (location = 6) in vec4 gSmooth;
 
 // 
 layout (location = IW_INDIRECT) out vec4 oDiffused;
 layout (location = IW_REFLECLR) out vec4 oSpecular;
+layout (location = IW_SMOOTHED) out vec4 oSmoothed;
 
 // 
 const vec2 shift[9] = {
@@ -62,5 +64,6 @@ void main() { // Currently NO possible to compare
     if (checkCorrect(vec4(gSample.xyz,1.f), i2fxm)) {
         oDiffused = gColor;
         oSpecular = vec4(gSpecular.xyz,gSpecular.w*0.5f); // TODO: Make New Reflection Sampling
+        oSmoothed = gSmooth;
     } else { discard; };
 };

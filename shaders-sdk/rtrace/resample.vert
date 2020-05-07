@@ -9,6 +9,7 @@ layout (location = 2) out vec4 gNormal;
 layout (location = 3) out vec4 wPosition;
 layout (location = 4) out vec4 gSpecular;
 layout (location = 5) out vec4 gRescolor;
+layout (location = 6) out vec4 gSmooth;
 
 out gl_PerVertex {   // some subset of these members will be used
     vec4 gl_Position;
@@ -27,6 +28,7 @@ void main() {
     const vec4 diffcolor = imageLoad(writeImages[IW_INDIRECT],f2fx);
     const vec4 normaling = imageLoad(writeImages[IW_GEONORML],f2fx);
     const vec4 speccolor = imageLoad(writeImages[IW_REFLECLR],f2fx);
+    const vec4 smoothedc = imageLoad(writeImages[IW_SMOOTHED],f2fx);
 
     // 
     const uvec2 iIndices = floatBitsToUint(imageLoad(writeImages[IW_GEOMETRY],f2fx).xy);
@@ -53,6 +55,7 @@ void main() {
         gSpecular = vec4(speccolor.xyz,1.f);
         gSample = vec4(gl_Position.xyz,1.f), gSample.y *= -1.f;
         gNormal = vec4(normaling.xyz,1.f);
+        gSmooth = smoothedc;
         wPosition = positions;
     };
 };

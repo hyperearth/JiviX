@@ -18,6 +18,7 @@ vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_
 vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
 
 // With Resampling
+vec4 getSmoothed   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_SMOOTHED]); return imageLoad(writeImages[IW_SMOOTHED],ivec2(map.x,size.y-map.y-1)); };
 vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
 vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],ivec2(map.x,size.y-map.y-1)); };
 
@@ -110,7 +111,9 @@ void main() { // TODO: explicit sampling
     const vec3 normal = getNormal(samplep).xyz;
 
     // 
-    diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
+    //diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
+    //if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
+    diffused = getSmoothed(samplep), diffused /= max(diffused.w, 1.f);
     if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
 
     // 

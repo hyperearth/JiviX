@@ -262,8 +262,8 @@ void main() {
 
     //
     packed = pack32(u16vec2(curPixel)), seed = uvec2(packed, rdata.x);
-      const vec2 shift = random2(seed), pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
-    //const vec2 shift = 0.5f.xx,       pixel = (vec2(invPixel)+0.5f)+(shift*2.f-1.f)*0.5f;
+      const vec2 shift = random2(seed), pixel = vec2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
+    //const vec2 shift = 0.5f.xx,       pixel = vec2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
     
 
     // 
@@ -308,6 +308,18 @@ void main() {
     imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx, 0.f));
     imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
     imageStore(writeImages[nonuniformEXT(IW_MAPNORML)], ivec2(lanQ), vec4(RES.mapNormal.xyz, RES.geoNormal.w < 9999.f ? 1.f : 0.f));
+
+
+    // Make Visible Color as Anti-Aliased!
+    vec4 diffused = vec4(RES.diffuseColor.xyz, 1.f);
+    vec4 emission = vec4(RES.emissionColor.xyz, 1.f);
+    diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
+    if (SUF.txcmid.z < 0.99f) { 
+        diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz;
+        diffused.xyz += emission.xyz;
+    };
+    imageStore(writeImages[nonuniformEXT(IW_SMOOTHED)], ivec2(lanQ), vec4(diffused));
+
 
     //
     vec4 adaptiveData = 10000.f.xxxx;
@@ -379,7 +391,7 @@ void main() {
                     } else 
                     if ( result.diffuseColor.w > 0.001f ) {
                         if (couldReflection) {
-                            gEnergy *= vec4(mix(1.f.xxx, result.diffuseColor.xyz, result.specularColor.zzz), 1.f);
++                            gEnergy *= vec4(mix(1.f.xxx, result.diffuseColor.xyz, result.specularColor.zzz), 1.f);
                         } else {
                             gSignal.xyz += gEnergy.xyz * result.emissionColor.xyz * result.emissionColor.w;
                             gEnergy *= vec4(max(result.diffuseColor.xyz - clamp(result.emissionColor.xyz*result.emissionColor.w,0.f.xxx,1.f.xxx), 0.f.xxx), 1.f);
@@ -433,6 +445,7 @@ void main() {
     imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w)); // Stay The Same... 
     //imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ))); // Broken!
     imageStore(writeBuffer[nonuniformEXT(BW_GEONORML)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ)));
+    imageStore(writeBuffer[nonuniformEXT(BW_SMOOTHED)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_SMOOTHED)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_MATERIAL)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_REFLECLR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_TRANSPAR)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ)));
