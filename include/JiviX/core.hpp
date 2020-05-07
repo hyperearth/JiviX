@@ -20,7 +20,7 @@ namespace jvx {
 
         // 
         virtual operator T& () { return object.ref(); };
-        virtual operator const T& () const { return object.ref(); };
+        //virtual operator const T& () const { return object.ref(); };
 
         // 
         virtual operator T* () { return object.ptr(); };
@@ -38,7 +38,7 @@ namespace jvx {
         virtual T* operator->() { return object.ptr(); };
         virtual T& operator*() { return object.ref(); };
         virtual const T* operator->() const { return object.ptr(); };
-        virtual const T& operator*() const { return object.ref(); };
+        //virtual const T& operator*() const { return object.ref(); };
 
     protected: friend Wrap; friend T; // 
         vkt::uni_ptr<T> object = {};
