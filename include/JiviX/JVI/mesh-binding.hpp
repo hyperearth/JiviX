@@ -133,7 +133,7 @@ namespace jvi {
             this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 64u }); // BiNormals
 
             // FOR QUADS RESERVED!
-            this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
+            //this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
             //this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .binding = 1, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
 
             // 
@@ -247,7 +247,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // DEPRECATED
         virtual uPTR(MeshBinding) setGeometryCount(const uint32_t& geometryCount = 1u) {
             //this->geometryCount = geometryCount;
             return uTHIS;
@@ -255,14 +255,14 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) setTransformData(const vkt::uni_arg<vkt::Vector<glm::mat3x4>>& transformData = {}, const uint32_t& stride = sizeof(glm::mat3x4)) {
-            //this->offsetTemp.transformOffset = transformData.offset(); //!!
+            this->offsetTemp.transformOffset = transformData->offset(); //!!
             this->buildGTemp.geometry.triangles.transformData = transformData->deviceAddress();
             this->transformStride = stride; // used for instanced correction
             this->rawMeshInfo[0u].hasTransform = 1u;
             return uTHIS;
         };
 
-        // 
+        // FOR INTERNAL USAGE ONLY!! 
         //template<class T = uint8_t>
         inline uPTR(MeshBinding) setBinding(vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = binding->binding;
@@ -273,7 +273,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // DEPRECATED!
+        // FOR INTERNAL USAGE ONLY!! 
         virtual uPTR(MeshBinding) setAttribute(vkt::uni_arg<vkh::VkVertexInputAttributeDescription> attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
             const uintptr_t bindingID = attribute->binding;
             const uintptr_t locationID = attribute->location;
@@ -288,7 +288,7 @@ namespace jvi {
                 const auto& bindingBuffer = this->bindings[bindingID];
 
                 // 
-                //this->offsetTemp.primitiveOffset = bindingBuffer.offset() + attribute->offset; // !!WARNING!!
+                this->offsetTemp.primitiveOffset = bindingBuffer.offset() + attribute->offset; // !!WARNING!!
                 this->buildGTemp.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
                 this->buildGTemp.geometry.triangles.vertexFormat = attribute->format;
                 this->buildGTemp.geometry.triangles.vertexStride = bindingData.stride;
@@ -375,7 +375,7 @@ namespace jvi {
             return this->buildAccelerationStructure(VkCommandBuffer(buildCommand), meshData);
         };*/
 
-        //
+        // 
         virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
