@@ -34,12 +34,12 @@ namespace jvi {
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
 
             // 
-            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
+            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
 
             // for faster code, pre-initialize
             this->stages = {
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1})
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/transform.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/transform.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1})
             };
 
             // transformPipelineLayout
@@ -115,7 +115,7 @@ namespace jvi {
 
             // 
             if (!HasCommand || ignoreIndirection) {
-                buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
+                buildCommand = vkt::createCommandBuffer(this->driver->getDeviceDispatch(), this->thread->getCommandPool()); DirectCommand = true;
             };
 
             // 
@@ -136,7 +136,7 @@ namespace jvi {
                 this->quadInfo.layout = this->transformPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
                 if (!this->quadGenerator) {
-                    this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), VkPipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
+                    this->quadGenerator = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->quadStage), VkPipelineLayout(this->quadInfo.layout), this->driver->getPipelineCache());
                 };
 
                 // 
@@ -148,7 +148,7 @@ namespace jvi {
                 this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->quadGenerator);
                 this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), &meta);
                 this->driver->getDeviceDispatch()->CmdDispatch(buildCommand, ucount, 1u, 1u);
-                vkt::commandBarrier(buildCommand);
+                vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
                 // Now should to be triangles!
                 if (this->indexData) {
@@ -157,7 +157,7 @@ namespace jvi {
             };
 
             if (DirectCommand) {
-                vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
+                vkt::submitCmd(this->driver->getDeviceDispatch(), this->thread->getQueue(), { buildCommand });
                 this->driver->getDeviceDispatch()->FreeCommandBuffers(this->thread->getCommandPool(), 1u, buildCommand);
             };
 

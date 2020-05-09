@@ -55,14 +55,14 @@ namespace jvi {
 
             // for faster code, pre-initialize
             this->stages = {
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
             };
 
             // 
             this->ctages = {
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/covergence.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
             };
 
             // 
@@ -753,7 +753,7 @@ namespace jvi {
 
          // 
          if (!HasCommand || ignoreIndirection) {
-             buildCommand = vkt::createCommandBuffer(this->thread->getDevice(), this->thread->getCommandPool()); DirectCommand = true;
+             buildCommand = vkt::createCommandBuffer(this->driver->getDeviceDispatch(), this->thread->getCommandPool()); DirectCommand = true;
          };
 
          // 
@@ -797,7 +797,7 @@ namespace jvi {
              // 
              //vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
              this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, binding->counterData.buffer(), binding->counterData.offset(), sizeof(glm::uvec4), &glm::uvec4(0u));
-             vkt::commandBarrier(buildCommand);
+             vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
              // 
              const auto& gOffset = offsetHelp->y;
@@ -827,11 +827,11 @@ namespace jvi {
              this->driver->getDeviceDispatch()->CmdEndRenderPass(buildCommand);
 
              //vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
-             vkt::commandBarrier(buildCommand); // dont transform feedback
+             vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // dont transform feedback
          };
 
          if (DirectCommand) {
-             vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
+             vkt::submitCmd(this->driver->getDeviceDispatch(), this->thread->getQueue(), { buildCommand });
              this->driver->getDeviceDispatch()->FreeCommandBuffers(this->thread->getCommandPool(), 1u, buildCommand);
              //this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
          };

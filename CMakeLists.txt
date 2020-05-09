@@ -119,7 +119,7 @@ endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)
-    set (LIBS ${LIBS} ${Vulkan_LIBRARY})
+    #set (LIBS ${LIBS} ${Vulkan_LIBRARY}) #Da poshlo ono... 
 endif()
 
 # GLFW 

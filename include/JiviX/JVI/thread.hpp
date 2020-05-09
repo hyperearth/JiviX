@@ -96,14 +96,14 @@ namespace jvi {
 
         // 
         virtual uPTR(Thread) submitOnce(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
-            vkt::submitOnce(VkDevice(*this), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi);
+            vkt::submitOnce(this->driver->getDeviceDispatch(), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi);
             return uTHIS;
         };
 
         // Async Version
         virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
-                vkt::submitOnceAsync(VkDevice(*this), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi).get();
+                vkt::submitOnceAsync(this->driver->getDeviceDispatch(), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi).get();
                 return uPTR(Thread)(uTHIS);
             });
         };
@@ -111,14 +111,14 @@ namespace jvi {
         // Async Version
         virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
-                vkt::submitCmdAsync(VkDevice(*this), VkQueue(*this), cmds, smbi).get();
+                vkt::submitCmdAsync(this->driver->getDeviceDispatch(), VkQueue(*this), cmds, smbi).get();
                 return uPTR(Thread)(uTHIS);
             });
         };
 
         // 
         virtual uPTR(Thread) submitCmd(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
-            vkt::submitCmd(VkDevice(*this), VkQueue(*this), cmds, smbi);
+            vkt::submitCmd(this->driver->getDeviceDispatch(), VkQueue(*this), cmds, smbi);
             return uTHIS;
         };
 

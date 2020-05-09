@@ -309,14 +309,14 @@ namespace jvi {
             };
 
             // 
-            vkt::commandBarrier(copyCommand);
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), copyCommand);
             driver->getDeviceDispatch()->CmdCopyBuffer(copyCommand, this->rawInstances, this->gpuInstances, 1u, vkh::VkBufferCopy{.srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() });
 
             // 
             for (uint32_t i = 0; i < this->meshes.size(); i++) { auto& mesh = this->meshes[i];
                 driver->getDeviceDispatch()->CmdCopyBuffer(copyCommand, mesh->rawMeshInfo, this->gpuMeshInfo, 1u, vkh::VkBufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() });
             };
-            vkt::commandBarrier(copyCommand);
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), copyCommand);
 
             // 
             return uTHIS;
@@ -338,7 +338,7 @@ namespace jvi {
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
                 //vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
                 driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()));
-                vkt::commandBarrier(buildCommand); this->needsUpdate = true;
+                vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); this->needsUpdate = true;
                 //vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
                 driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()));

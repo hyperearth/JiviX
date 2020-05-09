@@ -650,8 +650,8 @@ int main() {
     //  
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
     pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
+        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/render.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/render.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
     });
     pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
     pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->renderPass;//context->refRenderPass();
@@ -736,7 +736,7 @@ int main() {
             // create command buffer (with rewrite)
             VkCommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
-                commandBuffer = vkt::createCommandBuffer(device, commandPool, false, false); // do reference of cmd buffer
+                commandBuffer = vkt::createCommandBuffer(fw->getDeviceDispatch(), commandPool, false, false); // do reference of cmd buffer
 
                 decltype(auto) descriptorSets = context->getDescriptorSets();
                 fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data()}, VK_SUBPASS_CONTENTS_INLINE);
