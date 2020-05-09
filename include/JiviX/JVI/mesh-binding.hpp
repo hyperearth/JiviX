@@ -13,10 +13,10 @@ namespace jvi {
     // TODO: Descriptor Sets
     class MeshBinding : public std::enable_shared_from_this<MeshBinding> { public: friend Node; friend Renderer; friend MeshInput;
         MeshBinding() {};
-        MeshBinding(const std::shared_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
-        MeshBinding(const std::shared_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<vk::DeviceSize>(GeometryInitial)) { this->construct(); };
-        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<vk::DeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
-        MeshBinding(const vkt::uni_ptr<Context>& context, vk::DeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<vk::DeviceSize>(GeometryInitial)) { this->construct(); };
+        MeshBinding(const std::shared_ptr<Context>& context, VkDeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<VkDeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
+        MeshBinding(const std::shared_ptr<Context>& context, VkDeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<VkDeviceSize>(GeometryInitial)) { this->construct(); };
+        MeshBinding(const vkt::uni_ptr<Context>& context, VkDeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, std::vector<VkDeviceSize> GeometryInitial = {}) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(GeometryInitial) { this->construct(); };
+        MeshBinding(const vkt::uni_ptr<Context>& context, VkDeviceSize MaxPrimitiveCount, std::vector<int64_t> GeometryInitial) : context(context), MaxPrimitiveCount(MaxPrimitiveCount), GeometryInitial(vkt::vector_cast<VkDeviceSize>(GeometryInitial)) { this->construct(); };
         ~MeshBinding() {};
 
         // 
@@ -54,22 +54,23 @@ namespace jvi {
             this->gpuInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = std::max(GeometryInitial.size(), 64ull) * sizeof(uint32_t), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // for faster code, pre-initialize
-            this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vk::ShaderStageFlagBits::eVertex),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+            this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
             });
 
             // 
-            this->ctages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.vert.spv"), vk::ShaderStageFlagBits::eVertex),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+            this->ctages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
             });
 
             // 
             vkt::MemoryAllocationInfo almac = {};
             almac.device = this->driver->getDevice();
-            almac.dispatch = this->driver->getDispatch();
             almac.memoryProperties = this->driver->getMemoryProperties().memoryProperties;
+            almac.instanceDispatch = this->driver->getInstanceDispatch();
+            almac.deviceDispatch = this->driver->getDeviceDispatch();
             almac.memUsage = VMA_MEMORY_USAGE_GPU_ONLY;
             almac.glMemory = almac.glID = 0u;
 
@@ -137,8 +138,8 @@ namespace jvi {
 
             // 
             const glm::uvec4 initialCount = glm::uvec4(0u);
-            this->thread->submitOnce([&](const vk::CommandBuffer& cmdbuf) {
-                cmdbuf.updateBuffer(counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &initialCount);
+            this->thread->submitOnce([&](const VkCommandBuffer& cmdbuf) {
+                this->driver->getDeviceDispatch()->CmdUpdateBuffer(cmdbuf, counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &initialCount);
             });
 
             // 
@@ -217,14 +218,14 @@ namespace jvi {
         //};
 
         // 
-        virtual uPTR(MeshBinding) manifestIndex(const vk::IndexType& type = vk::IndexType::eNoneKHR) {
+        virtual uPTR(MeshBinding) manifestIndex(const VkIndexType& type = VK_INDEX_TYPE_NONE_KHR) {
             this->rawMeshInfo[0u].indexType = uint32_t(this->buildGTemp.geometry.triangles.indexType = VkIndexType(type)) + 1u;
             return uTHIS;
         };
 
         // TODO: Add QUADs support for GEN-2.0
-        virtual uPTR(MeshBinding) setIndexCount(const vk::DeviceSize& count = 65536u * 3u) { this->setPrimitiveCount(std::min(vk::DeviceSize(vkt::tiled(count, 3ull)), vk::DeviceSize(this->MaxPrimitiveCount))); return uTHIS; };
-        virtual uPTR(MeshBinding) setPrimitiveCount(const vk::DeviceSize& count = 65536u) { this->primitiveCount = std::min(vk::DeviceSize(count), vk::DeviceSize(this->MaxPrimitiveCount)); return uTHIS; };
+        virtual uPTR(MeshBinding) setIndexCount(const VkDeviceSize& count = 65536u * 3u) { this->setPrimitiveCount(std::min(VkDeviceSize(vkt::tiled(count, 3ull)), VkDeviceSize(this->MaxPrimitiveCount))); return uTHIS; };
+        virtual uPTR(MeshBinding) setPrimitiveCount(const VkDeviceSize& count = 65536u) { this->primitiveCount = std::min(VkDeviceSize(count), VkDeviceSize(this->MaxPrimitiveCount)); return uTHIS; };
 
         // 
         virtual uPTR(MeshBinding) resetInstanceMap(const uint32_t& mapID = 0u) {
@@ -307,29 +308,24 @@ namespace jvi {
             return uTHIS;
         };
 
-        //
-        virtual uPTR(MeshBinding) copyBuffers(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}){
-            return this->copyBuffers(vk::CommandBuffer(*buildCommand));
-        };
-
         // 
-        virtual uPTR(MeshBinding) copyBuffers(const vkt::uni_arg<vk::CommandBuffer>& buildCommand = {}) {
-            buildCommand->copyBuffer(this->rawAttributes, this->gpuAttributes, { vk::BufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
-            buildCommand->copyBuffer(this->rawBindings, this->gpuBindings, { vk::BufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() } });
-            buildCommand->copyBuffer(this->rawInstanceMap, this->gpuInstanceMap, { vk::BufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() } });
-            buildCommand->copyBuffer(this->rawMaterialIDs, this->gpuMaterialIDs, { vk::BufferCopy{ this->rawMaterialIDs.offset(), this->gpuMaterialIDs.offset(), this->gpuMaterialIDs.range() } });
-            buildCommand->updateBuffer<glm::uvec4>(counterData.buffer(), counterData.offset(), { glm::uvec4(0u) }); // Nullify Counters
+        virtual uPTR(MeshBinding) copyBuffers(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}) {
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawAttributes, this->gpuAttributes, 1u, vkh::VkBufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() });
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawBindings, this->gpuBindings, 1u, vkh::VkBufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() });
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawInstanceMap, this->gpuInstanceMap, 1u, vkh::VkBufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() });
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawMaterialIDs, this->gpuMaterialIDs, 1u, vkh::VkBufferCopy{ this->rawMaterialIDs.offset(), this->gpuMaterialIDs.offset(), this->gpuMaterialIDs.range() });
+            this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &glm::uvec4(0u));
             if (this->inputs.size() > 0) { for (auto& I : this->inputs) if (I.has()) { I->copyMeta(buildCommand); }; };
             return uTHIS;
         };
 
         //
         virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)){
-            return this->buildGeometry(vk::CommandBuffer(*buildCommand), meshData);
+            return this->buildGeometry(VkCommandBuffer(*buildCommand), meshData);
         };
 
         // 
-        virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<vk::CommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) { // build geometry data
+        virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) { // build geometry data
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u;
 
             // 
@@ -376,11 +372,11 @@ namespace jvi {
 
         // TODO: Fix Quads support with Indices
         virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)){
-            return this->buildAccelerationStructure(vk::CommandBuffer(buildCommand), meshData);
+            return this->buildAccelerationStructure(VkCommandBuffer(buildCommand), meshData);
         };
 
         //
-        virtual uPTR(MeshBinding) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
+        virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
@@ -410,11 +406,13 @@ namespace jvi {
 
             // 
             if (buildCommand) {
-                vkt::debugLabel(buildCommand, "Begin building bottom acceleration structure...", this->driver->getDispatch());
-                buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()), this->driver->getDispatch()); this->needsUpdate = true;
-                vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch()); this->needsUpdate = true;
+                //vkt::debugLabel(buildCommand, "Begin building bottom acceleration structure...", this->driver->getDispatch());
+                //buildCommand.buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()), this->driver->getDispatch()); this->needsUpdate = true;
+                driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data())); this->needsUpdate = true;
+                //vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch()); this->needsUpdate = true;
             } else {
-                driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()), this->driver->getDispatch());
+                //driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()), this->driver->getDispatch());
+                driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()));
             };
 
             //
@@ -423,7 +421,7 @@ namespace jvi {
 
 
         // 
-        virtual uPTR(MeshBinding) addRangeInput(const vk::DeviceSize& primitiveCount, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
+        virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const uint32_t& materialID = 0u, const VkDeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back({}); // Correct! 
             this->ranges.push_back(primitiveCount);
@@ -434,7 +432,7 @@ namespace jvi {
         };
 
         // Instanced, but with vector of materials
-        virtual uPTR(MeshBinding) addRangeInput(const vk::DeviceSize& primitiveCount, const std::vector<uint32_t>& materialIDs) {
+        virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const std::vector<uint32_t>& materialIDs) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back({}); // Correct! 
             this->ranges.push_back(primitiveCount);
@@ -445,13 +443,13 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) addRangeInput(const vk::DeviceSize& primitiveCount, const std::vector<int32_t>& materialIDs) {
+        virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const std::vector<int32_t>& materialIDs) {
             return this->addRangeInput(primitiveCount, vkt::vector_cast<uint32_t>(materialIDs));
         };
 
 
         // 
-        virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
+        virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const VkDeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
             this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
@@ -487,7 +485,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshBinding) addMeshInput(const std::shared_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const vk::DeviceSize& instanceCount = 1u) {
+        virtual uPTR(MeshBinding) addMeshInput(const std::shared_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const VkDeviceSize& instanceCount = 1u) {
             return this->addMeshInput(vkt::uni_ptr<MeshInput>(input), materialID, instanceCount);
         };
 
@@ -511,43 +509,47 @@ namespace jvi {
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
-                this->accelerationStructure = this->driver->getDevice().createAccelerationStructureKHR(this->bottomCreate, nullptr, this->driver->getDispatch());
+                driver->getDeviceDispatch()->CreateAccelerationStructureKHR(this->bottomCreate, nullptr, &this->accelerationStructure);
 
                 //
-                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
+                vkh::VkMemoryRequirements2 requirements = {};
+                driver->getDeviceDispatch()->GetAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_KHR,
                     .buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                     .accelerationStructure = this->accelerationStructure
-                }, this->driver->getDispatch());
+                    }, requirements);
 
                 // TODO: fix memoryProperties issue
                 TempBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
                     .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
-                }));
+                    }));
 
                 // 
-                this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u,&vkh::VkBindAccelerationStructureMemoryInfoKHR{
+                driver->getDeviceDispatch()->BindAccelerationStructureMemoryKHR(1u, vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = TempBuffer->getAllocationInfo().memory,
                     .memoryOffset = TempBuffer->getAllocationInfo().offset,
-                }.hpp(), this->driver->getDispatch());
+                    });
             };
 
             // 
             if (!this->gpuScratchBuffer.has()) { // 
-                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
+                vkh::VkMemoryRequirements2 requirements = {};
+                driver->getDeviceDispatch()->GetAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR,
                     .buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                     .accelerationStructure = this->accelerationStructure
-                }, this->driver->getDispatch());
+                    }, requirements);
 
                 // 
-                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
+                this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(driver->getAllocator(), vkh::VkBufferCreateInfo{
                     .size = requirements.memoryRequirements.size,
-                    .usage = { .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 }
-                }, VMA_MEMORY_USAGE_GPU_ONLY));
+                    .usage = {.eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 }
+                    }, VMA_MEMORY_USAGE_GPU_ONLY));
             };
+
+
 
             // 
             return uTHIS;
@@ -560,8 +562,8 @@ namespace jvi {
 
             // TODO: Add to main package
             // Enable Conservative Rasterization For Fix Some Antialiasing Issues
-            vk::PipelineRasterizationConservativeStateCreateInfoEXT conserv = {};
-            conserv.conservativeRasterizationMode = vk::ConservativeRasterizationModeEXT::eOverestimate;
+            VkPipelineRasterizationConservativeStateCreateInfoEXT conserv = {};
+            conserv.conservativeRasterizationMode = VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT;
 
             // 
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
@@ -575,7 +577,6 @@ namespace jvi {
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
-
             //this->pipelineInfo.rasterizationState.pNext = &conserv;
 
             // 
@@ -584,52 +585,52 @@ namespace jvi {
             };
 
             // 
-            this->rasterizationState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
+            this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->rasterizationState);
 
             // 
             this->pipelineInfo.rasterizationState.pNext = &conserv;
             this->pipelineInfo.stages = this->ctages;
-            this->covergenceState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
+            this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->covergenceState);
 
             // 
             return uTHIS;
         };
 
         // Create Secondary Command With Pipeline
-        virtual uPTR(MeshBinding) createRasterizeCommand(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u), const bool& conservative = false) { // UNIT ONLY!
+        virtual uPTR(MeshBinding) createRasterizeCommand(const VkCommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u), const bool& conservative = false) { // UNIT ONLY!
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
 
             // 
-            std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
+            std::vector<VkBuffer> buffers = {}; std::vector<VkDeviceSize> offsets = {};
             buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
             for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
 
             // 
-            const auto& viewport = this->context->refViewport();
-            const auto& renderArea = this->context->refScissor();
-            const auto clearValues = std::vector<vk::ClearValue>{
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearDepthStencilValue(1.0f, 0)
+            const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const auto& renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
+            const auto clearValues = std::vector<vkh::VkClearValue>{
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
             };
 
             // covergence
-            vkt::debugLabel(rasterCommand, "Begin rasterization...", this->driver->getDispatch());
-            rasterCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
-            rasterCommand.setViewport(0, { viewport });
-            rasterCommand.setScissor(0, { renderArea });
-            rasterCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            rasterCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, conservative ? this->covergenceState : this->rasterizationState);
-            rasterCommand.bindVertexBuffers(0u, buffers, offsets);
-            rasterCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meshData });
-            rasterCommand.endRenderPass();
-            vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
+            //vkt::debugLabel(rasterCommand, "Begin rasterization...", this->driver->getDispatch());
+            this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
+            this->driver->getDeviceDispatch()->CmdBindPipeline(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, conservative ? this->covergenceState : this->rasterizationState);
+            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1}, 0u, sizeof(meshData), &meshData);
+            this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
+            this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
+            this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
+            this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
+            //vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
 
             // 
             return uTHIS;
@@ -643,9 +644,9 @@ namespace jvi {
 #endif
 
         // 
-        //vk::IndexType indexType = vk::IndexType::eNoneKHR;
-        vk::DeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE;
-        std::vector<vk::DeviceSize> GeometryInitial = { MAX_PRIM_COUNT };
+        //VkIndexType indexType = VkIndexType::eNoneKHR;
+        VkDeviceSize MaxPrimitiveCount = MAX_PRIM_COUNT, MaxStride = DEFAULT_STRIDE;
+        std::vector<VkDeviceSize> GeometryInitial = { MAX_PRIM_COUNT };
 
         // `primitiveCount` should to be counter!
         uint32_t primitiveCount = 0u, mapCount = 0u, fullGeometryCount = 0u;
@@ -705,8 +706,8 @@ namespace jvi {
         vkh::VkAccelerationStructureGeometryKHR                buildGTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
 
         // 
-        vk::Pipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
-        vk::Pipeline covergenceState = {};
+        VkPipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
+        VkPipeline covergenceState = {};
 
         // 
         vkt::Vector<uint8_t> TempBuffer = {};
@@ -720,7 +721,7 @@ namespace jvi {
         vkt::Vector<uint32_t> gpuInstanceMap = {};
 
         // 
-        vk::AccelerationStructureKHR accelerationStructure = {};
+        VkAccelerationStructureKHR accelerationStructure = {};
         VmaAllocationInfo allocationInfo = {};
         VmaAllocation allocation = {};
 
@@ -731,8 +732,8 @@ namespace jvi {
 
         // 
         std::vector<vkt::uni_ptr<MeshInput>> inputs = {};
-        std::vector<vk::DeviceSize> ranges = {};
-        std::vector<vk::DeviceSize> instances = {};
+        std::vector<VkDeviceSize> ranges = {};
+        std::vector<VkDeviceSize> instances = {};
 
         // 
         vkt::uni_ptr<Driver> driver = {};
@@ -744,8 +745,8 @@ namespace jvi {
 
 
     // Implemented here due undefined type..
-    uPTR(MeshInput) MeshInput::buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<vk::CommandBuffer> buildCommand) { // 
-         bool DirectCommand = false, HasCommand = buildCommand.has() && buildCommand && *buildCommand;
+    uPTR(MeshInput) MeshInput::buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand) { // 
+         bool DirectCommand = false, HasCommand = buildCommand.has() && *buildCommand;
 
          // Initialize Input
          this->createRasterizePipeline()->createDescriptorSet();
@@ -770,67 +771,69 @@ namespace jvi {
          // 
          if (HasCommand && this->needUpdate) {
              this->needUpdate = false; // 
-             std::vector<vk::Buffer> buffers = {}; std::vector<vk::DeviceSize> offsets = {};
+             std::vector<VkBuffer> buffers = {}; std::vector<VkDeviceSize> offsets = {};
              buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
              for (auto& B : this->bindings) { if (this->bvs->get(B).has()) { const uintptr_t i = I++; buffers[i] = this->bvs->get(B).buffer(); offsets[i] = this->bvs->get(B).offset(); }; };
 
              // 
-             const auto& viewport = this->context->refViewport();
-             const auto& renderArea = this->context->refScissor();
-             const auto clearValues = std::vector<vk::ClearValue>{
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                 vk::ClearDepthStencilValue(1.0f, 0)
+             const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+             const auto& renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
+             const auto clearValues = std::vector<vkh::VkClearValue>{
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
              };
 
-             // TODO: Fix Vertex Count for Quads
+             // 
              this->meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
              this->meta.indexType = int32_t(this->indexType) + 1;
 
              // 
-             vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
-             buildCommand->updateBuffer<glm::uvec4>(binding->counterData.buffer(), binding->counterData.offset(), { glm::uvec4(0u) }); // Nullify Counters
+             //vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
+             this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, binding->counterData.buffer(), binding->counterData.offset(), sizeof(glm::uvec4), &glm::uvec4(0u));
              vkt::commandBarrier(buildCommand);
 
              // 
              const auto& gOffset = offsetHelp->y;
              const auto& gBuffer = binding->getBindingBuffer();
-             buildCommand->beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->deferredFramebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
-             buildCommand->setViewport(0, { viewport });
-             buildCommand->setScissor(0, { renderArea });
-             buildCommand->beginTransformFeedbackEXT(0u, { binding->counterData.buffer() }, { binding->counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
-             buildCommand->bindTransformFeedbackBuffersEXT(0u, { gBuffer.buffer() }, { gBuffer.offset() + gOffset }, { gBuffer.range() - gOffset }, this->driver->getDispatch()); //!!WARNING!!
-             buildCommand->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
-             buildCommand->bindPipeline(vk::PipelineBindPoint::eGraphics, this->transformState);
-             buildCommand->bindVertexBuffers(0u, buffers, offsets);
-             buildCommand->pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
 
              // 
-             if (this->indexType != vk::IndexType::eNoneKHR) { // PLC Mode
-                 const uintptr_t voffset = 0u;//this->bindings[this->vertexInputAttributeDescriptions[0u].binding].offset(); // !!WARNING!!
-                 buildCommand->bindIndexBuffer(this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
-                 buildCommand->drawIndexed(this->currentUnitCount, 1u, 0u, voffset, 0u);
-             }
-             else { // VAL Mode
-                 buildCommand->draw(this->currentUnitCount, 1u, 0u, 0u);
+             this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
+             this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformState);
+             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+             this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1}, 0u, sizeof(meta), &meta);
+             this->driver->getDeviceDispatch()->CmdSetViewport(buildCommand, 0u, 1u, viewport);
+             this->driver->getDeviceDispatch()->CmdSetScissor(buildCommand, 0u, 1u, renderArea);
+             this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
+             this->driver->getDeviceDispatch()->CmdBeginTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
+
+             // 
+             if (this->indexType != VK_INDEX_TYPE_NONE_KHR) {
+                 const uintptr_t voffset = 0u;
+                 this->driver->getDeviceDispatch()->CmdBindIndexBuffer(buildCommand, this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
+                 this->driver->getDeviceDispatch()->CmdDrawIndexed(buildCommand, this->currentUnitCount, 1u, 0u, voffset, 0u);
+             } else {
+                 this->driver->getDeviceDispatch()->CmdDraw(buildCommand, this->currentUnitCount, 1u, 0u, 0u);
              };
 
              // 
-             buildCommand->endTransformFeedbackEXT(0u, { binding->counterData.buffer() }, { binding->counterData.offset() }, this->driver->getDispatch()); //!!WARNING!!
-             buildCommand->endRenderPass();
-             vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
+             this->driver->getDeviceDispatch()->CmdEndTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
+             this->driver->getDeviceDispatch()->CmdEndRenderPass(buildCommand);
+
+             //vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
              vkt::commandBarrier(buildCommand); // dont transform feedback
          };
 
          if (DirectCommand) {
              vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
-             this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
+             this->driver->getDeviceDispatch()->FreeCommandBuffers(this->thread->getCommandPool(), 1u, buildCommand);
+             //this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
          };
 
          return uTHIS;

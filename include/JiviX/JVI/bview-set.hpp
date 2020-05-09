@@ -26,7 +26,7 @@ namespace jvi {
 
             // 
             this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 256u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
-            this->bufferViewSetLayout[0] = driver->getDevice().createDescriptorSetLayout(this->bufferViewSetLayoutHelper);
+            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]);
 
             // 
             return uTHIS;
@@ -86,18 +86,15 @@ namespace jvi {
                     .dstArrayElement = j,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                }).offset<VkBufferView>(0u) = this->bufferViews[j].createBufferView(VkFormat::eR8Uint);
+                }).offset<VkBufferView>(0u) = this->bufferViews[j].createBufferView(VK_FORMAT_R8_UINT);
             };
 
             // 
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet, vkh::VkWriteDescriptorSet>(
-                this->bufferViewSetHelper.setDescriptorSet((this->bufferViewSet = this->bufferViewSet.size() > 0 && this->bufferViewSet[0u] ? this->bufferViewSet : driver->getDevice().allocateDescriptorSets(this->bufferViewSetHelper))[0])
-            ), {});
+            vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->bufferViewSetHelper, this->bufferViewSet[0]);
 
             // 
             return uTHIS;
         };
-
 
         // 
         virtual VkDescriptorSet& getDescriptorSet() {

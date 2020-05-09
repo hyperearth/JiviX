@@ -93,7 +93,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Material) copyBuffers(const VkCommandBuffer& buildCommand = {}) {
-            buildCommand.copyBuffer(this->rawMaterials, this->gpuMaterials, { VkBufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() } });
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawMaterials, this->gpuMaterials, 1u, vkh::VkBufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() });
             return uTHIS;
         };
 
@@ -137,14 +137,17 @@ namespace jvi {
                         .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                         .extent = {uint32_t(width),uint32_t(height),1u},
                         .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                    }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
-                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                    }).setSampler(this->driver->getDevice().createSampler(vkh::VkSamplerCreateInfo{
+                        }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
+                            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                        });
+
+                    // Create Sampler By Reference
+                    this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                         .magFilter = VK_FILTER_LINEAR,
                         .minFilter = VK_FILTER_LINEAR,
                         .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
                         .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                    }));
+                    }, nullptr, &this->backgroundImageClass.refSampler());
 
                     //
                     vkt::Vector<> imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
@@ -156,16 +159,14 @@ namespace jvi {
                     // 
                     context->getThread()->submitOnce([=](VkCommandBuffer& cmd) {
                         this->backgroundImageClass.transfer(cmd);
-
-                        auto buffer = imageBuf;
-                        cmd.copyBufferToImage(buffer.buffer(), this->backgroundImageClass.getImage(), this->backgroundImageClass.getImageLayout(), { vkh::VkBufferImageCopy{
-                            .bufferOffset = buffer.offset(),
+                        this->driver->getDeviceDispatch()->CmdCopyBufferToImage(cmd, imageBuf.buffer(), this->backgroundImageClass.getImage(), this->backgroundImageClass.getImageLayout(), 1u, vkh::VkBufferImageCopy{
+                            .bufferOffset = imageBuf.offset(),
                             .bufferRowLength = uint32_t(width),
                             .bufferImageHeight = uint32_t(height),
                             .imageSubresource = this->backgroundImageClass.subresourceLayers(),
                             .imageOffset = {0u,0u,0u},
                             .imageExtent = {uint32_t(width),uint32_t(height),1u},
-                        } });
+                        });
                     });
                 };
             };
@@ -181,8 +182,8 @@ namespace jvi {
             };
 
             // Reprojection WILL NOT write own depth... 
-            this->context->descriptorSets[4] = this->descriptorSet = this->descriptorSet ? this->descriptorSet : driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
-            this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet, vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)), {});
+            vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetInfo, this->descriptorSet);
+            this->context->descriptorSets[4] = this->descriptorSet;
 
             // 
             return uTHIS;

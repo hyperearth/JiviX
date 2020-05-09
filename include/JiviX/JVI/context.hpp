@@ -135,7 +135,8 @@ namespace jvi {
             });
 
             // 
-            this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
+            //this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
+            this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->renderPass);
 
             // 
             return uTHIS;
@@ -242,120 +243,137 @@ namespace jvi {
             auto allocInfo = vkt::MemoryAllocationInfo{};
             allocInfo.device = *driver;
             allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
-            allocInfo.dispatch = driver->getDispatch();
+            allocInfo.instanceDispatch = driver->getInstanceDispatch();
+            allocInfo.deviceDispatch = driver->getDeviceDispatch();
 
             // 
             for (uint32_t b = 0u; b < 12u; b++) { // 
-                frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                this->frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
+                });
+
+                // Create Sampler By Reference
+                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                }));
+                }, nullptr, &this->frameBfImages[b].refSampler());
+
                 if (b < 8u) { deferredAttachments[b] = frameBfImages[b]; };
             };
 
             // 
-            for (uint32_t b=0u;b<12u;b++) { // 
-                smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+            for (uint32_t b=0u;b<12u;b++) { { // 
+                this->smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
+                });
+
+                // Create Sampler By Reference
+                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                }));
+                    }, nullptr, &this->smFlip0Images[b].refSampler());
+
                 if (b < 8u) { smpFlip0Attachments[b] = smFlip0Images[b]; };
+            };
 
-
-                smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+            {
+                this->smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
                 }), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
+                });
+
+                // Create Sampler By Reference
+                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                }));
+                    }, nullptr, &this->smFlip1Images[b].refSampler());
+
                 if (b < 8u) { smpFlip1Attachments[b] = smFlip1Images[b]; };
+            }; };
+
+            {
+                // 
+                this->depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    .extent = {width,height,1u},
+                    .usage = {.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 },
+                    }), vkh::VkImageViewCreateInfo{
+                        .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                        .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
+                    });
+
+                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                    .magFilter = VK_FILTER_LINEAR,
+                    .minFilter = VK_FILTER_LINEAR,
+                    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    .unnormalizedCoordinates = true,
+                    }, nullptr, &this->depthImage.refSampler());
+
+                // 5th attachment
+                deferredAttachments[8u] = depthImage;
+                smpFlip0Attachments[8u] = depthImage;
+                smpFlip1Attachments[8u] = depthImage;
             };
 
             // 
-            depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
-                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .extent = {width,height,1u},
-                .usage = {.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 },
-            }), vkh::VkImageViewCreateInfo{
-                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
-            }).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
-                .magFilter = VK_FILTER_LINEAR,
-                .minFilter = VK_FILTER_LINEAR,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .unnormalizedCoordinates = true,
-            }));
-
-            // 5th attachment
-            deferredAttachments[8u] = depthImage;
-            smpFlip0Attachments[8u] = depthImage;
-            smpFlip1Attachments[8u] = depthImage;
-
-            // 
-            deferredFramebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+            this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
                 .attachmentCount = static_cast<uint32_t>(deferredAttachments.size()),
                 .pAttachments = deferredAttachments.data(),
                 .width = width,
                 .height = height
-            });
+            }, nullptr, &this->deferredFramebuffer);
 
             // Reprojection WILL NOT write own depth... 
-            smpFlip0Framebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+            this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
                 .attachmentCount = static_cast<uint32_t>(smpFlip0Attachments.size()),
                 .pAttachments = smpFlip0Attachments.data(),
                 .width = width,
                 .height = height
-            });
+            }, nullptr, & this->smpFlip0Framebuffer);
 
             // Reprojection WILL NOT write own depth... 
-            smpFlip1Framebuffer = driver->getDevice().createFramebuffer(vkh::VkFramebufferCreateInfo{
+            this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
                 .attachmentCount = static_cast<uint32_t>(smpFlip1Attachments.size()),
                 .pAttachments = smpFlip1Attachments.data(),
                 .width = width,
                 .height = height
-            });
+            }, nullptr, & this->smpFlip1Framebuffer);
 
             // 
-            scissor = VkRect2D{ VkOffset2D(0, 0), VkExtent2D(width, height) };
-            viewport = VkViewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
+            scissor = vkh::VkRect2D{ vkh::VkOffset2D({0, 0}), vkh::VkExtent2D({width, height}) };
+            viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
             // 
             thread->submitOnce([&,this](VkCommandBuffer& cmd) {
-                //vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage->getImage(), .targetLayout = VkImageLayout::eGeneral, .originLayout = VkImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
                 depthImage.transfer(cmd);
                 for (uint32_t i = 0u; i < 12u; i++) { // Definitely Not an Hotel
-                    this->smFlip1Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip1Images[i], VkImageLayout::eGeneral, VkClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
-                    this->smFlip0Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip0Images[i], VkImageLayout::eGeneral, VkClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
-                    this->frameBfImages[i].transfer(cmd); cmd.clearColorImage(this->frameBfImages[i], VkImageLayout::eGeneral, VkClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip1Images[i], VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip1Images[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip0Images[i], VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip0Images[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->frameBfImages[i], VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->frameBfImages[i].getImageSubresourceRange());
                 };
             });
 
@@ -407,16 +425,17 @@ namespace jvi {
             this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount =   1u, .stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
 
             // 
-            this->meshDataDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(meshDataDescriptorSetLayoutHelper);
-            this->bindingsDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(bindingsDescriptorSetLayoutHelper);
-            this->deferredDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(deferredDescriptorSetLayoutHelper);
-            this->samplingDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(samplingDescriptorSetLayoutHelper);
-            this->materialDescriptorSetLayout = driver->getDevice().createDescriptorSetLayout(materialDescriptorSetLayoutHelper);
+            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->meshDataDescriptorSetLayoutHelper, nullptr, &this->meshDataDescriptorSetLayout);
+            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bindingsDescriptorSetLayoutHelper, nullptr, &this->bindingsDescriptorSetLayout);
+            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->deferredDescriptorSetLayoutHelper, nullptr, &this->deferredDescriptorSetLayout);
+            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->samplingDescriptorSetLayoutHelper, nullptr, &this->samplingDescriptorSetLayout);
+            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->materialDescriptorSetLayoutHelper, nullptr, &this->materialDescriptorSetLayout);
 
             // 
             std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
             std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
-            this->unifiedPipelineLayout = driver->getDevice().createPipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges));
+            this->driver->getDeviceDispatch()->CreatePipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges), nullptr, &this->unifiedPipelineLayout);
+
             return uTHIS;
         };
 
@@ -452,12 +471,12 @@ namespace jvi {
 
                     // 
                     for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).setSampler(driver->device.createSampler(vkh::VkSamplerCreateInfo{
-                            .magFilter = VK_FILTER_LINEAR,
-                            .minFilter = VK_FILTER_LINEAR,
-                            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-                        })).getDescriptor();
+                        this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                           .magFilter = VK_FILTER_LINEAR,
+                           .minFilter = VK_FILTER_LINEAR,
+                           .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                           .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+                        }, nullptr, &(handle.offset<VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor())->sampler);
                     }
                 }
 
@@ -475,9 +494,7 @@ namespace jvi {
                 }
 
                 // 
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
-                    this->deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
-                )),{});
+                vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->deferredDescriptorSet);
             };
 
             { // For Reprojection Pipeline
@@ -510,9 +527,7 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
-                    this->smpFlip0DescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
-                )),{});
+                vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip0DescriptorSet);
             };
 
             { // For Reprojection Pipeline
@@ -545,9 +560,7 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet, vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
-                    this->smpFlip1DescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
-                )), {});
+                vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip1DescriptorSet);
             };
 
             // 
