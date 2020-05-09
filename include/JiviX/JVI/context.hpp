@@ -35,8 +35,8 @@ namespace jvi {
         // 
         virtual uPTR(Context) construct() {
             this->thread = std::make_shared<Thread>(this->driver);
-            this->uniformGPUData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
-            this->uniformRawData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1,                    .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+            this->uniformGPUData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+            this->uniformRawData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1,                    .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
             this->beginTime = std::chrono::high_resolution_clock::now();
             this->leastTime = std::chrono::high_resolution_clock::now();
             this->previTime = std::chrono::high_resolution_clock::now();

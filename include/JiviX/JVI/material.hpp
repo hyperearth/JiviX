@@ -42,8 +42,8 @@ namespace jvi {
             this->thread = std::make_shared<Thread>(this->driver);
 
             // 
-            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * MaxMaterialCount, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_CPU_TO_GPU));
-            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * MaxMaterialCount, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
+            this->rawMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * MaxMaterialCount, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+            this->gpuMaterials = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(MaterialUnit) * MaxMaterialCount, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
             return uTHIS;
         };
 
@@ -137,9 +137,9 @@ namespace jvi {
                         .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                         .extent = {uint32_t(width),uint32_t(height),1u},
                         .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                        }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
-                            .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                        });
+                    }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }), vkh::VkImageViewCreateInfo{
+                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    });
 
                     // Create Sampler By Reference
                     this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
@@ -151,9 +151,9 @@ namespace jvi {
 
                     //
                     vkt::Vector<> imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                            .size = width * height * sizeof(glm::vec4),
-                            .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-                        }, VMA_MEMORY_USAGE_CPU_TO_GPU));
+                        .size = width * height * sizeof(glm::vec4),
+                        .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+                    }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
                     memcpy(imageBuf.data(), rgba = (float*)gSkyColor.data(), width * height * sizeof(glm::vec4));
 
                     // 
