@@ -37,10 +37,10 @@ namespace jvi {
             this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
 
             // for faster code, pre-initialize
-            this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
+            this->stages = {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1})
-            });
+            };
 
             // transformPipelineLayout
             // create required buffers
@@ -96,7 +96,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        /*// 
         virtual uPTR(MeshInput) formatQuads(const std::shared_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) {
             return this->formatQuads(binding, offsetHelp, buildCommand);
         };
@@ -104,7 +104,7 @@ namespace jvi {
         //
         virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) {
             return this->formatQuads(binding, offsetHelp, VkCommandBuffer(*buildCommand));
-        };
+        };*/
 
         // 
         virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) { // 
@@ -164,6 +164,7 @@ namespace jvi {
             return uTHIS;
         };
 
+        /*
         // 
         virtual uPTR(MeshInput) buildGeometry(const std::shared_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) {
             return this->buildGeometry(binding, offsetHelp, buildCommand);
@@ -172,7 +173,7 @@ namespace jvi {
         //
         virtual uPTR(MeshInput) buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}){
             return this->buildGeometry(binding, offsetHelp, VkCommandBuffer(*buildCommand));
-        };
+        };*/
 
         // Record Geometry (Transform Feedback), Re-Implemented in another file... 
         virtual uPTR(MeshInput) buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {});
@@ -254,18 +255,18 @@ namespace jvi {
             VkDeviceSize count = 0u; uint32_t stride = 1u;
             //if (rawIndices) {
                 switch (type) { // 
-                    case VkIndexType::eUint32:   count = this->bvs->get(rawIndices)->range() / (stride = 4u); break;
-                    case VkIndexType::eUint16:   count = this->bvs->get(rawIndices)->range() / (stride = 2u); break;
-                    case VkIndexType::eUint8EXT: count = this->bvs->get(rawIndices)->range() / (stride = 1u); break;
+                    case VK_INDEX_TYPE_UINT32   : count = this->bvs->get(rawIndices)->range() / (stride = 4u); break;
+                    case VK_INDEX_TYPE_UINT16   : count = this->bvs->get(rawIndices)->range() / (stride = 2u); break;
+                    case VK_INDEX_TYPE_UINT8_EXT: count = this->bvs->get(rawIndices)->range() / (stride = 1u); break;
                     default: count = 0u;
                 };
             //};
             // 
             this->indexData = rawIndices; // 
-            this->indexType = (this->indexData && type != VkIndexType::eNoneKHR) ? type : VkIndexType::eNoneKHR;
+            this->indexType = (this->indexData && type != VK_INDEX_TYPE_NONE_KHR) ? type : VK_INDEX_TYPE_NONE_KHR;
 
             // 
-            if (this->indexType != VkIndexType::eNoneKHR) {
+            if (this->indexType != VK_INDEX_TYPE_NONE_KHR) {
                 this->currentUnitCount = this->bvs->get(rawIndices).range() / stride;
             };
 

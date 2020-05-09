@@ -28,9 +28,7 @@ namespace jvi {
 
             // get ray-tracing properties
             this->properties.pNext = &this->rayTracingProperties;
-            vkGetPhysicalDeviceProperties2(driver->getPhysicalDevice(), &(VkPhysicalDeviceProperties2&)this->properties);
-            //driver->getPhysicalDevice().getProperties2(this->properties); // Vulkan-HPP Bugged
-            //driver->getPhysicalDevice().getProperties2(&(VkPhysicalDeviceProperties2&)this->properties);
+            this->driver->getInstanceDispatch()->GetPhysicalDeviceProperties2(driver->getPhysicalDevice(), this->properties);
 
             // 
             this->raytraceStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/raytrace.comp.spv"), vkh::VkShaderStageFlags{.eCompute = 1});
@@ -38,11 +36,11 @@ namespace jvi {
             this->reflectStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/reflect.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
 
             // 
-            this->resampStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({ // 
+            this->resampStages = {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1}),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
-            });
+            };
 
             return uTHIS;
         };
@@ -241,9 +239,6 @@ namespace jvi {
             // prepare meshes for ray-tracing
             auto I = 0u;
             if (parameters->eEnableCopyMeta) {
-                //currentCmd->copyBuffer(context->uniformRawData, context->uniformGPUData, { VkBufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
-
-                //
                 this->driver->getDeviceDispatch()->CmdCopyBuffer(currentCmd, context->uniformGPUData, context->uniformGPUData, 1u, vkh::VkBufferCopy{ context->uniformGPUData.offset() + offsetof(Matrices, modelview), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev), 96ull }); // reserve previous projection (for adaptive denoise)
                 this->driver->getDeviceDispatch()->CmdCopyBuffer(currentCmd, context->uniformRawData, context->uniformGPUData, 1u, vkh::VkBufferCopy{ context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection), 224ull });
                 this->driver->getDeviceDispatch()->CmdCopyBuffer(currentCmd, context->uniformRawData, context->uniformGPUData, 1u, vkh::VkBufferCopy{ context->uniformRawData.offset() + offsetof(Matrices, mdata), context->uniformGPUData.offset() + offsetof(Matrices, mdata),  32ull });
@@ -332,8 +327,8 @@ namespace jvi {
         vkt::uni_ptr<Thread> thread = {};
 
         // 
-        VkPhysicalDeviceRayTracingPropertiesKHR rayTracingProperties = {};
-        VkPhysicalDeviceProperties2 properties = {};
+        vkh::VkPhysicalDeviceRayTracingPropertiesKHR rayTracingProperties = {};
+        vkh::VkPhysicalDeviceProperties2 properties = {};
 
         // 
         bool initialized = false;

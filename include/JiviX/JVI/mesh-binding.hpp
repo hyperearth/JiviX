@@ -54,16 +54,16 @@ namespace jvi {
             this->gpuInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = std::max(GeometryInitial.size(), 64ull) * sizeof(uint32_t), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY));
 
             // for faster code, pre-initialize
-            this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
+            this->stages = {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
-            });
+            };
 
             // 
-            this->ctages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
+            this->ctages = {
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
                 vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
-            });
+            };
 
             // 
             vkt::MemoryAllocationInfo almac = {};
@@ -320,9 +320,9 @@ namespace jvi {
         };
 
         //
-        virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)){
+        /*virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)){
             return this->buildGeometry(VkCommandBuffer(*buildCommand), meshData);
-        };
+        };*/
 
         // 
         virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) { // build geometry data
@@ -371,9 +371,9 @@ namespace jvi {
         };
 
         // TODO: Fix Quads support with Indices
-        virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)){
+        /*virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)){
             return this->buildAccelerationStructure(VkCommandBuffer(buildCommand), meshData);
-        };
+        };*/
 
         //
         virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {

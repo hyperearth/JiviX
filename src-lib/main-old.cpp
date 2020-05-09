@@ -206,8 +206,8 @@ int main() {
     glfwSetFramebufferSizeCallback(manager.window, framebuffer_size_callback);
 
     // 
-    auto renderArea = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(canvasWidth, canvasHeight) };
-    auto viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
+    auto renderArea = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{canvasWidth, canvasHeight} };
+    auto viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
     // initialize renderer
     auto context = jvx::Context(fw);
@@ -285,8 +285,8 @@ int main() {
         }, VMA_MEMORY_USAGE_GPU_ONLY));
 
         //
-        vkt::submitOnce(fw->getDevice(), fw->getQueue(), fw->getCommandPool(), [&](const vk::CommandBuffer& cmd) {
-            cmd.copyBuffer(cpuBuffers.back().buffer(), gpuBuffers.back().buffer(), { vk::BufferCopy(cpuBuffers.back().offset(), gpuBuffers.back().offset(), cpuBuffers.back().range()) });
+        vkt::submitOnce(fw->getDevice(), fw->getQueue(), fw->getCommandPool(), [&](const VkCommandBuffer& cmd) {
+            cmd.copyBuffer(cpuBuffers.back().buffer(), gpuBuffers.back().buffer(), { VkBufferCopy(cpuBuffers.back().offset(), gpuBuffers.back().offset(), cpuBuffers.back().range()) });
         });
         */
     };
@@ -304,10 +304,11 @@ int main() {
     auto allocInfo = vkt::MemoryAllocationInfo{};
     allocInfo.device = fw->getDevice();
     allocInfo.memoryProperties = fw->getMemoryProperties().memoryProperties;
-    allocInfo.dispatch = fw->getDispatch();
+    allocInfo.deviceDispatch = fw->getDeviceDispatch();
+    allocInfo.instanceDispatch = fw->getInstanceDispatch();
 
     // 
-    std::vector<vk::Sampler> samplers = {};
+    std::vector<VkSampler> samplers = {};
     std::vector<vkt::ImageRegion> images = {};
     for (uint32_t i = 0; i < model.images.size(); i++) {
         const auto& img = model.images[i];
@@ -317,17 +318,20 @@ int main() {
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .extent = {uint32_t(img.width),uint32_t(img.height),1u},
             .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-            }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
-                .format = VK_FORMAT_R8G8B8A8_UNORM,
-            }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
-                .magFilter = VK_FILTER_LINEAR,
-                .minFilter = VK_FILTER_LINEAR,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                })));
+        }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
+            .format = VK_FORMAT_R8G8B8A8_UNORM,
+        }));
 
         // 
         auto image = images.back();
+
+        // Create Sampler By Reference
+        fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+            .magFilter = VK_FILTER_LINEAR,
+            .minFilter = VK_FILTER_LINEAR,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        }, nullptr, &image.refSampler());
 
         // 
         vkt::Vector<> imageBuf = {};
@@ -340,19 +344,19 @@ int main() {
         };
 
         // 
-        context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
-            image.transfer(cmd);
+        context->getThread()->submitOnce([=](VkCommandBuffer& cmd) { image.transfer(cmd);
 
             auto buffer = imageBuf.has() ? imageBuf : buffersViews[img.bufferView];
-            cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{
+            fw->getDeviceDispatch()->CmdCopyBufferToImage(cmd, buffer.buffer(), image.getImage(), image.getImageLayout(), 1u, vkh::VkBufferImageCopy{
                 .bufferOffset = buffer.offset(),
                 .bufferRowLength = uint32_t(img.width),
                 .bufferImageHeight = uint32_t(img.height),
                 .imageSubresource = image.subresourceLayers(),
                 .imageOffset = {0u,0u,0u},
                 .imageExtent = {uint32_t(img.width),uint32_t(img.height),1u},
-            } });
             });
+
+        });
 
         material->pushSampledImage(image.getDescriptor());
     };
@@ -390,15 +394,18 @@ int main() {
                 .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
             }, VMA_MEMORY_USAGE_GPU_ONLY), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-            }).setSampler(device.createSampler(vkh::VkSamplerCreateInfo{
+            }));
+
+            // 
+            auto image = images.back();
+
+            // Create Sampler By Reference
+            fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                 .magFilter = VK_FILTER_LINEAR,
                 .minFilter = VK_FILTER_LINEAR,
                 .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
                 .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            })));
-
-            // 
-            auto image = images.back();
+            }, nullptr, &image.refSampler());
 
             // 
             vkt::Vector<> imageBuf = {};
@@ -411,18 +418,18 @@ int main() {
             };
 
             // 
-            context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
+            context->getThread()->submitOnce([=](VkCommandBuffer& cmd) {
                 image.transfer(cmd);
 
                 auto buffer = imageBuf;
-                cmd.copyBufferToImage(buffer.buffer(), image.getImage(), image.getImageLayout(), { vkh::VkBufferImageCopy{
+                fw->getDeviceDispatch()->CmdCopyBufferToImage(cmd, buffer.buffer(), image.getImage(), image.getImageLayout(), 1u, vkh::VkBufferImageCopy{
                     .bufferOffset = buffer.offset(),
                     .bufferRowLength = uint32_t(width),
                     .bufferImageHeight = uint32_t(height),
                     .imageSubresource = image.subresourceLayers(),
                     .imageOffset = {0u,0u,0u},
                     .imageExtent = {uint32_t(width),uint32_t(height),1u},
-                }});
+                });
             });
 
             // 
@@ -430,16 +437,17 @@ int main() {
         };
     };
 
-
     // GLTF Samplers Support
     for (uint32_t i = 0; i < model.samplers.size(); i++) {
         const auto& smp = model.samplers[i];
-        samplers.push_back(device.createSampler(vkh::VkSamplerCreateInfo{
+        samplers.push_back({});
+
+        fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
             .magFilter = VK_FILTER_LINEAR,
             .minFilter = VK_FILTER_LINEAR,
             .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT
-            }));
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+        }, nullptr, &samplers.back());
     };
 
     // Material 
@@ -498,14 +506,14 @@ int main() {
                 };
 
             // 
-            //vk::DeviceSize MaxStride = 80ull;
+            //VkDeviceSize MaxStride = 80ull;
             //for (uint32_t i = 0u; i < model.bufferViews.size(); i++) {
             //    const auto& BV = model.bufferViews[i];
-            //    MaxStride = std::max(vk::DeviceSize(BV.byteStride), MaxStride);
+            //    MaxStride = std::max(VkDeviceSize(BV.byteStride), MaxStride);
             //};
 
             // 
-            const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount, 3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
+            const VkDeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount, 3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
             jvx::MeshInput mInput(context); jvx::MeshBinding mBinding(context, PrimitiveCount); mInput->linkBViewSet(bvse->sharedPtr());
             meshes.push_back(mBinding); // mBinding->addMeshInput(mInput, primitive.material);
             auto& mesh = meshes.back(); instancedTransformPerMesh.push_back({});
@@ -560,12 +568,12 @@ int main() {
                 const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
 
                 // 
-                auto stride = std::max(vk::DeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
+                auto stride = std::max(VkDeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
                 //auto vector = vkt::Vector<uint8_t>(cpuBuffers[BV.buffer], BV.byteOffset + attribute.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull);
                 //vector.rangeInfo() = stride * attribute.count;
 
                 // 
-                mInput->setIndexData(attribute.bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? vk::IndexType::eUint16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? vk::IndexType::eUint8EXT : vk::IndexType::eUint32));
+                mInput->setIndexData(attribute.bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? VK_INDEX_TYPE_UINT16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? VK_INDEX_TYPE_UINT8_EXT : VK_INDEX_TYPE_UINT32));
                 mInput->setIndexCount(attribute.count)->setIndexOffset(attribute.byteOffset);
             };
 
@@ -641,18 +649,21 @@ int main() {
 
     //  
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vk::ShaderStageFlagBits::eVertex),
-        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vk::ShaderStageFlagBits::eFragment)
-        });
+    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+        vkt::makePipelineStageInfo(device, vkt::readBinary("./shaders/rtrace/render.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
+    });
     pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
     pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->renderPass;//context->refRenderPass();
     pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
     pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
-    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState, vk::DynamicState>({ vk::DynamicState::eScissor, vk::DynamicState::eViewport });
-    auto finalPipeline = vkt::handleHpp(device.createGraphicsPipeline(fw->getPipelineCache(), pipelineInfo));
+    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState, VkDynamicState>({ VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_VIEWPORT });
+
+    // 
+    VkPipeline finalPipeline = {};
+    fw->getDeviceDispatch()->CreateGraphicsPipelines(fw->getPipelineCache(), 1u, pipelineInfo, nullptr, &finalPipeline);
 
     // 
     int64_t currSemaphore = -1;
@@ -676,8 +687,8 @@ int main() {
     //auto sps = vkh::VkVertexInputBindingDescription{};
     //auto spc = sizeof(sps);
 
-    //vk::SemaphoreCreateInfo sci = {};
-    //vk::Semaphore sem = device.createSemaphore(sci);
+    //VkSemaphoreCreateInfo sci = {};
+    //VkSemaphore sem = device.createSemaphore(sci);
 
     // 
     //renderer->setupCommands();
@@ -692,64 +703,70 @@ int main() {
         (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
 
         // 
-        vk::Device(device).waitForFences({ framebuffers[c_semaphore].waitFence }, true, 30ull * 1000ull * 1000ull * 1000ull);
-        vk::Device(device).resetFences({ framebuffers[c_semaphore].waitFence });
+        fw->getDeviceDispatch()->WaitForFences(1u, &framebuffers[c_semaphore].waitFence, true, 30ull * 1000ull * 1000ull * 1000ull);
+        fw->getDeviceDispatch()->ResetFences(1u, &framebuffers[c_semaphore].waitFence);
 
         // 
-        device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
-        //device.signalSemaphore(vk::SemaphoreSignalInfo().setSemaphore(framebuffers[n_semaphore].semaphore).setValue(1u));
+        //device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
+        //device.signalSemaphore(VkSemaphoreSignalInfo().setSemaphore(framebuffers[n_semaphore].semaphore).setValue(1u));
+
+        // 
+        fw->getDeviceDispatch()->AcquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
+        //fw->getDeviceDispatch()->SignalSemaphore(vkh::VkSemaphoreSignalInfo{.semaphore = framebuffers[n_semaphore].semaphore, .value = 1u});
 
         { // submit rendering (and wait presentation in device)
-            std::vector<vk::ClearValue> clearValues = { vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.f}), vk::ClearDepthStencilValue(1.0f, 0) };
+            std::vector<vkh::VkClearValue> clearValues = { vkh::VkClearValue{.color = glm::vec4(0.f, 0.f, 0.f, 0.f)}, vkh::VkClearValue{.depthStencil = vkh::VkClearDepthStencilValue{1.0f, 0} } };
             Shared::TimeCallback(double(context->registerTime()->setModelView(cameraController->handle().project())->drawTime()));
 
             // Create render submission 
-            std::vector<vk::Semaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
-            std::vector<vk::PipelineStageFlags> waitStages = { vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eTransfer | vk::PipelineStageFlagBits::eRayTracingShaderKHR };
+            std::vector<VkSemaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
+            std::vector<vkh::VkPipelineStageFlags> waitStages = { vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1 } };
 
             // Submit command once
             //renderer->setupCommands();
-            vk::Queue(queue).submit({ vk::SubmitInfo()
-                .setPCommandBuffers(&renderer->setupCommands()->refCommandBuffer()).setCommandBufferCount(1u)
-                .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
-                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, {});
+            fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
+                .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
+                .commandBufferCount = 1u, .pCommandBuffers = &renderer->setupCommands()->refCommandBuffer(), 
+                .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
+            }, {});
 
             // 
             waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
 
             // create command buffer (with rewrite)
-            vk::CommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
+            VkCommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(device, commandPool, false, false); // do reference of cmd buffer
-                commandBuffer.beginRenderPass(vk::RenderPassBeginInfo(fw->renderPass, framebuffers[currentBuffer].frameBuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
-                commandBuffer.setViewport(0, { viewport });
-                commandBuffer.setScissor(0, { renderArea });
-                commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, finalPipeline);
-                commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, context->getPipelineLayout(), 0, context->getDescriptorSets(), nullptr);
-                commandBuffer.draw(4, 1, 0, 0);
-                commandBuffer.endRenderPass();
-                commandBuffer.end();
+
+                decltype(auto) descriptorSets = context->getDescriptorSets();
+                fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data()}, VK_SUBPASS_CONTENTS_INLINE);
+                fw->getDeviceDispatch()->CmdSetViewport(commandBuffer, 0u, 1u, viewport);
+                fw->getDeviceDispatch()->CmdSetScissor(commandBuffer, 0u, 1u, renderArea);
+                fw->getDeviceDispatch()->CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, finalPipeline);
+                fw->getDeviceDispatch()->CmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, context->getPipelineLayout(), 0u, descriptorSets.size(), descriptorSets.data(), 0u, nullptr);
+                fw->getDeviceDispatch()->CmdDraw(commandBuffer, 4, 1, 0, 0);
+                fw->getDeviceDispatch()->CmdEndRenderPass(commandBuffer);
+                fw->getDeviceDispatch()->EndCommandBuffer(commandBuffer);
             };
 
             // Submit command once
-            vk::Queue(queue).submit({ vk::SubmitInfo()
-                .setPCommandBuffers(&commandBuffer).setCommandBufferCount(1u)
-                .setPWaitSemaphores(waitSemaphores.data()).setWaitSemaphoreCount(static_cast<uint32_t>(waitSemaphores.size())).setPWaitDstStageMask(waitStages.data())
-                .setPSignalSemaphores(signalSemaphores.data()).setSignalSemaphoreCount(static_cast<uint32_t>(signalSemaphores.size())) }, framebuffers[c_semaphore].waitFence);
+            fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
+                .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
+                .commandBufferCount = 1u, .pCommandBuffers = &commandBuffer,
+                .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
+            }, framebuffers[c_semaphore].waitFence);
 
             // 
             context->setDrawCount(frameCount++);
         };
 
         // 
-        std::vector<vk::Semaphore> waitSemaphoes = { framebuffers[c_semaphore].drawSemaphore };
-
-        // present for displaying of this image
-        vk::Queue(queue).presentKHR(vk::PresentInfoKHR(
-            waitSemaphoes.size(), waitSemaphoes.data(),
-            1, &swapchain,
-            &currentBuffer, nullptr
-        ));
+        std::vector<VkSemaphore> waitSemaphoes = { framebuffers[c_semaphore].drawSemaphore };
+        fw->getDeviceDispatch()->QueuePresentKHR(queue, vkh::VkPresentInfoKHR{
+            .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphoes.size()), .pWaitSemaphores = waitSemaphoes.data(),
+            .swapchainCount = 1, .pSwapchains = &swapchain,
+            .pImageIndices = &currentBuffer, .pResults = nullptr
+        });
 
     };
 

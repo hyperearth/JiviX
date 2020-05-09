@@ -12,7 +12,8 @@ namespace jvx {
         Driver(std::shared_ptr<jvi::Driver> obj) { this->object = obj; };
 
         CALLIFY(getPhysicalDevice);
-        CALLIFY(getDispatch);
+        CALLIFY(getDeviceDispatch);
+        CALLIFY(getInstanceDispatch);
         CALLIFY(getDevice);
         CALLIFY(getQueue);
         CALLIFY(getFence);

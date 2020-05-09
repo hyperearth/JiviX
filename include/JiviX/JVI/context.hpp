@@ -364,7 +364,7 @@ namespace jvi {
             }, nullptr, & this->smpFlip1Framebuffer);
 
             // 
-            scissor = vkh::VkRect2D{ vkh::VkOffset2D({0, 0}), vkh::VkExtent2D({width, height}) };
+            scissor = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{width, height} };
             viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
             // 
@@ -489,7 +489,7 @@ namespace jvi {
 
                     // 
                     for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).setSampler({}).getDescriptor();
+                        handle.offset<VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor();
                     };
                 }
 
@@ -586,8 +586,8 @@ namespace jvi {
         std::chrono::time_point<std::chrono::steady_clock> previTime = std::chrono::high_resolution_clock::now();
 
         // 
-        VkRect2D scissor = {};
-        VkViewport viewport = {};
+        vkh::VkRect2D scissor = {};
+        vkh::VkViewport viewport = {};
         VkRenderPass renderPass = {};
         VkFramebuffer smpFlip0Framebuffer = {};
         VkFramebuffer smpFlip1Framebuffer = {};
