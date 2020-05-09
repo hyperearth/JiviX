@@ -86,11 +86,11 @@ namespace jvi {
                     .dstArrayElement = j,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                }).offset<vk::BufferView>(0u) = this->bufferViews[j].createBufferView(vk::Format::eR8Uint);
+                }).offset<VkBufferView>(0u) = this->bufferViews[j].createBufferView(VkFormat::eR8Uint);
             };
 
             // 
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(
+            driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet, vkh::VkWriteDescriptorSet>(
                 this->bufferViewSetHelper.setDescriptorSet((this->bufferViewSet = this->bufferViewSet.size() > 0 && this->bufferViewSet[0u] ? this->bufferViewSet : driver->getDevice().allocateDescriptorSets(this->bufferViewSetHelper))[0])
             ), {});
 
@@ -100,13 +100,13 @@ namespace jvi {
 
 
         // 
-        virtual vk::DescriptorSet& getDescriptorSet() {
+        virtual VkDescriptorSet& getDescriptorSet() {
             if (!this->bufferViewSet[0]) { this->createDescriptorSet(); };
             return this->bufferViewSet[0];
         };
 
         // 
-        virtual const vk::DescriptorSet& getDescriptorSet() const {
+        virtual const VkDescriptorSet& getDescriptorSet() const {
             return this->bufferViewSet[0];
         };
 
@@ -125,7 +125,7 @@ namespace jvi {
         std::vector<vkt::Vector<uint8_t>> bufferViews = {};
 
         // 
-        std::vector<vk::DescriptorSet> bufferViewSet = { {} };
+        std::vector<VkDescriptorSet> bufferViewSet = { {} };
         std::vector<VkDescriptorSetLayout> bufferViewSetLayout = { {} };
         vkh::VsDescriptorSetLayoutCreateInfoHelper bufferViewSetLayoutHelper = {};
         vkh::VsDescriptorSetCreateInfoHelper bufferViewSetHelper = {};

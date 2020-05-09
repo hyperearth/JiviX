@@ -13,7 +13,7 @@
 #define VKT_FORCE_VMA_IMPLEMENTATION
 #define VKT_ENABLE_GLFW_SUPPORT
 
-#include "vkt2/fw.hpp"
+#include "vkt3/fw.hpp"
 #include "JiviX/JiviX.hpp"
 
 #define TINYGLTF_IMPLEMENTATION

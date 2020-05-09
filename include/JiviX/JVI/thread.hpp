@@ -55,34 +55,34 @@ namespace jvi {
         };
 
         // Getter Operators
-        virtual vk::CommandPool& getCommandPool() { return commandPool; };
-        virtual vk::DescriptorPool& getDescriptorPool() { return descriptorPool; };
-        virtual vk::Queue& getQueue() { return queue; };
-        virtual vk::Device& getDevice() { return driver->getDevice(); };
+        virtual VkCommandPool& getCommandPool() { return commandPool; };
+        virtual VkDescriptorPool& getDescriptorPool() { return descriptorPool; };
+        virtual VkQueue& getQueue() { return queue; };
+        virtual VkDevice& getDevice() { return driver->getDevice(); };
         virtual vkt::uni_ptr<Driver>& getDriverPtr() { return driver; };
         virtual Driver& getDriver() { return *driver; };
 
         // 
-        virtual const vk::CommandPool& getCommandPool() const { return commandPool; };
-        virtual const vk::DescriptorPool& getDescriptorPool() const { return descriptorPool; };
-        virtual const vk::Queue& getQueue() const { return queue; };
-        virtual const vk::Device& getDevice() const { return driver->getDevice(); };
+        virtual const VkCommandPool& getCommandPool() const { return commandPool; };
+        virtual const VkDescriptorPool& getDescriptorPool() const { return descriptorPool; };
+        virtual const VkQueue& getQueue() const { return queue; };
+        virtual const VkDevice& getDevice() const { return driver->getDevice(); };
         virtual const vkt::uni_ptr<Driver>& getDriverPtr() const { return driver; };
         virtual const Driver& getDriver() const { return *driver; };
 
         // Getter Operators
-        virtual operator vk::CommandPool&() { return commandPool; };
-        virtual operator vk::DescriptorPool&() { return descriptorPool; };
-        virtual operator vk::Queue&() { return queue; };
-        virtual operator vk::Device&() { return driver->getDevice(); };
+        virtual operator VkCommandPool&() { return commandPool; };
+        virtual operator VkDescriptorPool&() { return descriptorPool; };
+        virtual operator VkQueue&() { return queue; };
+        virtual operator VkDevice&() { return driver->getDevice(); };
         virtual operator std::shared_ptr<Driver>&() { return driver; };
         virtual operator Driver&() { return *driver; };
 
         // 
-        virtual operator const vk::CommandPool&() const { return commandPool; };
-        virtual operator const vk::DescriptorPool&() const { return descriptorPool; };
-        virtual operator const vk::Queue&() const { return queue; };
-        virtual operator const vk::Device&() const { return driver->getDevice(); };
+        virtual operator const VkCommandPool&() const { return commandPool; };
+        virtual operator const VkDescriptorPool&() const { return descriptorPool; };
+        virtual operator const VkQueue&() const { return queue; };
+        virtual operator const VkDevice&() const { return driver->getDevice(); };
         virtual operator const std::shared_ptr<Driver>&() const { return driver; };
         virtual operator const Driver&() const { return *driver; };
 
@@ -95,58 +95,59 @@ namespace jvi {
         virtual const Driver* operator->() const { return &(*driver); };
 
         // 
-        virtual uPTR(Thread) submitOnce(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
-            vkt::submitOnce(vk::Device(*this), vk::Queue(*this), vk::CommandPool(*this), cmdFn, smbi);
+        virtual uPTR(Thread) submitOnce(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            vkt::submitOnce(VkDevice(*this), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi);
             return uTHIS;
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(vk::CommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
+        virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
-                vkt::submitOnceAsync(vk::Device(*this), vk::Queue(*this), vk::CommandPool(*this), cmdFn, smbi).get();
+                vkt::submitOnceAsync(VkDevice(*this), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi).get();
+                return uPTR(Thread)(uTHIS);
+            });
+        };
+
+        // Async Version
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            return std::async(std::launch::async | std::launch::deferred, [=, this]() {
+                vkt::submitCmdAsync(VkDevice(*this), VkQueue(*this), cmds, smbi).get();
                 return uPTR(Thread)(uTHIS);
             });
         };
 
         // 
-        virtual uPTR(Thread) submitCmd(const std::vector<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
-            vkt::submitCmd(vk::Device(*this), vk::Queue(*this), cmds, smbi);
+        virtual uPTR(Thread) submitCmd(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            vkt::submitCmd(VkDevice(*this), VkQueue(*this), cmds, smbi);
             return uTHIS;
         };
 
-        // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
-            return std::async(std::launch::async | std::launch::deferred, [=, this]() {
-                vkt::submitCmdAsync(vk::Device(*this), vk::Queue(*this), cmds, smbi).get();
-                return uPTR(Thread)(uTHIS);
-            });
-        };
-
-        // 
-        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
+        /* // USELESS FOR VKT-3
+        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return this->submitCmd({ cmds }, smbi);
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<vk::CommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return this->submitCmdAsync({ cmds }, smbi);
         };
 
         // 
-        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
-            return this->submitCmd(vk::CommandBuffer(cmds), smbi);
+        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            return this->submitCmd(cmds, smbi);
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vk::SubmitInfo>& smbi = vk::SubmitInfo{}) {
-            return this->submitCmdAsync(vk::CommandBuffer(cmds), smbi);
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            return this->submitCmdAsync(cmds, smbi);
         };
+        */
 
     // 
     protected: friend Thread; friend Driver; // 
-        vk::Queue queue = {};
-        vk::CommandPool commandPool = {};
-        vk::DescriptorPool descriptorPool = {};
+        VkQueue queue = {};
+        VkCommandPool commandPool = {};
+        VkDescriptorPool descriptorPool = {};
         vkt::uni_ptr<Driver> driver = {};
     };
 

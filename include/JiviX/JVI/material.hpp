@@ -55,7 +55,7 @@ namespace jvi {
         };
 
         //
-        virtual uPTR(Material) setRawMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& rawMaterials = {}, const vk::DeviceSize& materialCounter = 0u) {
+        virtual uPTR(Material) setRawMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& rawMaterials = {}, const VkDeviceSize& materialCounter = 0u) {
             this->rawMaterials = *rawMaterials; this->materialCounter = materialCounter;
             return uTHIS;
         };
@@ -67,7 +67,7 @@ namespace jvi {
         };
 
         // 
-        virtual vk::DeviceSize pushMaterial(const vkt::uni_arg<MaterialUnit>& material = {}) {
+        virtual VkDeviceSize pushMaterial(const vkt::uni_arg<MaterialUnit>& material = {}) {
             const auto materialID = materialCounter++;
             this->rawMaterials[materialID] = material;
             return materialID;
@@ -92,8 +92,8 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Material) copyBuffers(const vk::CommandBuffer& buildCommand = {}) {
-            buildCommand.copyBuffer(this->rawMaterials, this->gpuMaterials, { vk::BufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() } });
+        virtual uPTR(Material) copyBuffers(const VkCommandBuffer& buildCommand = {}) {
+            buildCommand.copyBuffer(this->rawMaterials, this->gpuMaterials, { VkBufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() } });
             return uTHIS;
         };
 
@@ -154,7 +154,7 @@ namespace jvi {
                     memcpy(imageBuf.data(), rgba = (float*)gSkyColor.data(), width * height * sizeof(glm::vec4));
 
                     // 
-                    context->getThread()->submitOnce([=](vk::CommandBuffer& cmd) {
+                    context->getThread()->submitOnce([=](VkCommandBuffer& cmd) {
                         this->backgroundImageClass.transfer(cmd);
 
                         auto buffer = imageBuf;
@@ -182,7 +182,7 @@ namespace jvi {
 
             // Reprojection WILL NOT write own depth... 
             this->context->descriptorSets[4] = this->descriptorSet = this->descriptorSet ? this->descriptorSet : driver->getDevice().allocateDescriptorSets(this->descriptorSetInfo)[0];
-            this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)), {});
+            this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet, vkh::VkWriteDescriptorSet>(this->descriptorSetInfo.setDescriptorSet(this->descriptorSet)), {});
 
             // 
             return uTHIS;
@@ -204,11 +204,11 @@ namespace jvi {
 
         // 
         vkh::VsDescriptorSetCreateInfoHelper descriptorSetInfo = {};
-        vk::DescriptorSet descriptorSet = {};
+        VkDescriptorSet descriptorSet = {};
 
         // 
         uintptr_t MaxMaterialCount = 64u;
-        vk::DeviceSize materialCounter = 0u;
+        VkDeviceSize materialCounter = 0u;
         vkt::uni_ptr<Driver> driver = {};
         vkt::uni_ptr<Thread> thread = {};
         vkt::uni_ptr<Context> context = {};

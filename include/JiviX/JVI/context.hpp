@@ -68,16 +68,16 @@ namespace jvi {
         };
 
         // 
-        virtual vk::Rect2D& refScissor() { return scissor; };
-        virtual vk::Viewport& refViewport() { return viewport; };
-        virtual vk::RenderPass& refRenderPass() { return renderPass; };
-        //vk::Framebuffer& refFramebuffer() { return framebuffer; };
+        virtual VkRect2D& refScissor() { return scissor; };
+        virtual VkViewport& refViewport() { return viewport; };
+        virtual VkRenderPass& refRenderPass() { return renderPass; };
+        //VkFramebuffer& refFramebuffer() { return framebuffer; };
 
         // 
-        virtual const vk::Rect2D& refScissor() const { return scissor; };
-        virtual const vk::Viewport& refViewport() const { return viewport; };
-        virtual const vk::RenderPass& refRenderPass() const { return renderPass; };
-        //const vk::Framebuffer& refFramebuffer() const { return framebuffer; };
+        virtual const VkRect2D& refScissor() const { return scissor; };
+        virtual const VkViewport& refViewport() const { return viewport; };
+        virtual const VkRenderPass& refRenderPass() const { return renderPass; };
+        //const VkFramebuffer& refFramebuffer() const { return framebuffer; };
 
         // 
         virtual vkt::uni_ptr<Driver>& getDriver() { return driver; };
@@ -142,12 +142,12 @@ namespace jvi {
         };
 
         // 
-        virtual std::array<vk::DescriptorSet,5u>& getDescriptorSets() {
+        virtual std::array<VkDescriptorSet,5u>& getDescriptorSets() {
             return descriptorSets;
         };
 
         // 
-        virtual vk::PipelineLayout getPipelineLayout() {
+        virtual VkPipelineLayout getPipelineLayout() {
             return unifiedPipelineLayout;
         };
 
@@ -345,17 +345,17 @@ namespace jvi {
             });
 
             // 
-            scissor = vk::Rect2D{ vk::Offset2D(0, 0), vk::Extent2D(width, height) };
-            viewport = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
+            scissor = VkRect2D{ VkOffset2D(0, 0), VkExtent2D(width, height) };
+            viewport = VkViewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
             // 
-            thread->submitOnce([&,this](vk::CommandBuffer& cmd) {
-                //vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage->getImage(), .targetLayout = vk::ImageLayout::eGeneral, .originLayout = vk::ImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
+            thread->submitOnce([&,this](VkCommandBuffer& cmd) {
+                //vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{ .image = depthImage->getImage(), .targetLayout = VkImageLayout::eGeneral, .originLayout = VkImageLayout::eUndefined, .subresourceRange = vkh::VkImageSubresourceRange(depthImage) });
                 depthImage.transfer(cmd);
                 for (uint32_t i = 0u; i < 12u; i++) { // Definitely Not an Hotel
-                    this->smFlip1Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip1Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
-                    this->smFlip0Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip0Images[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
-                    this->frameBfImages[i].transfer(cmd); cmd.clearColorImage(this->frameBfImages[i], vk::ImageLayout::eGeneral, vk::ClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
+                    this->smFlip1Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip1Images[i], VkImageLayout::eGeneral, VkClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip1Images[i] });
+                    this->smFlip0Images[i].transfer(cmd); cmd.clearColorImage(this->smFlip0Images[i], VkImageLayout::eGeneral, VkClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->smFlip0Images[i] });
+                    this->frameBfImages[i].transfer(cmd); cmd.clearColorImage(this->frameBfImages[i], VkImageLayout::eGeneral, VkClearColorValue().setFloat32({ 0.f,0.f,0.f,0.f }), { this->frameBfImages[i] });
                 };
             });
 
@@ -437,7 +437,7 @@ namespace jvi {
                     });
 
                     // 
-                    //memcpy(&handle, &frameBfImages[0u].getDescriptor(), sizeof(vk::DescriptorImageInfo) * 8u);
+                    //memcpy(&handle, &frameBfImages[0u].getDescriptor(), sizeof(VkDescriptorImageInfo) * 8u);
                     for (uint32_t i = 0; i < 12u; i++) {
                         handle.offset<VkDescriptorImageInfo>(i) = frameBfImages[i].getDescriptor();
                     };
@@ -475,7 +475,7 @@ namespace jvi {
                 }
 
                 // 
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
                     this->deferredDescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
                 )),{});
             };
@@ -510,7 +510,7 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
                     this->smpFlip0DescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
                 )),{});
             };
@@ -545,7 +545,7 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet, vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
+                this->driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet, vkh::VkWriteDescriptorSet>(descInfo.setDescriptorSet(
                     this->smpFlip1DescriptorSet = driver->getDevice().allocateDescriptorSets(descInfo)[0]
                 )), {});
             };
@@ -573,12 +573,12 @@ namespace jvi {
         std::chrono::time_point<std::chrono::steady_clock> previTime = std::chrono::high_resolution_clock::now();
 
         // 
-        vk::Rect2D scissor = {};
-        vk::Viewport viewport = {};
-        vk::RenderPass renderPass = {};
-        vk::Framebuffer smpFlip0Framebuffer = {};
-        vk::Framebuffer smpFlip1Framebuffer = {};
-        vk::Framebuffer deferredFramebuffer = {};
+        VkRect2D scissor = {};
+        VkViewport viewport = {};
+        VkRenderPass renderPass = {};
+        VkFramebuffer smpFlip0Framebuffer = {};
+        VkFramebuffer smpFlip1Framebuffer = {};
+        VkFramebuffer deferredFramebuffer = {};
 
         // 
         vkt::Vector<Matrices> uniformGPUData = {};
@@ -589,21 +589,21 @@ namespace jvi {
         std::array<vkt::ImageRegion, 12u> smFlip0Images = {};
         std::array<vkt::ImageRegion, 12u> smFlip1Images = {}; // Path Tracing
         std::array<vkt::ImageRegion, 12u> frameBfImages = {}; // Rasterization
-        std::array<vk::DescriptorSet, 5u> descriptorSets = {};
+        std::array<VkDescriptorSet, 5u> descriptorSets = {};
         vkt::ImageRegion depthImage = {};
 
         // 
-        vk::DescriptorSet deferredDescriptorSet = {};
-        vk::DescriptorSet smpFlip0DescriptorSet = {};
-        vk::DescriptorSet smpFlip1DescriptorSet = {};
-        vk::PipelineLayout unifiedPipelineLayout = {};
+        VkDescriptorSet deferredDescriptorSet = {};
+        VkDescriptorSet smpFlip0DescriptorSet = {};
+        VkDescriptorSet smpFlip1DescriptorSet = {};
+        VkPipelineLayout unifiedPipelineLayout = {};
 
         // 
-        vk::DescriptorSetLayout materialDescriptorSetLayout = {}; // Material Descriptions
-        vk::DescriptorSetLayout deferredDescriptorSetLayout = {}; // Deferred Shading Descriptions (Diffuse Texturing)
-        vk::DescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
-        vk::DescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples (Diffuse, Path-Tracing and ReProjection)
-        vk::DescriptorSetLayout bindingsDescriptorSetLayout = {}; // Bindings, Attributes Descriptions
+        VkDescriptorSetLayout materialDescriptorSetLayout = {}; // Material Descriptions
+        VkDescriptorSetLayout deferredDescriptorSetLayout = {}; // Deferred Shading Descriptions (Diffuse Texturing)
+        VkDescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
+        VkDescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples (Diffuse, Path-Tracing and ReProjection)
+        VkDescriptorSetLayout bindingsDescriptorSetLayout = {}; // Bindings, Attributes Descriptions
         
         // 
         vkh::VsDescriptorSetLayoutCreateInfoHelper materialDescriptorSetLayoutHelper = {};

@@ -33,15 +33,15 @@ namespace jvi {
             //driver->getPhysicalDevice().getProperties2(&(VkPhysicalDeviceProperties2&)this->properties);
 
             // 
-            this->raytraceStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/raytrace.comp.spv"), vk::ShaderStageFlagBits::eCompute);
-            this->denoiseStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/denoise.comp.spv"), vk::ShaderStageFlagBits::eCompute);
-            this->reflectStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/reflect.comp.spv"), vk::ShaderStageFlagBits::eCompute);
+            this->raytraceStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/raytrace.comp.spv"), vkh::VkShaderStageFlags{.eCompute = 1});
+            this->denoiseStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/denoise.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
+            this->reflectStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/reflect.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
 
             // 
-            this->resampStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, vk::PipelineShaderStageCreateInfo>({ // 
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vk::ShaderStageFlagBits::eVertex),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.geom.spv"), vk::ShaderStageFlagBits::eGeometry),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vk::ShaderStageFlagBits::eFragment)
+            this->resampStages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({ // 
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
             });
 
             return uTHIS;
@@ -69,28 +69,27 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) setupSkyboxedState(const vk::CommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
-            this->denoiseState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->denoiseStage), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
-            this->reflectState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->reflectStage), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
-            this->raytraceState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->raytraceStage), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
+        virtual uPTR(Renderer) setupSkyboxedState(const VkCommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
+            this->denoiseState = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->denoiseStage), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache());
+            this->reflectState = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->reflectStage), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache());
+            this->raytraceState = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->raytraceStage), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache());
+            //this->denoiseState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->denoiseStage), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
+            //this->reflectState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->reflectStage), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
+            //this->raytraceState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->raytraceStage), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Renderer) saveDiffuseColor(const vk::CommandBuffer& saveCommand = {}) {
+        virtual uPTR(Renderer) saveDiffuseColor(const VkCommandBuffer& saveCommand = {}) {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
             // 
-            saveCommand.copyImage(
-                this->context->frameBfImages[0u], this->context->frameBfImages[0u], 
-                this->context->smFlip1Images[4u], this->context->smFlip1Images[4u], 
-            { vk::ImageCopy(
-                this->context->frameBfImages[0u], vk::Offset3D{0u,0u,0u}, 
-                this->context->smFlip1Images[4u], vk::Offset3D{0u,0u,0u}, 
-                vk::Extent3D{renderArea.extent.width, renderArea.extent.height, 1u}
-            ) });
-            vkt::commandBarrier(saveCommand);
+            this->driver->getDeviceDispatch()->CmdCopyImage(saveCommand, this->context->frameBfImages[0u], this->context->frameBfImages[0u], this->context->smFlip1Images[4u], this->context->smFlip1Images[4u], 1u, vkh::VkImageCopy{
+                .srcSubresource = this->context->frameBfImages[0u], .srcOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                .dstSubresource = this->context->smFlip1Images[4u], .dstOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                .extent = vkh::VkExtent3D{ renderArea.extent.width, renderArea.extent.height, 1u }
+            });
 
             // 
             return uTHIS;
@@ -123,46 +122,47 @@ namespace jvi {
             this->pipelineInfo.viewportState.pScissors = &(vkh::VkRect2D&)renderArea;
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
-            this->resamplingState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
+            //this->resamplingState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
+            this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->resamplingState);
 
             // 
-            this->reflectState  = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->reflectStage ), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
-            this->denoiseState  = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->denoiseStage ), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
-            this->raytraceState = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->raytraceStage), vk::PipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache()));
+            this->reflectState  = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->reflectStage ), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache());
+            this->denoiseState  = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->denoiseStage ), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache());
+            this->raytraceState = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->raytraceStage), VkPipelineLayout(this->context->unifiedPipelineLayout), driver->getPipelineCache());
 
             // 
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Renderer) setupResampleCommand(const vk::CommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
-            const auto& viewport = this->context->refViewport();
-            const auto& renderArea = this->context->refScissor();
-            const auto clearValues = std::vector<vk::ClearValue>{
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearColorValue(std::array<float,4>{0.f, 0.f, 0.f, 0.0f}),
-                vk::ClearDepthStencilValue(1.0f, 0)
+        virtual uPTR(Renderer) setupResampleCommand(const VkCommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+            const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const auto& renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
+            const auto clearValues = std::vector<vkh::VkClearValue>{
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                { .depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
             };
 
             // 
             this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
 
             // 
-            resampleCommand.beginRenderPass(vk::RenderPassBeginInfo(this->context->refRenderPass(), this->context->smpFlip0Framebuffer, renderArea, static_cast<uint32_t>(clearValues.size()), clearValues.data()), vk::SubpassContents::eInline);
-            resampleCommand.bindPipeline(vk::PipelineBindPoint::eGraphics, this->resamplingState);
-            resampleCommand.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            resampleCommand.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vk::ShaderStageFlags(VkShaderStageFlags(vkh::VkShaderStageFlags{ .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 })), 0u, { meshData });
-            resampleCommand.setViewport(0, { viewport });
-            resampleCommand.setScissor(0, { renderArea });
-            resampleCommand.draw(renderArea.extent.width, renderArea.extent.height, 0u, 0u);
-            resampleCommand.endRenderPass();
-            //vkt::commandBarrier(resampleCommand);
+            this->driver->getDeviceDispatch()->CmdBeginRenderPass(resampleCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
+            this->driver->getDeviceDispatch()->CmdBindPipeline(resampleCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->resamplingState);
+            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(resampleCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdPushConstants(resampleCommand, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1}, 0u, sizeof(meshData), &meshData);
+            this->driver->getDeviceDispatch()->CmdSetViewport(resampleCommand, 0u, 1u, viewport);
+            this->driver->getDeviceDispatch()->CmdSetScissor(resampleCommand, 0u, 1u, renderArea);
+            this->driver->getDeviceDispatch()->CmdDraw(resampleCommand, renderArea.extent.width, renderArea.extent.height, 0u, 0u);
+            this->driver->getDeviceDispatch()->CmdEndRenderPass(resampleCommand);
+            vkt::commandBarrier(resampleCommand);
 
             // 
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
@@ -204,7 +204,7 @@ namespace jvi {
         };
 
         // TODO: Fix Command Create For Every Frame
-        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<vk::CommandBuffer> cmdBuf = {}, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
+        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
             const bool once = true;
@@ -216,11 +216,11 @@ namespace jvi {
             auto& currentCmd = this->cmdBuf[this->current^=1];
 
             // 
-            const bool hasBuf = cmdBuf.has() && cmdBuf && *cmdBuf;
+            const bool hasBuf = cmdBuf.has() && *cmdBuf;
             if (!hasBuf) {
-                //if (currentCmd) { vk::Device(*thread).freeCommandBuffers(vk::CommandPool(*thread), { currentCmd }); currentCmd = vk::CommandBuffer{}; };
-                //if (!currentCmd) { currentCmd = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread), false, once); };
-                currentCmd = vkt::createCommandBuffer(vk::Device(*thread), vk::CommandPool(*thread), false, once);
+                //if (currentCmd) { VkDevice(*thread).freeCommandBuffers(VkCommandPool(*thread), { currentCmd }); currentCmd = VkCommandBuffer{}; };
+                //if (!currentCmd) { currentCmd = vkt::createCommandBuffer(VkDevice(*thread), VkCommandPool(*thread), false, once); };
+                currentCmd = vkt::createCommandBuffer(VkDevice(*thread), VkCommandPool(*thread), false, once);
             } else {
                 currentCmd = cmdBuf;
             };
@@ -241,10 +241,12 @@ namespace jvi {
             // prepare meshes for ray-tracing
             auto I = 0u;
             if (parameters->eEnableCopyMeta) {
-                //currentCmd->copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
-                currentCmd.copyBuffer(context->uniformGPUData, context->uniformGPUData, { vk::BufferCopy(context->uniformGPUData.offset() + offsetof(Matrices, modelview ), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev),  96ull) }); // reserve previous projection (for adaptive denoise)
-                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection   ), 224ull) });
-                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { vk::BufferCopy(context->uniformRawData.offset() + offsetof(Matrices, mdata     ), context->uniformGPUData.offset() + offsetof(Matrices, mdata        ),  32ull) });
+                //currentCmd->copyBuffer(context->uniformRawData, context->uniformGPUData, { VkBufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
+
+                // TODO: REMAKE FOR VKT-3 AND XVK
+                currentCmd.copyBuffer(context->uniformGPUData, context->uniformGPUData, { VkBufferCopy(context->uniformGPUData.offset() + offsetof(Matrices, modelview ), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev),  96ull) }); // reserve previous projection (for adaptive denoise)
+                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { VkBufferCopy(context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection   ), 224ull) });
+                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { VkBufferCopy(context->uniformRawData.offset() + offsetof(Matrices, mdata     ), context->uniformGPUData.offset() + offsetof(Matrices, mdata        ),  32ull) });
 
                 I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(currentCmd); }; vkt::commandBarrier(currentCmd);
                 this->materials->copyBuffers(currentCmd);
@@ -261,8 +263,10 @@ namespace jvi {
             // Compute ray-tracing (RTX)
             if (parameters->eEnableRayTracing) {
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
-                currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-                currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->raytraceState);
+
+                // TODO: REMAKE FOR VKT-3 AND XVK
+                currentCmd.bindDescriptorSets(VkPipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+                currentCmd.bindPipeline(VkPipelineBindPoint::eCompute, this->raytraceState);
                 currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
                 currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
                 vkt::commandBarrier(currentCmd);
@@ -275,34 +279,37 @@ namespace jvi {
             };
 
             // Denoise diffuse data
-            currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->denoiseState);
+            // TODO: REMAKE FOR VKT-3 AND XVK
+            currentCmd.bindDescriptorSets(VkPipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            currentCmd.bindPipeline(VkPipelineBindPoint::eCompute, this->denoiseState);
             currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
             currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(currentCmd);
 
             // Denoise reflection data
-            currentCmd.bindDescriptorSets(vk::PipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            currentCmd.bindPipeline(vk::PipelineBindPoint::eCompute, this->reflectState);
+            // TODO: REMAKE FOR VKT-3 AND XVK
+            currentCmd.bindDescriptorSets(VkPipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
+            currentCmd.bindPipeline(VkPipelineBindPoint::eCompute, this->reflectState);
             currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
             currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(currentCmd);
 
             // 
+            // TODO: REMAKE FOR VKT-3 AND XVK
             if (!hasBuf) { currentCmd.end(); };
             return uTHIS;
         };
 
         // 
-        vk::CommandBuffer& refCommandBuffer() { return this->cmdBuf[current]; };
-        const vk::CommandBuffer& refCommandBuffer() const { return this->cmdBuf[current]; };
+        VkCommandBuffer& refCommandBuffer() { return this->cmdBuf[current]; };
+        const VkCommandBuffer& refCommandBuffer() const { return this->cmdBuf[current]; };
 
     protected: // 
-        //std::vector<vk::CommandBuffer> commands = {};
-        //vkt::uni_arg<vk::CommandBuffer> cmdbuf = {};
+        //std::vector<VkCommandBuffer> commands = {};
+        //vkt::uni_arg<VkCommandBuffer> cmdbuf = {};
 
-        //std::array<vkt::uni_arg<vk::CommandBuffer>, 2> cmdBuf = {}; uint8_t current = 1u;
-        std::array<vk::CommandBuffer, 2> cmdBuf = {}; uint8_t current = 1u; // TODO: Comfort SWAP Class
+        //std::array<vkt::uni_arg<VkCommandBuffer>, 2> cmdBuf = {}; uint8_t current = 1u;
+        std::array<VkCommandBuffer, 2> cmdBuf = {}; uint8_t current = 1u; // TODO: Comfort SWAP Class
 
         // binding data
         vkt::uni_ptr<Material> materials = {}; // materials
@@ -316,10 +323,10 @@ namespace jvi {
         vkh::VkPipelineShaderStageCreateInfo raytraceStage = {};
          
         // 
-        vk::Pipeline resamplingState = {};
-        vk::Pipeline denoiseState = {};
-        vk::Pipeline reflectState = {};
-        vk::Pipeline raytraceState = {};
+        VkPipeline resamplingState = {};
+        VkPipeline denoiseState = {};
+        VkPipeline reflectState = {};
+        VkPipeline raytraceState = {};
 
         // 
         vkt::uni_ptr<Context> context = {};
@@ -327,8 +334,8 @@ namespace jvi {
         vkt::uni_ptr<Thread> thread = {};
 
         // 
-        vk::PhysicalDeviceRayTracingPropertiesKHR rayTracingProperties = {};
-        vk::PhysicalDeviceProperties2 properties = {};
+        VkPhysicalDeviceRayTracingPropertiesKHR rayTracingProperties = {};
+        VkPhysicalDeviceProperties2 properties = {};
 
         // 
         bool initialized = false;

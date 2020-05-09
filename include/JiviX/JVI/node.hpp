@@ -169,11 +169,11 @@ namespace jvi {
                 });
 
                 for (uint32_t i=0;i<meshCount;i++) { if (j < this->meshes[i]->bindings.size() && this->meshes[i]->bindings[j].has()) {
-                    handle.offset<vk::BufferView>(i) = this->meshes[i]->bindings[j].createBufferView(vk::Format::eR8Uint);
+                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[j].createBufferView(VkFormat::eR8Uint);
                 }};
             };
 
-            { // [0] Plush Index Data (vk::BufferView)
+            { // [0] Plush Index Data (VkBufferView)
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 8u,
                     .dstArrayElement = 0u,
@@ -183,10 +183,10 @@ namespace jvi {
 
                 for (uint32_t i = 0; i < meshCount; i++) {
                     if (this->meshes[i]->indexData.has()) {
-                        handle.offset<vk::BufferView>(i) = this->meshes[i]->indexData.createBufferView(vk::Format::eR8Uint);
+                        handle.offset<VkBufferView>(i) = this->meshes[i]->indexData.createBufferView(VkFormat::eR8Uint);
                     }
                     else {
-                        handle.offset<vk::BufferView>(i) = this->meshes[i]->bindings[0].createBufferView(vk::Format::eR8Uint);
+                        handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VkFormat::eR8Uint);
                     };
                 };
             };
@@ -236,7 +236,7 @@ namespace jvi {
                     .dstBinding = 2u,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
-                }).offset<vk::AccelerationStructureKHR>(0u) = this->accelerationStructure;
+                }).offset<VkAccelerationStructureKHR>(0u) = this->accelerationStructure;
             };
 
             // [4] plush uniforms 
@@ -287,12 +287,12 @@ namespace jvi {
             };
 
             // 
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->meshDataDescriptorSetInfo.setDescriptorSet(
+            driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->meshDataDescriptorSetInfo.setDescriptorSet(
                 this->context->descriptorSets[0] = (this->meshDataDescriptorSet = this->meshDataDescriptorSet ? this->meshDataDescriptorSet : driver->getDevice().allocateDescriptorSets(this->meshDataDescriptorSetInfo)[0])
             )),{});
 
             // 
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<vk::WriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->bindingsDescriptorSetInfo.setDescriptorSet(
+            driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->bindingsDescriptorSetInfo.setDescriptorSet(
                 this->context->descriptorSets[1] = (this->bindingsDescriptorSet = this->bindingsDescriptorSet ? this->bindingsDescriptorSet : driver->getDevice().allocateDescriptorSets(this->bindingsDescriptorSetInfo)[0])
             )),{});
 
@@ -302,7 +302,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) copyMeta(const vk::CommandBuffer& copyCommand = {}) { // 
+        virtual uPTR(Node) copyMeta(const VkCommandBuffer& copyCommand = {}) { // 
             this->mapMeshData(); // Needs to Mapping! NOW!
 
             auto I = 0u; // Selection Only Accounted Chunks
@@ -318,7 +318,7 @@ namespace jvi {
             // 
             for (uint32_t i = 0; i < this->meshes.size(); i++) {
                 auto& mesh = this->meshes[i];
-                copyCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { vk::BufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() } });
+                copyCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { VkBufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() } });
             };
             vkt::commandBarrier(copyCommand);
 
@@ -327,7 +327,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) buildAccelerationStructure(const vk::CommandBuffer& buildCommand = {}) {
+        virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
@@ -341,11 +341,11 @@ namespace jvi {
             // 
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
                 vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
-                buildCommand.buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
+                buildCommand.buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
                 vkt::commandBarrier(buildCommand); this->needsUpdate = true;
                 vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
-                driver->getDevice().buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<vk::AccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
+                driver->getDevice().buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
             };
 
             return uTHIS;
@@ -441,9 +441,9 @@ namespace jvi {
         vkt::Vector<glm::uvec4> gpuMeshInfo = {};
 
         // 
-        vk::DescriptorSet meshDataDescriptorSet = {};
-        vk::DescriptorSet bindingsDescriptorSet = {};
-        vk::AccelerationStructureKHR accelerationStructure = {};
+        VkDescriptorSet meshDataDescriptorSet = {};
+        VkDescriptorSet bindingsDescriptorSet = {};
+        VkAccelerationStructureKHR accelerationStructure = {};
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
         VmaAllocationInfo allocationInfo = {};
         VmaAllocation allocation = {};
