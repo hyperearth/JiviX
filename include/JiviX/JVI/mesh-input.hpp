@@ -34,12 +34,12 @@ namespace jvi {
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
 
             // 
-            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), VkShaderStageFlagBits::eCompute);
+            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
 
             // for faster code, pre-initialize
             this->stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.vert.spv"), VkShaderStageFlagBits::eVertex),
-                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.geom.spv"), VkShaderStageFlagBits::eGeometry)
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
+                vkt::makePipelineStageInfo(this->driver->getDevice(), vkt::readBinary("./shaders/rtrace/transform.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1})
             });
 
             // transformPipelineLayout
@@ -79,9 +79,7 @@ namespace jvi {
                 }).offset<VkDescriptorBufferInfo>() = gpuAttributes;
 
             // 
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet, vkh::VkWriteDescriptorSet>(
-                this->descriptorSetHelper.setDescriptorSet((this->descriptorSet = this->descriptorSet.size() > 0 && this->descriptorSet[0u] ? this->descriptorSet : driver->getDevice().allocateDescriptorSets(this->descriptorSetHelper))[0])
-            ), {});
+            vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetHelper, this->descriptorSet[0]);
 
             // 
             if (this->bvs) { this->bvs->createDescriptorSet(); };
@@ -93,8 +91,8 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshInput) copyMeta(VkCommandBuffer buildCommand = {}) {
-            buildCommand.copyBuffer(this->rawAttributes, this->gpuAttributes, { VkBufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() } });
-            buildCommand.copyBuffer(this->rawBindings, this->gpuBindings, { VkBufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() } });
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawAttributes, this->gpuAttributes, 1u, vkh::VkBufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() });
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawBindings, this->gpuBindings, 1u, vkh::VkBufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() });
             return uTHIS;
         };
 
@@ -110,7 +108,7 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) { // 
-            bool DirectCommand = false, HasCommand = buildCommand.has() && buildCommand && *buildCommand;
+            bool DirectCommand = false, HasCommand = buildCommand.has() && *buildCommand;
 
             // Initialize Input (Early)
             if (this->needsQuads) { this->createRasterizePipeline()->createDescriptorSet(); };
@@ -138,7 +136,7 @@ namespace jvi {
                 this->quadInfo.layout = this->transformPipelineLayout;
                 this->quadInfo.stage = this->quadStage;
                 if (!this->quadGenerator) {
-                    this->quadGenerator = vkt::handleHpp(vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), VkPipelineLayout(this->quadInfo.layout), driver->getPipelineCache()));
+                    this->quadGenerator = vkt::createCompute(driver->getDevice(), vkt::FixConstruction(this->quadStage), VkPipelineLayout(this->quadInfo.layout), driver->getPipelineCache());
                 };
 
                 // 
@@ -146,21 +144,21 @@ namespace jvi {
                 const uint32_t ucount = vkt::tiled(originalCt, 1024ull);
 
                 // 
-                buildCommand->bindDescriptorSets(VkPipelineBindPoint::eCompute, this->transformPipelineLayout, 0ull, this->descriptorSet, {});
-                buildCommand->bindPipeline(VkPipelineBindPoint::eCompute, this->quadGenerator);
-                buildCommand->pushConstants<jvi::MeshInfo>(this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { meta });
-                buildCommand->dispatch(ucount, 1u, 1u);
+                this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+                this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->quadGenerator);
+                this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), &meta);
+                this->driver->getDeviceDispatch()->CmdDispatch(buildCommand, ucount, 1u, 1u);
                 vkt::commandBarrier(buildCommand);
 
                 // Now should to be triangles!
                 if (this->indexData) {
-                    this->setIndexData(this->meta.indexID, this->indexType)->manifestIndex(VkIndexType::eUint32)->setIndexCount(vkt::tiled(originalCt, 4ull) * 6u);
+                    this->setIndexData(this->meta.indexID, this->indexType)->manifestIndex(VK_INDEX_TYPE_UINT32)->setIndexCount(vkt::tiled(originalCt, 4ull) * 6u);
                 };
             };
 
             if (DirectCommand) {
                 vkt::submitCmd(this->thread->getDevice(), this->thread->getQueue(), { buildCommand });
-                this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
+                this->driver->getDeviceDispatch()->FreeCommandBuffers(this->thread->getCommandPool(), 1u, buildCommand);
             };
 
             return uTHIS;
@@ -198,7 +196,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) manifestIndex(const VkIndexType& type = VkIndexType::eNoneKHR) {
+        virtual uPTR(MeshInput) manifestIndex(const VkIndexType& type = VK_INDEX_TYPE_NONE_KHR) {
             if (this->rawMeshInfo.has()) {
                 this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = type) + 1u;
             } else {
@@ -218,7 +216,7 @@ namespace jvi {
             this->rawAttributes[locationID] = this->vertexInputAttributeDescriptions[locationID];
 
             // 
-            if (locationID == 0u && NotStub && this->indexType == VkIndexType::eNoneKHR) {
+            if (locationID == 0u && NotStub && this->indexType == VK_INDEX_TYPE_NONE_KHR) {
                 this->currentUnitCount = this->bindRange[bindingID] / this->bvs->get(this->bindings[bindingID]).stride();
             };
 
@@ -227,9 +225,8 @@ namespace jvi {
                 if (locationID == 1u && NotStub) { rawMeshInfo[0].hasTexcoord = meta.hasTexcoord = 1; };
                 if (locationID == 2u && NotStub) { rawMeshInfo[0].hasNormal = meta.hasNormal = 1; };
                 if (locationID == 3u && NotStub) { rawMeshInfo[0].hasTangent = meta.hasTangent = 1; };
-
                 if (locationID == 0u && NotStub && this->needsQuads) { // PIDORS IN MICROSOFT!
-                    this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = VkIndexType::eUint32) + 1u;
+                    this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = VK_INDEX_TYPE_UINT32) + 1u;
                 };
             } else {
                 if (locationID == 1u && NotStub) { meta.hasTexcoord = 1; };
@@ -279,7 +276,7 @@ namespace jvi {
         //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices, VkIndexType::eUint32); };
         //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices, VkIndexType::eUint16); };
         //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices, VkIndexType::eUint8EXT); };
-        virtual uPTR(MeshInput) setIndexData() { return this->setIndexData({}, VkIndexType::eNoneKHR); };
+        virtual uPTR(MeshInput) setIndexData() { return this->setIndexData({}, VK_INDEX_TYPE_NONE_KHR); };
 
         // some type dependent
         //template<class T = uint8_t>
@@ -293,13 +290,13 @@ namespace jvi {
 
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
-            const auto& TFI = VkPipelineRasterizationStateStreamCreateInfoEXT().setRasterizationStream(0u);
+            const auto& TFI = vkh::VkPipelineRasterizationStateStreamCreateInfoEXT{};
 
             // 
             //this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 16u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
             this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } });
             this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } });
-            this->transformSetLayout[0] = driver->getDevice().createDescriptorSetLayout(transformSetLayoutHelper);
+            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(transformSetLayoutHelper, nullptr, &this->transformSetLayout[0]);
 
             // 
             if (this->bvs) {
@@ -309,7 +306,7 @@ namespace jvi {
 
             // 
             std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
-            this->transformPipelineLayout = driver->getDevice().createPipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(transformSetLayout).setPushConstantRanges(ranges));
+            this->driver->getDeviceDispatch()->CreatePipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(transformSetLayout).setPushConstantRanges(ranges), nullptr, &this->transformPipelineLayout);
 
             // 
             this->pipelineInfo.rasterizationState.pNext = &TFI;
@@ -332,7 +329,7 @@ namespace jvi {
             };
 
             // 
-            this->transformState = vkt::handleHpp(driver->getDevice().createGraphicsPipeline(driver->getPipelineCache(), this->pipelineInfo));
+            this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->transformState);
 
             // 
             return uTHIS;
@@ -377,7 +374,7 @@ namespace jvi {
         // 
         std::vector<uint32_t> bindings = {}, bindRange = { 0 };
         vkt::Vector<MeshInfo> rawMeshInfo = { }; // BROKEN?!
-        VkIndexType indexType = VkIndexType::eNoneKHR;
+        VkIndexType indexType = VK_INDEX_TYPE_NONE_KHR;
 
         // 
         VkDeviceSize indexOffset = 0ull;

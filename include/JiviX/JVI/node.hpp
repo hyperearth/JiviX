@@ -121,7 +121,7 @@ namespace jvi {
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
                 auto& Mesh = this->meshes[this->mapMeshes[i]];
                 if (Mesh->fullGeometryCount > 0) { // Link With Found Instances?!
-                    this->prepareInstances[i].accelerationStructureHandle = this->driver->getDevice().getAccelerationStructureAddressKHR(Mesh->linkWithInstance(I++)->accelerationStructure, this->driver->getDispatch());
+                    this->driver->getDeviceDispatch()->GetAccelerationStructureDeviceAddressKHR(vkh::VkAccelerationStructureDeviceAddressInfoKHR{ .accelerationStructure = Mesh->linkWithInstance(I++)->accelerationStructure });
                 };
             };
             return uTHIS;
@@ -169,7 +169,7 @@ namespace jvi {
                 });
 
                 for (uint32_t i=0;i<meshCount;i++) { if (j < this->meshes[i]->bindings.size() && this->meshes[i]->bindings[j].has()) {
-                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[j].createBufferView(VkFormat::eR8Uint);
+                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[j].createBufferView(VK_FORMAT_R8_UINT);
                 }};
             };
 
@@ -183,10 +183,10 @@ namespace jvi {
 
                 for (uint32_t i = 0; i < meshCount; i++) {
                     if (this->meshes[i]->indexData.has()) {
-                        handle.offset<VkBufferView>(i) = this->meshes[i]->indexData.createBufferView(VkFormat::eR8Uint);
+                        handle.offset<VkBufferView>(i) = this->meshes[i]->indexData.createBufferView(VK_FORMAT_R8_UINT);
                     }
                     else {
-                        handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VkFormat::eR8Uint);
+                        handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VK_FORMAT_R8_UINT);
                     };
                 };
             };
@@ -287,17 +287,14 @@ namespace jvi {
             };
 
             // 
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->meshDataDescriptorSetInfo.setDescriptorSet(
-                this->context->descriptorSets[0] = (this->meshDataDescriptorSet = this->meshDataDescriptorSet ? this->meshDataDescriptorSet : driver->getDevice().allocateDescriptorSets(this->meshDataDescriptorSetInfo)[0])
-            )),{});
+            vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet);
+            vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet);
 
             // 
-            driver->getDevice().updateDescriptorSets(vkt::vector_cast<VkWriteDescriptorSet,vkh::VkWriteDescriptorSet>(this->bindingsDescriptorSetInfo.setDescriptorSet(
-                this->context->descriptorSets[1] = (this->bindingsDescriptorSet = this->bindingsDescriptorSet ? this->bindingsDescriptorSet : driver->getDevice().allocateDescriptorSets(this->bindingsDescriptorSetInfo)[0])
-            )),{});
+            this->context->descriptorSets[0] = this->meshDataDescriptorSet;
+            this->context->descriptorSets[1] = this->bindingsDescriptorSet;
 
             // remap mesh data
-            //this->mapMeshData();
             return uTHIS;
         };
 
@@ -313,12 +310,11 @@ namespace jvi {
 
             // 
             vkt::commandBarrier(copyCommand);
-            copyCommand.copyBuffer(this->rawInstances, this->gpuInstances, { vkh::VkBufferCopy{.srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() } });
+            driver->getDeviceDispatch()->CmdCopyBuffer(copyCommand, this->rawInstances, this->gpuInstances, 1u, vkh::VkBufferCopy{.srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() });
 
             // 
-            for (uint32_t i = 0; i < this->meshes.size(); i++) {
-                auto& mesh = this->meshes[i];
-                copyCommand.copyBuffer(mesh->rawMeshInfo, this->gpuMeshInfo, { VkBufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() } });
+            for (uint32_t i = 0; i < this->meshes.size(); i++) { auto& mesh = this->meshes[i];
+                driver->getDeviceDispatch()->CmdCopyBuffer(copyCommand, mesh->rawMeshInfo, this->gpuMeshInfo, 1u, vkh::VkBufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() });
             };
             vkt::commandBarrier(copyCommand);
 
@@ -340,12 +336,12 @@ namespace jvi {
 
             // 
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
-                vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
-                buildCommand.buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch()); // Can only 1
+                //vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
+                driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()));
                 vkt::commandBarrier(buildCommand); this->needsUpdate = true;
-                vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
+                //vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
-                driver->getDevice().buildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()), this->driver->getDispatch());
+                driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()));
             };
 
             return uTHIS;
@@ -358,14 +354,15 @@ namespace jvi {
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
-                this->accelerationStructure = this->driver->getDevice().createAccelerationStructureKHR(this->topCreate, nullptr, this->driver->getDispatch());
+                driver->getDeviceDispatch()->CreateAccelerationStructureKHR(this->topCreate, nullptr, &this->accelerationStructure);
 
                 //
-                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
+                vkh::VkMemoryRequirements2 requirements = {};
+                driver->getDeviceDispatch()->GetAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_OBJECT_KHR,
                     .buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                     .accelerationStructure = this->accelerationStructure
-                }, this->driver->getDispatch());
+                }, requirements);
 
                 // TODO: fix memoryProperties issue
                 TempBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
@@ -374,20 +371,21 @@ namespace jvi {
                 }));
 
                 // 
-                this->driver->getDevice().bindAccelerationStructureMemoryKHR(1u, &vkh::VkBindAccelerationStructureMemoryInfoKHR{
+                driver->getDeviceDispatch()->BindAccelerationStructureMemoryKHR(1u, vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = TempBuffer->getAllocationInfo().memory,
                     .memoryOffset = TempBuffer->getAllocationInfo().offset,
-                }.hpp(), this->driver->getDispatch());
+                });
             };
 
             // 
             if (!this->gpuScratchBuffer.has()) { // 
-                auto requirements = this->driver->getDevice().getAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
+                vkh::VkMemoryRequirements2 requirements = {};
+                driver->getDeviceDispatch()->GetAccelerationStructureMemoryRequirementsKHR(vkh::VkAccelerationStructureMemoryRequirementsInfoKHR{
                     .type = VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_BUILD_SCRATCH_KHR,
                     .buildType = VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
                     .accelerationStructure = this->accelerationStructure
-                }, this->driver->getDispatch());
+                }, requirements);
 
                 // 
                 this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(driver->getAllocator(), vkh::VkBufferCreateInfo{

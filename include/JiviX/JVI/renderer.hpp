@@ -243,10 +243,10 @@ namespace jvi {
             if (parameters->eEnableCopyMeta) {
                 //currentCmd->copyBuffer(context->uniformRawData, context->uniformGPUData, { VkBufferCopy(context->uniformRawData.offset(), context->uniformGPUData.offset(), context->uniformGPUData.range()) });
 
-                // TODO: REMAKE FOR VKT-3 AND XVK
-                currentCmd.copyBuffer(context->uniformGPUData, context->uniformGPUData, { VkBufferCopy(context->uniformGPUData.offset() + offsetof(Matrices, modelview ), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev),  96ull) }); // reserve previous projection (for adaptive denoise)
-                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { VkBufferCopy(context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection   ), 224ull) });
-                currentCmd.copyBuffer(context->uniformRawData, context->uniformGPUData, { VkBufferCopy(context->uniformRawData.offset() + offsetof(Matrices, mdata     ), context->uniformGPUData.offset() + offsetof(Matrices, mdata        ),  32ull) });
+                //
+                this->driver->getDeviceDispatch()->CmdCopyBuffer(currentCmd, context->uniformGPUData, context->uniformGPUData, 1u, vkh::VkBufferCopy{ context->uniformGPUData.offset() + offsetof(Matrices, modelview), context->uniformGPUData.offset() + offsetof(Matrices, modelviewPrev), 96ull }); // reserve previous projection (for adaptive denoise)
+                this->driver->getDeviceDispatch()->CmdCopyBuffer(currentCmd, context->uniformRawData, context->uniformGPUData, 1u, vkh::VkBufferCopy{ context->uniformRawData.offset() + offsetof(Matrices, projection), context->uniformGPUData.offset() + offsetof(Matrices, projection), 224ull });
+                this->driver->getDeviceDispatch()->CmdCopyBuffer(currentCmd, context->uniformRawData, context->uniformGPUData, 1u, vkh::VkBufferCopy{ context->uniformRawData.offset() + offsetof(Matrices, mdata), context->uniformGPUData.offset() + offsetof(Matrices, mdata),  32ull });
 
                 I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(currentCmd); }; vkt::commandBarrier(currentCmd);
                 this->materials->copyBuffers(currentCmd);
@@ -264,11 +264,10 @@ namespace jvi {
             if (parameters->eEnableRayTracing) {
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
-                // TODO: REMAKE FOR VKT-3 AND XVK
-                currentCmd.bindDescriptorSets(VkPipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-                currentCmd.bindPipeline(VkPipelineBindPoint::eCompute, this->raytraceState);
-                currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-                currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+                this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+                this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->raytraceState);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), &glm::uvec4(0u));
+                this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
                 vkt::commandBarrier(currentCmd);
             };
 
@@ -279,24 +278,23 @@ namespace jvi {
             };
 
             // Denoise diffuse data
-            // TODO: REMAKE FOR VKT-3 AND XVK
-            currentCmd.bindDescriptorSets(VkPipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            currentCmd.bindPipeline(VkPipelineBindPoint::eCompute, this->denoiseState);
-            currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->denoiseState);
+            this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
+            this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(currentCmd);
 
             // Denoise reflection data
-            // TODO: REMAKE FOR VKT-3 AND XVK
-            currentCmd.bindDescriptorSets(VkPipelineBindPoint::eCompute, this->context->unifiedPipelineLayout, 0ull, this->context->descriptorSets, {});
-            currentCmd.bindPipeline(VkPipelineBindPoint::eCompute, this->reflectState);
-            currentCmd.pushConstants<glm::uvec4>(this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }.hpp(), 0u, { glm::uvec4(0u) });
-            currentCmd.dispatch(vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->reflectState);
+            this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
+            this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(currentCmd);
 
             // 
-            // TODO: REMAKE FOR VKT-3 AND XVK
-            if (!hasBuf) { currentCmd.end(); };
+            if (!hasBuf) {
+                this->driver->getDeviceDispatch()->EndCommandBuffer(currentCmd);
+            };
             return uTHIS;
         };
 
