@@ -79,11 +79,14 @@ namespace jvi {
             }).offset<vkh::VkDescriptorBufferInfo>() = gpuAttributes;
 
             // 
-            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetHelper, this->descriptorSet[0]));
+            if (!this->descriptorUpdated) {
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetHelper, this->descriptorSet[0]));
+            };
 
             // 
             if (this->bvs) { this->bvs->createDescriptorSet(); };
             this->descriptorSetInitialized = true;
+            this->descriptorUpdated = true;
 
             // 
             return uTHIS;
@@ -389,6 +392,7 @@ namespace jvi {
         VkDeviceSize currentUnitCount = 0u;
         bool needsQuads = false, needUpdate = true, ignoreIndirection = false;
         bool descriptorSetInitialized = false;
+        bool descriptorUpdated = false;
 
         // 
         std::vector<vkh::VkPipelineShaderStageCreateInfo> stages = {};

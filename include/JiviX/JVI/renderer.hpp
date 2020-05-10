@@ -237,6 +237,7 @@ namespace jvi {
                 // TODO: RE-ENABLE Rasterization Stage
             };
 
+
             // prepare meshes for ray-tracing
             auto I = 0u;
             if (parameters->eEnableCopyMeta) {
@@ -252,12 +253,14 @@ namespace jvi {
                 I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
             if (parameters->eEnableBuildAccelerationStructure) {
-                I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+                I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); M->descriptorUpdated = false; }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
                 this->node->buildAccelerationStructure(currentCmd);
             };
 
+
             // Compute ray-tracing (RTX)
             if (parameters->eEnableRayTracing) {
+                this->node->descriptorUpdated = false;
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->raytraceState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
@@ -285,11 +288,13 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
             this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
-
             // 
+
             if (!hasBuf) {
                 this->driver->getDeviceDispatch()->EndCommandBuffer(currentCmd);
             };
+
+
             return uTHIS;
         };
 

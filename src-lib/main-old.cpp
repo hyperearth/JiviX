@@ -227,6 +227,12 @@ int main() {
     std::string err = "";
     std::string wrn = "";
 
+
+    // 
+    //const float unitScale = 1.f;
+    //const float unitHeight = -0.f;
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
+
     // 
     const float unitScale = 100.f;
     const float unitHeight = -0.f;
@@ -270,7 +276,7 @@ int main() {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
             .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
-            }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = fw->getDeviceDispatch(), .instanceDispatch = fw->getInstanceDispatch() })));
+        }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = fw->getDeviceDispatch(), .instanceDispatch = fw->getInstanceDispatch() })));
 
         // 
         memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());

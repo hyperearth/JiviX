@@ -494,7 +494,9 @@ namespace jvi {
                 }
 
                 // 
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->deferredDescriptorSet));
+                if (!this->descriptorUpdated) {
+                    vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->deferredDescriptorSet));
+                };
             };
 
             { // For Reprojection Pipeline
@@ -527,7 +529,9 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip0DescriptorSet));
+                if (!this->descriptorUpdated) {
+                    vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip0DescriptorSet));
+                };
             };
 
             { // For Reprojection Pipeline
@@ -560,12 +564,15 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip1DescriptorSet));
+                if (!this->descriptorUpdated) {
+                    vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip1DescriptorSet));
+                };
             };
 
             // 
             this->descriptorSets[2] = this->deferredDescriptorSet;
             this->descriptorSets[3] = this->smpFlip0DescriptorSet;
+            this->descriptorUpdated = true;
 
             // 
             return uTHIS;
@@ -584,6 +591,7 @@ namespace jvi {
         std::chrono::time_point<std::chrono::steady_clock> beginTime = std::chrono::high_resolution_clock::now();
         std::chrono::time_point<std::chrono::steady_clock> leastTime = std::chrono::high_resolution_clock::now();
         std::chrono::time_point<std::chrono::steady_clock> previTime = std::chrono::high_resolution_clock::now();
+        bool descriptorUpdated = false;
 
         // 
         vkh::VkRect2D scissor = {};

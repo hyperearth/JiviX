@@ -8,13 +8,18 @@ layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec2 iTexcoord;
 layout (location = 2) in vec3 iNormals;
 layout (location = 3) in vec4 iTangent;
-layout (location = 4) in vec4 fBinormal;
+//layout (location = 4) in vec4 fBinormal;
 
 // Right Oriented
 layout (location = 0) out vec4 gPosition;
 layout (location = 1) out vec4 gTexcoord;
 layout (location = 2) out vec4 gNormal;
 layout (location = 3) out vec4 gTangent;
+
+out gl_PerVertex {   // some subset of these members will be used
+    vec4 gl_Position;
+    float gl_PointSize;
+};
 
 // Should to able used by OpenGL
 void main() { // Cross-Lake

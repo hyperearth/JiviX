@@ -9,7 +9,7 @@ namespace jvi {
 
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
-    class Node : public std::enable_shared_from_this<Node> { public: friend Renderer;
+    class Node : public std::enable_shared_from_this<Node> { public: friend Renderer; 
         Node() {};
         Node(const vkt::uni_ptr<Context>& context, const uint32_t& MaxInstanceCount = 64u) : context(context), MaxInstanceCount(MaxInstanceCount) { this->construct(); };
         Node(const std::shared_ptr<Context>& context, const uint32_t& MaxInstanceCount = 64u) : context(context), MaxInstanceCount(MaxInstanceCount) { this->construct(); };
@@ -287,12 +287,15 @@ namespace jvi {
             };
 
             // 
-            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet));
-            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet));
+            if (!this->descriptorUpdated) {
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet));
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet));
+            };
 
             // 
             this->context->descriptorSets[0] = this->meshDataDescriptorSet;
             this->context->descriptorSets[1] = this->bindingsDescriptorSet;
+            this->descriptorUpdated = true;
 
             // remap mesh data
             return uTHIS;
@@ -410,6 +413,7 @@ namespace jvi {
         vkt::Vector<vkh::VsGeometryInstance> gpuInstances = {};
         uint32_t instanceCounter = 0u;
         bool needsUpdate = false;
+        bool descriptorUpdated = false;
 
         // 
         vkh::VsDescriptorSetCreateInfoHelper meshDataDescriptorSetInfo = {};

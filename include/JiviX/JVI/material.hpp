@@ -182,8 +182,11 @@ namespace jvi {
             };
 
             // Reprojection WILL NOT write own depth... 
-            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetInfo, this->descriptorSet));
+            if (!this->descriptorUpdated) {
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetInfo, this->descriptorSet));
+            };
             this->context->descriptorSets[4] = this->descriptorSet;
+            this->descriptorUpdated = true;
 
             // 
             return uTHIS;
@@ -198,6 +201,7 @@ namespace jvi {
         std::vector<vkh::VkDescriptorImageInfo> sampledImages = {};
         std::optional<vkh::VkDescriptorImageInfo> backgroundImage = {};
         vkt::ImageRegion backgroundImageClass = {};
+        bool descriptorUpdated = false;
 
         // 
         vkt::Vector<MaterialUnit> rawMaterials = {}; // Ray-Tracing instances Will re-located into meshes by Index, and will no depending by mesh list...

@@ -387,12 +387,15 @@ namespace jvi {
             if (this->fullGeometryCount > this->buildGInfo.size()) {
                 this->buildGInfo.resize(this->fullGeometryCount);
                 this->buildGPtr.resize(this->fullGeometryCount);
+                this->offsetInfo.resize(this->fullGeometryCount);
+                this->offsetPtr.resize(this->fullGeometryCount);
             };
 
             // 
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     this->buildGInfo[c] = this->buildGTemp;
+                    this->offsetPtr[c] = &this->offsetInfo[c];
                     this->buildGPtr[c] = &this->buildGInfo[c]; c++;
                 }; f += this->instances[i++];
             };
@@ -677,6 +680,7 @@ namespace jvi {
         uint32_t transformStride = sizeof(glm::mat3x4);
         uint32_t lastBindID = 0u, locationCounter = 0u;
         bool needsUpdate = false;
+        bool descriptorUpdated = false;
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
@@ -766,6 +770,7 @@ namespace jvi {
          if (this->bvs) {
              this->descriptorSet.resize(2u);
              this->descriptorSet[1u] = this->bvs->getDescriptorSet();
+             this->bvs->descriptorUpdated = false;
          };
 
          // 
@@ -802,6 +807,8 @@ namespace jvi {
              // 
              const auto& gOffset = offsetHelp->y;
              const auto& gBuffer = binding->getBindingBuffer();
+             const auto& mOffset = gOffset + gBuffer.offset();
+             const auto& mSize = gBuffer.size() - gOffset;
 
              // 
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
@@ -812,6 +819,7 @@ namespace jvi {
              this->driver->getDeviceDispatch()->CmdSetScissor(buildCommand, 0u, 1u, renderArea);
              this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
              this->driver->getDeviceDispatch()->CmdBeginTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
+             this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 1u, &gBuffer.buffer(), &mOffset, &mSize);
 
              // 
              if (this->indexType != VK_INDEX_TYPE_NONE_KHR) {
@@ -835,6 +843,10 @@ namespace jvi {
              this->driver->getDeviceDispatch()->FreeCommandBuffers(this->thread->getCommandPool(), 1u, buildCommand);
              //this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
          };
+
+         // 
+
+         this->descriptorUpdated = false;
 
          return uTHIS;
     };

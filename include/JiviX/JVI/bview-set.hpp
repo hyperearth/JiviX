@@ -8,7 +8,7 @@
 namespace jvi {
 
     // WIP Materials
-    class BufferViewSet : public std::enable_shared_from_this<BufferViewSet> {
+    class BufferViewSet : public std::enable_shared_from_this<BufferViewSet> { friend MeshInput;
     public: friend Renderer;// 
         BufferViewSet() {};
         BufferViewSet(const vkt::uni_ptr<Context>& context) : context(context) { this->construct(); };
@@ -90,7 +90,10 @@ namespace jvi {
             };
 
             // 
-            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->bufferViewSetHelper, this->bufferViewSet[0]));
+            if (!this->descriptorUpdated) {
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->bufferViewSetHelper, this->bufferViewSet[0]));
+            };
+            this->descriptorUpdated = true;
 
             // 
             return uTHIS;
@@ -120,6 +123,7 @@ namespace jvi {
 
     protected: // 
         std::vector<vkt::Vector<uint8_t>> bufferViews = {};
+        bool descriptorUpdated = false;
 
         // 
         std::vector<VkDescriptorSet> bufferViewSet = { {} };
