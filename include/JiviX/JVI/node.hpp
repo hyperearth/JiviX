@@ -287,15 +287,12 @@ namespace jvi {
             };
 
             // 
-            if (!this->descriptorUpdated) {
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet));
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet));
-            };
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet, this->descriptorUpdatedM));
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet, this->descriptorUpdatedB));
 
             // 
             this->context->descriptorSets[0] = this->meshDataDescriptorSet;
             this->context->descriptorSets[1] = this->bindingsDescriptorSet;
-            this->descriptorUpdated = true;
 
             // remap mesh data
             return uTHIS;
@@ -413,7 +410,8 @@ namespace jvi {
         vkt::Vector<vkh::VsGeometryInstance> gpuInstances = {};
         uint32_t instanceCounter = 0u;
         bool needsUpdate = false;
-        bool descriptorUpdated = false;
+        bool descriptorUpdatedM = false;
+        bool descriptorUpdatedB = false;
 
         // 
         vkh::VsDescriptorSetCreateInfoHelper meshDataDescriptorSetInfo = {};

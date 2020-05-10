@@ -90,10 +90,7 @@ namespace jvi {
             };
 
             // 
-            if (!this->descriptorUpdated) {
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->bufferViewSetHelper, this->bufferViewSet[0]));
-            };
-            this->descriptorUpdated = true;
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->bufferViewSetHelper, this->bufferViewSet[0], this->descriptorUpdated));
 
             // 
             return uTHIS;

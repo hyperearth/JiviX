@@ -552,8 +552,6 @@ namespace jvi {
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
             };
 
-
-
             // 
             return uTHIS;
         };
@@ -770,7 +768,6 @@ namespace jvi {
          if (this->bvs) {
              this->descriptorSet.resize(2u);
              this->descriptorSet[1u] = this->bvs->getDescriptorSet();
-             this->bvs->descriptorUpdated = false;
          };
 
          // 
@@ -836,6 +833,7 @@ namespace jvi {
 
              //vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
              vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // dont transform feedback
+             this->descriptorUpdated = false;
          };
 
          if (DirectCommand) {
@@ -843,10 +841,6 @@ namespace jvi {
              this->driver->getDeviceDispatch()->FreeCommandBuffers(this->thread->getCommandPool(), 1u, buildCommand);
              //this->thread->getDevice().freeCommandBuffers(this->thread->getCommandPool(), { buildCommand });
          };
-
-         // 
-
-         this->descriptorUpdated = false;
 
          return uTHIS;
     };

@@ -79,14 +79,11 @@ namespace jvi {
             }).offset<vkh::VkDescriptorBufferInfo>() = gpuAttributes;
 
             // 
-            if (!this->descriptorUpdated) {
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetHelper, this->descriptorSet[0]));
-            };
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetHelper, this->descriptorSet[0], this->descriptorUpdated));
 
             // 
             if (this->bvs) { this->bvs->createDescriptorSet(); };
             this->descriptorSetInitialized = true;
-            this->descriptorUpdated = true;
 
             // 
             return uTHIS;

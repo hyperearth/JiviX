@@ -182,11 +182,8 @@ namespace jvi {
             };
 
             // Reprojection WILL NOT write own depth... 
-            if (!this->descriptorUpdated) {
-                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetInfo, this->descriptorSet));
-            };
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetInfo, this->descriptorSet, this->descriptorUpdated));
             this->context->descriptorSets[4] = this->descriptorSet;
-            this->descriptorUpdated = true;
 
             // 
             return uTHIS;
