@@ -369,11 +369,11 @@ namespace jvi {
 
             // 
             thread->submitOnce([&,this](VkCommandBuffer& cmd) {
-                depthImage.transfer(cmd);
+                this->depthImage.transfer(cmd);
                 for (uint32_t i = 0u; i < 12u; i++) { // Definitely Not an Hotel
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip1Images[i], VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip1Images[i].getImageSubresourceRange());
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip0Images[i], VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip0Images[i].getImageSubresourceRange());
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->frameBfImages[i], VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->frameBfImages[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip1Images[i].transfer(cmd), VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip1Images[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip0Images[i].transfer(cmd), VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip0Images[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->frameBfImages[i].transfer(cmd), VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->frameBfImages[i].getImageSubresourceRange());
                 };
             });
 

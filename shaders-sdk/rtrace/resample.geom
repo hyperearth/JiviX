@@ -32,6 +32,7 @@ out gl_PerVertex {   // some subset of these members will be used
 // 
 void main() {
     gl_Position = gl_in[0].gl_Position;
+    gl_PointSize = 1.f;
 
     gColor = vColor[0];
     gSample = vSample[0];
