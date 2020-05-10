@@ -31,17 +31,18 @@ namespace jvi {
             this->driver->getInstanceDispatch()->GetPhysicalDeviceProperties2(driver->getPhysicalDevice(), this->properties);
 
             // 
-            this->raytraceStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/raytrace.comp.spv"), vkh::VkShaderStageFlags{.eCompute = 1});
-            this->denoiseStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/denoise.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
-            this->reflectStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/reflect.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
+            this->raytraceStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/raytrace.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
+            this->denoiseStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/denoise.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
+            this->reflectStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/reflect.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
 
             // 
             this->resampStages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/resample.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/resample.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/resample.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/resample.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/resample.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/resample.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 
+            // 
             return uTHIS;
         };
 

@@ -40,7 +40,7 @@ namespace jvi {
             this->instancHeadInfo.geometryCount = this->instancInfo.size();
             this->instancHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->instancPtr = this->instancInfo.data()).ptr());
             this->instancHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
-            this->instancHeadInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+            this->instancHeadInfo.flags = { .eAllowUpdate = 1, .ePreferFastTrace = 1 };
             this->instancHeadInfo.geometryArrayOfPointers = true;
 
             // FOR BUILD! // originally, it should to be array (like as old version of LancER)

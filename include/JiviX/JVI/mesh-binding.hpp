@@ -55,14 +55,14 @@ namespace jvi {
 
             // for faster code, pre-initialize
             this->stages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/rasterize.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/rasterize.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/rasterize.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/rasterize.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 
             // 
             this->ctages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/covergence.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/covergence.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/covergence.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/covergence.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 
             // 
@@ -96,7 +96,7 @@ namespace jvi {
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
             this->bdHeadInfo.ppGeometries = nullptr;//reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->buildGPtr = this->buildGInfo.data()).ptr());
             this->bdHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-            this->bdHeadInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+            this->bdHeadInfo.flags = { .eAllowUpdate = 1, .ePreferFastTrace = 1 };
             this->bdHeadInfo.geometryArrayOfPointers = true; // MARK TRUE FOR INDIRECT BUILDING!!
 
             // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)

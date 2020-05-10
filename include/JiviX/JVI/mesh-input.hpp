@@ -34,12 +34,12 @@ namespace jvi {
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
 
             // 
-            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/quad.comp.spv"), vkh::VkShaderStageFlags{ .eCompute = 1 });
+            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/quad.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
 
             // for faster code, pre-initialize
             this->stages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/transform.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/transform.geom.spv"), vkh::VkShaderStageFlags{.eGeometry = 1})
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/transform.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/transform.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT)
             };
 
             // transformPipelineLayout

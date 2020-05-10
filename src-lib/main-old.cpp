@@ -12,14 +12,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #define VKT_FORCE_VMA_IMPLEMENTATION
 #define VKT_ENABLE_GLFW_SUPPORT
-
-#include "vkt3/fw.hpp"
-#include "JiviX/JiviX.hpp"
-
 #define TINYGLTF_IMPLEMENTATION
 #define TINYEXR_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "vkt3/fw.hpp"
+#include "JiviX/JiviX.hpp"
 #include "misc/tiny_gltf.h"
 #include "misc/tinyexr.h"
 #include <string>
@@ -344,7 +342,7 @@ int main() {
         };
 
         // 
-        context->getThread()->submitOnce([=](VkCommandBuffer& cmd) { image.transfer(cmd);
+        context->getThread()->submitOnce([&](VkCommandBuffer& cmd) { image.transfer(cmd);
 
             auto buffer = imageBuf.has() ? imageBuf : buffersViews[img.bufferView];
             fw->getDeviceDispatch()->CmdCopyBufferToImage(cmd, buffer.buffer(), image.getImage(), image.getImageLayout(), 1u, vkh::VkBufferImageCopy{
@@ -418,7 +416,7 @@ int main() {
             };
 
             // 
-            context->getThread()->submitOnce([=](VkCommandBuffer& cmd) {
+            context->getThread()->submitOnce([&](VkCommandBuffer& cmd) {
                 image.transfer(cmd);
 
                 auto buffer = imageBuf;
@@ -647,12 +645,12 @@ int main() {
     // initialize program
     //renderer->setupCommands();
 
-    //  
+    // 
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-    pipelineInfo.stages = vkt::vector_cast<vkh::VkPipelineShaderStageCreateInfo, VkPipelineShaderStageCreateInfo>({
-        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/render.vert.spv"), vkh::VkShaderStageFlags{.eVertex = 1}),
-        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary("./shaders/rtrace/render.frag.spv"), vkh::VkShaderStageFlags{.eFragment = 1})
-    });
+    pipelineInfo.stages = {
+        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/render.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/render.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
+    };
     pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
     pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->renderPass;//context->refRenderPass();
     pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
