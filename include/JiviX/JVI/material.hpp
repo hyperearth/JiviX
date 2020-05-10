@@ -102,13 +102,13 @@ namespace jvi {
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(context->materialDescriptorSetLayout, driver->descriptorPool);
 
             if (sampledImages.size() > 0u) { // Setup Textures
-                vkh::VsDescriptorHandle<VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .descriptorCount = uint32_t(sampledImages.size()),
                     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
-                memcpy(&imagesHandle.offset<VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(VkDescriptorImageInfo));
-                //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<VkDescriptorImageInfo>(i) = sampledImages[i]; };
+                memcpy(&imagesHandle.offset<vkh::VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(vkh::VkDescriptorImageInfo));
+                //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<vkh::VkDescriptorImageInfo>(i) = sampledImages[i]; };
             };
 
             // 
@@ -173,12 +173,12 @@ namespace jvi {
 
             // 
             if (this->backgroundImage) { // 
-                vkh::VsDescriptorHandle<VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 2u,
                     .descriptorCount = uint32_t(1u),
                     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
-                imagesHandle.offset<VkDescriptorImageInfo>(0) = *backgroundImage;
+                imagesHandle.offset<vkh::VkDescriptorImageInfo>(0) = *backgroundImage;
             };
 
             // Reprojection WILL NOT write own depth... 

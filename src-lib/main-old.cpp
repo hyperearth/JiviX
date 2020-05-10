@@ -302,8 +302,8 @@ int main() {
     auto allocInfo = vkt::MemoryAllocationInfo{};
     allocInfo.device = fw->getDevice();
     allocInfo.memoryProperties = fw->getMemoryProperties().memoryProperties;
-    allocInfo.deviceDispatch = fw->getDeviceDispatch();
     allocInfo.instanceDispatch = fw->getInstanceDispatch();
+    allocInfo.deviceDispatch = fw->getDeviceDispatch();
 
     // 
     std::vector<VkSampler> samplers = {};
@@ -607,7 +607,7 @@ int main() {
                 if (recursive >= 0) (*vertexLoader)(model.nodes[gnode.children[n]], glm::dmat4(inTransform) * glm::dmat4(localTransform), recursive - 1);
             };
         };
-        });
+    });
 
     // load scene
     uint32_t sceneID = 0;
@@ -657,7 +657,7 @@ int main() {
     pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
     pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
-    pipelineInfo.dynamicStates = vkt::vector_cast<VkDynamicState, VkDynamicState>({ VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_VIEWPORT });
+    pipelineInfo.dynamicStates = { VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_VIEWPORT };
 
     // 
     VkPipeline finalPipeline = {};

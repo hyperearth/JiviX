@@ -68,7 +68,7 @@ namespace jvi {
                 .dstArrayElement = 0u,
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }).offset<VkDescriptorBufferInfo>() = gpuBindings;
+            }).offset<vkh::VkDescriptorBufferInfo>() = gpuBindings;
 
             // 
             this->descriptorSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -76,7 +76,7 @@ namespace jvi {
                 .dstArrayElement = 0u,
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }).offset<VkDescriptorBufferInfo>() = gpuAttributes;
+            }).offset<vkh::VkDescriptorBufferInfo>() = gpuAttributes;
 
             // 
             vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetHelper, this->descriptorSet[0]);
@@ -144,9 +144,9 @@ namespace jvi {
                 const uint32_t ucount = vkt::tiled(originalCt, 1024ull);
 
                 // 
-                this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
                 this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->quadGenerator);
-                this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), &meta);
+                this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->transformPipelineLayout, 0u, this->descriptorSet.size(), this->descriptorSet.data(), 0u, nullptr);
+                this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), &meta);
                 this->driver->getDeviceDispatch()->CmdDispatch(buildCommand, ucount, 1u, 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
