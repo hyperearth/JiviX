@@ -136,7 +136,7 @@ namespace jvi {
 
             // 
             //this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
-            this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->renderPass);
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->renderPass));
 
             // 
             return uTHIS;
@@ -257,13 +257,13 @@ namespace jvi {
                 });
 
                 // Create Sampler By Reference
-                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                }, nullptr, &this->frameBfImages[b].refSampler());
+                }, nullptr, &this->frameBfImages[b].refSampler()));
 
                 if (b < 8u) { deferredAttachments[b] = frameBfImages[b]; };
             };
@@ -279,13 +279,13 @@ namespace jvi {
                 });
 
                 // Create Sampler By Reference
-                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                    }, nullptr, &this->smFlip0Images[b].refSampler());
+                    }, nullptr, &this->smFlip0Images[b].refSampler()));
 
                 if (b < 8u) { smpFlip0Attachments[b] = smFlip0Images[b]; };
             };
@@ -300,13 +300,13 @@ namespace jvi {
                 });
 
                 // Create Sampler By Reference
-                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                    }, nullptr, &this->smFlip1Images[b].refSampler());
+                    }, nullptr, &this->smFlip1Images[b].refSampler()));
 
                 if (b < 8u) { smpFlip1Attachments[b] = smFlip1Images[b]; };
             }; };
@@ -322,13 +322,13 @@ namespace jvi {
                         .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
                     });
 
-                this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
                     .minFilter = VK_FILTER_LINEAR,
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                    }, nullptr, &this->depthImage.refSampler());
+                    }, nullptr, &this->depthImage.refSampler()));
 
                 // 5th attachment
                 deferredAttachments[8u] = depthImage;
@@ -337,31 +337,31 @@ namespace jvi {
             };
 
             // 
-            this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
                 .attachmentCount = static_cast<uint32_t>(deferredAttachments.size()),
                 .pAttachments = deferredAttachments.data(),
                 .width = width,
                 .height = height
-            }, nullptr, &this->deferredFramebuffer);
+            }, nullptr, &this->deferredFramebuffer));
 
             // Reprojection WILL NOT write own depth... 
-            this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
                 .attachmentCount = static_cast<uint32_t>(smpFlip0Attachments.size()),
                 .pAttachments = smpFlip0Attachments.data(),
                 .width = width,
                 .height = height
-            }, nullptr, & this->smpFlip0Framebuffer);
+            }, nullptr, & this->smpFlip0Framebuffer));
 
             // Reprojection WILL NOT write own depth... 
-            this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
                 .renderPass = renderPass,
                 .attachmentCount = static_cast<uint32_t>(smpFlip1Attachments.size()),
                 .pAttachments = smpFlip1Attachments.data(),
                 .width = width,
                 .height = height
-            }, nullptr, & this->smpFlip1Framebuffer);
+            }, nullptr, & this->smpFlip1Framebuffer));
 
             // 
             scissor = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{width, height} };
@@ -425,16 +425,16 @@ namespace jvi {
             this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount =   1u, .stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
 
             // 
-            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->meshDataDescriptorSetLayoutHelper, nullptr, &this->meshDataDescriptorSetLayout);
-            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bindingsDescriptorSetLayoutHelper, nullptr, &this->bindingsDescriptorSetLayout);
-            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->deferredDescriptorSetLayoutHelper, nullptr, &this->deferredDescriptorSetLayout);
-            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->samplingDescriptorSetLayoutHelper, nullptr, &this->samplingDescriptorSetLayout);
-            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->materialDescriptorSetLayoutHelper, nullptr, &this->materialDescriptorSetLayout);
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->meshDataDescriptorSetLayoutHelper, nullptr, &this->meshDataDescriptorSetLayout));
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bindingsDescriptorSetLayoutHelper, nullptr, &this->bindingsDescriptorSetLayout));
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->deferredDescriptorSetLayoutHelper, nullptr, &this->deferredDescriptorSetLayout));
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->samplingDescriptorSetLayoutHelper, nullptr, &this->samplingDescriptorSetLayout));
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->materialDescriptorSetLayoutHelper, nullptr, &this->materialDescriptorSetLayout));
 
             // 
             std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = { .eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
             std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
-            this->driver->getDeviceDispatch()->CreatePipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges), nullptr, &this->unifiedPipelineLayout);
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreatePipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges), nullptr, &this->unifiedPipelineLayout));
 
             return uTHIS;
         };
@@ -494,7 +494,7 @@ namespace jvi {
                 }
 
                 // 
-                vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->deferredDescriptorSet);
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->deferredDescriptorSet));
             };
 
             { // For Reprojection Pipeline
@@ -527,7 +527,7 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip0DescriptorSet);
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip0DescriptorSet));
             };
 
             { // For Reprojection Pipeline
@@ -560,7 +560,7 @@ namespace jvi {
                 };
 
                 // Reprojection WILL NOT write own depth... 
-                vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip1DescriptorSet);
+                vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->smpFlip1DescriptorSet));
             };
 
             // 

@@ -26,7 +26,7 @@ namespace jvi {
 
             // 
             this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 256u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
-            this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]);
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]));
 
             // 
             return uTHIS;
@@ -90,7 +90,7 @@ namespace jvi {
             };
 
             // 
-            vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->bufferViewSetHelper, this->bufferViewSet[0]);
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->bufferViewSetHelper, this->bufferViewSet[0]));
 
             // 
             return uTHIS;

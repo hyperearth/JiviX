@@ -412,7 +412,7 @@ namespace jvi {
                 //vkt::debugLabel(buildCommand, "Ending building bottom acceleration structure...", this->driver->getDispatch()); this->needsUpdate = true;
             } else {
                 //driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()), this->driver->getDispatch());
-                driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()));
+                vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data())));
             };
 
             //
@@ -509,7 +509,7 @@ namespace jvi {
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
-                driver->getDeviceDispatch()->CreateAccelerationStructureKHR(this->bottomCreate, nullptr, &this->accelerationStructure);
+                vkh::handleVk(driver->getDeviceDispatch()->CreateAccelerationStructureKHR(this->bottomCreate, nullptr, &this->accelerationStructure));
 
                 //
                 vkh::VkMemoryRequirements2 requirements = {};
@@ -526,11 +526,11 @@ namespace jvi {
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
 
                 // 
-                driver->getDeviceDispatch()->BindAccelerationStructureMemoryKHR(1u, vkh::VkBindAccelerationStructureMemoryInfoKHR{
+                vkh::handleVk(driver->getDeviceDispatch()->BindAccelerationStructureMemoryKHR(1u, vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = TempBuffer->getAllocationInfo().memory,
                     .memoryOffset = TempBuffer->getAllocationInfo().offset,
-                });
+                }));
             };
 
             // 
@@ -585,12 +585,12 @@ namespace jvi {
             };
 
             // 
-            this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->rasterizationState);
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->rasterizationState));
 
             // 
             this->pipelineInfo.rasterizationState.pNext = &conserv;
             this->pipelineInfo.stages = this->ctages;
-            this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->covergenceState);
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateGraphicsPipelines(driver->getPipelineCache(), 1u, this->pipelineInfo, nullptr, &this->covergenceState));
 
             // 
             return uTHIS;

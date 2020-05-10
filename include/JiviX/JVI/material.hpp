@@ -142,12 +142,12 @@ namespace jvi {
                     });
 
                     // Create Sampler By Reference
-                    this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                    vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                         .magFilter = VK_FILTER_LINEAR,
                         .minFilter = VK_FILTER_LINEAR,
                         .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
                         .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                    }, nullptr, &this->backgroundImageClass.refSampler());
+                    }, nullptr, &this->backgroundImageClass.refSampler()));
 
                     //
                     vkt::Vector<> imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
@@ -182,7 +182,7 @@ namespace jvi {
             };
 
             // Reprojection WILL NOT write own depth... 
-            vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetInfo, this->descriptorSet);
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), this->descriptorSetInfo, this->descriptorSet));
             this->context->descriptorSets[4] = this->descriptorSet;
 
             // 

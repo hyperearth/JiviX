@@ -287,8 +287,8 @@ namespace jvi {
             };
 
             // 
-            vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet);
-            vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet);
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet));
+            vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet));
 
             // 
             this->context->descriptorSets[0] = this->meshDataDescriptorSet;
@@ -341,7 +341,7 @@ namespace jvi {
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); this->needsUpdate = true;
                 //vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
-                driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()));
+                vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr())));
             };
 
             return uTHIS;
@@ -354,7 +354,7 @@ namespace jvi {
 
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
-                driver->getDeviceDispatch()->CreateAccelerationStructureKHR(this->topCreate, nullptr, &this->accelerationStructure);
+                vkh::handleVk(driver->getDeviceDispatch()->CreateAccelerationStructureKHR(this->topCreate, nullptr, &this->accelerationStructure));
 
                 //
                 vkh::VkMemoryRequirements2 requirements = {};
@@ -371,11 +371,11 @@ namespace jvi {
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
 
                 // 
-                driver->getDeviceDispatch()->BindAccelerationStructureMemoryKHR(1u, vkh::VkBindAccelerationStructureMemoryInfoKHR{
+                vkh::handleVk(driver->getDeviceDispatch()->BindAccelerationStructureMemoryKHR(1u, vkh::VkBindAccelerationStructureMemoryInfoKHR{
                     .accelerationStructure = this->accelerationStructure,
                     .memory = TempBuffer->getAllocationInfo().memory,
                     .memoryOffset = TempBuffer->getAllocationInfo().offset,
-                });
+                }));
             };
 
             // 
