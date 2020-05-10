@@ -324,12 +324,12 @@ int main() {
         auto image = images.back();
 
         // Create Sampler By Reference
-        fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+        vkh::handleVk(fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
             .magFilter = VK_FILTER_LINEAR,
             .minFilter = VK_FILTER_LINEAR,
             .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
             .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        }, nullptr, &image.refSampler());
+        }, nullptr, &image.refSampler()));
 
         // 
         vkt::Vector<> imageBuf = {};
@@ -398,12 +398,12 @@ int main() {
             auto image = images.back();
 
             // Create Sampler By Reference
-            fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+            vkh::handleVk(fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                 .magFilter = VK_FILTER_LINEAR,
                 .minFilter = VK_FILTER_LINEAR,
                 .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
                 .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            }, nullptr, &image.refSampler());
+            }, nullptr, &image.refSampler()));
 
             // 
             vkt::Vector<> imageBuf = {};
@@ -440,12 +440,12 @@ int main() {
         const auto& smp = model.samplers[i];
         samplers.push_back({});
 
-        fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+        vkh::handleVk(fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
             .magFilter = VK_FILTER_LINEAR,
             .minFilter = VK_FILTER_LINEAR,
             .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
             .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        }, nullptr, &samplers.back());
+        }, nullptr, &samplers.back()));
     };
 
     // Material 
@@ -661,7 +661,7 @@ int main() {
 
     // 
     VkPipeline finalPipeline = {};
-    fw->getDeviceDispatch()->CreateGraphicsPipelines(fw->getPipelineCache(), 1u, pipelineInfo, nullptr, &finalPipeline);
+    vkh::handleVk(fw->getDeviceDispatch()->CreateGraphicsPipelines(fw->getPipelineCache(), 1u, pipelineInfo, nullptr, &finalPipeline));
 
     // 
     int64_t currSemaphore = -1;
@@ -701,15 +701,15 @@ int main() {
         (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
 
         // 
-        fw->getDeviceDispatch()->WaitForFences(1u, &framebuffers[c_semaphore].waitFence, true, 30ull * 1000ull * 1000ull * 1000ull);
-        fw->getDeviceDispatch()->ResetFences(1u, &framebuffers[c_semaphore].waitFence);
+        vkh::handleVk(fw->getDeviceDispatch()->WaitForFences(1u, &framebuffers[c_semaphore].waitFence, true, 30ull * 1000ull * 1000ull * 1000ull));
+        vkh::handleVk(fw->getDeviceDispatch()->ResetFences(1u, &framebuffers[c_semaphore].waitFence));
 
         // 
         //device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
         //device.signalSemaphore(VkSemaphoreSignalInfo().setSemaphore(framebuffers[n_semaphore].semaphore).setValue(1u));
 
         // 
-        fw->getDeviceDispatch()->AcquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
+        vkh::handleVk(fw->getDeviceDispatch()->AcquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer));
         //fw->getDeviceDispatch()->SignalSemaphore(vkh::VkSemaphoreSignalInfo{.semaphore = framebuffers[n_semaphore].semaphore, .value = 1u});
 
         { // submit rendering (and wait presentation in device)
@@ -722,11 +722,11 @@ int main() {
 
             // Submit command once
             //renderer->setupCommands();
-            fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
+            vkh::handleVk(fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
                 .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
                 .commandBufferCount = 1u, .pCommandBuffers = &renderer->setupCommands()->refCommandBuffer(), 
                 .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
-            }, {});
+            }, {}));
 
             // 
             waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
@@ -748,11 +748,11 @@ int main() {
             };
 
             // Submit command once
-            fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
+            vkh::handleVk(fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
                 .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
                 .commandBufferCount = 1u, .pCommandBuffers = &commandBuffer,
                 .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
-            }, framebuffers[c_semaphore].waitFence);
+            }, framebuffers[c_semaphore].waitFence));
 
             // 
             context->setDrawCount(frameCount++);
@@ -760,11 +760,11 @@ int main() {
 
         // 
         std::vector<VkSemaphore> waitSemaphoes = { framebuffers[c_semaphore].drawSemaphore };
-        fw->getDeviceDispatch()->QueuePresentKHR(queue, vkh::VkPresentInfoKHR{
+        vkh::handleVk(fw->getDeviceDispatch()->QueuePresentKHR(queue, vkh::VkPresentInfoKHR{
             .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphoes.size()), .pWaitSemaphores = waitSemaphoes.data(),
             .swapchainCount = 1, .pSwapchains = &swapchain,
             .pImageIndices = &currentBuffer, .pResults = nullptr
-        });
+        }));
 
     };
 

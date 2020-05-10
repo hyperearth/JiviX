@@ -16,6 +16,7 @@ void main() { // TODO: explicit sampling
     
     // Final Result Rendering
     vec4 zero = 0.f.xxxx;
-    uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);// = imageLoad(writeImages[BW_RENDERED], samplep);
+    //uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);// = imageLoad(writeImages[BW_RENDERED], samplep);
     //uFragColor = texture(renderBuffers[BW_RENDERED], vcoord);
+    uFragColor = vec4(1.f,0.f,0.f,1.f);
 };
