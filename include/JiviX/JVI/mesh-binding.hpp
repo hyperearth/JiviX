@@ -429,7 +429,7 @@ namespace jvi {
             this->inputs.push_back({}); // Correct! 
             this->ranges.push_back(primitiveCount);
             this->instances.push_back(instanceCount);
-            for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialID; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + uintptr_t(i)] = materialID; }; // TODO: Material ID per instance
             this->fullGeometryCount += instanceCount;
             return uTHIS;
         };
@@ -440,7 +440,7 @@ namespace jvi {
             this->inputs.push_back({}); // Correct! 
             this->ranges.push_back(primitiveCount);
             this->instances.push_back(materialIDs.size());
-            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialIDs[i]; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + uintptr_t(i)] = materialIDs[i]; }; // TODO: Material ID per instance
             this->fullGeometryCount += materialIDs.size();
             return uTHIS;
         };
@@ -457,7 +457,7 @@ namespace jvi {
             this->inputs.push_back(input); // Correct! 
             this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
             this->instances.push_back(instanceCount);
-            for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialID; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + uintptr_t(i)] = materialID; }; // TODO: Material ID per instance
             this->fullGeometryCount += instanceCount;
             return uTHIS;
         };
@@ -468,7 +468,7 @@ namespace jvi {
             this->inputs.push_back(input); // Correct! 
             this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
             this->instances.push_back(materialIDs.size());
-            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + i] = materialIDs[i]; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + uintptr_t(i)] = materialIDs[i]; }; // TODO: Material ID per instance
             this->fullGeometryCount += materialIDs.size();
             return uTHIS;
         };

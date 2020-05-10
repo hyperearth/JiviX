@@ -151,10 +151,10 @@ namespace jvi {
 
                     //
                     vkt::Vector<> imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                        .size = width * height * sizeof(glm::vec4),
+                        .size = size_t(width) * size_t(height) * sizeof(glm::vec4),
                         .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
                     }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
-                    memcpy(imageBuf.data(), rgba = (float*)gSkyColor.data(), width * height * sizeof(glm::vec4));
+                    memcpy(imageBuf.data(), rgba = (float*)gSkyColor.data(), size_t(width) * size_t(height) * sizeof(glm::vec4));
 
                     // 
                     context->getThread()->submitOnce([=](VkCommandBuffer& cmd) {
