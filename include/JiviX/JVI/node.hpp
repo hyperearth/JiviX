@@ -171,6 +171,7 @@ namespace jvi {
                 for (uint32_t i=0;i<meshCount;i++) { if (j < this->meshes[i]->bindings.size() && this->meshes[i]->bindings[j].has()) {
                     handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[j].createBufferView(VK_FORMAT_R8_UINT);
                 }};
+                //handle.offset<VkBufferView>(meshCount) = this->meshes[meshCount-1]->bindings[j].createBufferView(VK_FORMAT_R8_UINT);
             };
 
             { // [0] Plush Index Data (VkBufferView)

@@ -229,7 +229,7 @@ int main() {
 
 
     // 
-    //const float unitScale = 1.f;
+    //const float unitScale = 10.f;
     //const float unitHeight = -0.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
@@ -415,10 +415,10 @@ int main() {
             vkt::Vector<> imageBuf = {};
             if (width > 0u && height > 0u && rgba) {
                 imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                    .size = width * height * sizeof(glm::vec4),
+                    .size = size_t(width) * size_t(height) * sizeof(glm::vec4),
                     .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
                     }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = fw->getDeviceDispatch(), .instanceDispatch = fw->getInstanceDispatch() }));
-                memcpy(imageBuf.data(), rgba, width * height * sizeof(glm::vec4));
+                memcpy(imageBuf.data(), rgba, size_t(width) * size_t(height) * sizeof(glm::vec4));
             };
 
             // 
@@ -733,6 +733,9 @@ int main() {
                 .commandBufferCount = 1u, .pCommandBuffers = &renderer->setupCommands()->refCommandBuffer(), 
                 .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
             }, {}));
+
+            // FOR DEBUG ONLY! Marking Debug Mode!
+            //const std::vector<float> bindingContent = vkt::DebugBufferData<float>(fw->getAllocator(), queue, commandPool, meshes[0]->getBindingBuffer());
 
             // 
             waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };

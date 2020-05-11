@@ -108,6 +108,7 @@ namespace jvi {
                     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
                 memcpy(&imagesHandle.offset<vkh::VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(vkh::VkDescriptorImageInfo));
+                //imagesHandle.offset<vkh::VkDescriptorImageInfo>(uint32_t(sampledImages.size())) = sampledImages[uint32_t(sampledImages.size())-1u];
                 //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<vkh::VkDescriptorImageInfo>(i) = sampledImages[i]; };
             };
 

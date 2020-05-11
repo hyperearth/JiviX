@@ -78,7 +78,7 @@ namespace jvi {
             for (uint32_t i = 0; i < this->bindings.size(); i++) {
                 this->bindings[i] = vkt::Vector<uint8_t>(std::make_shared<vkt::BufferAllocation>(almac, vkh::VkBufferCreateInfo{
                     .size = (i == 0 ? MaxPrimitiveCount : 1u) * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,
-                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
+                    .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
                 }));
 
                 // TODO: other platforms memory handling
@@ -809,14 +809,14 @@ namespace jvi {
 
              // 
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
-             this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformState);
-             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformPipelineLayout, 0u, this->descriptorSet.size(), this->descriptorSet.data(), 0u, nullptr);
-             this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1}, 0u, sizeof(meta), &meta);
              this->driver->getDeviceDispatch()->CmdSetViewport(buildCommand, 0u, 1u, viewport);
              this->driver->getDeviceDispatch()->CmdSetScissor(buildCommand, 0u, 1u, renderArea);
-             this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
              this->driver->getDeviceDispatch()->CmdBeginTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
              this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 1u, &gBuffer.buffer(), &mOffset, &mSize);
+             this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformState);
+             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformPipelineLayout, 0u, this->descriptorSet.size(), this->descriptorSet.data(), 0u, nullptr);
+             this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
+             this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1}, 0u, sizeof(meta), & meta);
 
              // 
              if (this->indexType != VK_INDEX_TYPE_NONE_KHR) {
