@@ -99,6 +99,7 @@ void main() { // TODO: explicit sampling
           vec4 emission = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],texcoord.xy) : unit.emission);
           vec4 normaled = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],texcoord.xy) : unit.normals;
           vec4 specular = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],texcoord.xy) : unit.specular;
+          vec4 dtexdata = diffused;
 
     // experimental (unused for alpha transparency)
     //if (diffused.w < 0.99f && !isSkybox) { diffused.xyz = 1.f.xxx, diffused.w = 1.f; } // doesnt't working
@@ -110,12 +111,13 @@ void main() { // TODO: explicit sampling
     const vec3 origin = getPosition(samplep).xyz;
     const vec3 normal = getNormal(samplep).xyz;
 
-    // 
-    //diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
-    //if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
+    // Updated for 12.05.2020
+    diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
     diffused = getSmoothed(samplep), diffused /= max(diffused.w, 1.f);
-    if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
+    diffused.w = dtexdata.w; // Replace Into Diffuse Alpha Channel
 
+    if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
+    
     // 
 #ifndef LATE_STAGE
     vec4 reflects = vec4(0.f.xxxx);
