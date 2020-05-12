@@ -8,6 +8,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
+// 
 #define VMA_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
 #define VKT_FORCE_VMA_IMPLEMENTATION
@@ -16,6 +17,8 @@
 #define TINYEXR_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+
+// 
 #include "vkt3/fw.hpp"
 #include "JiviX/JiviX.hpp"
 #include "misc/tiny_gltf.h"

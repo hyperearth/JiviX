@@ -108,12 +108,9 @@ namespace jvi {
             });
         };
 
-        // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
-            return std::async(std::launch::async | std::launch::deferred, [=, this]() {
-                vkt::submitCmdAsync(this->driver->getDeviceDispatch(), VkQueue(*this), cmds, smbi).get();
-                return uPTR(Thread)(uTHIS);
-            });
+        // 
+        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            return this->submitCmd(std::vector<VkCommandBuffer>{ cmds }, smbi);
         };
 
         // 
@@ -122,26 +119,18 @@ namespace jvi {
             return uTHIS;
         };
 
-        /* // USELESS FOR VKT-3
-        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
-            return this->submitCmd({ cmds }, smbi);
+        // Async Version
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            return this->submitCmdAsync(std::vector<VkCommandBuffer>{ cmds }, smbi);
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
-            return this->submitCmdAsync({ cmds }, smbi);
+        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+            return std::async(std::launch::async | std::launch::deferred, [=, this]() {
+                vkt::submitCmdAsync(this->driver->getDeviceDispatch(), VkQueue(*this), cmds, smbi).get();
+                return uPTR(Thread)(uTHIS);
+            });
         };
-
-        // 
-        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
-            return this->submitCmd(cmds, smbi);
-        };
-
-        // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
-            return this->submitCmdAsync(cmds, smbi);
-        };
-        */
 
     // 
     protected: friend Thread; friend Driver; // 

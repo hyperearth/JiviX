@@ -55,6 +55,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] Rise quads support (Alpha)
 - [x] Geometry shader in resampling (Reserved)
 - [x] HDRI background image and equirectangular projection (Alpha)
+- [x] Support VKT-3 for 12.05.2020 and later... 
 - [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
 - [ ] New optional rasterization base (writing to dedicated buffers)
