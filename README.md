@@ -65,7 +65,7 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [ ] Water shader (for games)
 - [ ] Optifine support (Minecraft)
 - [ ] Nova renderer support (Minecraft)
-
+- [ ] Immersive Portals mod support (Minecraft, In-Future)
 
 
 ### TODO Lists (Gen-4 or Beyond)
