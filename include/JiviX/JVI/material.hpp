@@ -147,7 +147,7 @@ namespace jvi {
                         .magFilter = VK_FILTER_LINEAR,
                         .minFilter = VK_FILTER_LINEAR,
                         .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     }, nullptr, &this->backgroundImageClass.refSampler()));
 
                     //
