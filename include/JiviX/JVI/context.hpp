@@ -85,7 +85,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Context) createRenderPass() { // 
-            //std::cout << "Create Render Pass" << std::endl; // DEBUG!!
+            std::cout << "Create Render Pass" << std::endl; // DEBUG!!
 
             vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
 
@@ -232,7 +232,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Context) createFramebuffers(const uint32_t& width = 1600u, const uint32_t& height = 1200u) { // 
-            //std::cout << "Create Frame Buffer" << std::endl; // DEBUG!!
+            std::cout << "Create Frame Buffer" << std::endl; // DEBUG!!
 
             // 
             std::array<VkImageView, 9u> deferredAttachments = {};
@@ -383,7 +383,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Context) createDescriptorSetLayouts() { // reset layout descriptions
-            // std::cout << "Create Descriptor Set Layouts" << std::endl; // DEBUG!!
+            std::cout << "Create Descriptor Set Layouts" << std::endl; // DEBUG!!
 
             this->meshDataDescriptorSetLayoutHelper = {};
             this->bindingsDescriptorSetLayoutHelper = {};
@@ -441,7 +441,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Context) createDescriptorSets() {
-            //std::cout << "Create Descriptor Sets" << std::endl; // DEBUG!!
+            std::cout << "Create Descriptor Sets" << std::endl; // DEBUG!!
 
             if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
 
