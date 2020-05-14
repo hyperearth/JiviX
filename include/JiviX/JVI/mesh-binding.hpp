@@ -81,13 +81,10 @@ namespace jvi {
                     .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 },
                 }));
 
-                // TODO: other platforms memory handling
-                // create OpenGL version of buffers
+                // For OpenGL!
 #ifdef ENABLE_OPENGL_INTEROP
-                gl::glCreateBuffers(1u, &this->bindingsOGL[i].second);
-                gl::glCreateMemoryObjectsEXT(1u, &this->bindingsOGL[i].first);
-                gl::glImportMemoryWin32HandleEXT(this->bindingsOGL[i].first, this->bindings[i]->getAllocationInfo().reqSize, gl::GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, this->bindings[i]->getAllocationInfo().handle);
-                gl::glNamedBufferStorageMemEXT(this->bindingsOGL[i].second, MaxPrimitiveCount * 3u * 80u, this->bindingsOGL[i].first, 0u);
+                this->bindingsOGL[i].first = this->bindings[i].getGLMemory();
+                this->bindingsOGL[i].second = this->bindings[i].getGLBuffer();
 #endif
             };
 
