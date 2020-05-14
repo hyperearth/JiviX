@@ -369,7 +369,6 @@ int main() {
     };
 
 
-
     {
         int width = 0u, height = 0u;
         float* rgba = nullptr;
@@ -443,6 +442,7 @@ int main() {
             material->setBackgroundImage(image);
         };
     };
+
 
     // GLTF Samplers Support
     for (uint32_t i = 0; i < model.samplers.size(); i++) {
