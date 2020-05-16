@@ -367,6 +367,7 @@ int main() {
     uint32_t canvasWidth = SCR_WIDTH, canvasHeight = SCR_HEIGHT; // For 3840x2160 Resolutions
     //uint32_t canvasWidth = 1920, canvasHeight = 1080;
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+    glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
 
     // TODO: SPECIFIC GL_API
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
