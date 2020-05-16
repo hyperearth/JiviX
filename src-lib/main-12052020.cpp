@@ -237,14 +237,14 @@ int main() {
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
     // 
-    //const float unitScale = 100.f;
-    //const float unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    const float unitScale = 100.f;
+    const float unitHeight = -0.f;
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
 
     // 
-    const float unitScale = 1.f;
-    const float unitHeight = -32.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
+    //const float unitScale = 1.f;
+    //const float unitHeight = -32.f;
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
 
     //const float unitScale = 1.f;
     //const float unitHeight = -0.f;
@@ -744,7 +744,7 @@ int main() {
 
             // Create render submission 
             std::vector<VkSemaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
-            std::vector<vkh::VkPipelineStageFlags> waitStages = { vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1 } };
+            std::vector<vkh::VkPipelineStageFlags> waitStages = { vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 } };
 
             // Submit command once
             //renderer->setupCommands();
