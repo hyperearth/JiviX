@@ -41,7 +41,7 @@ namespace jvi {
             this->instancHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->instancPtr = this->instancInfo.data()).ptr());
             this->instancHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
             this->instancHeadInfo.flags = { .eAllowUpdate = 1, .ePreferFastTrace = 1 };
-            this->instancHeadInfo.geometryArrayOfPointers = true;
+            this->instancHeadInfo.geometryArrayOfPointers = false;//true;
 
             // FOR BUILD! // originally, it should to be array (like as old version of LancER)
             this->instancInfo[0u] = vkh::VkAccelerationStructureGeometryKHR{ };
@@ -338,6 +338,11 @@ namespace jvi {
             this->instancHeadInfo.update = this->needsUpdate;
 
             // 
+            if (this->needsUpdate) {
+                this->instancHeadInfo.srcAccelerationStructure = this->instancHeadInfo.dstAccelerationStructure;
+            };
+
+            // 
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
                 //vkh::VkAccelerationStructureInfoNV info = {};
                 //info.instanceCount = this->offsetsInfo[0].primitiveCount;
@@ -351,7 +356,7 @@ namespace jvi {
 #endif
                 {
                     driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()); // INCOMPATIBLE WITH OPENGL, DUE PGM! (TOP-LEVELS)
-                    this->needsUpdate = true;
+                    //this->needsUpdate = true; // BROKEN UPDATE?!
                 }
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
                 //vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
