@@ -387,7 +387,7 @@ int main() {
 
     // Ininitialize by GlBinding
     //glfwMakeContextCurrent(appObj.opengl = glfwCreateWindow(canvasWidth, canvasHeight, "GLTest", nullptr, nullptr));
-    glbinding::initialize(0, glbinding::GetProcAddress(glbinding::getProcAddress), true, false);
+    glbinding::initialize(0, glfwGetProcAddress, true, false);
     glbinding::aux::enableGetErrorCallback();
 
     // Pravoslavie Smerti
