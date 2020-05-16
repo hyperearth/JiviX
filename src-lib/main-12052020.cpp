@@ -353,9 +353,13 @@ GLenum glCheckError_(const char* file, int line) {
 #define glCheckError() glCheckError_(__FILE__, __LINE__) 
 
 
-
+void error(int errnum, const char * errmsg)
+{
+    std::cerr << errnum << ": " << errmsg << std::endl;
+}
 
 int main() {
+    glfwSetErrorCallback(error);
     glfwInit();
 
     // 
@@ -366,6 +370,7 @@ int main() {
     // 
     uint32_t canvasWidth = SCR_WIDTH, canvasHeight = SCR_HEIGHT; // For 3840x2160 Resolutions
     //uint32_t canvasWidth = 1920, canvasHeight = 1080;
+    glfwDefaultWindowHints();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
 

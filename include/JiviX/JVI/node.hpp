@@ -346,8 +346,14 @@ namespace jvi {
                 //this->driver->getDeviceDispatch()->CmdBuildAccelerationStructureNV(buildCommand, info, gpuInstances.buffer(), gpuInstances.offset(), this->needsUpdate, this->accelerationStructure, {}, this->gpuScratchBuffer.buffer(), this->gpuScratchBuffer.offset());
 
                 //vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
-                driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()); // INCOMPATIBLE WITH OPENGL, DUE PGM! (TOP-LEVELS)
-                vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); this->needsUpdate = true;
+#if !defined(FORCE_RAY_TRACING) && defined(ENABLE_OPENGL_INTEROP)
+                if (!this->needsUpdate) 
+#endif
+                {
+                    driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()); // INCOMPATIBLE WITH OPENGL, DUE PGM! (TOP-LEVELS)
+                    this->needsUpdate = true;
+                }
+                vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
                 //vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
                 vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()));
