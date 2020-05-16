@@ -72,6 +72,7 @@ set (SOURCES_LIST
 find_package(Vulkan REQUIRED)
 find_package(GLFW3 QUIET)
 find_package(PkgConfig QUIET)
+find_package (glbinding REQUIRED) # if it is really required in your project
 pkg_search_module(GLFW QUIET glfw3)
 pkg_search_module(GLFW QUIET renderdoc)
 
@@ -90,6 +91,7 @@ set (INC_DIR
 # Set definition
 set (DEFINES
     -DNOMINMAX
+    -DENABLE_OPENGL_INTEROP
     -DVK_ENABLE_BETA_EXTENSIONS
     -D_CRT_SECURE_NO_WARNINGS
     -D_USE_MATH_DEFINES
@@ -128,6 +130,11 @@ if (GLFW_LIBRARIES)
     set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
 endif()
 
+# glbinding
+if (glbinding_DIR)
+    set (INC_DIR ${INC_DIR} ${glbinding_DIR} "${glbinding_DIR}/include")
+endif()
+
 # set GCC8 (Linux) libs
 # MingW-W64 TODO
 if (UNIX OR LINUX)
@@ -162,7 +169,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
 add_executable(${APPLICATION_NAME} src/gltf-old/main.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
+target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan glbinding::glbinding glbinding::glbinding-aux)
 
 # Add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)

@@ -339,6 +339,12 @@ namespace jvi {
 
             // 
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
+                //vkh::VkAccelerationStructureInfoNV info = {};
+                //info.instanceCount = this->offsetsInfo[0].primitiveCount;
+                //info.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_NV;
+                //info.flags = VkBuildAccelerationStructureFlagBitsNV(VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_NV | VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_NV);
+                //this->driver->getDeviceDispatch()->CmdBuildAccelerationStructureNV(buildCommand, info, gpuInstances.buffer(), gpuInstances.offset(), this->needsUpdate, this->accelerationStructure, {}, this->gpuScratchBuffer.buffer(), this->gpuScratchBuffer.offset());
+
                 //vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
                 driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()); // INCOMPATIBLE WITH OPENGL, DUE PGM! (TOP-LEVELS)
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); this->needsUpdate = true;
