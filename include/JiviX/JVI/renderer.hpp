@@ -203,10 +203,9 @@ namespace jvi {
         };
 
         // TODO: Fix Command Create For Every Frame
-        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
+        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, const bool& once = true, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
-            const bool once = true;
 
             // 
             if (!this->initialized) { this->setupRenderer(); };
@@ -224,12 +223,12 @@ namespace jvi {
                 currentCmd = cmdBuf;
             };
 
-            // 
+            //
             if (this->node->meshDataDescriptorSet) { this->context->descriptorSets[0] = this->node->meshDataDescriptorSet; };
             if (this->node->bindingsDescriptorSet) { this->context->descriptorSets[1] = this->node->bindingsDescriptorSet; };
             if (this->materials->descriptorSet) {  this->context->descriptorSets[4] = this->materials->descriptorSet; };
 
-             
+            
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // 
@@ -247,17 +246,20 @@ namespace jvi {
 
                 I = 0u; for (auto& M : this->node->meshes) { M->copyBuffers(currentCmd); }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
                 this->materials->copyBuffers(currentCmd);
-                this->node->copyMeta(currentCmd);
+                //this->node->copyMeta(currentCmd);
+                vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
+
             if (parameters->eEnableBuildGeometry) {
                 I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
+
             if (parameters->eEnableBuildAccelerationStructure) {
                 I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
-                this->node->buildAccelerationStructure(currentCmd);
+                this->node->copyMeta(currentCmd)->buildAccelerationStructure(currentCmd); // INCOMPATIBLE WITH OPENGL!!!
             };
 
-
+            
             // Compute ray-tracing (RTX)
             if (parameters->eEnableRayTracing) {
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
@@ -292,7 +294,6 @@ namespace jvi {
             if (!hasBuf) {
                 this->driver->getDeviceDispatch()->EndCommandBuffer(currentCmd);
             };
-
 
             return uTHIS;
         };

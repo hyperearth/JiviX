@@ -8,6 +8,10 @@
 
 namespace jvi {
 
+#if defined(ENABLE_OPENGL_INTEROP) && !defined(VKT_USE_GLAD)
+    using namespace gl;
+#endif
+
     // WIP Mesh Object
     // Sub-Instances Can Be Supported
     // TODO: Descriptor Sets
@@ -180,12 +184,12 @@ namespace jvi {
         };
 
 #ifdef ENABLE_OPENGL_INTEROP //
-        virtual gl::GLuint& getBindingBufferGL(const uintptr_t& i = 0u) { return this->bindingsOGL[i].second; };
-        virtual const gl::GLuint& getBindingBufferGL(const uintptr_t& i = 0u) const { return this->bindingsOGL[i].second; };
+        virtual GLuint& getBindingBufferGL(const uintptr_t& i = 0u) { return this->bindingsOGL[i].second; };
+        virtual const GLuint& getBindingBufferGL(const uintptr_t& i = 0u) const { return this->bindingsOGL[i].second; };
 
         // 
-        virtual gl::GLuint& getIndexBufferGL() { return this->indexDataOGL.second; };
-        virtual const gl::GLuint& getIndexBufferGL() const { return this->indexDataOGL.second; };
+        virtual GLuint& getIndexBufferGL() { return this->indexDataOGL.second; };
+        virtual const GLuint& getIndexBufferGL() const { return this->indexDataOGL.second; };
 #endif
 
         // Win32 Only (currently)
@@ -638,7 +642,7 @@ namespace jvi {
     protected: friend MeshBinding; friend Node; friend Renderer; // GPU Vertex and Attribute Data
         vkt::Vector<uint8_t> indexData = {}; 
 #ifdef ENABLE_OPENGL_INTEROP
-        std::pair<gl::GLuint, gl::GLuint> indexDataOGL = {};
+        std::pair<GLuint, GLuint> indexDataOGL = {};
 #endif
 
         // 
@@ -652,7 +656,7 @@ namespace jvi {
         // 
         std::array<vkt::Vector<uint8_t>, 2> bindings = {};
 #ifdef ENABLE_OPENGL_INTEROP
-        std::array<std::pair<gl::GLuint, gl::GLuint>, 2> bindingsOGL = {};
+        std::array<std::pair<GLuint, GLuint>, 2> bindingsOGL = {};
 #endif
         std::array<uint32_t, 1> bindRange = {0};
 

@@ -29,11 +29,11 @@ namespace jvi {
             this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             // 
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * MaxInstanceCount, .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(MaxInstanceCount, 64ull), .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(MaxInstanceCount, 64ull), .usage = {.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
 
             // 
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * MaxInstanceCount, .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u * std::max(MaxInstanceCount, 64ull), .usage = { .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
 
             // FOR BUILD! 
             this->instancHeadInfo = vkh::VkAccelerationStructureBuildGeometryInfoKHR{};
@@ -121,7 +121,9 @@ namespace jvi {
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
                 auto& Mesh = this->meshes[this->mapMeshes[i]];
                 if (Mesh->fullGeometryCount > 0) { // Link With Found Instances?! Finally fixed HERE... 
-                    this->prepareInstances[i].accelerationStructureHandle = this->driver->getDeviceDispatch()->GetAccelerationStructureDeviceAddressKHR(vkh::VkAccelerationStructureDeviceAddressInfoKHR{ .accelerationStructure = Mesh->linkWithInstance(I++)->accelerationStructure });
+                    if (!this->prepareInstances[i].accelerationStructureHandle) {
+                        this->prepareInstances[i].accelerationStructureHandle = this->driver->getDeviceDispatch()->GetAccelerationStructureDeviceAddressKHR(vkh::VkAccelerationStructureDeviceAddressInfoKHR{ .accelerationStructure = Mesh->linkWithInstance(I++)->accelerationStructure });
+                    };
                 };
             };
             return uTHIS;
@@ -323,7 +325,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        // INCOMPATIBLE WITH OPENGL! UNKNOWN REASON! F&CKING NVIDIA! PIDORS! PROBABLY, HARDWARE PROBLEMS... 
         virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
@@ -338,11 +340,11 @@ namespace jvi {
             // 
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
                 //vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
-                driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr()));
+                driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()); // INCOMPATIBLE WITH OPENGL, DUE PGM! (TOP-LEVELS)
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); this->needsUpdate = true;
                 //vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
-                vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>((this->offsetsPtr = this->offsetsInfo.data()).ptr())));
+                vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()));
             };
 
             return uTHIS;
