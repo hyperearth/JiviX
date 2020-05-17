@@ -343,6 +343,9 @@ namespace jvi {
             };
 
             // 
+            const auto ptr = (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>();
+
+            // 
             if (buildCommand) { // OpenGL Compatibility Finally Broken!
                 //vkh::VkAccelerationStructureInfoNV info = {};
                 //info.instanceCount = this->offsetsInfo[0].primitiveCount;
@@ -352,16 +355,16 @@ namespace jvi {
 
                 //vkt::debugLabel(buildCommand, "Begin building top acceleration structure...", this->driver->getDispatch());
 #if !defined(FORCE_RAY_TRACING) && defined(ENABLE_OPENGL_INTEROP)
-                if (!this->needsUpdate) 
+                if (!this->needsUpdate)
 #endif
                 {
-                    driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()); // INCOMPATIBLE WITH OPENGL, DUE PGM! (TOP-LEVELS)
+                    driver->getDeviceDispatch()->CmdBuildAccelerationStructureKHR(buildCommand, 1u, this->instancHeadInfo, ptr); // INCOMPATIBLE WITH OPENGL, DUE PGM! (TOP-LEVELS)
                     //this->needsUpdate = true; // BROKEN UPDATE?!
-                }
+                };
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
                 //vkt::debugLabel(buildCommand, "Ending building top acceleration structure...", this->driver->getDispatch());
             } else {
-                vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, (this->offsetsPtr = this->offsetsInfo.data()).ptr<VkAccelerationStructureBuildOffsetInfoKHR*>()));
+                vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->instancHeadInfo, ptr));
             };
 
             return uTHIS;

@@ -350,10 +350,10 @@ namespace jvi {
                 // copy as template, use as triangle...
                 auto offsetp = this->offsetTemp;
                 {
-                    //offsetp.primitiveOffset = uOffset * 80u; //+ this->bindings[0u].offset();
+                    //offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE; //+ this->bindings[0u].offset();
                     offsetp.primitiveCount = I.has() ? vkt::tiled(I->getIndexCount(), 3ull) : vkt::tiled(this->ranges[i], 1ull); // TODO: De-Facto primitive count...
                     offsetp.firstVertex = uOffset;
-                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * 80u, 0u, 0u), buildCommand); };
+                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * DEFAULT_STRIDE, 0u, 0u), buildCommand); };
                 };
 
                 // Needs Un-Use Input Geometry Count?!
