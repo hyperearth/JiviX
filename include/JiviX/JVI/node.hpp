@@ -316,10 +316,6 @@ namespace jvi {
             };
 
             // 
-            vkt::commandBarrier(this->driver->getDeviceDispatch(), copyCommand);
-            driver->getDeviceDispatch()->CmdCopyBuffer(copyCommand, this->rawInstances, this->gpuInstances, 1u, vkh::VkBufferCopy{.srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() });
-
-            // 
             for (uint32_t i = 0; i < this->meshes.size(); i++) { auto& mesh = this->meshes[i];
                 driver->getDeviceDispatch()->CmdCopyBuffer(copyCommand, mesh->rawMeshInfo, this->gpuMeshInfo, 1u, vkh::VkBufferCopy{ mesh->rawMeshInfo.offset(), this->gpuMeshInfo.offset() + mesh->rawMeshInfo.range() * i, mesh->rawMeshInfo.range() });
             };
@@ -332,6 +328,10 @@ namespace jvi {
         // INCOMPATIBLE WITH OPENGL! UNKNOWN REASON! F&CKING NVIDIA! PIDORS! PROBABLY, HARDWARE PROBLEMS... 
         virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
+
+            // Copy ONLY when building! And only when needs... 
+            driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawInstances, this->gpuInstances, 1u, vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() });
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
             // 
             this->offsetsInfo[0u].primitiveCount = this->instanceCounter;
