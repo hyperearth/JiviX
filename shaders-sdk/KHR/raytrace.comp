@@ -190,7 +190,8 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                     processing.gIndices = uvec4(geometryInstanceID, globalInstanceID, 0u, 0u); // already nodeMeshID used by instance
 
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
-                } else { // It's transparent, need ray-trace again! (but with another position)
+                } else 
+                if ((fullLength + lastMax) <= (maxT-0.1f)) { // It's transparent, need ray-trace again! (but with another position)
                     if (complete) { restart = true; };
                 };
             };
