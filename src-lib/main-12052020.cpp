@@ -19,11 +19,14 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 // 
+#include <string>
+#include <iostream>
+
+// 
 #include "vkt3/fw.hpp"
 #include "JiviX/JiviX.hpp"
 #include "misc/tiny_gltf.h"
 #include "misc/tinyexr.h"
-#include <string>
 
 // 
 #include <glbinding-aux/debug.h>

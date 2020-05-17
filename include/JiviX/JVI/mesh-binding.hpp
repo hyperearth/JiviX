@@ -327,8 +327,8 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) { // build geometry data
-            //if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u; // MAPPING BROKEN IN HERE!
-            if (this->fullGeometryCount <= 0u) return uTHIS;
+            if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
+            //if (this->fullGeometryCount <= 0u) return uTHIS;
             this->primitiveCount = 0u;
 
             // 
@@ -388,8 +388,8 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
-            //if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; // Map BROKEN in here!
-            if (this->fullGeometryCount <= 0u) return uTHIS;
+            if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; // Map BROKEN in here!
+            //if (this->fullGeometryCount <= 0u) return uTHIS;
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             //std::vector<vkh::VkAccelerationStructureGeometryKHR> ptrs = {};

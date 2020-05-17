@@ -250,16 +250,10 @@ namespace jvi {
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
 
-            if (parameters->eEnableBuildGeometry) {
-                I = 0u; for (auto& M : this->node->meshes) { M->buildGeometry(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
-            };
+            // 
+            if (parameters->eEnableBuildGeometry) { this->node->copyMeta(currentCmd); };
+            if (parameters->eEnableBuildAccelerationStructure) { this->node->buildAccelerationStructure(currentCmd); };
 
-            if (parameters->eEnableBuildAccelerationStructure) {
-                I = 0u; for (auto& M : this->node->meshes) { M->buildAccelerationStructure(currentCmd, glm::uvec4(I++, 0u, 0u, 0u)); }; vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
-                this->node->copyMeta(currentCmd)->buildAccelerationStructure(currentCmd); // INCOMPATIBLE WITH OPENGL!!!
-            };
-
-            
             // Compute ray-tracing (RTX)
             if (parameters->eEnableRayTracing) {
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;

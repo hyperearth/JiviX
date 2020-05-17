@@ -116,7 +116,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) mapMeshData() {
+        virtual uPTR(Node) mapMeshData(const VkCommandBuffer& cmdBuffer) {
             for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); }; uintptr_t I = 0;
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
                 auto& Mesh = this->meshes[this->mapMeshes[i]];
@@ -125,6 +125,10 @@ namespace jvi {
                         this->prepareInstances[i].accelerationStructureHandle = this->driver->getDeviceDispatch()->GetAccelerationStructureDeviceAddressKHR(vkh::VkAccelerationStructureDeviceAddressInfoKHR{ .accelerationStructure = Mesh->linkWithInstance(I++)->accelerationStructure });
                     };
                 };
+            };
+            I = 0u; for (auto& Mesh : this->meshes) {
+                auto HLP = glm::uvec4(I++, 0u, 0u, 0u);
+                Mesh->buildGeometry(cmdBuffer, HLP)->buildAccelerationStructure(cmdBuffer, HLP);
             };
             return uTHIS;
         };
@@ -303,7 +307,7 @@ namespace jvi {
 
         // 
         virtual uPTR(Node) copyMeta(const VkCommandBuffer& copyCommand = {}) { // 
-            this->mapMeshData(); // Needs to Mapping! NOW!
+            this->mapMeshData(copyCommand); // Needs to Mapping! NOW!
 
             auto I = 0u; // Selection Only Accounted Chunks
             for (auto i = 0; i < std::min(this->prepareInstances.size(), this->rawInstances.size()); i++) {
