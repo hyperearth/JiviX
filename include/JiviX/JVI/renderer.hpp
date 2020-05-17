@@ -43,6 +43,16 @@ namespace jvi {
             };
 
             // 
+            this->raytraceStages = {
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/raytrace.rgen.spv")), VK_SHADER_STAGE_RAYGEN_BIT_KHR),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/raytrace.rchit.spv")), VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/raytrace.rmiss.spv")), VK_SHADER_STAGE_MISS_BIT_KHR)
+            };
+
+            // 
+            this->sbtBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 4u, .usage = {.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+
+            // 
             return uTHIS;
         };
 
@@ -128,6 +138,27 @@ namespace jvi {
             this->reflectState  = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->reflectStage ), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
             this->denoiseState  = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->denoiseStage ), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
             this->raytraceState = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->raytraceStage), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
+
+            // 
+            //this->raytraceStages
+            vkh::VkRayTracingPipelineCreateInfoKHR rInfo = {};
+            rInfo.layout = this->context->unifiedPipelineLayout;
+            rInfo.maxRecursionDepth = 4u;
+            //rInfo.setStages(this->raytraceStages);
+
+            // 
+            this->raytraceInfo = vkh::VsRayTracingPipelineCreateInfoHelper(rInfo);
+            this->raytraceInfo.addShaderStages(this->raytraceStages);
+
+            // 
+            const size_t uHandleSize = this->rayTracingProperties.shaderGroupHandleSize, rHandleSize = uHandleSize * 3u;
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateRayTracingPipelinesKHR(driver->getPipelineCache(), 1u, this->raytraceInfo, nullptr, &this->raytraceTypeState));
+            vkh::handleVk(this->driver->getDeviceDispatch()->GetRayTracingShaderGroupHandlesKHR(this->raytraceTypeState, 0u, 3u, rHandleSize, this->sbtBuffer.data()));
+
+            // 
+            this->rgenSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * 0u, 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);
+            this->rchitSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * this->raytraceInfo.hitOffsetIndex(), 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);
+            this->rmissSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * this->raytraceInfo.missOffsetIndex(), 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);
 
             // 
             return uTHIS;
@@ -228,14 +259,13 @@ namespace jvi {
             if (this->node->bindingsDescriptorSet) { this->context->descriptorSets[1] = this->node->bindingsDescriptorSet; };
             if (this->materials->descriptorSet) {  this->context->descriptorSets[4] = this->materials->descriptorSet; };
 
-            
+            // 
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
             // 
             if (parameters->eEnableRasterization) {
                 // TODO: RE-ENABLE Rasterization Stage
             };
-
 
             // prepare meshes for ray-tracing
             auto I = 0u;
@@ -262,6 +292,12 @@ namespace jvi {
                 this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
                 this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+
+                //this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->raytraceTypeState);
+                //this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+                //this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
+                //this->driver->getDeviceDispatch()->CmdTraceRaysKHR(currentCmd, this->rgenSbtBuffer.getRegion(), this->rmissSbtBuffer.getRegion(), this->rchitSbtBuffer.getRegion(), vkh::VkStridedBufferRegionKHR{}, renderArea.extent.width, renderArea.extent.height, 1u);
+                //vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
 
             // Make resampling pipeline 
@@ -308,8 +344,16 @@ namespace jvi {
         vkt::uni_ptr<Node> node = {}; // currently only one node... 
 
         // 
+        vkt::Vector<glm::u64vec4> sbtBuffer = {};
+        vkt::Vector<glm::u64vec4> rgenSbtBuffer = {};
+        vkt::Vector<glm::u64vec4> rchitSbtBuffer = {};
+        vkt::Vector<glm::u64vec4> rmissSbtBuffer = {};
+
+        // 
+        vkh::VsRayTracingPipelineCreateInfoHelper raytraceInfo = {};
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
         std::vector<vkh::VkPipelineShaderStageCreateInfo> resampStages = {};
+        std::vector<vkh::VkPipelineShaderStageCreateInfo> raytraceStages = {};
         vkh::VkPipelineShaderStageCreateInfo denoiseStage = {};
         vkh::VkPipelineShaderStageCreateInfo reflectStage = {};
         vkh::VkPipelineShaderStageCreateInfo raytraceStage = {};
@@ -319,6 +363,7 @@ namespace jvi {
         VkPipeline denoiseState = {};
         VkPipeline reflectState = {};
         VkPipeline raytraceState = {};
+        VkPipeline raytraceTypeState = {};
 
         // 
         vkt::uni_ptr<Context> context = {};
