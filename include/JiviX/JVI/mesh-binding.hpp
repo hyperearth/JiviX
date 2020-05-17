@@ -327,7 +327,14 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) buildGeometry(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) { // build geometry data
-            if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u;
+            //if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; this->primitiveCount = 0u; // MAPPING BROKEN IN HERE!
+            if (this->fullGeometryCount <= 0u) return uTHIS;
+            this->primitiveCount = 0u;
+
+            // 
+            const glm::uvec4 counterValue = glm::uvec4(0u);
+            this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, this->counterData.buffer(), this->counterData.offset(), sizeof(glm::uvec4), &counterValue);
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
             // 
             if (this->fullGeometryCount > this->offsetInfo.size()) {
@@ -368,6 +375,9 @@ namespace jvi {
             };
 
             // 
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
+
+            // 
             return uTHIS;
         };
 
@@ -378,7 +388,8 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
-            if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
+            //if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; // Map BROKEN in here!
+            if (this->fullGeometryCount <= 0u) return uTHIS;
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             //std::vector<vkh::VkAccelerationStructureGeometryKHR> ptrs = {};
@@ -418,6 +429,7 @@ namespace jvi {
                 //driver->getDevice().buildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data()), this->driver->getDispatch());
                 vkh::handleVk(driver->getDeviceDispatch()->BuildAccelerationStructureKHR(1u, this->bdHeadInfo, reinterpret_cast<VkAccelerationStructureBuildOffsetInfoKHR**>(this->offsetPtr.data())));
             };
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
             //
             return uTHIS;
@@ -799,14 +811,15 @@ namespace jvi {
 
              // 
              //vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
-             this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, binding->counterData.buffer(), binding->counterData.offset(), sizeof(glm::uvec4), &glm::uvec4(0u));
+             const glm::uvec4 counterValue = glm::uvec4(0u);
+             //this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, binding->counterData.buffer(), binding->counterData.offset(), sizeof(glm::uvec4), &counterValue);
              vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
              // 
-             const auto& gOffset = offsetHelp->y;
-             const auto& gBuffer = binding->getBindingBuffer();
-             const auto& mOffset = gOffset + gBuffer.offset();
-             const auto& mSize = gBuffer.size() - gOffset;
+             const auto gBuffer = binding->getBindingBuffer();
+             const VkDeviceSize gOffset = 0u;//offsetHelp->y;
+             const VkDeviceSize mOffset = gOffset + gBuffer.offset();
+             const VkDeviceSize mSize = std::min(gBuffer.size() - gOffset, this->currentUnitCount * DEFAULT_STRIDE);
 
              // 
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
