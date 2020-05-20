@@ -920,8 +920,8 @@ int main() {
 
     // 
     //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
-    context->setModelView(glm::lookAt(eye, foc, glm::dvec3(0.f, 1.f, 0.f)));
-    context->setPerspective(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 10000.));
+    context->setModelView(glm::mat4x4(glm::lookAt(eye, foc, glm::dvec3(0.f, 1.f, 0.f))));
+    context->setPerspective(glm::mat4x4(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 10000.)));
 
     // initialize program
     //renderer->setupCommands();
@@ -1035,7 +1035,7 @@ int main() {
 
         { // submit rendering (and wait presentation in device)
             std::vector<vkh::VkClearValue> clearValues = { vkh::VkClearValue{.color = glm::vec4(0.f, 0.f, 0.f, 0.f)}, vkh::VkClearValue{.depthStencil = vkh::VkClearDepthStencilValue{1.0f, 0} } };
-            Shared::TimeCallback(double(context->registerTime()->setModelView(cameraController->handle().project())->drawTime()));
+            Shared::TimeCallback(double(context->registerTime()->setModelView(glm::mat4x4(cameraController->handle().project()))->drawTime()));
 
             // Create render submission 
             std::vector<VkSemaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };

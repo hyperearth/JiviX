@@ -172,17 +172,17 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
-        virtual uPTR(Context) setPerspective(const glm::mat4x4& persp = glm::mat4(1.f)) {
-            uniformRawData[0].projection = glm::transpose(persp);
-            uniformRawData[0].projectionInv = glm::transpose(glm::inverse(persp));
+        // Updated! 
+        virtual uPTR(Context) setPerspective(vkt::uni_arg<glm::mat4x4> persp = glm::mat4x4(1.f)) {
+            uniformRawData[0].projection = glm::transpose(*persp);
+            uniformRawData[0].projectionInv = glm::transpose(glm::inverse(*persp));
             return uTHIS;
         };
 
-        // 
-        virtual uPTR(Context) setModelView(const glm::mat4x4& mv = glm::mat3x4(1.f)) {
-            uniformRawData[0].modelview = glm::transpose(mv);
-            uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(mv));
+        // Updated! 
+        virtual uPTR(Context) setModelView(vkt::uni_arg<glm::mat4x4> mv = glm::mat4x4(1.f)) {
+            uniformRawData[0].modelview = glm::transpose(*mv);
+            uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(*mv));
             return uTHIS;
         };
 
