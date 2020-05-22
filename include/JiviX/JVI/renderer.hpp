@@ -296,7 +296,7 @@ namespace jvi {
                 // 
                 this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->context->depthImage, this->context->depthImage.getImageLayout(), clearValues[8u].depthStencil, 1u, this->context->depthImage.getImageSubresourceRange());
                 for (uint32_t i = 0; i < 8u; i++) {
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), reinterpret_cast<const vkh::VkClearColorValue&>(clearValues[i]->color), 1u, this->context->rastersImages[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), clearValues[i].color, 1u, this->context->rastersImages[i].getImageSubresourceRange());
                 };
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
 
@@ -304,7 +304,7 @@ namespace jvi {
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
                 I = 0u; for (uint32_t i = 0u; i < this->node->instanceCounter; i++) {
                     auto& Mesh = this->node->meshes[this->node->rawInstances[i].instanceId];
-                    Mesh->createRasterizeCommand(currentCmd, glm::uvec4(I = this->node->rawInstances[i].instanceId, 0u, i, 0u), false);
+                    Mesh->createRasterizeCommand(currentCmd, glm::uvec4(I = this->node->rawInstances[i].instanceId, 0u, i, 0u), true);
                 };
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };

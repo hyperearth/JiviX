@@ -33,8 +33,13 @@ layout (location = RS_POSITION) out vec4 oPosition;
 layout (location = RS_DIFFUSED) out vec4 oDiffused;
 layout (location = RS_BARYCENT) out vec4 oBarycent;
 
-// 
-void main() {
+// TODO: FIX Conservative Rasterization! (i.e. add layer or virtualization)
+// TODO: Triangle Edge Testing!
+// TODO: Anti-Aliasing Support!
+void main() { // TODO: Re-Interpolate for Randomized Center
+    const vec2 fragCoord = gl_FragCoord.xy; // + SampleCenter;
+
+    // 
     const uint primitiveID = uint(gl_PrimitiveID.x);
     const uint geometryInstanceID = uData.x;//uint(gl_InstanceIndex.x);
     const uint nodeMeshID = drawInfo.data.x;

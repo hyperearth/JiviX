@@ -646,20 +646,17 @@ namespace jvi {
 
             // covergence
             //vkt::debugLabel(rasterCommand, "Begin rasterization...", this->driver->getDispatch());
+            this->driver->getDeviceDispatch()->CmdBindPipeline(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, conservative ? this->covergenceState : this->rasterizationState);
+            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
+            this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
+            this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
 
-
-
-            // 
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
-                    this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
                     this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1}, 0u, sizeof(meta), & meta);
-                    this->driver->getDeviceDispatch()->CmdBindPipeline(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, conservative ? this->covergenceState : this->rasterizationState);
-                    this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-                    this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
-                    this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
-                    this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
+                    this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
                     this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, this->instances[i], this->offsetInfo[c].firstVertex, f);
                     this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
                     //vkt::commandBarrier(this->driver->getDeviceDispatch(), rasterCommand);
