@@ -236,7 +236,7 @@ namespace jvi {
 
         // 
         virtual uPTR(MeshBinding) linkWithInstance(const uint32_t& mapID = 0u) {
-            if (this->mapCount < this->rawInstanceMap.size()) {
+            if (this->mapCount < this->rawInstanceMap.size() && this->fullGeometryCount > 0u) {
                 this->rawInstanceMap[this->mapCount++] = mapID;
             };
             return uTHIS;
@@ -616,8 +616,8 @@ namespace jvi {
 
         // Create Secondary Command With Pipeline
         virtual uPTR(MeshBinding) createRasterizeCommand(const VkCommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u), const bool& conservative = false) { // UNIT ONLY!
-            //if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
-            if (this->fullGeometryCount <= 0u) return uTHIS;
+            if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
+            //if (this->fullGeometryCount <= 0u) return uTHIS;
 
             // 
             if (!this->rasterizationState) {

@@ -30,16 +30,14 @@ layout (location = 3) flat in uvec4 uData;
 layout (location = RS_MATERIAL) out vec4 oMaterial;
 layout (location = RS_GEOMETRY) out vec4 oGeoIndice;
 layout (location = RS_POSITION) out vec4 oPosition;
-layout (location = RS_DIFFUSED) out vec4 oDiffused;
-layout (location = RS_BARYCENT) out vec4 oBarycent;
+//layout (location = RS_DIFFUSED) out vec4 oDiffused;
+//layout (location = RS_BARYCENT) out vec4 oBarycent;
 
 // TODO: FIX Conservative Rasterization! (i.e. add layer or virtualization)
 // TODO: Triangle Edge Testing!
 // TODO: Anti-Aliasing Support!
 void main() { // TODO: Re-Interpolate for Randomized Center
     const vec2 fragCoord = gl_FragCoord.xy; // + SampleCenter;
-
-    // 
     const uint primitiveID = uint(gl_PrimitiveID.x);
     const uint geometryInstanceID = uData.x;//uint(gl_InstanceIndex.x);
     const uint nodeMeshID = drawInfo.data.x;
@@ -48,11 +46,12 @@ void main() { // TODO: Re-Interpolate for Randomized Center
 #define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
     const MaterialUnit unit = materials[0u].data[MatID]; // NEW! 20.04.2020
     const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],fTexcoord.xy) : unit.diffuse);
-    
-    oPosition = vec4(0.f.xxxx);
-    oDiffused = vec4(0.f.xxxx);
-    oBarycent = vec4(0.f.xxxx);
-    oMaterial = vec4(0.f.xxxx);
+    //const vec4 diffuseColor = vec4(1.f,0.f,0.f,1.f);
+
+    //oDiffused = vec4(0.f.xxxx);
+    //oBarycent = vec4(0.f.xxxx);
+    oPosition  = vec4(0.f.xxxx);
+    oMaterial  = vec4(0.f.xxxx);
     oGeoIndice = vec4(0.f.xxxx);
     gl_FragDepth = 1.f;
 
@@ -77,15 +76,14 @@ void main() { // TODO: Re-Interpolate for Randomized Center
         processing.origin = vec4(fPosition.xyz + processing.mapNormal.xyz * 0.f, 1.f);
 
         // 
+        //oDiffused = processing.diffuseColor;
+        //oBarycent = vec4(BARYCOORD.xy, 0.f, 1.f);
         oPosition = processing.origin;
-        oDiffused = processing.diffuseColor;
-        oBarycent = vec4(BARYCOORD.xy, 0.f, 1.f);
-        oMaterial = uintBitsToFloat(uvec4(packUnorm2x16(fract(fTexcoord.xy)), MatID, floatBitsToUint(1.f), floatBitsToUint(1.f)));
+        oMaterial = uintBitsToFloat(uvec4(floatBitsToUint(max(BARYCOORD,0.00001f.xx)), MatID, floatBitsToUint(1.f)));
         oGeoIndice = uintBitsToFloat(uvec4(globalInstanceID, geometryInstanceID, primitiveID, floatBitsToUint(1.f)));
 
         // 
         gl_FragDepth = gl_FragCoord.z;
         
     };
-
 };

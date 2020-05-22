@@ -32,12 +32,13 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     // 
     const ivec2 tsize = textureSize(rasterBuffers[RS_MATERIAL], 0);
     const ivec2 samplep = ivec2((world2screen(origin).xy*0.5f+0.5f) * textureSize(rasterBuffers[RS_MATERIAL], 0)); //samplep.y = tsize.y - samplep.y;
-    const uvec4 indices = floatBitsToUint(texelFetch(rasterBuffers[RS_GEOMETRY], samplep, 0));
+    const uvec4 indices  = floatBitsToUint(texelFetch(rasterBuffers[RS_GEOMETRY], samplep, 0));
     const uvec4 datapass = floatBitsToUint(texelFetch(rasterBuffers[RS_MATERIAL], samplep, 0));
 
     // 
     //const vec2 gTexcoord = unpackUnorm2x16(datapass.x);
-    const bool isSkybox = uintBitsToFloat(datapass.z) <= 0.f;
+    const vec2 baryCoord = uintBitsToFloat(datapass.xy);
+    const bool isSkybox = dot(baryCoord.xy,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
 
     // 
     const uint primitiveID = indices.z;
@@ -45,7 +46,7 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     const uint globalInstanceID = indices.x;
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
 
-
+    // 
     const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
     uvec3 idx3 = uvec3(primitiveID*3u+0u,primitiveID*3u+1u,primitiveID*3u+2u);
     if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, nodeMeshID),load_u32(idx3.y*1u, 8u, nodeMeshID),load_u32(idx3.z*1u, 8u, nodeMeshID)); };
@@ -53,7 +54,7 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     if (IdxType == IndexU32) { idx3 = uvec3(load_u32(idx3.x*4u, 8u, nodeMeshID),load_u32(idx3.y*4u, 8u, nodeMeshID),load_u32(idx3.z*4u, 8u, nodeMeshID)); };
 
     // Interpolate In Ray-Tracing 
-    const vec3 baryCoord = texelFetch(rasterBuffers[RS_BARYCENT], samplep, 0).xyz;
+    //texelFetch(rasterBuffers[RS_BARYCENT], samplep, 0).xyz;
     const vec4 gTexcoord = vec4(triangulate(idx3, 1u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord.xy)).xyz,0.f);
     const vec4 gNormal = vec4(triangulate(idx3, 2u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord.xy)).xyz,0.f);
     const vec4 gTangent = vec4(triangulate(idx3, 3u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord.xy)).xyz,0.f);
@@ -73,13 +74,13 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     const mat3x3 normInTransform = inverse(transpose(regen3(matra4)));
 
     // 
-    const MaterialUnit unit = materials[0u].data[datapass.y]; // NEW! 20.04.2020
-    vec4 diffuseColor = texelFetch(rasterBuffers[RS_DIFFUSED], samplep, 0);//
-    diffuseColor.w = (toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse)).w;
-    //const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
+    const MaterialUnit unit = materials[0u].data[datapass.z]; // NEW! 20.04.2020
+    //vec4 diffuseColor = texelFetch(rasterBuffers[RS_DIFFUSED], samplep, 0);//
+    //diffuseColor.w = (toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse)).w;
+    const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
     if (!isSkybox) { // Only When Opaque!
         result.origin = texelFetch(rasterBuffers[RS_POSITION], samplep, 0);
-        result.txcmid = texelFetch(rasterBuffers[RS_MATERIAL], samplep, 0);
+        result.txcmid = uintBitsToFloat(uvec4(packUnorm2x16(gTexcoord.xy), datapass.z, floatBitsToUint(1.f), floatBitsToUint(0.f)));//texelFetch(rasterBuffers[RS_MATERIAL], samplep, 0);
 
         // 
         result. diffuseColor = diffuseColor;//toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);

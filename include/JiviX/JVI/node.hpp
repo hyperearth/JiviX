@@ -120,9 +120,9 @@ namespace jvi {
             for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); }; uintptr_t I = 0;
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
                 auto& Mesh = this->meshes[this->mapMeshes[i]];
-                if (Mesh->fullGeometryCount > 0) { // Link With Found Instances?! Finally fixed HERE... 
+                if (Mesh->linkWithInstance(I++)->fullGeometryCount > 0) { // Link With Found Instances?! Finally fixed HERE... 
                     if (!this->prepareInstances[i].accelerationStructureHandle) {
-                        this->prepareInstances[i].accelerationStructureHandle = this->driver->getDeviceDispatch()->GetAccelerationStructureDeviceAddressKHR(vkh::VkAccelerationStructureDeviceAddressInfoKHR{ .accelerationStructure = Mesh->linkWithInstance(I++)->accelerationStructure });
+                        this->prepareInstances[i].accelerationStructureHandle = this->driver->getDeviceDispatch()->GetAccelerationStructureDeviceAddressKHR(vkh::VkAccelerationStructureDeviceAddressInfoKHR{ .accelerationStructure = Mesh->accelerationStructure });
                     };
                 };
             };
