@@ -12,25 +12,18 @@
 // Right Oriented
 layout (location = 0) out vec4 fPosition;
 layout (location = 1) out vec4 fTexcoord;
-layout (location = 2) out vec4 fNormal;
-layout (location = 3) out vec4 fTangent;
-layout (location = 4) out vec4 fBinormal;
-layout (location = 5) flat out uvec4 uData;
+layout (location = 2) out vec4 fBarycent;
+layout (location = 3) flat out uvec4 uData;
 
 // 
+const vec3 bary[3] = { vec3(0.f,1.f,0.f), vec3(1.f,0.f,0.f), vec3(0.f,0.f,1.f) };
 void main() {
     // Full Instance ID of Node (BY GEOMETRY INSTATNCE!!)
-    const uint nodeMeshID = drawInfo.data.x; // Mesh ID from Node Mesh List (because indexing)
-    const uint geometryInstanceID = gl_InstanceIndex; // TODO: Using In Ray Tracing (and Query) shaders!
-    const uint globalInstanceID = drawInfo.data.y; // Global Instance ID from Node instance list (raster draw-call)
-    //const uint globalInstanceID = meshIDs[nonuniformEXT(nodeMeshID)].instanceID[geometryInstanceID];
-
-    // 
-    const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
-    uint32_t idx = uint32_t(gl_VertexIndex.x); // Default Index of Vertice
-    if (IdxType == IndexU8 ) { idx = load_u8 (idx, 8u, nodeMeshID); };
-    if (IdxType == IndexU16) { idx = load_u16(idx, 8u, nodeMeshID); };
-    if (IdxType == IndexU32) { idx = load_u32(idx, 8u, nodeMeshID); };
+    //const uint primitiveID = uint(gl_PrimitiveIndex.x);
+    const uint geometryInstanceID = uint(gl_InstanceIndex.x);
+    const uint nodeMeshID = drawInfo.data.x;
+    const uint globalInstanceID = drawInfo.data.z;
+    const uint idx = uint(gl_VertexIndex.x);
 
     // Use Apple-Like Attributes
     const vec4 iPosition = get_vec4(idx, 0u, nodeMeshID);
@@ -55,9 +48,11 @@ void main() {
     // Just Remap Into... 
       fTexcoord = vec4(iTexcoord.xy, 0.f.xx);
       fPosition = mul4(mul4(vec4(iPosition.xyz, 1.f), matras), matra4); // CORRECT
-      fNormal = vec4(normalize(iNormals.xyz * normalTransform * normInTransform), 0.f);
-      fTangent = vec4(normalize(iTangent.xyz * normalTransform * normInTransform), 0.f);
-      fBinormal = vec4(normalize(iBinormal.xyz * normalTransform * normInTransform), 0.f);
+      //fNormal = vec4(normalize(iNormals.xyz * normalTransform * normInTransform), 0.f);
+      //fTangent = vec4(normalize(iTangent.xyz * normalTransform * normInTransform), 0.f);
+      //fBinormal = vec4(normalize(iBinormal.xyz * normalTransform * normInTransform), 0.f);
+      fBarycent = vec4(bary[idx%3u], 0.f);
+      uData = uvec4(gl_InstanceIndex, 0u.xxx);
 
     // 
     gl_Position = vec4(fPosition * modelview, 1.f) * projection;

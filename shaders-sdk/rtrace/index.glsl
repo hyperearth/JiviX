@@ -29,11 +29,12 @@
 #define BW_POSITION 10 // Position Data
 
 
-// From Rasterization Phase! (In Future)
+// From Rasterization Phase!
 #define RS_MATERIAL 0
-#define RS_POSITION 1
-#define RS_MAPNORML 2
-#define RS_GEONORML 3
+#define RS_GEOMETRY 1
+#define RS_POSITION 2
+#define RS_BARYCENT 3
+#define RS_DIFFUSED 4
 
 
 
@@ -227,7 +228,9 @@ vec4 mul4(in vec4 v, in mat3x4 M) {
 // Deferred and Rasterization Set
 layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];  // Sampled by gl_FragCoord.xy
 layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // Will used by rasterization stage (writing)
+layout (binding = 3, set = 2) uniform sampler2D rasterBuffers[];
 layout (binding = 2, set = 2, rgba32f) uniform image2D writeBuffer[]; // For EDIT!
+
 
 // 
 layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];

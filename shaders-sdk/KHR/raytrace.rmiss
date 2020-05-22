@@ -2,12 +2,7 @@
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
 #include "./driver.glsl"
-
-// 
-struct RCData {
-    uvec4 udata;
-    vec4 fdata;
-};
+#include "./global.glsl"
 
 layout (location = 0) rayPayloadInEXT RCData rcdata;
 

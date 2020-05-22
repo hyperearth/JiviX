@@ -238,6 +238,7 @@ namespace jvi {
             std::array<VkImageView, 9u> deferredAttachments = {};
             std::array<VkImageView, 9u> smpFlip0Attachments = {};
             std::array<VkImageView, 9u> smpFlip1Attachments = {};
+            std::array<VkImageView, 9u> rasteredAttachments = {};
 
             // 
             auto allocInfo = vkt::MemoryAllocationInfo{};
@@ -311,6 +312,28 @@ namespace jvi {
                 if (b < 8u) { smpFlip1Attachments[b] = smFlip1Images[b]; };
             }; };
 
+            // 
+            for (uint32_t b = 0u; b < 8u; b++) { // 
+                this->rastersImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .extent = {width,height,1u},
+                    .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                    }), vkh::VkImageViewCreateInfo{
+                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    });
+
+                // Create Sampler By Reference
+                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                    .magFilter = VK_FILTER_LINEAR,
+                    .minFilter = VK_FILTER_LINEAR,
+                    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    .unnormalizedCoordinates = true,
+                    }, nullptr, &this->rastersImages[b].refSampler()));
+
+                if (b < 8u) { rasteredAttachments[b] = rastersImages[b]; };
+            };
+
             {
                 // 
                 this->depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
@@ -330,10 +353,13 @@ namespace jvi {
                     .unnormalizedCoordinates = true,
                     }, nullptr, &this->depthImage.refSampler()));
 
+                //this->depthImage.setImageLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
                 // 5th attachment
                 deferredAttachments[8u] = depthImage;
                 smpFlip0Attachments[8u] = depthImage;
                 smpFlip1Attachments[8u] = depthImage;
+                rasteredAttachments[8u] = depthImage;
             };
 
             // 
@@ -352,7 +378,7 @@ namespace jvi {
                 .pAttachments = smpFlip0Attachments.data(),
                 .width = width,
                 .height = height
-            }, nullptr, & this->smpFlip0Framebuffer));
+            }, nullptr, &this->smpFlip0Framebuffer));
 
             // Reprojection WILL NOT write own depth... 
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
@@ -361,7 +387,16 @@ namespace jvi {
                 .pAttachments = smpFlip1Attachments.data(),
                 .width = width,
                 .height = height
-            }, nullptr, & this->smpFlip1Framebuffer));
+            }, nullptr, &this->smpFlip1Framebuffer));
+
+            // 
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
+                .renderPass = renderPass,
+                .attachmentCount = static_cast<uint32_t>(rasteredAttachments.size()),
+                .pAttachments = rasteredAttachments.data(),
+                .width = width,
+                .height = height
+            }, nullptr, &this->rasteredFramebuffer));
 
             // 
             scissor = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{width, height} };
@@ -371,9 +406,13 @@ namespace jvi {
             thread->submitOnce([&,this](VkCommandBuffer& cmd) {
                 this->depthImage.transfer(cmd);
                 for (uint32_t i = 0u; i < 12u; i++) { // Definitely Not an Hotel
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip1Images[i].transfer(cmd), VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip1Images[i].getImageSubresourceRange());
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip0Images[i].transfer(cmd), VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip0Images[i].getImageSubresourceRange());
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->frameBfImages[i].transfer(cmd), VK_IMAGE_LAYOUT_GENERAL, vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->frameBfImages[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip1Images[i].transfer(cmd), this->smFlip1Images[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip1Images[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip0Images[i].transfer(cmd), this->smFlip0Images[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip0Images[i].getImageSubresourceRange());
+                    this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->frameBfImages[i].transfer(cmd), this->frameBfImages[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->frameBfImages[i].getImageSubresourceRange());
+
+                    if (i < 8u) {
+                        this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->rastersImages[i].transfer(cmd), this->rastersImages[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->rastersImages[i].getImageSubresourceRange());
+                    };
                 };
             });
 
@@ -415,6 +454,7 @@ namespace jvi {
                 this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
                 this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
                 this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 8u , .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
 
                 // 
                 this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE        , .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
@@ -493,6 +533,24 @@ namespace jvi {
                     for (uint32_t i = 0; i < 12u; i++) {
                         handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor();
                     };
+                }
+
+                { //
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                        .dstBinding = 3u,
+                        .descriptorCount = 8u,
+                        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                    });
+
+                    // 
+                    for (uint32_t i = 0; i < 8u; i++) {
+                        this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                           .magFilter = VK_FILTER_LINEAR,
+                           .minFilter = VK_FILTER_LINEAR,
+                           .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                           .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+                        }, nullptr, &(handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(rastersImages[i]).getDescriptor())->sampler);
+                    }
                 }
 
                 // 
@@ -597,6 +655,7 @@ namespace jvi {
         VkFramebuffer smpFlip0Framebuffer = {};
         VkFramebuffer smpFlip1Framebuffer = {};
         VkFramebuffer deferredFramebuffer = {};
+        VkFramebuffer rasteredFramebuffer = {};
 
         // 
         vkt::Vector<Matrices> uniformGPUData = {};
@@ -607,6 +666,7 @@ namespace jvi {
         std::array<vkt::ImageRegion, 12u> smFlip0Images = {};
         std::array<vkt::ImageRegion, 12u> smFlip1Images = {}; // Path Tracing
         std::array<vkt::ImageRegion, 12u> frameBfImages = {}; // Rasterization
+        std::array<vkt::ImageRegion, 8u>  rastersImages = {}; // Rasterization
         std::array<VkDescriptorSet, 5u> descriptorSets = {};
         vkt::ImageRegion depthImage = {};
 
