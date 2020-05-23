@@ -57,9 +57,9 @@ Date:[09.04.2020]:[helix.d@IMN]
 - [x] HDRI background image and equirectangular projection (Alpha)
 - [x] Support VKT-3 for 12.05.2020 and later... 
 - [x] Checker-board ray-tracing optimization...
-- [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
+- [x] New optional rasterization base (writing to dedicated buffers)
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
-- [ ] New optional rasterization base (writing to dedicated buffers)
+- [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
 - [ ] Advanced FPS counter (TODO)
 - [ ] Some unit-tests`***` 
 - [ ] Water shader (for games)
