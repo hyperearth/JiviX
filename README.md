@@ -70,12 +70,22 @@ Date:[09.04.2020]:[helix.d@IMN]
 
 ### TODO Lists (Gen-4 or Beyond)
 
+- [ ] RDNA-2 support (Vulkan-only)
+- [ ] HLSL shaders (Shader Model 6.5 and higher)
 - [ ] Variable shading rate (faster ray-tracing, currently 1/2 only)
-- [ ] Anti-aliasing and advanced denoise
+- [ ] Anti-aliasing and advanced denoise (already reserved for make)
 - [ ] Fog and better transparency support 
 - [ ] Refraction support
 - [ ] ReShade extensions support
 - [ ] DLSS 2.0?
+
+
+### DirectX 12 Ultimate? (Gen-5?)
+
+- [ ] Portability
+- [ ] Multi-Threading
+- [ ] RDNA-2 support 
+- [ ] Advanced Hardware Acceleration
 
 
 ### Remarks...
