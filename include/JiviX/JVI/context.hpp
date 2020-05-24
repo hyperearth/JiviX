@@ -43,7 +43,7 @@ namespace jvi {
 
             // 
             glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(1600) / float(1200), 0.001f, 10000.f);
-            glm::mat4x4 modelview = glm::lookAt(glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+            glm::mat4x4 modelview = glm::lookAt(glm::vec3(0.0001f, 0.0001f, 1.f), glm::vec3(0.f, 0.f, 0.0001f), glm::vec3(0.f, 1.f, 0.f));
 
             // 
             uniformRawData[0].modelview = glm::transpose(modelview);

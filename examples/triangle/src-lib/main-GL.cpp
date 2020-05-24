@@ -209,6 +209,10 @@ void key_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int
     }
 }
 
+
+
+
+
 int main() {
     // glfw: initialize and configure
     // ------------------------------
@@ -549,37 +553,19 @@ int main() {
     //renderer->setupCommands();
 
 	// 
-	struct ShareHandles {
-		//HANDLE memory{ INVALID_HANDLE_VALUE };
-		HANDLE glReady{ INVALID_HANDLE_VALUE };
-		HANDLE glComplete{ INVALID_HANDLE_VALUE };
-	} handles;
-
-	// 
 	struct Semaphores {
         VkSemaphore glReady = {}, glComplete = {};
 	} semaphores;
 
-    { // Vulkan Semaphores
-        const auto exportable = vkh::VkExportSemaphoreCreateInfo{ .handleTypes = {.eOpaqueWin32 = 1} };
-        vkh::handleVk(fw->getDeviceDispatch()->CreateSemaphoreA(vkh::VkSemaphoreCreateInfo{ .pNext = &exportable }, nullptr, &semaphores.glReady));
-        vkh::handleVk(fw->getDeviceDispatch()->CreateSemaphoreA(vkh::VkSemaphoreCreateInfo{ .pNext = &exportable }, nullptr, &semaphores.glComplete));
-    };
-    { // On non-Win32 systems needs use glImportSemaphoreFdEXT instead
-        vkh::handleVk(fw->getDeviceDispatch()->GetSemaphoreWin32HandleKHR(vkh::VkSemaphoreGetWin32HandleInfoKHR{ .semaphore = semaphores.glReady, .handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT }, &handles.glReady));
-        vkh::handleVk(fw->getDeviceDispatch()->GetSemaphoreWin32HandleKHR(vkh::VkSemaphoreGetWin32HandleInfoKHR{ .semaphore = semaphores.glComplete, .handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT }, &handles.glComplete));
-    };
-
 	// Platform specific import.
-    GLuint glReady = 0;
-    glGenSemaphoresEXT(1, &glReady);
-	glImportSemaphoreWin32HandleEXT(glReady, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, handles.glReady);
+    GLuint glReady = 0, glComplete = 0;
+
+    // 
+    vkt::createSemaphore(fw->getDeviceDispatch(), &semaphores.glReady, &glReady);
     glCheckError();
 
     // 
-    GLuint glComplete = 0;
-    glGenSemaphoresEXT(1, &glComplete);
-	glImportSemaphoreWin32HandleEXT(glComplete, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, handles.glComplete);
+    vkt::createSemaphore(fw->getDeviceDispatch(), &semaphores.glComplete, &glComplete);
     glCheckError();
 
     // 
