@@ -606,7 +606,8 @@ int main() {
         glCheckError();
 
         // Do transform feedback
-        glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0u, GLID);
+        //glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0u, GLID);
+        glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0u, GLID, 0ull, 80ull * 6ull);
         glBeginTransformFeedback(GL_TRIANGLES);
         glDrawArrays(GL_LINES_ADJACENCY, 0, 4);
         glEndTransformFeedback();
