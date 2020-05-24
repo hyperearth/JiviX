@@ -47,7 +47,10 @@ namespace jvi {
             this->gpuMaterialIDs = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * GeometryInitial.size(), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
 
             // 
-            this->counterData = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 4u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_TO_CPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+            this->counterData = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 4u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+
+            // 
+            this->offsetCounterData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = vkt::tiled((std::max(GeometryInitial.size(), 64ull)+1u), 2ull) * 8u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_TO_CPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
 
             // 
             //this->gpuMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
@@ -342,7 +345,8 @@ namespace jvi {
                 this->offsetPtr.resize(this->fullGeometryCount);
             };
 
-            // this->fullGeometryCount
+
+            // We Collect Counter Buffer Results for future usage...
             uint32_t f = 0, i = 0, c = 0; for (auto& I : this->inputs) { // Quads needs to format...
                 const auto uOffset = this->primitiveCount * 3u;
                 if (I.has()) { I->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand); };
@@ -353,6 +357,7 @@ namespace jvi {
                     //offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE; //+ this->bindings[0u].offset();
                     offsetp.primitiveCount = I.has() ? vkt::tiled(I->getIndexCount(), 3ull) : vkt::tiled(this->ranges[i], 1ull); // TODO: De-Facto primitive count...
                     offsetp.firstVertex = uOffset;
+                    this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = i * sizeof(uint32_t), .size = sizeof(uint32_t) });
                     if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * DEFAULT_STRIDE, 0u, 0u), buildCommand); };
                 };
 
@@ -373,6 +378,11 @@ namespace jvi {
                 // 
                 f += this->instances[i++];
             };
+
+            // 
+            if (this->inputs.size() > 0) {
+                this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = (this->inputs.size() - 1u) * sizeof(uint32_t), .size = sizeof(uint32_t) });
+            }
 
             // 
             vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
@@ -767,6 +777,7 @@ namespace jvi {
 
         // 
         vkt::Vector<glm::uvec4> counterData = {};
+        vkt::Vector<uint32_t> offsetCounterData = {};
         vkt::Vector<uint32_t> rawMaterialIDs = {};
         vkt::Vector<uint32_t> gpuMaterialIDs = {};
 
