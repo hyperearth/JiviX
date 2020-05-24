@@ -347,9 +347,10 @@ namespace jvi {
 
 
             // We Collect Counter Buffer Results for future usage...
+            this->rawMeshInfo[0].geometryCount = this->fullGeometryCount;
             uint32_t f = 0, i = 0, c = 0; for (auto& I : this->inputs) { // Quads needs to format...
                 const auto uOffset = this->primitiveCount * 3u;
-                if (I.has()) { I->formatQuads(uTHIS, glm::u64vec4(uOffset, 0u, 0u, 0u), buildCommand); };
+                if (I.has()) { I->formatQuads(uTHIS, glm::u64vec4(uOffset, uOffset * DEFAULT_STRIDE, this->fullGeometryCount, 0u), buildCommand); };
 
                 // copy as template, use as triangle...
                 auto offsetp = this->offsetTemp;
@@ -359,7 +360,7 @@ namespace jvi {
                     offsetp.firstVertex = uOffset;
                     this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = i * sizeof(uint32_t), .size = sizeof(uint32_t) });
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier In 
-                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * DEFAULT_STRIDE, 0u, 0u), buildCommand); };
+                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, uOffset * DEFAULT_STRIDE, this->fullGeometryCount, 0u), buildCommand); };
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier Out
                 };
 
@@ -858,6 +859,10 @@ namespace jvi {
              const VkDeviceSize gOffset = 0u;//offsetHelp->y;
              const VkDeviceSize mOffset = gOffset + gBuffer.offset();
              const VkDeviceSize mSize = std::min(gBuffer.size() - gOffset, this->currentUnitCount * DEFAULT_STRIDE);
+             const VkDeviceSize mGeometryCount = offsetHelp->z;
+
+             // 
+             this->meta.geometryCount = mGeometryCount;
 
              // 
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
