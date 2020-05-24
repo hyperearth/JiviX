@@ -410,39 +410,6 @@ int main() {
         glCheckError();
     }
 
-    /*
-    // 
-    const int computeTestShader = glCreateShader(GL_COMPUTE_SHADER);
-    glShaderSource(computeTestShader, 1, &computeTestShaderSource, NULL);
-    glCompileShader(computeTestShader);
-    // check for shader compile errors
-    int success = 0u; char* infoLog = new char[512];
-    for (uint32_t i = 0; i < 512; i++) { infoLog[i] = 0u; };
-    glGetShaderiv(computeTestShader, GL_COMPILE_STATUS, &(success = 0u));
-    if (!success) {
-        glGetShaderInfoLog(computeTestShader, 512, NULL, (infoLog));
-        std::cout << "ERROR::SHADER::COMPUTE::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    glCheckError();
-
-
-    // link shaders
-    const int computeTestProgram = glCreateProgram();
-    glAttachShader(computeTestProgram, computeTestShader);
-    glLinkProgram(computeTestProgram);
-    glValidateProgram(computeTestProgram);
-    glCheckError();
-    // check for linking errors
-    glGetProgramiv(computeTestProgram, GL_LINK_STATUS, &(success = 0u));
-    if (!success) {
-        glGetProgramInfoLog(computeTestProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-    glDeleteShader(computeTestShader);
-    glCheckError();
-    */
-
-
     // 
     auto instance = fw->createInstance();
     //auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
@@ -919,12 +886,8 @@ int main() {
     cameraController->viewVector = &evc;
 
     // 
-    //eye.z += float(context->timeDiff()) / 1000.f * 1.f;
     context->setModelView(glm::mat4x4(glm::lookAt(eye, foc, glm::dvec3(0.f, 1.f, 0.f))));
     context->setPerspective(glm::mat4x4(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 10000.)));
-
-    // initialize program
-    //renderer->setupCommands();
 
     // 
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
@@ -963,56 +926,6 @@ int main() {
     Shared::TimeCallback(double(context->registerTime()->setDrawCount(frameCount++)->drawTime()));
 
     // 
-    //auto sps = vkh::VkVertexInputBindingDescription{};
-    //auto spc = sizeof(sps);
-
-    //VkSemaphoreCreateInfo sci = {};
-    //VkSemaphore sem = device.createSemaphore(sci);
-
-    // 
-    //renderer->setupCommands();
-
-
-    // 
-    glbinding::useContext(0);
-
-    // Currently, OpenGL WITHOUT SwapChain
-    struct ShareHandles {
-        //HANDLE memory{ INVALID_HANDLE_VALUE };
-        HANDLE glReady{ INVALID_HANDLE_VALUE };
-        HANDLE glComplete{ INVALID_HANDLE_VALUE };
-    } handles;
-
-    // 
-    struct Semaphores {
-        VkSemaphore glReady = {}, glComplete = {};
-    } semaphores;
-
-    { // Vulkan Semaphores
-        const auto exportable = vkh::VkExportSemaphoreCreateInfo{ .handleTypes = {.eOpaqueWin32 = 1} };
-        vkh::handleVk(fw->getDeviceDispatch()->CreateSemaphoreA(vkh::VkSemaphoreCreateInfo{ .pNext = &exportable }, nullptr, &semaphores.glReady));
-        vkh::handleVk(fw->getDeviceDispatch()->CreateSemaphoreA(vkh::VkSemaphoreCreateInfo{ .pNext = &exportable }, nullptr, &semaphores.glComplete));
-    };
-    { // On non-Win32 systems needs use glImportSemaphoreFdEXT instead
-        vkh::handleVk(fw->getDeviceDispatch()->GetSemaphoreWin32HandleKHR(vkh::VkSemaphoreGetWin32HandleInfoKHR{ .semaphore = semaphores.glReady, .handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT }, &handles.glReady));
-        vkh::handleVk(fw->getDeviceDispatch()->GetSemaphoreWin32HandleKHR(vkh::VkSemaphoreGetWin32HandleInfoKHR{ .semaphore = semaphores.glComplete, .handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_BIT }, &handles.glComplete));
-    };
-
-    /*
-    // Platform specific import.
-    GLuint glReady = 0;
-    glGenSemaphoresEXT(1, &glReady);
-    glImportSemaphoreWin32HandleEXT(glReady, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, handles.glReady);
-    glCheckError();
-
-    // 
-    GLuint glComplete = 0;
-    glGenSemaphoresEXT(1, &glComplete);
-    glImportSemaphoreWin32HandleEXT(glComplete, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, handles.glComplete);
-    glCheckError();
-    */
-
-    // 
     while (!glfwWindowShouldClose(manager.window)) { // 
         glfwPollEvents();
 
@@ -1024,10 +937,6 @@ int main() {
         // 
         vkh::handleVk(fw->getDeviceDispatch()->WaitForFences(1u, &framebuffers[c_semaphore].waitFence, true, 30ull * 1000ull * 1000ull * 1000ull));
         vkh::handleVk(fw->getDeviceDispatch()->ResetFences(1u, &framebuffers[c_semaphore].waitFence));
-
-        // 
-        //device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer);
-        //device.signalSemaphore(VkSemaphoreSignalInfo().setSemaphore(framebuffers[n_semaphore].semaphore).setValue(1u));
 
         // 
         vkh::handleVk(fw->getDeviceDispatch()->AcquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer));
@@ -1044,10 +953,6 @@ int main() {
                 vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 }
             };
 
-            // Signal for Vulkan
-            //glSignalSemaphoreEXT(glComplete, 0u, nullptr, 0u, nullptr, nullptr);
-            //glCheckError();
-
             // Submit command once
             //renderer->setupCommands();
             vkh::handleVk(fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
@@ -1055,28 +960,6 @@ int main() {
                 .commandBufferCount = 1u, .pCommandBuffers = &renderer->setupCommands()->refCommandBuffer(), 
                 .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
             }, {}));
-
-            //
-            GLuint glImage = context->getFrameBuffer(8u).getGL();
-            GLenum glLayout = GL_LAYOUT_GENERAL_EXT;
-
-            // Wait in OpenGL side...
-            //glWaitSemaphoreEXT(glReady, 0u, nullptr, 1u, &glImage, &glLayout);
-            //glCheckError();
-
-            // FAKE RSoD...
-            //glUseProgram(computeTestProgram);
-            //glBindImageTexture(0u, context->getFrameBuffer(8u).getGL(), 0u, false, 0u, GL_READ_WRITE, GL_RGBA32F);
-            //glDispatchCompute(vkt::tiled(SCR_WIDTH, 16u), vkt::tiled(SCR_HEIGHT, 16u), 1u);
-            //glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-            //glCheckError();
-
-            // Signal for Vulkan
-            //glSignalSemaphoreEXT(glComplete, 0u, nullptr, 1u, &glImage, &glLayout);
-            //glCheckError();
-
-            // FOR DEBUG ONLY! Marking Debug Mode!
-            //const std::vector<float> bindingContent = vkt::DebugBufferData<float>(fw->getAllocator(), queue, commandPool, meshes[0]->getBindingBuffer());
 
             // 
             waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
@@ -1104,10 +987,6 @@ int main() {
                 .commandBufferCount = 1u, .pCommandBuffers = &commandBuffer,
                 .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
             }, framebuffers[c_semaphore].waitFence));
-
-            // Wait in OpenGL side...
-            //glWaitSemaphoreEXT(glReady, 0u, nullptr, 0u, nullptr, nullptr);
-            //glCheckError();
 
             // 
             context->setDrawCount(frameCount++);
