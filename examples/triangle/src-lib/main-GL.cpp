@@ -602,17 +602,18 @@ int main() {
         // 
         glUseProgram(shaderTFProgram);
         glBindVertexArray(TFVAO);
-        glEnable(GL_RASTERIZER_DISCARD);
         glCheckError();
 
         // Do transform feedback
         //glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0u, GLID);
         glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, 0u, GLID, 0ull, 80ull * 6ull);
         glBeginTransformFeedback(GL_TRIANGLES);
+        glEnable(GL_RASTERIZER_DISCARD);
         glDrawArrays(GL_LINES_ADJACENCY, 0, 4);
+        glDisable(GL_RASTERIZER_DISCARD);
         glEndTransformFeedback();
         glCheckError();
-        
+
         // Signal for Vulkan
         glSignalSemaphoreEXT(glComplete, 1, &GLID, 1, &color, &layoutSignal);
         glCheckError();
@@ -638,7 +639,6 @@ int main() {
         //glGetNamedBufferSubData(GLID, 0u, outScript.size() * sizeof(FDStruct), outScript.data());
 
 		// Draw Result...
-        glDisable(GL_RASTERIZER_DISCARD);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glBindTextureUnit(0, color);
