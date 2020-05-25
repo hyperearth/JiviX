@@ -8,7 +8,7 @@
 //#include <glbinding/glbinding.h>
 #endif
 
-#include <vkt3/core.hpp>
+#include <vkh/core.hpp>
 #include <vkt3/fw.hpp>
 
 namespace jvi {
@@ -50,7 +50,7 @@ namespace jvi {
     };
 
     struct CommandOptions {
-        uint8_t
+        uint32_t
             eEnableCopyMeta: 1,
             eEnableBuildGeometry : 1,
             eEnableBuildAccelerationStructure : 1,

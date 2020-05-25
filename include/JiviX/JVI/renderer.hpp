@@ -353,6 +353,10 @@ namespace jvi {
             return uTHIS;
         };
 
+        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf, const bool& once, const int32_t& options) {
+            return setupCommands(cmdBuf, once, reinterpret_cast<const CommandOptions&>(options));
+        };
+
         // 
         VkCommandBuffer& refCommandBuffer() { return this->cmdBuf[current]; };
         const VkCommandBuffer& refCommandBuffer() const { return this->cmdBuf[current]; };

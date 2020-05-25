@@ -15,6 +15,7 @@ namespace jvx {
         CALLIFY(setThread);
         CALLIFY(setRawInstance);
         CALLIFY(setGpuInstance);
+        CALLIFY(resetInstances);
         CALLIFY(pushInstance);
         CALLIFY(mapMeshData);
         CALLIFY(pushMesh);

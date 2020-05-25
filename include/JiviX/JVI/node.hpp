@@ -98,6 +98,15 @@ namespace jvi {
         };
 
         // 
+        virtual uPTR(Node) resetInstances() {
+            for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); };
+            this->instanceCounter = 0;
+            this->mapMeshes.resize(0);
+            this->prepareInstances.resize(0);
+            return uTHIS;
+        };
+
+        // 
         virtual uPTR(Node) pushInstance(vkt::uni_arg<vkh::VsGeometryInstance> instance = vkh::VsGeometryInstance{}) {
             //if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->fullGeometryCount > 0) {
             if (this->meshes[instance->instanceId]) {
