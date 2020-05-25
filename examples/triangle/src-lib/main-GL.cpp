@@ -55,25 +55,25 @@ const unsigned int SCR_HEIGHT = 1200;
 
 
 const char *vertexShaderSource = "#version 460 compatibility\n"
-    "layout (location = 0) in vec4 aPos;\n" 
+    "const vec2 cpositions[4] = { vec2(-1.f, 1.f), vec2(1.f, 1.f), vec2(-1.f, -1.f), vec2(1.f, -1.f) };\n"
+    "const vec2 tcoords[4] = { vec2(0.f), vec2(1.f, 0.f), vec2(0.f, 1.f), vec2(1.f) };\n"
+    "layout (location = 0) out vec2 tx;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.xyz, 1.0f);\n"
-    "}\0";
-
+    "   gl_Position = vec4(cpositions[gl_VertexID].xy, 0.f, 1.0f); tx = tcoords[gl_VertexID];\n"
+    "}\n\0";
 
 const char *fragmentShaderSource = "#version 460 compatibility\n"
     "#extension GL_ARB_bindless_texture : require\n"
     "out vec4 FragColor;\n"
+    "layout (location = 0) in vec2 tx;\n"
     "layout (binding = 0) uniform sampler2D texture0;\n"
     "void main()\n"
     "{\n"
-	"	vec2 tx = gl_FragCoord.xy/vec2(1600.f,1200.f);\n"
     "   FragColor = vec4(pow(texture(texture0,tx).xyz,1.f.xxx/2.2.xxx),1.f);\n"
     "   //FragColor = vec4(pow(texture(texture1,tx).xyz/texture(texture1,tx).w*vec3(0.5f,0.5f,1.f),1.f.xxx/2.2.xxx),1.f);\n"
     "   //FragColor = vec4(pow(texture(texture0,tx).xyz,1.f.xxx/2.2.xxx),1.f);\n"
     "}\n\0";
-
 
 const char* vertexTFShaderSource = "#version 460 compatibility\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -83,7 +83,6 @@ const char* vertexTFShaderSource = "#version 460 compatibility\n"
     "{\n"
     "   gl_Position = vec4(oPos = aPos, 1.f);\n"
     "}\0";
-
 
 const char* geometryTFShaderSource = "#version 460 compatibility\n"
     "layout (location = 0) in vec3 oPos[];\n"
@@ -385,28 +384,6 @@ int main() {
     glCheckError();
 
 
-    // 
-    float vertices[] = {
-        -1.f, -1.f, 0.f, // left  
-         1.f, -1.f, 0.f, // right 
-         1.f,  1.f, 0.f, // top   
-        -1.f,  1.f, 0.f
-    };
-
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-    glCheckError();
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glCheckError();
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glCheckError();
-
     // Debug View
     std::vector<FDStruct> outScript(6u);
 
@@ -643,8 +620,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
         glBindTextureUnit(0, color);
         glUseProgram(shaderProgram);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         //glFinish(); // For Debug
         glCheckError();
 
@@ -653,11 +629,6 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-	// 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glCheckError();
 
     glfwTerminate();
     return 0;
