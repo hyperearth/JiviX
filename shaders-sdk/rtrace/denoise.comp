@@ -165,6 +165,12 @@ void main() { // TODO: explicit sampling
         imageStore(writeImagesBack[I], mapc(samplep), imageLoad(writeImages[I], mapc(samplep)));
     };
 
+    // Will very actual after adaptive denoise... 
+    if (!isSkybox && getTransparent(samplep).w > 0.f) {
+        float scount = max(imageLoad(writeImages[IW_INDIRECT], mapc(samplep)).w, 1.f);
+        imageStore(writeImagesBack[IW_INDIRECT], mapc(samplep), vec4(diffused.xyz*scount, scount));
+    };
+
 #else
     imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,1.f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
     imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
