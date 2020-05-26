@@ -73,11 +73,7 @@ namespace jvi {
             };
 
             // 
-            vkt::MemoryAllocationInfo almac = {};
-            almac.device = this->driver->getDevice();
-            almac.memoryProperties = this->driver->getMemoryProperties().memoryProperties;
-            almac.instanceDispatch = this->driver->getInstanceDispatch();
-            almac.deviceDispatch = this->driver->getDeviceDispatch();
+            auto& almac = driver->memoryAllocationInfo();
             almac.memUsage = VMA_MEMORY_USAGE_GPU_ONLY;
             almac.glMemory = almac.glID = 0u;
 

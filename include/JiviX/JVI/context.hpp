@@ -241,11 +241,7 @@ namespace jvi {
             std::array<VkImageView, 9u> rasteredAttachments = {};
 
             // 
-            auto allocInfo = vkt::MemoryAllocationInfo{};
-            allocInfo.device = *driver;
-            allocInfo.memoryProperties = driver->getMemoryProperties().memoryProperties;
-            allocInfo.instanceDispatch = driver->getInstanceDispatch();
-            allocInfo.deviceDispatch = driver->getDeviceDispatch();
+            auto& allocInfo = driver->memoryAllocationInfo();
 
             // 
             for (uint32_t b = 0u; b < 12u; b++) { // 
