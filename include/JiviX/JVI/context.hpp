@@ -35,8 +35,8 @@ namespace jvi {
         // 
         virtual uPTR(Context) construct() {
             this->thread = std::make_shared<Thread>(this->driver);
-            this->uniformGPUData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
-            this->uniformRawData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1,                    .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU, .deviceDispatch = this->driver->getDeviceDispatch(), .instanceDispatch = this->driver->getInstanceDispatch() }));
+            this->uniformGPUData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->uniformRawData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1,                    .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
             this->beginTime = std::chrono::high_resolution_clock::now();
             this->leastTime = std::chrono::high_resolution_clock::now();
             this->previTime = std::chrono::high_resolution_clock::now();
@@ -249,11 +249,11 @@ namespace jvi {
 
             // 
             for (uint32_t b = 0u; b < 12u; b++) { // 
-                this->frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                this->frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                }), vkh::VkImageViewCreateInfo{
+                }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
 
@@ -271,11 +271,11 @@ namespace jvi {
 
             // 
             for (uint32_t b=0u;b<12u;b++) { { // 
-                this->smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                this->smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                }), vkh::VkImageViewCreateInfo{
+                }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
 
@@ -286,17 +286,18 @@ namespace jvi {
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                    }, nullptr, &this->smFlip0Images[b].refSampler()));
+                }, nullptr, &this->smFlip0Images[b].refSampler()));
 
                 if (b < 8u) { smpFlip0Attachments[b] = smFlip0Images[b]; };
             };
 
+            // 
             {
-                this->smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                this->smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                }), vkh::VkImageViewCreateInfo{
+                }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 });
 
@@ -307,20 +308,20 @@ namespace jvi {
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                    }, nullptr, &this->smFlip1Images[b].refSampler()));
+                }, nullptr, &this->smFlip1Images[b].refSampler()));
 
                 if (b < 8u) { smpFlip1Attachments[b] = smFlip1Images[b]; };
             }; };
 
             // 
             for (uint32_t b = 0u; b < 8u; b++) { // 
-                this->rastersImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                this->rastersImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
-                    }), vkh::VkImageViewCreateInfo{
-                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                    });
+                }, allocInfo), vkh::VkImageViewCreateInfo{
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                });
 
                 // Create Sampler By Reference
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
@@ -329,21 +330,22 @@ namespace jvi {
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                    }, nullptr, &this->rastersImages[b].refSampler()));
+                }, nullptr, &this->rastersImages[b].refSampler()));
 
                 if (b < 8u) { rasteredAttachments[b] = rastersImages[b]; };
             };
 
+            // 
             {
                 // 
-                this->depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(allocInfo, vkh::VkImageCreateInfo{
+                this->depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                     .extent = {width,height,1u},
                     .usage = {.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 },
-                    }), vkh::VkImageViewCreateInfo{
-                        .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                        .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
-                    });
+                }, allocInfo), vkh::VkImageViewCreateInfo{
+                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
+                });
 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
@@ -351,7 +353,7 @@ namespace jvi {
                     .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
-                    }, nullptr, &this->depthImage.refSampler()));
+                }, nullptr, &this->depthImage.refSampler()));
 
                 //this->depthImage.setImageLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
