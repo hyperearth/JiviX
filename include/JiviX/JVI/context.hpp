@@ -43,7 +43,7 @@ namespace jvi {
 
             // 
             glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(1600) / float(1200), 0.001f, 10000.f);
-            glm::mat4x4 modelview = glm::lookAt(glm::vec3(0.0001f, 0.0001f, 1.f), glm::vec3(0.f, 0.f, 0.0001f), glm::vec3(0.f, 1.f, 0.f));
+            glm::mat4x4 modelview = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f)); // Defaultly - Center Of World into Z coordinate
 
             // 
             uniformRawData[0].modelview = glm::transpose(modelview);
@@ -176,6 +176,7 @@ namespace jvi {
         virtual uPTR(Context) setPerspective(vkt::uni_arg<glm::mat4x4> persp = glm::mat4x4(1.f)) {
             uniformRawData[0].projection = glm::transpose(*persp);
             uniformRawData[0].projectionInv = glm::transpose(glm::inverse(*persp));
+            changedPerspective = true;
             return uTHIS;
         };
 
@@ -233,6 +234,13 @@ namespace jvi {
         // 
         virtual uPTR(Context) createFramebuffers(const uint32_t& width = 1600u, const uint32_t& height = 1200u) { // 
             std::cout << "Create Frame Buffer" << std::endl; // DEBUG!!
+
+            // Used Native Perspective
+            if (!changedPerspective) {
+                glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(width) / float(height), 0.001f, 10000.f);
+                uniformRawData[0].projection = glm::transpose(projected);
+                uniformRawData[0].projectionInv = glm::transpose(glm::inverse(projected));
+            };
 
             // 
             std::array<VkImageView, 9u> deferredAttachments = {};
@@ -645,6 +653,7 @@ namespace jvi {
         bool descriptorUpdated0 = false;
         bool descriptorUpdated1 = false;
         bool descriptorUpdatedF = false;
+        bool changedPerspective = false;
 
         // 
         vkh::VkRect2D scissor = {};
