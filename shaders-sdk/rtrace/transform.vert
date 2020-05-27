@@ -8,6 +8,7 @@ layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec2 iTexcoord;
 layout (location = 2) in vec3 iNormals;
 layout (location = 3) in vec4 iTangent;
+layout (location = 4) in vec4 iColor; // Will used by Minecraft
 //layout (location = 4) in vec4 fBinormal;
 
 // Right Oriented
@@ -39,7 +40,7 @@ void main() { // Cross-Lake
     // 
     gTexcoord.xy = iTexcoord.xy;
     gPosition = vec4(iPosition.xyz,1.f);
-    gNormal = vec4(iNormals.xyz,0.f);
+    gNormal = vec4(iNormals.xyz,uintBitsToFloat(packUnorm4x8(iColor))); // Do NOT interpolate W for Fragment Shader, because needs `unpackUnorm4x8(floatBitsToUint())`
     gTangent = vec4(iTangent.xyz,0.f);
-    gl_Position = vec4(iPosition.xyz, 1.f);
+    gl_Position = vec4(iPosition.xyz,1.f);
 };
