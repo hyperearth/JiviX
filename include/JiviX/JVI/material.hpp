@@ -86,9 +86,9 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Material) pushSampledImage(const vkt::uni_arg<vkh::VkDescriptorImageInfo>& info = {}) {
+        virtual uint32_t pushSampledImage(const vkt::uni_arg<vkh::VkDescriptorImageInfo>& info = {}) {
             this->sampledImages.push_back(info);
-            return uTHIS;
+            return this->sampledImages.size()-1;
         };
 
         // 
