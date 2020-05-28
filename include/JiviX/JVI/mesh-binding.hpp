@@ -100,7 +100,7 @@ namespace jvi {
             this->bdHeadInfo.geometryArrayOfPointers = true; // MARK TRUE FOR INDIRECT BUILDING!!
 
             // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)
-            this->buildGTemp = vkh::VkAccelerationStructureGeometryKHR{ .flags = {.eOpaque = 1 } };
+            this->buildGTemp = vkh::VkAccelerationStructureGeometryKHR{ .flags = {.eOpaque = 1, .eNoDuplicateAnyHitInvocation = 1 } }; // Optimize Tracing 
             this->buildGTemp = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{
                 .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT, 
                 .vertexStride = MaxStride,
