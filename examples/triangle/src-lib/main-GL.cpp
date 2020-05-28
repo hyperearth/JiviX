@@ -363,10 +363,10 @@ int main() {
 
     // 
     float tf_vertices[] = {
-        -1.f, -1.f, -1.f,
-         1.f, -1.f, -1.f,
-         0.f,  1.f, -1.f,
-         2.f,  1.f, -1.f
+        -1.f, -1.f, 1.f,
+         1.f, -1.f, 1.f,
+         0.f,  1.f, 1.f,
+         2.f,  1.f, 1.f
     };
 
     unsigned int TFVBO, TFVAO;
