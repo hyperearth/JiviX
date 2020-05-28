@@ -227,11 +227,7 @@ namespace jvi {
         virtual uPTR(MeshBinding) setIndexCount(const VkDeviceSize& count = 65536u * 3u) { this->setPrimitiveCount(std::min(VkDeviceSize(vkt::tiled(count, 3ull)), VkDeviceSize(this->MaxPrimitiveCount))); return uTHIS; };
         virtual uPTR(MeshBinding) setPrimitiveCount(const VkDeviceSize& count = 65536u) { this->primitiveCount = std::min(VkDeviceSize(count), VkDeviceSize(this->MaxPrimitiveCount)); return uTHIS; };
 
-        // 
-        virtual uPTR(MeshBinding) resetInstanceMap(const uint32_t& mapID = 0u) {
-            this->mapCount = 0u;
-            return uTHIS;
-        };
+
 
         // 
         virtual uPTR(MeshBinding) linkWithInstance(const uint32_t& mapID = 0u) {
@@ -495,14 +491,21 @@ namespace jvi {
             return uTHIS;
         };
 
+        // 
+        virtual uPTR(MeshBinding) resetInstanceMap(const uint32_t& mapID = 0u) {
+            this->mapCount = 0u;
+            return uTHIS;
+        };
+
         // Öбнулись! Nullify Rendering! Made for Minecraft... 
-        virtual uPTR(MeshBinding) resetMeshInputs() {
+        virtual uPTR(MeshBinding) resetGeometry() {
             this->fullGeometryCount = 0ull;
             this->needsUpdate = false;
             this->ranges.resize(0u);
             this->inputs.resize(0u);
+            this->instances.resize(0u);
             return uTHIS;
-        };
+        }
 
         // 
         virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const std::vector<int32_t>& materialIDs) {

@@ -89,7 +89,7 @@ namespace jvx {
           CALLIFY(createRasterizePipeline);
           CALLIFY(createRasterizeCommand);
           CALLIFY(addRangeInput);
-          CALLIFY(resetMeshInputs);
+          CALLIFY(resetGeometry);
 
 #ifdef ENABLE_OPENGL_INTEROP //
           CALLIFY(getIndexBufferGL);
