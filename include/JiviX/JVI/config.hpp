@@ -54,11 +54,10 @@ namespace jvi {
             eEnableCopyMeta: 1,
             eEnableBuildGeometry : 1,
             eEnableBuildAccelerationStructure : 1,
-            eEnableDenoise : 1,
             eEnableRasterization : 1,
             eEnableRayTracing : 1,
-            eEnableResampling: 1
-            ;
+            eEnableResampling: 1,
+            eEnableDenoise : 1;
     };
 
     constexpr uint32_t DEFAULT_STRIDE = 80u;

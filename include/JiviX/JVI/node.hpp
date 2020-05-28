@@ -124,6 +124,14 @@ namespace jvi {
             return uTHIS;
         };
 
+        virtual uPTR(Node) buildGeometryAccelerationStructure(const VkCommandBuffer& cmdBuffer) {
+            uintptr_t I = 0u; for (auto& Mesh : this->meshes) {
+                auto HLP = glm::uvec4(I++, 0u, 0u, 0u);
+                Mesh->buildAccelerationStructure(cmdBuffer, HLP);
+            };
+            return uTHIS;
+        };
+
         // 
         virtual uPTR(Node) mapMeshData(const VkCommandBuffer& cmdBuffer) {
             for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); }; uintptr_t I = 0;
@@ -137,7 +145,7 @@ namespace jvi {
             };
             I = 0u; for (auto& Mesh : this->meshes) {
                 auto HLP = glm::uvec4(I++, 0u, 0u, 0u);
-                Mesh->buildGeometry(cmdBuffer, HLP)->buildAccelerationStructure(cmdBuffer, HLP);
+                Mesh->buildGeometry(cmdBuffer, HLP);
             };
             return uTHIS;
         };
@@ -337,6 +345,9 @@ namespace jvi {
         // INCOMPATIBLE WITH OPENGL! UNKNOWN REASON! F&CKING NVIDIA! PIDORS! PROBABLY, HARDWARE PROBLEMS... 
         virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
+
+            // 
+            this->buildGeometryAccelerationStructure(buildCommand);
 
             // Copy ONLY when building! And only when needs... 
             driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawInstances, this->gpuInstances, 1u, vkh::VkBufferCopy{ .srcOffset = this->rawInstances.offset(), .dstOffset = this->gpuInstances.offset(), .size = this->gpuInstances.range() });

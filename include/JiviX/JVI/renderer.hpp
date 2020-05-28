@@ -118,7 +118,7 @@ namespace jvi {
                     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE,
                     .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
                     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-                    });
+                });
             };
 
             // 
@@ -331,22 +331,23 @@ namespace jvi {
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
 
-            // Denoise diffuse data
-            this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->denoiseState);
-            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-            this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
-            this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
-            vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+            if (parameters->eEnableDenoise) {
+                // Denoise diffuse data
+                this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->denoiseState);
+                this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
+                this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+                vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
 
-            // Denoise reflection data
-            this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->reflectState);
-            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-            this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
-            this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
-            vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
-            // 
+                // Denoise reflection data
+                this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->reflectState);
+                this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & glm::uvec4(0u));
+                this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
+                vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+            };
 
-            if (!hasBuf) {
+            if (!hasBuf) { // 
                 this->driver->getDeviceDispatch()->EndCommandBuffer(currentCmd);
             };
 
