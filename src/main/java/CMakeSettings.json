@@ -1,0 +1,17 @@
+﻿{
+    "configurations": [
+        {
+            "name": "windows-x86_64",
+            "generator": "Visual Studio 16 2019 Win64",
+            "configurationType": "Debug",
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "buildRoot": "${projectDir}\\${name}",
+            "installRoot": "${projectDir}\\${name}",
+            "cmakeCommandArgs": "",
+            "buildCommandArgs": "",
+            "ctestCommandArgs": "",
+            "intelliSenseMode": "windows-msvc-x64",
+            "variables": []
+        }
+    ]
+}
