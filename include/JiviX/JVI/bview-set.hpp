@@ -16,11 +16,11 @@ namespace jvi {
         ~BufferViewSet() {};
 
         // 
-        virtual vkt::uni_ptr<BufferViewSet> sharedPtr() { return shared_from_this(); };
+        public: virtual vkt::uni_ptr<BufferViewSet> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<BufferViewSet> sharedPtr() const { return std::shared_ptr<BufferViewSet>(shared_from_this()); };
 
         // 
-        virtual uPTR(BufferViewSet) construct() {
+        protected: virtual uPTR(BufferViewSet) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
 
@@ -33,50 +33,50 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(BufferViewSet) setContext(const vkt::uni_ptr<Context>& context) {
+        public: virtual uPTR(BufferViewSet) setContext(const vkt::uni_ptr<Context>& context) {
             this->context = context;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(BufferViewSet) resetBufferViews() {
+        public: virtual uPTR(BufferViewSet) resetBufferViews() {
             this->bufferViews.resize(0ull);
             return uTHIS;
         };
 
         // 
-        virtual uintptr_t pushBufferView(const vkt::Vector<uint8_t>& bufferView) {
+        public: virtual uintptr_t pushBufferView(const vkt::Vector<uint8_t>& bufferView) {
             auto ptr = this->bufferViews.size();
             this->bufferViews.push_back(bufferView); 
             return ptr;
         };
 
         // 
-        virtual vkt::Vector<uint8_t>& get(const uint32_t& I = 0u) {
+        public: virtual vkt::Vector<uint8_t>& get(const uint32_t& I = 0u) {
             return bufferViews[I];
         };
 
         // 
-        virtual const vkt::Vector<uint8_t>& get(const uint32_t& I = 0u) const {
+        public: virtual const vkt::Vector<uint8_t>& get(const uint32_t& I = 0u) const {
             return bufferViews[I];
         };
 
         // 
-        virtual std::vector<vkt::Vector<uint8_t>>& getBufferViewList() {
+        public: virtual std::vector<vkt::Vector<uint8_t>>& getBufferViewList() {
             return bufferViews;
         };
 
         // 
-        virtual const std::vector<vkt::Vector<uint8_t>>& getBufferViewList() const {
+        public: virtual const std::vector<vkt::Vector<uint8_t>>& getBufferViewList() const {
             return bufferViews;
         };
 
         // 
-        virtual size_t getBufferCount() const { return bufferViews.size(); };
-        virtual size_t getBufferCount() { return bufferViews.size(); };
+        public: virtual size_t getBufferCount() const { return bufferViews.size(); };
+        public: virtual size_t getBufferCount() { return bufferViews.size(); };
 
         // 
-        virtual uPTR(BufferViewSet) createDescriptorSet() { // 
+        protected: virtual uPTR(BufferViewSet) createDescriptorSet() { // 
             this->bufferViewSetHelper = vkh::VsDescriptorSetCreateInfoHelper(this->bufferViewSetLayout[0], this->driver->getDescriptorPool());
 
             // 
@@ -97,23 +97,23 @@ namespace jvi {
         };
 
         // 
-        virtual VkDescriptorSet& getDescriptorSet() {
+        public: virtual VkDescriptorSet& getDescriptorSet() {
             if (!this->bufferViewSet[0]) { this->createDescriptorSet(); };
             return this->bufferViewSet[0];
         };
 
         // 
-        virtual const VkDescriptorSet& getDescriptorSet() const {
+        public: virtual const VkDescriptorSet& getDescriptorSet() const {
             return this->bufferViewSet[0];
         };
 
         // 
-        virtual VkDescriptorSetLayout& getDescriptorLayout() {
+        public: virtual VkDescriptorSetLayout& getDescriptorLayout() {
             return bufferViewSetLayout[0];
         };
 
         // 
-        virtual const VkDescriptorSetLayout& getDescriptorLayout() const {
+        public: virtual const VkDescriptorSetLayout& getDescriptorLayout() const {
             return bufferViewSetLayout[0];
         };
 

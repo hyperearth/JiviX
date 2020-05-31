@@ -33,6 +33,7 @@
 #include <glbinding/getProcAddress.h>
 
 
+// 
 struct Active {
     std::vector<uint8_t> keys = {};
     std::vector<uint8_t> mouse = {};
@@ -41,6 +42,8 @@ struct Active {
     double tDiff = 0.0, tCurrent = 1e-5;
 };
 
+
+// 
 class Shared : public std::enable_shared_from_this<Shared> {
 public:
     static Active active; // shared properties
@@ -68,6 +71,7 @@ public:
         Shared::active.mX = xpos, Shared::active.mY = ypos; // set current mouse position
     };
 };
+
 
 // 
 Active Shared::active; // shared properties
@@ -416,9 +420,13 @@ int main() {
     glfwGetMonitorContentScale(primary, &xscale, &yscale);
 
     // 
+    auto renderArea = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{ uint32_t(canvasWidth / 2.f * xscale), uint32_t(canvasHeight / 2.f * yscale) } };
+    auto viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
+
+    // 
     auto instance = fw->createInstance();
     //auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
-    auto manager = fw->createWindowSurface(fw->createWindowOnly(canvasWidth / 2.f * xscale, canvasHeight / 2.f * yscale, "VKTest"));
+    auto manager = fw->createWindowSurface(fw->createWindowOnly(renderArea.extent.width, renderArea.extent.height, "VKTest"));
     auto physicalDevice = fw->getPhysicalDevice(0u);
     auto device = fw->createDevice(true, "./", false);
     auto swapchain = fw->createSwapchain();
@@ -432,10 +440,6 @@ int main() {
     // 
     glfwSetFramebufferSizeCallback(manager.window, framebuffer_size_callback);
     //vkt::initializeGL(); // PentaXIL
-
-    // 
-    auto renderArea = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{ uint32_t(canvasWidth / 2.f * xscale), uint32_t(canvasHeight / 2.f * yscale) } };
-    auto viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
     // initialize renderer
     auto context = jvx::Context(fw);

@@ -18,11 +18,11 @@ namespace jvi {
         ~Renderer() {};
 
         // 
-        virtual vkt::uni_ptr<Renderer> sharedPtr() { return shared_from_this(); };
+        public: virtual vkt::uni_ptr<Renderer> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<Renderer> sharedPtr() const { return std::shared_ptr<Renderer>(shared_from_this()); };
 
         // 
-        virtual uPTR(Renderer) construct() {
+        protected: virtual uPTR(Renderer) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
 
@@ -57,11 +57,11 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) linkMaterial(const std::shared_ptr<Material>& materials) { return this->linkMaterial(vkt::uni_ptr<Material>(materials)); };
-        virtual uPTR(Renderer) linkNode(const std::shared_ptr<Node>& node) { return this->linkNode(vkt::uni_ptr<Node>(node)); };
+        public: virtual uPTR(Renderer) linkMaterial(const std::shared_ptr<Material>& materials) { return this->linkMaterial(vkt::uni_ptr<Material>(materials)); };
+        public: virtual uPTR(Renderer) linkNode(const std::shared_ptr<Node>& node) { return this->linkNode(vkt::uni_ptr<Node>(node)); };
 
         // 
-        virtual uPTR(Renderer) linkMaterial(const vkt::uni_ptr<Material>& materials) {
+        public: virtual uPTR(Renderer) linkMaterial(const vkt::uni_ptr<Material>& materials) {
             this->materials = materials;
             if (this->materials->descriptorSet) {
                 this->context->descriptorSets[4] = this->materials->descriptorSet;
@@ -70,7 +70,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) linkNode(const vkt::uni_ptr<Node>& node) {
+        public: virtual uPTR(Renderer) linkNode(const vkt::uni_ptr<Node>& node) {
             this->node = node;
             if (this->node->meshDataDescriptorSet) { this->context->descriptorSets[0] = this->node->meshDataDescriptorSet; };
             if (this->node->bindingsDescriptorSet) { this->context->descriptorSets[1] = this->node->bindingsDescriptorSet; };
@@ -78,7 +78,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) setupSkyboxedState(const VkCommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
+        protected: virtual uPTR(Renderer) setupSkyboxedState(const VkCommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
             this->denoiseState = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->denoiseStage), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
             this->reflectState = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->reflectStage), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
             this->raytraceState = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->raytraceStage), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
@@ -89,7 +89,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) saveDiffuseColor(const VkCommandBuffer& saveCommand = {}) {
+        protected: virtual uPTR(Renderer) saveDiffuseColor(const VkCommandBuffer& saveCommand = {}) {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -105,7 +105,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) setupResamplingPipeline() {
+        protected: virtual uPTR(Renderer) setupResamplingPipeline() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -165,7 +165,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) setupResampleCommand(const VkCommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+        protected: virtual uPTR(Renderer) setupResampleCommand(const VkCommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
             const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
             const auto& renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
             const auto clearValues = std::vector<vkh::VkClearValue>{
@@ -202,7 +202,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Renderer) setupRenderer() {
+        public: virtual uPTR(Renderer) setupRenderer() {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -234,7 +234,7 @@ namespace jvi {
         };
 
         // TODO: Fix Command Create For Every Frame
-        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, const bool& once = true, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
+        public: virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, const bool& once = true, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -326,13 +326,13 @@ namespace jvi {
             return uTHIS;
         };
 
-        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf, const bool& once, const int32_t& options) {
+        public: virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf, const bool& once, const int32_t& options) {
             return setupCommands(cmdBuf, once, reinterpret_cast<const CommandOptions&>(options));
         };
 
         // 
-        VkCommandBuffer& refCommandBuffer() { return this->cmdBuf[current]; };
-        const VkCommandBuffer& refCommandBuffer() const { return this->cmdBuf[current]; };
+        public: VkCommandBuffer& refCommandBuffer() { return this->cmdBuf[current]; };
+        public: const VkCommandBuffer& refCommandBuffer() const { return this->cmdBuf[current]; };
 
     protected: // 
         //std::vector<VkCommandBuffer> commands = {};

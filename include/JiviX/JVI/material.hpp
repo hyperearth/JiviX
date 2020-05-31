@@ -33,11 +33,11 @@ namespace jvi {
         ~Material() {};
 
         // 
-        virtual vkt::uni_ptr<Material> sharedPtr() { return shared_from_this(); };
+        public: virtual vkt::uni_ptr<Material> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<Material> sharedPtr() const { return std::shared_ptr<Material>(shared_from_this()); };
 
         // 
-        virtual uPTR(Material) construct() {
+        protected: virtual uPTR(Material) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
 
@@ -48,57 +48,57 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Material) setContext(std::shared_ptr<Context> context) {
+        public: virtual uPTR(Material) setContext(std::shared_ptr<Context> context) {
             this->context = context;
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->materialDescriptorSetLayout,this->thread->getDescriptorPool());
             return uTHIS;
         };
 
         //
-        virtual uPTR(Material) setRawMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& rawMaterials = {}, const VkDeviceSize& materialCounter = 0u) {
+        public: virtual uPTR(Material) setRawMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& rawMaterials = {}, const VkDeviceSize& materialCounter = 0u) {
             this->rawMaterials = *rawMaterials; this->materialCounter = materialCounter;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Material) setGpuMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& gpuMaterials = {}) {
+        public: virtual uPTR(Material) setGpuMaterials(const vkt::uni_arg<vkt::Vector<MaterialUnit>>& gpuMaterials = {}) {
             this->gpuMaterials = *gpuMaterials;
             return uTHIS;
         };
 
         // 
-        virtual VkDeviceSize pushMaterial(const vkt::uni_arg<MaterialUnit>& material = {}) {
+        public: virtual VkDeviceSize pushMaterial(const vkt::uni_arg<MaterialUnit>& material = {}) {
             const auto materialID = materialCounter++;
             this->rawMaterials[materialID] = material;
             return materialID;
         };
 
         // 
-        virtual uPTR(Material) resetMaterials() {
+        public: virtual uPTR(Material) resetMaterials() {
             materialCounter = 0u;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Material) resetSampledImages() {
+        public: virtual uPTR(Material) resetSampledImages() {
             this->sampledImages.resize(0u);
             return uTHIS;
         };
 
         // 
-        virtual uint32_t pushSampledImage(const vkt::uni_arg<vkh::VkDescriptorImageInfo>& info = {}) {
+        public: virtual uint32_t pushSampledImage(const vkt::uni_arg<vkh::VkDescriptorImageInfo>& info = {}) {
             this->sampledImages.push_back(info);
             return this->sampledImages.size()-1;
         };
 
         // 
-        virtual uPTR(Material) copyBuffers(const VkCommandBuffer& buildCommand = {}) {
+        public: virtual uPTR(Material) copyBuffers(const VkCommandBuffer& buildCommand = {}) {
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawMaterials, this->gpuMaterials, 1u, vkh::VkBufferCopy{ this->rawMaterials.offset(), this->gpuMaterials.offset(), this->gpuMaterials.range() });
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Material) createDescriptorSet() {
+        protected: virtual uPTR(Material) createDescriptorSet() {
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(context->materialDescriptorSetLayout, driver->descriptorPool);
 
             if (sampledImages.size() > 0u) { // Setup Textures
@@ -194,7 +194,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Material) setBackgroundImage(const vkh::VkDescriptorImageInfo& backgroundImage = {}) {
+        public: virtual uPTR(Material) setBackgroundImage(const vkh::VkDescriptorImageInfo& backgroundImage = {}) {
             this->backgroundImage = backgroundImage; return uTHIS;
         };
 

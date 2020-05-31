@@ -21,87 +21,88 @@ namespace jvi {
         ~Thread() {};
 
         // 
-        virtual vkt::uni_ptr<Thread> sharedPtr() { return shared_from_this(); };
+        public: virtual vkt::uni_ptr<Thread> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<Thread> sharedPtr() const { return shared_from_this(); };
 
         // TODO: create dedicated thread pool
-        virtual uPTR(Thread) createThreadPool() {
+        protected: virtual uPTR(Thread) createThreadPool() {
             
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Thread) setDriver(vkt::uni_ptr<Driver> driver) {
+        public: virtual uPTR(Thread) setDriver(vkt::uni_ptr<Driver> driver) {
             this->driver = driver;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Thread) createQueue() {
+        protected: virtual uPTR(Thread) createQueue() {
 
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Thread) createCommandPool() {
+        protected: virtual uPTR(Thread) createCommandPool() {
             
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Thread) createDescriptorPool() {
+        protected: virtual uPTR(Thread) createDescriptorPool() {
 
             return uTHIS;
         };
 
         // Getter Operators
-        virtual VkCommandPool& getCommandPool() { return commandPool; };
-        virtual VkDescriptorPool& getDescriptorPool() { return descriptorPool; };
-        virtual VkQueue& getQueue() { return queue; };
-        virtual VkDevice& getDevice() { return driver->getDevice(); };
-        virtual vkt::uni_ptr<Driver>& getDriverPtr() { return driver; };
-        virtual Driver& getDriver() { return *driver; };
+        public: virtual VkCommandPool& getCommandPool() { return commandPool; };
+        public: virtual VkDescriptorPool& getDescriptorPool() { return descriptorPool; };
+        public: virtual VkQueue& getQueue() { return queue; };
+        public: virtual VkDevice& getDevice() { return driver->getDevice(); };
+        public: virtual vkt::uni_ptr<Driver>& getDriverPtr() { return driver; };
+        public: virtual Driver& getDriver() { return *driver; };
 
         // 
-        virtual const VkCommandPool& getCommandPool() const { return commandPool; };
-        virtual const VkDescriptorPool& getDescriptorPool() const { return descriptorPool; };
-        virtual const VkQueue& getQueue() const { return queue; };
-        virtual const VkDevice& getDevice() const { return driver->getDevice(); };
-        virtual const vkt::uni_ptr<Driver>& getDriverPtr() const { return driver; };
-        virtual const Driver& getDriver() const { return *driver; };
+        public: virtual const VkCommandPool& getCommandPool() const { return commandPool; };
+        public: virtual const VkDescriptorPool& getDescriptorPool() const { return descriptorPool; };
+        public: virtual const VkQueue& getQueue() const { return queue; };
+        public: virtual const VkDevice& getDevice() const { return driver->getDevice(); };
+        public: virtual const vkt::uni_ptr<Driver>& getDriverPtr() const { return driver; };
+        public: virtual const Driver& getDriver() const { return *driver; };
 
         // Getter Operators
-        virtual operator VkCommandPool&() { return commandPool; };
-        virtual operator VkDescriptorPool&() { return descriptorPool; };
-        virtual operator VkQueue&() { return queue; };
-        virtual operator VkDevice&() { return driver->getDevice(); };
-        virtual operator std::shared_ptr<Driver>&() { return driver; };
-        virtual operator Driver&() { return *driver; };
+        public: virtual operator VkCommandPool& () { return commandPool; };
+        public: virtual operator VkDescriptorPool& () { return descriptorPool; };
+        public: virtual operator VkQueue& () { return queue; };
+        public: virtual operator VkDevice& () { return driver->getDevice(); };
+        public: virtual operator std::shared_ptr<Driver>& () { return driver; };
+        public: virtual operator Driver& () { return *driver; };
 
         // 
-        virtual operator const VkCommandPool&() const { return commandPool; };
-        virtual operator const VkDescriptorPool&() const { return descriptorPool; };
-        virtual operator const VkQueue&() const { return queue; };
-        virtual operator const VkDevice&() const { return driver->getDevice(); };
-        virtual operator const std::shared_ptr<Driver>&() const { return driver; };
-        virtual operator const Driver&() const { return *driver; };
+        public: virtual operator const VkCommandPool& () const { return commandPool; };
+        public: virtual operator const VkDescriptorPool& () const { return descriptorPool; };
+        public: virtual operator const VkQueue& () const { return queue; };
+        public: virtual operator const VkDevice& () const { return driver->getDevice(); };
+        public: virtual operator const std::shared_ptr<Driver>& () const { return driver; };
+        public: virtual operator const Driver& () const { return *driver; };
+
 
         // indirect access
-        virtual Driver& operator*() { return *driver; };
-        virtual Driver* operator->() { return &(*driver); };
+        public: virtual Driver& operator*() { return *driver; };
+        public: virtual Driver* operator->() { return &(*driver); };
 
         // indirect const access
-        virtual const Driver& operator*() const { return *driver; };
-        virtual const Driver* operator->() const { return &(*driver); };
+        public: virtual const Driver& operator*() const { return *driver; };
+        public: virtual const Driver* operator->() const { return &(*driver); };
 
         // 
-        virtual uPTR(Thread) submitOnce(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+        public: virtual uPTR(Thread) submitOnce(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             vkt::submitOnce(this->driver->getDeviceDispatch(), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi);
             return uTHIS;
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+        public: virtual std::future<uPTR(Thread)> submitOnceAsync(const std::function<void(VkCommandBuffer&)>& cmdFn = {}, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitOnceAsync(this->driver->getDeviceDispatch(), VkQueue(*this), VkCommandPool(*this), cmdFn, smbi).get();
                 return uPTR(Thread)(uTHIS);
@@ -109,23 +110,23 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+        public: virtual uPTR(Thread) submitCmd(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return this->submitCmd(std::vector<VkCommandBuffer>{ cmds }, smbi);
         };
 
         // 
-        virtual uPTR(Thread) submitCmd(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+        public: virtual uPTR(Thread) submitCmd(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             vkt::submitCmd(this->driver->getDeviceDispatch(), VkQueue(*this), cmds, smbi);
             return uTHIS;
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+        public: virtual std::future<uPTR(Thread)> submitCmdAsync(const vkt::uni_arg<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return this->submitCmdAsync(std::vector<VkCommandBuffer>{ cmds }, smbi);
         };
 
         // Async Version
-        virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
+        public: virtual std::future<uPTR(Thread)> submitCmdAsync(const std::vector<VkCommandBuffer>& cmds, const vkt::uni_arg<vkh::VkSubmitInfo>& smbi = vkh::VkSubmitInfo{}) {
             return std::async(std::launch::async | std::launch::deferred, [=, this]() {
                 vkt::submitCmdAsync(this->driver->getDeviceDispatch(), VkQueue(*this), cmds, smbi).get();
                 return uPTR(Thread)(uTHIS);

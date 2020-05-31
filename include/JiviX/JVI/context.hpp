@@ -29,11 +29,11 @@ namespace jvi {
         ~Context() {};
 
         // 
-        virtual vkt::uni_ptr<Context> sharedPtr() { return shared_from_this(); };
+        public: virtual vkt::uni_ptr<Context> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<Context> sharedPtr() const { return shared_from_this(); };
 
         // 
-        virtual uPTR(Context) construct() {
+        protected: virtual uPTR(Context) construct() {
             this->thread = std::make_shared<Thread>(this->driver);
             this->uniformGPUData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
             this->uniformRawData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(Matrices) * 2u, .usage = {.eTransferSrc = 1,                    .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
@@ -54,37 +54,37 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Context) setThread(const vkt::uni_ptr<Thread>& thread) {
+        public: virtual uPTR(Context) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
 
-        virtual vkt::uni_ptr<Thread>& getThread() {
+        public: virtual vkt::uni_ptr<Thread>& getThread() {
             return this->thread;
         };
 
-        virtual const vkt::uni_ptr<Thread>& getThread() const {
+        public: virtual const vkt::uni_ptr<Thread>& getThread() const {
             return this->thread;
         };
 
         // 
-        virtual VkRect2D& refScissor() { return scissor; };
-        virtual VkViewport& refViewport() { return viewport; };
-        virtual VkRenderPass& refRenderPass() { return renderPass; };
+        public: virtual VkRect2D& refScissor() { return scissor; };
+        public: virtual VkViewport& refViewport() { return viewport; };
+        public: virtual VkRenderPass& refRenderPass() { return renderPass; };
         //VkFramebuffer& refFramebuffer() { return framebuffer; };
 
         // 
-        virtual const VkRect2D& refScissor() const { return scissor; };
-        virtual const VkViewport& refViewport() const { return viewport; };
-        virtual const VkRenderPass& refRenderPass() const { return renderPass; };
+        public: virtual const VkRect2D& refScissor() const { return scissor; };
+        public: virtual const VkViewport& refViewport() const { return viewport; };
+        public: virtual const VkRenderPass& refRenderPass() const { return renderPass; };
         //const VkFramebuffer& refFramebuffer() const { return framebuffer; };
 
         // 
-        virtual vkt::uni_ptr<Driver>& getDriver() { return driver; };
-        virtual const vkt::uni_ptr<Driver>& getDriver() const { return driver; };
+        public: virtual vkt::uni_ptr<Driver>& getDriver() { return driver; };
+        public: virtual const vkt::uni_ptr<Driver>& getDriver() const { return driver; };
 
         // 
-        virtual uPTR(Context) createRenderPass() { // 
+        protected: virtual uPTR(Context) createRenderPass() { // 
             std::cout << "Create Render Pass" << std::endl; // DEBUG!!
 
             {
@@ -197,17 +197,17 @@ namespace jvi {
         };
 
         // 
-        virtual std::array<VkDescriptorSet,5u>& getDescriptorSets() {
+        public: virtual std::array<VkDescriptorSet,5u>& getDescriptorSets() {
             return descriptorSets;
         };
 
         // 
-        virtual VkPipelineLayout getPipelineLayout() {
+        public: virtual VkPipelineLayout getPipelineLayout() {
             return unifiedPipelineLayout;
         };
 
         // 
-        virtual uPTR(Context) registerTime() {
+        public: virtual uPTR(Context) registerTime() {
             this->previTime = this->leastTime;
             uniformRawData[0].tdata[0] = std::chrono::duration_cast<std::chrono::milliseconds>((this->leastTime = std::chrono::high_resolution_clock::now()) - this->beginTime).count(); // time from beginning
             uniformRawData[0].tdata[1] = std::chrono::duration_cast<std::chrono::milliseconds>(this->leastTime - this->previTime).count(); // difference 
@@ -215,19 +215,19 @@ namespace jvi {
         };
 
         // 
-        virtual uint32_t& drawTime() { return uniformRawData[0].tdata[0u]; };
-        virtual uint32_t& timeDiff() { return uniformRawData[0].tdata[1u]; };
-        virtual const uint32_t& drawTime() const { return uniformRawData[0].tdata[0u]; };
-        virtual const uint32_t& timeDiff() const { return uniformRawData[0].tdata[1u]; };
+        public: virtual uint32_t& drawTime() { return uniformRawData[0].tdata[0u]; };
+        public: virtual uint32_t& timeDiff() { return uniformRawData[0].tdata[1u]; };
+        public: virtual const uint32_t& drawTime() const { return uniformRawData[0].tdata[0u]; };
+        public: virtual const uint32_t& timeDiff() const { return uniformRawData[0].tdata[1u]; };
 
         // 
-        virtual uPTR(Context) setDrawCount(const uint32_t& count = 0u) {
+        public: virtual uPTR(Context) setDrawCount(const uint32_t& count = 0u) {
             uniformRawData[0].rdata[0] = count;
             return uTHIS;
         };
 
         // Updated! 
-        virtual uPTR(Context) setPerspective(vkt::uni_arg<glm::mat4x4> persp = glm::mat4x4(1.f)) {
+        public: virtual uPTR(Context) setPerspective(vkt::uni_arg<glm::mat4x4> persp = glm::mat4x4(1.f)) {
             uniformRawData[0].projection = glm::transpose(*persp);
             uniformRawData[0].projectionInv = glm::transpose(glm::inverse(*persp));
             changedPerspective = true;
@@ -235,7 +235,7 @@ namespace jvi {
         };
 
         // Updated! 
-        virtual uPTR(Context) setModelView(vkt::uni_arg<glm::mat4x4> mv = glm::mat4x4(1.f)) {
+        public: virtual uPTR(Context) setModelView(vkt::uni_arg<glm::mat4x4> mv = glm::mat4x4(1.f)) {
             uniformRawData[0].modelview = glm::transpose(*mv);
             uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(*mv));
             return uTHIS;
@@ -243,50 +243,50 @@ namespace jvi {
 
 
         // 
-        vkt::ImageRegion& getFrameBuffer(const uint32_t& I = 0u) { return this->frameBfImages[I]; };
-        const vkt::ImageRegion& getFrameBuffer(const uint32_t& I = 0u) const { return this->frameBfImages[I]; };
+        public: vkt::ImageRegion& getFrameBuffer(const uint32_t& I = 0u) { return this->frameBfImages[I]; };
+        public: const vkt::ImageRegion& getFrameBuffer(const uint32_t& I = 0u) const { return this->frameBfImages[I]; };
 
         // 
-        vkt::ImageRegion& getFlip0Buffer(const uint32_t& I = 0u) { return this->smFlip0Images[I]; };
-        const vkt::ImageRegion& getFlip0Buffer(const uint32_t& I = 0u) const { return this->smFlip0Images[I]; };
+        public: vkt::ImageRegion& getFlip0Buffer(const uint32_t& I = 0u) { return this->smFlip0Images[I]; };
+        public: const vkt::ImageRegion& getFlip0Buffer(const uint32_t& I = 0u) const { return this->smFlip0Images[I]; };
 
         // 
-        vkt::ImageRegion& getFlip1Buffer(const uint32_t& I = 0u) { return this->smFlip1Images[I]; };
-        const vkt::ImageRegion& getFlip1Buffer(const uint32_t& I = 0u) const { return this->smFlip1Images[I]; };
+        public: vkt::ImageRegion& getFlip1Buffer(const uint32_t& I = 0u) { return this->smFlip1Images[I]; };
+        public: const vkt::ImageRegion& getFlip1Buffer(const uint32_t& I = 0u) const { return this->smFlip1Images[I]; };
 
 
         // 
-        virtual std::array<vkt::ImageRegion, 12u>& getFlip0Buffers() {
+        public: virtual std::array<vkt::ImageRegion, 12u>& getFlip0Buffers() {
             return this->smFlip0Images;
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 12u>& getFlip0Buffers() const {
+        public: virtual const std::array<vkt::ImageRegion, 12u>& getFlip0Buffers() const {
             return this->smFlip0Images;
         }
 
         // 
-        virtual std::array<vkt::ImageRegion, 12u>& getFlip1Buffers() {
+        public: virtual std::array<vkt::ImageRegion, 12u>& getFlip1Buffers() {
             return this->smFlip1Images;
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 12u>& getFlip1Buffers() const {
+        public: virtual const std::array<vkt::ImageRegion, 12u>& getFlip1Buffers() const {
             return this->smFlip1Images;
         }
 
         // 
-        virtual std::array<vkt::ImageRegion, 12u>& getFrameBuffers() {
+        public: virtual std::array<vkt::ImageRegion, 12u>& getFrameBuffers() {
             return this->frameBfImages;
         }
 
         // 
-        virtual const std::array<vkt::ImageRegion, 12u>& getFrameBuffers() const {
+        public: virtual const std::array<vkt::ImageRegion, 12u>& getFrameBuffers() const {
             return this->frameBfImages;
         }
 
         // 
-        virtual uPTR(Context) createFramebuffers(const uint32_t& width = 1600u, const uint32_t& height = 1200u) { // 
+        protected: virtual uPTR(Context) createFramebuffers(const uint32_t& width = 1600u, const uint32_t& height = 1200u) { // 
             std::cout << "Create Frame Buffer" << std::endl; // DEBUG!!
 
             // Used Native Perspective
@@ -481,7 +481,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Context) createDescriptorSetLayouts() { // reset layout descriptions
+        protected: virtual uPTR(Context) createDescriptorSetLayouts() { // reset layout descriptions
             if (!this->unifiedPipelineLayout) {
                 std::cout << "Create Descriptor Set Layouts" << std::endl; // DEBUG!!
 
@@ -552,7 +552,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Context) createDescriptorSets() {
+        protected: virtual uPTR(Context) createDescriptorSets() {
             std::cout << "Create Descriptor Sets" << std::endl; // DEBUG!!
 
             if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
@@ -702,7 +702,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Context) initialize(const uint32_t& width = 1600u, const uint32_t& height = 1200u) {
+        public: virtual uPTR(Context) initialize(const uint32_t& width = 1600u, const uint32_t& height = 1200u) {
             this->createRenderPass();
             this->createFramebuffers(width,height);
             this->createDescriptorSetLayouts();

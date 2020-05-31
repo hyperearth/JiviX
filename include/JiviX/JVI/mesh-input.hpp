@@ -19,14 +19,14 @@ namespace jvi {
         ~MeshInput() {};
 
         // 
-        virtual vkt::uni_ptr<MeshInput> sharedPtr() { return shared_from_this(); };
+        public: virtual vkt::uni_ptr<MeshInput> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<MeshInput> sharedPtr() const { return std::shared_ptr<MeshInput>(shared_from_this()); };
 
         //
-        virtual uPTR(MeshInput) makeQuad(const bool& quad = true) { this->needsQuads = quad; return uTHIS; };
+        public: virtual uPTR(MeshInput) makeQuad(const bool& quad = true) { this->needsQuads = quad; return uTHIS; };
 
         // 
-        virtual uPTR(MeshInput) construct() {
+        protected: virtual uPTR(MeshInput) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
 
@@ -54,7 +54,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) createDescriptorSet() { // 
+        protected: virtual uPTR(MeshInput) createDescriptorSet() { // 
             if (this->descriptorSetInitialized) {
                 return uTHIS; // TODO: Optional Un-Protect
             };
@@ -90,7 +90,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) copyMeta(VkCommandBuffer buildCommand = {}) {
+        protected: virtual uPTR(MeshInput) copyMeta(VkCommandBuffer buildCommand = {}) {
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawAttributes, this->gpuAttributes, 1u, vkh::VkBufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawBindings, this->gpuBindings, 1u, vkh::VkBufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() });
             return uTHIS;
@@ -107,7 +107,7 @@ namespace jvi {
         };*/
 
         // 
-        virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) { // 
+        protected: virtual uPTR(MeshInput) formatQuads(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {}) { // 
             bool DirectCommand = false, HasCommand = buildCommand.has() && *buildCommand;
 
             // Initialize Input (Early)
@@ -176,10 +176,10 @@ namespace jvi {
         };*/
 
         // Record Geometry (Transform Feedback), Re-Implemented in another file... 
-        virtual uPTR(MeshInput) buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {});
+        protected: virtual uPTR(MeshInput) buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {});
 
         // 
-        template<class T = uint8_t>
+        public: template<class T = uint8_t>
         inline uPTR(MeshInput) addBinding(const uint32_t& rawData, vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
             this->vertexInputBindingDescriptions.resize(bindingID + 1u);
@@ -197,7 +197,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) manifestIndex(const VkIndexType& type = VK_INDEX_TYPE_NONE_KHR) {
+        public: virtual uPTR(MeshInput) manifestIndex(const VkIndexType& type = VK_INDEX_TYPE_NONE_KHR) {
             if (this->rawMeshInfo.has()) {
                 this->rawMeshInfo[0u].indexType = uint32_t(this->indexType = type) + 1u;
             } else {
@@ -207,7 +207,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) addAttribute(vkt::uni_arg<vkh::VkVertexInputAttributeDescription> attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
+        public: virtual uPTR(MeshInput) addAttribute(vkt::uni_arg<vkh::VkVertexInputAttributeDescription> attribute = vkh::VkVertexInputAttributeDescription{}, const bool& NotStub = true) {
             const uintptr_t bindingID = this->lastBindID;//attribute->binding;
             const uintptr_t locationID = attribute->location;
             this->vertexInputAttributeDescriptions.resize(locationID + 1u);
@@ -240,16 +240,16 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) setIndexOffset(const VkDeviceSize& offset = 0ull) { this->indexOffset = offset; return uTHIS; };
-        virtual uPTR(MeshInput) setIndexCount(const VkDeviceSize& count = 65536u * 3u) { this->currentUnitCount = count; return uTHIS; };
-        virtual uPTR(MeshInput) setPrimitiveCount(const VkDeviceSize& count = 65536u) { this->setIndexCount(count * 3u); return uTHIS; };
+        public: virtual uPTR(MeshInput) setIndexOffset(const VkDeviceSize& offset = 0ull) { this->indexOffset = offset; return uTHIS; };
+        public: virtual uPTR(MeshInput) setIndexCount(const VkDeviceSize& count = 65536u * 3u) { this->currentUnitCount = count; return uTHIS; };
+        public: virtual uPTR(MeshInput) setPrimitiveCount(const VkDeviceSize& count = 65536u) { this->setIndexCount(count * 3u); return uTHIS; };
 
         // 
-        virtual const VkDeviceSize& getIndexCount() const { return this->currentUnitCount; };
-        virtual VkDeviceSize& getIndexCount() { return this->currentUnitCount; };
+        public: virtual const VkDeviceSize& getIndexCount() const { return this->currentUnitCount; };
+        public: virtual VkDeviceSize& getIndexCount() { return this->currentUnitCount; };
 
         // 
-        template<class T = uint8_t>
+        public: template<class T = uint8_t>
         inline uPTR(MeshInput) setIndexData(const uint32_t& rawIndices, const VkIndexType& type) {
         //inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices, const VkIndexType& type) {
             VkDeviceSize count = 0u; uint32_t stride = 1u;
@@ -277,14 +277,14 @@ namespace jvi {
         //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint32_t>& rawIndices) { return this->setIndexData(rawIndices, VkIndexType::eUint32); };
         //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint16_t>& rawIndices) { return this->setIndexData(rawIndices, VkIndexType::eUint16); };
         //virtual uPTR(MeshInput) setIndexData(const vkt::Vector<uint8_t >& rawIndices) { return this->setIndexData(rawIndices, VkIndexType::eUint8EXT); };
-        virtual uPTR(MeshInput) setIndexData() { return this->setIndexData({}, VK_INDEX_TYPE_NONE_KHR); };
+        public: virtual uPTR(MeshInput) setIndexData() { return this->setIndexData({}, VK_INDEX_TYPE_NONE_KHR); };
 
         // some type dependent
         //template<class T = uint8_t>
         //inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
         // 
-        virtual uPTR(MeshInput) createRasterizePipeline() {
+        public: virtual uPTR(MeshInput) createRasterizePipeline() {
             if (this->transformState) {
                 return uTHIS; // TODO: Optional Un-Protect
             };
@@ -337,18 +337,18 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(MeshInput) linkCounterBuffer(const vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>& offsetInfo = {}) {
+        protected: virtual uPTR(MeshInput) linkCounterBuffer(const vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>& offsetInfo = {}) {
             //this->counterData = offsetInfo; // DANGER!! BSOD BY LOCKING GPU!
             return uTHIS;
         };
 
         // 
-        virtual uPTR(MeshInput) linkBViewSet(const std::shared_ptr<BufferViewSet>& bufferViewSet = {}) {
+        public: virtual uPTR(MeshInput) linkBViewSet(const std::shared_ptr<BufferViewSet>& bufferViewSet = {}) {
             return this->linkBViewSet(vkt::uni_ptr<BufferViewSet>(bufferViewSet));
         };
 
         // 
-        virtual uPTR(MeshInput) linkBViewSet(const vkt::uni_ptr<BufferViewSet>& bufferViewSet = {}) {
+        public: virtual uPTR(MeshInput) linkBViewSet(const vkt::uni_ptr<BufferViewSet>& bufferViewSet = {}) {
             this->bvs = bufferViewSet;
             return uTHIS;
         };
