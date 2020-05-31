@@ -7,7 +7,7 @@
 // 
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
-layout ( binding = 4, set = 0 ) uniform accelerationStructureEXT Scene;
+//layout ( binding = 4, set = 0 ) uniform accelerationStructureEXT Scene;
 
 // 
 layout (location = 0) in vec4 gPosition[];

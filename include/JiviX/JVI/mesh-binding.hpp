@@ -75,7 +75,7 @@ namespace jvi {
             // 
             this->mtages = {
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
-                //vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT), // TODO: Geometry Shader
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT),
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 

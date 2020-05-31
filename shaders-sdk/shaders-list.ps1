@@ -65,7 +65,7 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.vert"
     
     BuildCompute "mapping.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
-    #BuildCompute "mapping.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    BuildCompute "mapping.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
     BuildCompute "mapping.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
     
     BuildCompute "transform.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX"
