@@ -411,9 +411,14 @@ int main() {
     }
 
     // 
+    float xscale = 1.f, yscale = 1.f;
+    GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    glfwGetMonitorContentScale(primary, &xscale, &yscale);
+
+    // 
     auto instance = fw->createInstance();
     //auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
-    auto manager = fw->createWindowSurface(fw->createWindowOnly(canvasWidth, canvasHeight, "VKTest"));
+    auto manager = fw->createWindowSurface(fw->createWindowOnly(canvasWidth / 2.f * xscale, canvasHeight / 2.f * yscale, "VKTest"));
     auto physicalDevice = fw->getPhysicalDevice(0u);
     auto device = fw->createDevice(true, "./", false);
     auto swapchain = fw->createSwapchain();
@@ -429,7 +434,7 @@ int main() {
     //vkt::initializeGL(); // PentaXIL
 
     // 
-    auto renderArea = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{canvasWidth, canvasHeight} };
+    auto renderArea = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{ uint32_t(canvasWidth / 2.f * xscale), uint32_t(canvasHeight / 2.f * yscale) } };
     auto viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
     // initialize renderer

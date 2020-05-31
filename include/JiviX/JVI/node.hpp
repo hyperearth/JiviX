@@ -16,11 +16,11 @@ namespace jvi {
         ~Node() {};
 
         // 
-        virtual vkt::uni_ptr<Node> sharedPtr() { return shared_from_this(); };
+        public: virtual vkt::uni_ptr<Node> sharedPtr() { return shared_from_this(); };
         //virtual vkt::uni_ptr<Node> sharedPtr() const { return std::shared_ptr<Node>(shared_from_this()); };
 
         //
-        virtual uPTR(Node) construct() {
+        protected: virtual uPTR(Node) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
             this->context = context;
@@ -72,19 +72,19 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) setContext(const vkt::uni_ptr<Context>& context) {
+        public: virtual uPTR(Node) setContext(const vkt::uni_ptr<Context>& context) {
             this->context = context;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Node) setThread(const vkt::uni_ptr<Thread>& thread) {
+        public: virtual uPTR(Node) setThread(const vkt::uni_ptr<Thread>& thread) {
             this->thread = thread;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Node) setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
+        public: virtual uPTR(Node) setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
             this->rawInstances = rawInstances; 
             this->instanceCounter = instanceCounter;
             this->mapMeshes.resize(instanceCounter);
@@ -92,13 +92,13 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) setGpuInstance(const vkt::Vector<vkh::VsGeometryInstance>& gpuInstances = {}) {
+        public: virtual uPTR(Node) setGpuInstance(const vkt::Vector<vkh::VsGeometryInstance>& gpuInstances = {}) {
             this->gpuInstances = gpuInstances;
             return uTHIS;
         };
 
         // 
-        virtual uPTR(Node) resetInstances() {
+        public: virtual uPTR(Node) resetInstances() {
             for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); };
             this->instanceCounter = 0;
             this->mapMeshes.resize(0);
@@ -107,7 +107,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) pushInstance(vkt::uni_arg<vkh::VsGeometryInstance> instance = vkh::VsGeometryInstance{}) {
+        public: virtual uPTR(Node) pushInstance(vkt::uni_arg<vkh::VsGeometryInstance> instance = vkh::VsGeometryInstance{}) {
             //if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->fullGeometryCount > 0) {
             if (this->meshes[instance->instanceId]) {
                 const auto instanceID = this->instanceCounter++;
@@ -124,7 +124,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        virtual uPTR(Node) buildGeometryAccelerationStructure(const VkCommandBuffer& cmdBuffer) {
+        protected: virtual uPTR(Node) buildGeometryAccelerationStructure(const VkCommandBuffer& cmdBuffer) {
             uintptr_t I = 0u; for (auto& Mesh : this->meshes) {
                 auto HLP = glm::uvec4(I++, 0u, 0u, 0u);
                 Mesh->buildAccelerationStructure(cmdBuffer, HLP);
@@ -133,7 +133,7 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) mapMeshData(const VkCommandBuffer& cmdBuffer) {
+        protected: virtual uPTR(Node) mapMeshData(const VkCommandBuffer& cmdBuffer) {
             for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); }; uintptr_t I = 0;
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
                 auto& Mesh = this->meshes[this->mapMeshes[i]];
@@ -151,13 +151,13 @@ namespace jvi {
         };
 
         // Push Mesh "Template" For Any Other Instances
-        virtual uintptr_t pushMesh(const vkt::uni_ptr<MeshBinding>& mesh = {}) {
+        public: virtual uintptr_t pushMesh(const vkt::uni_ptr<MeshBinding>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
             this->meshes.push_back(mesh); return ptr;
         };
 
         // 
-        virtual uintptr_t pushMesh(const std::shared_ptr<MeshBinding>& mesh) { return this->pushMesh(vkt::uni_ptr<MeshBinding>(mesh)); };
+        public: virtual uintptr_t pushMesh(const std::shared_ptr<MeshBinding>& mesh) { return this->pushMesh(vkt::uni_ptr<MeshBinding>(mesh)); };
 
         /*
         // WARNING!!! NOT RECOMMENDED! 
@@ -176,9 +176,96 @@ namespace jvi {
         */
 
         // 
-        virtual uPTR(Node) createDescriptorSet() { // 
+        protected: virtual uPTR(Node) createDescriptorSet() { // 
             this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
             this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
+
+
+            // 
+            const auto mapWidth = 1024u, mapHeight = 1024u;
+            auto& allocInfo = driver->memoryAllocationInfo();
+
+            // With Additional Elements, For Counters
+            this->mapData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 2048u * 2048u * 4u + 64u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+
+
+            // 
+            this->colImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .extent = {mapWidth,mapHeight,1u},
+                .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+            }, allocInfo), vkh::VkImageViewCreateInfo{
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+            });
+
+            // Create Sampler By Reference
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                .magFilter = VK_FILTER_LINEAR,
+                .minFilter = VK_FILTER_LINEAR,
+                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .unnormalizedCoordinates = true,
+            }, nullptr, &this->colImage.refSampler()));
+
+
+            // 
+            this->mapImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                .format = VK_FORMAT_R32_UINT,
+                .extent = {mapWidth,mapHeight,1u},
+                .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+            }, allocInfo), vkh::VkImageViewCreateInfo{
+                .format = VK_FORMAT_R32_UINT,
+            });
+
+            // Create Sampler By Reference
+            //vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+            //    .magFilter = VK_FILTER_NEAREST,
+            //    .minFilter = VK_FILTER_NEAREST,
+            //    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            //    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            //    .unnormalizedCoordinates = true,
+            //}, nullptr, &this->mapImage.refSampler()));
+
+
+            // 
+            this->depImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                .extent = {mapWidth,mapHeight,1u},
+                .usage = {.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 },
+            }, allocInfo), vkh::VkImageViewCreateInfo{
+                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
+            });
+
+            // Create Sampler By Reference
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                .magFilter = VK_FILTER_LINEAR,
+                .minFilter = VK_FILTER_LINEAR,
+                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .unnormalizedCoordinates = true,
+            }, nullptr, &this->depImage.refSampler()));
+
+
+            // Mapping Attachment
+            std::vector<VkImageView> attachments = { colImage, depImage };
+            vkh::handleVk(this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
+                .renderPass = this->context->mapRenderPass,
+                .attachmentCount = static_cast<uint32_t>(attachments.size()),
+                .pAttachments = attachments.data(),
+                .width = mapWidth,
+                .height = mapHeight
+            }, nullptr, &this->mapFramebuffer));
+
+
+            // 
+            thread->submitOnce([&, this](VkCommandBuffer& cmd) {
+                this->driver->getDeviceDispatch()->CmdFillBuffer(cmd, this->mapData, 0u, this->mapData.range(), 0u);
+                this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->colImage.transfer(cmd), this->colImage.getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, colImage.getImageSubresourceRange());
+                this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->mapImage.transfer(cmd), this->mapImage.getImageLayout(), vkh::VkClearColorValue{ .uint32 = { 0u,0u,0u,0u } }, 1u, mapImage.getImageSubresourceRange());
+                this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(cmd, this->depImage.transfer(cmd), this->depImage.getImageLayout(), vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}, 1u, depImage.getImageSubresourceRange());
+            });
+
 
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const auto bindingCount = 1u; //8u;
@@ -196,6 +283,42 @@ namespace jvi {
                 }};
                 //handle.offset<VkBufferView>(meshCount) = this->meshes[meshCount-1]->bindings[j].createBufferView(VK_FORMAT_R8_UINT);
             };
+
+            {
+                auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 2u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                });
+
+                handle.offset<VkDescriptorBufferInfo>(0u) = mapData;
+            };
+
+            {
+                auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 3u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+                });
+
+                handle.offset<VkDescriptorImageInfo>(0u) = mapImage;
+            };
+
+            {
+                auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 4u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = 2u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                });
+
+                handle.offset<VkDescriptorImageInfo>(0u) = colImage;
+                handle.offset<VkDescriptorImageInfo>(1u) = depImage;
+            };
+
+
 
             { // [0] Plush Index Data (VkBufferView)
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -323,7 +446,62 @@ namespace jvi {
         };
 
         // 
-        virtual uPTR(Node) copyMeta(const VkCommandBuffer& copyCommand = {}) { // 
+        protected: virtual uPTR(Node) clearMappedData(const VkCommandBuffer& currentCmd = {}) {
+            this->driver->getDeviceDispatch()->CmdFillBuffer(currentCmd, this->mapData, 0u, this->mapData.range(), 0u);
+            this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->colImage, this->colImage.getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, colImage.getImageSubresourceRange());
+            this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->mapImage, this->mapImage.getImageLayout(), vkh::VkClearColorValue{ .uint32 = { 0u,0u,0u,0u } }, 1u, mapImage.getImageSubresourceRange());
+            this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->depImage, this->depImage.getImageLayout(), vkh::VkClearDepthStencilValue{ .depth = 1.0f, .stencil = 0 }, 1u, depImage.getImageSubresourceRange());
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+            return uTHIS;
+        };
+
+        // 
+        protected: virtual uPTR(Node) mappingGeometry(const VkCommandBuffer& currentCmd = {}) {
+            this->clearMappedData(currentCmd);
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+            uintptr_t I = 0u; for (uint32_t i = 0u; i < this->instanceCounter; i++) {
+                auto& Mesh = this->meshes[this->rawInstances[i].instanceId];
+                Mesh->createMappingCommand(currentCmd, glm::uvec4(I = this->rawInstances[i].instanceId, 0u, i, 0u), this->mapFramebuffer);
+            };
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+            return uTHIS;
+        };
+
+        // 
+        protected: virtual uPTR(Node) rasterizeGeometry(const VkCommandBuffer& currentCmd = {}) {
+            const auto clearValues = std::vector<vkh::VkClearValue>{
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                 {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
+            };
+
+            // 
+            this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->context->depthImage, this->context->depthImage.getImageLayout(), clearValues[8u].depthStencil, 1u, this->context->depthImage.getImageSubresourceRange());
+            for (uint32_t i = 0; i < 8u; i++) {
+                this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), clearValues[i].color, 1u, this->context->rastersImages[i].getImageSubresourceRange());
+            };
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+
+            // 
+            this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+            uintptr_t I = 0u; for (uint32_t i = 0u; i < this->instanceCounter; i++) {
+                auto& Mesh = this->meshes[this->rawInstances[i].instanceId];
+                Mesh->createRasterizeCommand(currentCmd, glm::uvec4(I = this->rawInstances[i].instanceId, 0u, i, 0u), true);
+            };
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+
+            // 
+            return uTHIS;
+        };
+
+        // 
+        protected: virtual uPTR(Node) copyMeta(const VkCommandBuffer& copyCommand = {}) { // 
             this->mapMeshData(copyCommand); // Needs to Mapping! NOW!
 
             auto I = 0u; // Selection Only Accounted Chunks
@@ -343,7 +521,7 @@ namespace jvi {
         };
 
         // INCOMPATIBLE WITH OPENGL! UNKNOWN REASON! F&CKING NVIDIA! PIDORS! PROBABLY, HARDWARE PROBLEMS... 
-        virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
+        protected: virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
             if (!this->accelerationStructure) { this->createAccelerationStructure(); };
 
             // 
@@ -395,7 +573,7 @@ namespace jvi {
         };
 
         // Create Or Rebuild Acceleration Structure
-        virtual uPTR(Node) createAccelerationStructure() { // Re-assign instance count
+        protected: virtual uPTR(Node) createAccelerationStructure() { // Re-assign instance count
             this->topCreate.maxGeometryCount = this->topDataCreate.size();
             this->topCreate.pGeometryInfos = this->topDataCreate.data();
 
@@ -450,6 +628,14 @@ namespace jvi {
         std::vector<vkt::uni_ptr<MeshBinding>> meshes = {}; // Mesh list as Template for Instances
         std::vector<uint32_t> mapMeshes = {};
         uintptr_t MaxInstanceCount = 64u;
+
+
+        // 
+        vkt::Vector<uint32_t> mapData = {};
+        vkt::ImageRegion mapImage = {};
+        vkt::ImageRegion colImage = {};
+        vkt::ImageRegion depImage = {};
+        VkFramebuffer mapFramebuffer = {};
 
         // 
         std::vector<vkh::VsGeometryInstance> prepareInstances = {};

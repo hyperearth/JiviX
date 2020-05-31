@@ -55,12 +55,19 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     BuildCompute "denoise.comp"         "$INDIR$RNDX" "$HRDDIR$RNDX" "-DLATE_STAGE" "reflect.comp" 
     BuildCompute "render.frag"          "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "render.vert"          "$INDIR$RNDX" "$HRDDIR$RNDX"
+    
     BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX"
     #BuildCompute "rasterize.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    
     BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.frag"
     #BuildCompute "rasterize.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.geom"
     BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.vert"
+    
+    BuildCompute "mapping.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    #BuildCompute "mapping.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    BuildCompute "mapping.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    
     BuildCompute "transform.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "transform.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX"
     BuildCompute "resample.frag"        "$INDIR$RNDX" "$HRDDIR$RNDX"

@@ -111,6 +111,13 @@ vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
 
 // 
 layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
+
+// LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
+layout (binding = 2, set = 0, scalar) readonly buffer MapData { uint32_t data[]; } map[];
+layout (binding = 3, set = 0, r32ui) readonly uniform uimage2D mapImage[];
+layout (binding = 4, set = 0) uniform texture2D mapColor[];
+
+// 
 #ifdef GEN_QUAD_INDEX // For Minecraft
 layout (binding = 8, set = 0, r8ui) uniform uimageBuffer index[]; // indices compatible 
 #else

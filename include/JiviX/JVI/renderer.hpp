@@ -234,7 +234,7 @@ namespace jvi {
         };
 
         // TODO: Fix Command Create For Every Frame
-        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, const bool& once = true, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
+        virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, const bool& once = true, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
@@ -278,36 +278,8 @@ namespace jvi {
             // 
             if (parameters->eEnableBuildGeometry) { this->node->copyMeta(currentCmd); };
             if (parameters->eEnableBuildAccelerationStructure) { this->node->buildAccelerationStructure(currentCmd); };
-
-            // 
-            if (parameters->eEnableRasterization) {
-                const auto clearValues = std::vector<vkh::VkClearValue>{
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                    {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
-                };
-
-                // 
-                this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->context->depthImage, this->context->depthImage.getImageLayout(), clearValues[8u].depthStencil, 1u, this->context->depthImage.getImageSubresourceRange());
-                for (uint32_t i = 0; i < 8u; i++) {
-                    this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), clearValues[i].color, 1u, this->context->rastersImages[i].getImageSubresourceRange());
-                };
-                vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
-
-                // 
-                this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
-                I = 0u; for (uint32_t i = 0u; i < this->node->instanceCounter; i++) {
-                    auto& Mesh = this->node->meshes[this->node->rawInstances[i].instanceId];
-                    Mesh->createRasterizeCommand(currentCmd, glm::uvec4(I = this->node->rawInstances[i].instanceId, 0u, i, 0u), true);
-                };
-                vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
-            };
+            if (parameters->eEnableMapping) { this->node->mappingGeometry(currentCmd); };
+            if (parameters->eEnableRasterization) { this->node->rasterizeGeometry(currentCmd); };
 
             // Compute ray-tracing (RTX)
             if (parameters->eEnableRayTracing) {

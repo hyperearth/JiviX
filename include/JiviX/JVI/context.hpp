@@ -87,56 +87,110 @@ namespace jvi {
         virtual uPTR(Context) createRenderPass() { // 
             std::cout << "Create Render Pass" << std::endl; // DEBUG!!
 
-            vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
+            {
+                vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
 
-            for (uint32_t b=0u;b<8u;b++) {
-                rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
-                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                for (uint32_t b = 0u; b < 8u; b++) {
+                    rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
+                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                        .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                        });
+                };
+
+                // 
+                rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
+                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                     .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                    .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    .finalLayout = VK_IMAGE_LAYOUT_GENERAL//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                    });
+
+                // 
+                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
+                    .srcSubpass = VK_SUBPASS_EXTERNAL,
+                    .dstSubpass = 0u,
+                    .srcStageMask = {.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
+                    .dstStageMask = {.eColorAttachmentOutput = 1},
+                    .srcAccessMask = {.eColorAttachmentWrite = 1},
+                    .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                    .dependencyFlags = {.eByRegion = 1}
+                    });
+
+                // 
+                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
+                    .srcSubpass = 0u,
+                    .dstSubpass = VK_SUBPASS_EXTERNAL,
+                    .srcStageMask = {.eColorAttachmentOutput = 1},
+                    .dstStageMask = {.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
+                    .srcAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                    .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                    .dependencyFlags = {.eByRegion = 1}
+                    });
+
+                // 
+                //this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
+                vkh::handleVk(this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->renderPass));
+            }
+
+            {
+                vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
+
+                for (uint32_t b = 0u; b < 1u; b++) {
+                    rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
+                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                        .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    });
+                };
+
+                // 
+                rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
+                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                    .finalLayout = VK_IMAGE_LAYOUT_GENERAL//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 });
-            };
 
-            // 
-            rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
-                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_GENERAL//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            });
+                // 
+                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
+                    .srcSubpass = VK_SUBPASS_EXTERNAL,
+                    .dstSubpass = 0u,
+                    .srcStageMask = {.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
+                    .dstStageMask = {.eColorAttachmentOutput = 1},
+                    .srcAccessMask = {.eColorAttachmentWrite = 1},
+                    .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                    .dependencyFlags = {.eByRegion = 1}
+                });
 
-            // 
-            rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = 0u,
-                .srcStageMask = {.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
-                .dstStageMask = {.eColorAttachmentOutput = 1},
-                .srcAccessMask = {.eColorAttachmentWrite = 1},
-                .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                .dependencyFlags = {.eByRegion = 1}
-            });
+                // 
+                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
+                    .srcSubpass = 0u,
+                    .dstSubpass = VK_SUBPASS_EXTERNAL,
+                    .srcStageMask = {.eColorAttachmentOutput = 1},
+                    .dstStageMask = {.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
+                    .srcAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                    .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                    .dependencyFlags = {.eByRegion = 1}
+                });
 
-            // 
-            rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
-                .srcSubpass = 0u,
-                .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = {.eColorAttachmentOutput = 1},
-                .dstStageMask = {.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
-                .srcAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                .dependencyFlags = {.eByRegion = 1}
-            });
-
-            // 
-            //this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
-            vkh::handleVk(this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->renderPass));
+                // 
+                vkh::handleVk(this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->mapRenderPass));
+            }
 
             // 
             return uTHIS;
@@ -410,7 +464,7 @@ namespace jvi {
 
             // 
             thread->submitOnce([&,this](VkCommandBuffer& cmd) {
-                this->depthImage.transfer(cmd);
+                this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(cmd, this->depthImage.transfer(cmd), this->depthImage.getImageLayout(), vkh::VkClearDepthStencilValue{ .depth = 1.0f, .stencil = 0 }, 1u, depthImage.getImageSubresourceRange());
                 for (uint32_t i = 0u; i < 12u; i++) { // Definitely Not an Hotel
                     this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip1Images[i].transfer(cmd), this->smFlip1Images[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip1Images[i].getImageSubresourceRange());
                     this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip0Images[i].transfer(cmd), this->smFlip0Images[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip0Images[i].getImageSubresourceRange());
@@ -441,6 +495,16 @@ namespace jvi {
                 for (uint32_t b = 0u; b < 2u; b++) { // For Ray Tracers
                     this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
                 };
+
+                // Data Buffer
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+
+                // R32UI Map Buffer
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+
+                // RGBA32F and depth buffer
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 2u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+
 
                 // IndeX Data
                 this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
@@ -659,6 +723,7 @@ namespace jvi {
         vkh::VkRect2D scissor = {};
         vkh::VkViewport viewport = {};
         VkRenderPass renderPass = {};
+        VkRenderPass mapRenderPass = {};
         VkFramebuffer smpFlip0Framebuffer = {};
         VkFramebuffer smpFlip1Framebuffer = {};
         VkFramebuffer deferredFramebuffer = {};

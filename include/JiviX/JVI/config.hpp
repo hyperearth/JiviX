@@ -54,6 +54,7 @@ namespace jvi {
             eEnableCopyMeta: 1,
             eEnableBuildGeometry : 1,
             eEnableBuildAccelerationStructure : 1,
+            eEnableMapping : 1,
             eEnableRasterization : 1,
             eEnableRayTracing : 1,
             eEnableResampling: 1,
