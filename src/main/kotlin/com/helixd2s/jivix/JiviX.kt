@@ -449,6 +449,10 @@ abstract class JiviX {
             get() { return this.core.surface.get(0).toULong(); }
             set(v) { this.core.surface.put(0, v.toLong()) }
 
+        open var renderPass: ULong
+            get() { return this.core.renderPass.get(0).toULong(); }
+            set(v) { this.core.renderPass.put(0, v.toLong()) }
+
         open var swapchain: ULong
             get() { return this.core.swapchain.get(0).toULong(); }
             set(v) { this.core.swapchain.put(0, v.toLong()) }

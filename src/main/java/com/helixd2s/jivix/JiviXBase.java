@@ -437,6 +437,7 @@ public class JiviXBase extends Pointer {
         public native @ByRef @Cast("uintptr_t*") LongPointer getDescriptorPool();
         public native @ByRef @Cast("uintptr_t*") LongPointer getDepthImageView();
         public native @ByRef @Cast("uintptr_t*") LongPointer getDepthImage();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getRenderPass();
         public native @ByRef @Cast("uintptr_t*") LongPointer createInstance();
         public native @ByRef @Cast("uintptr_t*") LongPointer createDevice();
         public native @ByRef @Cast("uintptr_t*") LongPointer createDevice(@Cast("VkPhysicalDevice") long physicalDeviceHandle);

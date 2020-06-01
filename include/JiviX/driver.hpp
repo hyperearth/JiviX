@@ -17,6 +17,7 @@ namespace jvx {
         CALLIFY(getDevice);
         CALLIFY(getQueue);
         CALLIFY(getFence);
+        CALLIFY(getRenderPass);
         CALLIFY(getInstance);
         CALLIFY(getCommandPool);
         CALLIFY(getPipelineCache);
