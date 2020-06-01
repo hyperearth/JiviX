@@ -17,6 +17,8 @@
 #define TINYEXR_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#define VKT_ENABLE_GLFW_LINKED
+#define VKT_ENABLE_GLFW_SURFACE
 
 // 
 #include <string>
@@ -905,7 +907,7 @@ int main() {
         vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/render.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
     };
     pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
-    pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->renderPass;//context->refRenderPass();
+    pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->applicationWindow.renderPass;//context->refRenderPass();
     pipelineInfo.inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     pipelineInfo.viewportState.pViewports = &reinterpret_cast<vkh::VkViewport&>(viewport);
     pipelineInfo.viewportState.pScissors = &reinterpret_cast<vkh::VkRect2D&>(renderArea);
@@ -979,7 +981,7 @@ int main() {
                 commandBuffer = vkt::createCommandBuffer(fw->getDeviceDispatch(), commandPool, false, false); // do reference of cmd buffer
 
                 decltype(auto) descriptorSets = context->getDescriptorSets();
-                fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data()}, VK_SUBPASS_CONTENTS_INLINE);
+                fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->applicationWindow.renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data()}, VK_SUBPASS_CONTENTS_INLINE);
                 fw->getDeviceDispatch()->CmdSetViewport(commandBuffer, 0u, 1u, viewport);
                 fw->getDeviceDispatch()->CmdSetScissor(commandBuffer, 0u, 1u, renderArea);
                 fw->getDeviceDispatch()->CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, finalPipeline);

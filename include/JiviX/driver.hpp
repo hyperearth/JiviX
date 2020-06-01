@@ -45,6 +45,8 @@ namespace jvx {
         CALLIFY(updateSwapchainFramebuffer);
         CALLIFY(createSwapchainFramebuffer);
         CALLIFY(createSwapchain);
+        CALLIFY(getSwapchain);
+        CALLIFY(getSurface);
 #endif
     };
 };

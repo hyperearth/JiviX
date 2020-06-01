@@ -443,45 +443,63 @@ abstract class JiviX {
             get() { return Instance(core.instanceDispatch); }
         //set(value) { core.setInstanceDispatch(value.core); };
 
-        open fun physicalDevice(idx: UInt): ULong { return this.core.getPhysicalDevice(idx.toInt()).toULong(); }
+        open fun physicalDevice(idx: UInt): ULong { return this.core.getPhysicalDevice(idx.toInt()).get(0).toULong(); }
 
-        open var physicalDevice: ULong = 0UL
-            get() { return this.core.physicalDevice.toULong(); }
+        open var surface: ULong
+            get() { return this.core.surface.get(0).toULong(); }
+            set(v) { this.core.surface.put(0, v.toLong()) }
 
-        open var device: ULong = 0UL
-            get() { return this.core.device.toULong(); }
+        open var swapchain: ULong
+            get() { return this.core.swapchain.get(0).toULong(); }
+            set(v) { this.core.swapchain.put(0, v.toLong()) }
 
-        open var queue: ULong = 0UL
-            get(){ return this.core.queue.toULong(); }
+        open var physicalDevice: ULong 
+            get() { return this.core.physicalDevice.get(0).toULong(); }
+            set(v) { this.core.physicalDevice.put(0, v.toLong()) }
 
-        open var fence: ULong = 0UL
-            get(){ return this.core.fence.toULong(); }
+        open var device: ULong
+            get() { return this.core.device.get(0).toULong(); }
+            set(v) { this.core.device.put(0, v.toLong()) }
 
-        open var instance: ULong = 0UL
+        open var queue: ULong
+            get(){ return this.core.queue.get(0).toULong(); }
+            set(v) { this.core.queue.put(0, v.toLong()) }
+
+        open var fence: ULong
+            get(){ return this.core.fence.get(0).toULong(); }
+            set(v) { this.core.fence.put(0, v.toLong()) }
+
+        open var instance: ULong
             get() { // Automatically create when null found
-                if (this.core.instance != 0L) {
-                    return this.core.instance.toULong();
+                if (this.core.instance.get(0) != 0L) {
+                    return this.core.instance.get(0).toULong();
                 } else {
-                    return this.core.createInstance().toULong();
+                    return this.core.createInstance().get(0).toULong();
                 }
             }
+            set(v) { this.core.instance.put(0, v.toLong()) }
 
-        open var commandPool: ULong = 0UL
-            get() { return this.core.commandPool.toULong(); }
+        open var commandPool: ULong
+            get() { return this.core.commandPool.get(0).toULong(); }
+            set(v) { this.core.commandPool.put(0, v.toLong()) }
 
-        open var pipelineCache: ULong = 0UL
-            get() { return this.core.pipelineCache.toULong(); }
+        open var pipelineCache: ULong
+            get() { return this.core.pipelineCache.get(0).toULong(); }
+            set(v) { this.core.pipelineCache.put(0, v.toLong()) }
 
-        open var descriptorPool: ULong = 0UL
-            get() { return this.core.descriptorPool.toULong(); }
+        open var descriptorPool: ULong
+            get() { return this.core.descriptorPool.get(0).toULong(); }
+            set(v) { this.core.descriptorPool.put(0, v.toLong()) }
 
-        open var depthImageView: ULong = 0UL
-            get() { return this.core.depthImageView.toULong(); }
+        open var depthImageView: ULong
+            get() { return this.core.depthImageView.get(0).toULong(); }
+            set(v) { this.core.depthImageView.put(0, v.toLong()) }
 
-        open var depthImage: ULong = 0UL
-            get() { return this.core.depthImage.toULong(); }
+        open var depthImage: ULong
+            get() { return this.core.depthImage.get(0).toULong(); }
+            set(v) { this.core.depthImage.put(0, v.toLong()) }
 
-        open fun createInstance(): ULong { return this.core.createInstance().toULong(); }
+        open fun createInstance(): ULong { return this.core.createInstance().get(0).toULong(); }
 
         open var instanceClass: VkInstance? = null
             get(){ return VkInstance(this.instance.toLong(), this.instanceCreateInfo); }  // TODO: Null-Safe
@@ -492,10 +510,10 @@ abstract class JiviX {
         open fun physicalDeviceClass(idx: UInt): VkPhysicalDevice { // TODO: Null-Safe
             return VkPhysicalDevice(this.physicalDevice(idx).toLong(), this.instanceClass) }
 
-        open fun createDevice(): ULong { return this.core.createDevice().toULong(); }
+        open fun createDevice(): ULong { return this.core.createDevice().get(0).toULong(); }
 
         open fun createDevice(physicalDeviceHandle: ULong): ULong {
-            return this.core.createDevice(physicalDeviceHandle.toLong()).toULong(); }
+            return this.core.createDevice(physicalDeviceHandle.toLong()).get(0).toULong(); }
 
         open fun createDevice(physicalDevice: VkPhysicalDevice): VkDevice { // TODO: Null-Safe
             return VkDevice(this.createDevice().toLong(), physicalDevice, this.deviceCreateInfo); }

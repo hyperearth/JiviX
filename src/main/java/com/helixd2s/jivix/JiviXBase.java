@@ -12,7 +12,7 @@ import org.bytedeco.javacpp.indexer.*;
         "./include/vkt3/fw.hpp",
         "./include/JiviX/JiviX.hpp",
         "./jniJiviXCore.h"
-}, link = {"vulkan-1", "glfw", "glbinding", "glbinding-aux"}, define = {"ENABLE_OPENGL_INTEROP", "WIN32", "OS_WIN", "VK_ENABLE_BETA_EXTENSIONS", "VK_USE_PLATFORM_WIN32_KHR", "VMA_IMPLEMENTATION", "SHARED_PTR_NAMESPACE std", "UNIQUE_PTR_NAMESPACE std"})
+}, link = {"vulkan-1", "glfw", "glbinding", "glbinding-aux"}, define = {"ENABLE_OPENGL_INTEROP", "WIN32", "OS_WIN", "VK_ENABLE_BETA_EXTENSIONS", "VK_USE_PLATFORM_WIN32_KHR", "VMA_IMPLEMENTATION", "SHARED_PTR_NAMESPACE std", "UNIQUE_PTR_NAMESPACE std", "VKT_ENABLE_GLFW_SUPPORT"})
 @Name("") //
 public class JiviXBase extends Pointer {
     static { Loader.load(); }
@@ -424,20 +424,22 @@ public class JiviXBase extends Pointer {
         public native long getDeviceCreateInfoAddress();
 
         // Get Handle Value
-        public native @Cast("VkPhysicalDevice") long getPhysicalDevice();
-        public native @Cast("VkPhysicalDevice") long getPhysicalDevice(int ID);
-        public native @Cast("VkDevice") long getDevice();
-        public native @Cast("VkQueue")long getQueue();
-        public native @Cast("VkFence") long getFence();
-        public native @Cast("VkInstance") long getInstance();
-        public native @Cast("VkCommandPool") long getCommandPool();
-        public native @Cast("VkPipelineCache") long getPipelineCache();
-        public native @Cast("VkDescriptorPool") long getDescriptorPool();
-        public native @Cast("VkImageView") long getDepthImageView();
-        public native @Cast("VkImage") long getDepthImage();
-        public native @Cast("VkInstance") long createInstance();
-        public native @Cast("VkDevice") long createDevice();
-        public native @Cast("VkDevice") long createDevice(@Cast("VkPhysicalDevice") long physicalDeviceHandle);
+        public native @ByRef @Cast("uintptr_t*") LongPointer getSurface();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getSwapchain();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getPhysicalDevice();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getPhysicalDevice(int ID);
+        public native @ByRef @Cast("uintptr_t*") LongPointer getDevice();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getQueue();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getFence();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getInstance();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getCommandPool();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getPipelineCache();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getDescriptorPool();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getDepthImageView();
+        public native @ByRef @Cast("uintptr_t*") LongPointer getDepthImage();
+        public native @ByRef @Cast("uintptr_t*") LongPointer createInstance();
+        public native @ByRef @Cast("uintptr_t*") LongPointer createDevice();
+        public native @ByRef @Cast("uintptr_t*") LongPointer createDevice(@Cast("VkPhysicalDevice") long physicalDeviceHandle);
 
         // Get Address of Reference... (but needs wrapped as Pointer?)
         public native @Name("getMemoryProperties") @ByRef @Cast("int8_t*") BytePointer _getMemoryProperties();
