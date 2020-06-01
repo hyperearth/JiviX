@@ -420,6 +420,7 @@ public class JiviXBase extends Pointer {
         private native void allocate(@SharedPtr JiviXCore.Driver object);
 
         // LWJGL-3 Compatible
+        public native void loadXVK();
         public native long getInstanceCreateInfoAddress();
         public native long getDeviceCreateInfoAddress();
 

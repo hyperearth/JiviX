@@ -443,6 +443,8 @@ abstract class JiviX {
             get() { return Instance(core.instanceDispatch); }
         //set(value) { core.setInstanceDispatch(value.core); };
 
+        open fun loadXVK() { this.core.loadXVK(); }
+
         open fun physicalDevice(idx: UInt): ULong { return this.core.getPhysicalDevice(idx.toInt()).get(0).toULong(); }
 
         open var surface: ULong
