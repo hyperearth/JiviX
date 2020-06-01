@@ -41,5 +41,7 @@ namespace jvx {
         CALLIFY(createDescriptorSetLayouts);
         CALLIFY(createDescriptorSets);
         CALLIFY(initialize);
+        CALLIFY(setDescriptorSet);
+        CALLIFY(setDescriptorSetLayout);
     };
 };

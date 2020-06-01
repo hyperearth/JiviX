@@ -197,7 +197,7 @@ namespace jvi {
         };
 
         // 
-        public: virtual std::array<VkDescriptorSet,5u>& getDescriptorSets() {
+        public: virtual std::vector<VkDescriptorSet>& getDescriptorSets() {
             return descriptorSets;
         };
 
@@ -545,6 +545,13 @@ namespace jvi {
                 // 
                 std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
                 std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
+
+                // 
+                for (auto& layoutExt: this->extDescriptorSetLayout) {
+                    if (layoutExt) { layouts.push_back(layoutExt); };
+                }
+
+                // 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreatePipelineLayout(vkh::VkPipelineLayoutCreateInfo{}.setSetLayouts(layouts).setPushConstantRanges(ranges), nullptr, &this->unifiedPipelineLayout));
             };
 
@@ -702,6 +709,24 @@ namespace jvi {
         };
 
         // 
+        public: virtual uPTR(Context) setDescriptorSet(uintptr_t I, vkt::uni_arg<VkDescriptorSet> set) {
+            if (set.has() && *set) {
+                this->descriptorSets.resize(5u + I + 1u);
+                this->descriptorSets[I] = set;
+            };
+            return uTHIS;
+        };
+
+        // 
+        public: virtual uPTR(Context) setDescriptorSetLayout(uintptr_t I, vkt::uni_arg<VkDescriptorSetLayout> layout) {
+            if (layout.has() && *layout) {
+                this->extDescriptorSetLayout.resize(I + 1u);
+                this->extDescriptorSetLayout[I] = layout;
+            };
+            return uTHIS;
+        };
+
+        // 
         public: virtual uPTR(Context) initialize(const uint32_t& width = 1600u, const uint32_t& height = 1200u) {
             this->createRenderPass();
             this->createFramebuffers(width,height);
@@ -739,7 +764,8 @@ namespace jvi {
         std::array<vkt::ImageRegion, 12u> smFlip1Images = {}; // Path Tracing
         std::array<vkt::ImageRegion, 12u> frameBfImages = {}; // Rasterization
         std::array<vkt::ImageRegion, 8u>  rastersImages = {}; // Rasterization
-        std::array<VkDescriptorSet, 5u> descriptorSets = {};
+        std::vector<VkDescriptorSet> descriptorSets = {};
+        //std::vector<VkDescriptorSet> extDescriptorSets = {};
         vkt::ImageRegion depthImage = {};
 
         // 
@@ -754,7 +780,8 @@ namespace jvi {
         VkDescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
         VkDescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples (Diffuse, Path-Tracing and ReProjection)
         VkDescriptorSetLayout bindingsDescriptorSetLayout = {}; // Bindings, Attributes Descriptions
-        
+        std::vector<VkDescriptorSetLayout> extDescriptorSetLayout = {};
+
         // 
         vkh::VsDescriptorSetLayoutCreateInfoHelper materialDescriptorSetLayoutHelper = {};
         vkh::VsDescriptorSetLayoutCreateInfoHelper deferredDescriptorSetLayoutHelper = {};
