@@ -484,7 +484,6 @@ public class JiviXBase extends Pointer {
 
         public native @SharedPtr JiviXCore.BufferViewSet sharedPtr();
         public native long getBufferCount();
-        public native void createDescriptorSet();
         public native @ByRef UByteVector get(int id);
         public native long pushBufferView(@ByRef UByteVector vector);
         //public native @StdVector @ByRef ByteVector[] getBufferViewList();
@@ -521,9 +520,8 @@ public class JiviXBase extends Pointer {
         private native void allocate(@SharedPtr JiviXCore.MeshInput object);
 
         public native @SharedPtr JiviXCore.MeshInput sharedPtr();
-        public native JiviXCore.MeshInput createDescriptorSet();
         public native JiviXCore.MeshInput makeQuad();
-        public native JiviXCore.MeshInput copyMeta(@Cast("VkCommandBuffer") long commandBuffer);
+        //public native JiviXCore.MeshInput copyMeta(@Cast("VkCommandBuffer") long commandBuffer);
         public native JiviXCore.MeshInput manifestIndex(@Cast("VkIndexType") int indexType);
 
         // Use Address from LWJGL-3 structures
@@ -591,7 +589,7 @@ public class JiviXBase extends Pointer {
         public native JiviXCore.MeshBinding setPrimitiveCount(@Cast("VkDeviceSize") long count);
         public native JiviXCore.MeshBinding setTransformData(@Cast("vkt::Vector<glm::mat3x4>*") long address, int stride);
         public native JiviXCore.MeshBinding setTransformData(@Cast("vkt::Vector<glm::mat3x4>*") long address);
-        public native JiviXCore.MeshBinding buildGeometry(@Cast("VkCommandBuffer") long cmdbufAddress, @Cast("glm::uvec4*") long meshData);
+        //public native JiviXCore.MeshBinding buildGeometry(@Cast("VkCommandBuffer") long cmdbufAddress, @Cast("glm::uvec4*") long meshData);
         public native JiviXCore.MeshBinding addMeshInput(@SharedPtr JiviXCore.MeshInput input, int materialID, long instances);
         public native JiviXCore.MeshBinding addMeshInput(@SharedPtr JiviXCore.MeshInput input, int materialID);
         public native JiviXCore.MeshBinding addMeshInput(@SharedPtr JiviXCore.MeshInput input, @StdVector int[] materialIDs);
@@ -632,7 +630,6 @@ public class JiviXBase extends Pointer {
         public native JiviXCore.Node pushInstance(JiviXCore.VsGeometryInstance geometry);
         public native JiviXCore.Node resetInstances();
         public native long pushMesh(@ByRef MeshBinding binding);
-        public native void createDescriptorSet();
     }
 
 
@@ -658,7 +655,6 @@ public class JiviXBase extends Pointer {
         private native void allocate(@SharedPtr JiviXCore.Material object);
 
         public native @SharedPtr JiviXCore.Material sharedPtr();
-        public native void createDescriptorSet();
         public native long pushMaterial(JiviXCore.MaterialUnit materialAddress);
 
         public native int pushSampledImage(@Cast("vkh::VkDescriptorImageInfo*") long imageDescAddress);

@@ -21,7 +21,6 @@ namespace jvx {
         CALLIFY(get);
         CALLIFY(getBufferViewList);
         CALLIFY(getDescriptorSet);
-        CALLIFY(createDescriptorSet);
         CALLIFY(getDescriptorLayout);
         CALLIFY(getBufferCount);
     };
@@ -35,9 +34,7 @@ namespace jvx {
 
         CALLIFY(sharedPtr);
         CALLIFY(makeQuad);
-        CALLIFY(createDescriptorSet);
         CALLIFY(copyMeta);
-        CALLIFY(buildGeometry);
         CALLIFY(addBinding);
         CALLIFY(manifestIndex);
         CALLIFY(addAttribute);
@@ -82,8 +79,6 @@ namespace jvx {
           CALLIFY(setBinding);
           CALLIFY(setAttribute);
           CALLIFY(copyBuffers);
-          CALLIFY(buildGeometry);
-          CALLIFY(buildAccelerationStructure);
           CALLIFY(addMeshInput);
           CALLIFY(createAccelerationStructure);
           CALLIFY(createRasterizePipeline);

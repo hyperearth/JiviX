@@ -20,7 +20,6 @@ namespace jvx {
         CALLIFY(mapMeshData);
         CALLIFY(pushMesh);
         CALLIFY(copyMeta);
-        CALLIFY(createDescriptorSet);
         CALLIFY(buildAccelerationStructure);
         CALLIFY(createAccelerationStructure);
 

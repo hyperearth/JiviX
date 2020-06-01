@@ -21,6 +21,5 @@ namespace jvx {
         CALLIFY(resetSampledImages);
         CALLIFY(pushSampledImage);
         CALLIFY(copyBuffers);
-        CALLIFY(createDescriptorSet);
     };
 };
