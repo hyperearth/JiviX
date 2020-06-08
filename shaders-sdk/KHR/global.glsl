@@ -19,7 +19,8 @@ struct XHIT {
      vec4 mapNormal;
      vec4 origin;
      vec4 txcmid;
-
+     
+     vec4 direct;
      vec4 gTangent;
      vec4 gBinormal;
     uvec4 gIndices;

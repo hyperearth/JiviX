@@ -563,6 +563,7 @@ namespace jvi {
             std::cout << "Create Descriptor Sets" << std::endl; // DEBUG!!
 
             if (!this->unifiedPipelineLayout) { this->createDescriptorSetLayouts(); };
+            this->descriptorSets.resize(5u);
 
             {
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout, thread->getDescriptorPool());

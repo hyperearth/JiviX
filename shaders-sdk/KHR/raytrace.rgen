@@ -8,6 +8,7 @@
 // 
 #define RAY_TRACE
 #define FAST_BW_TRANSPARENT false
+
 //#define FAST_BW_TRANSPARENT // Can be denoised, but with WRONG results!
 //#define TOP_LAYERED // Has reflection problems
 
@@ -183,4 +184,5 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 };
 
 #define LAUNCH_ID gl_LaunchIDEXT.xy
+#include "./stuff.glsl"
 #include "./raytrace.glsl"
