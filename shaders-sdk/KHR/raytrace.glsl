@@ -31,9 +31,9 @@ void main() {
 
     // Replacement for rasterization
     //XHIT SUF =                                                       traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
-      XHIT SUF =                                                       rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
-      XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
-    imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(SUF.origin.xyz, SUF.geoNormal.w)); XHIT GRD = RES; RES = SUF; // Prefer From TOP layer (like as in Minecraft)
+      XHIT RES =                                                       rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+    //XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
+    imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w)); // Prefer From TOP layer (like as in Minecraft)
     imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), RES.geoNormal.w < 9999.f && checker ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
 
     // By Geometry Data
@@ -81,6 +81,7 @@ void main() {
     if ( (RES.diffuseColor.w > 0.001f && RES.geoNormal.w < 9999.f) && checker ) {
         //vec3 forigin = (origin = RES.origin.xyz), fraydir = raydir, fnormal = RES.mapNormal.xyz;
         //TBN[2] = normalize(faceforward(TBN[2], fraydir.xyz, TBN[2]));
+        //XHIT GRD = RES;
 
         // 
         const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
@@ -112,8 +113,8 @@ void main() {
 
                 // 
                 for (uint i=0;i<2;i++) { // fast trace
-                    XHIT result = i == 0 && I == 2 ? GRD : traceRays(origin, raydir, normal, 10000.f, true, 0.01f); // Useless to tracing for transparency...
-                    //if ( I == 2 && result.diffuseColor.w > 0.99f ) { break; }; // No needs for transparent layers
+                    XHIT result = traceRays(origin, raydir, normal, 10000.f, true, 0.01f);
+                    //if (i == 0 && I == 2) { GRD = result; };  // Useless to tracing for transparency...
 
                     // 
                     float sdepth = raySphereIntersect(origin.xyz,raydir.xyz,sphere.xyz,sphere.w); sdepth = sdepth <= 0.f ? 10000.f : sdepth;
@@ -171,7 +172,7 @@ void main() {
                     imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), 1.f));
                 };
                 if (I == 2) {
-                    imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, SUF.txcmid.z)); // alpha channel reserved, zero always opaque type
+                    imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, RES.txcmid.z)); // alpha channel reserved, zero always opaque type
                 };
             };
         };
