@@ -16,9 +16,9 @@ set (CMAKE_CXX_EXTENSIONS 1)
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_C_STANDARD 11)
 
-#
+# 
 set(DCMAKE_SH="CMAKE_SH-NOTFOUND")
-if(MINGW)
+if (MINGW)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_STATIC_LIBRARY_PREFIX "")
     set(GNUtoMS TRUE)
@@ -36,6 +36,10 @@ set (SOURCES_LIST
     "./include/JiviX/*/*/*/*/*.hpp"
     "./include/JiviX/*/*/*/*/vulkan.*"
 
+    "./include/misc/*.hpp"
+    "./include/misc/*.h"
+    "./include/nlohmann/*.hpp"
+    "./include/nlohmann/*.h"
     "./include/vulkan/*.hpp"
     "./include/vulkan/*.h"
     "./include/vma/*.hpp"
@@ -72,25 +76,29 @@ set (SOURCES_LIST
 find_package(GLFW QUIET)
 find_package(Vulkan REQUIRED)
 find_package(PkgConfig QUIET)
-find_package (glbinding REQUIRED) # if it is really required in your project
-pkg_search_module(GLFW QUIET glfw)
-pkg_search_module(GLFW QUIET renderdoc)
+#find_package(glbinding REQUIRED) # if it is really required in your project
+
+set (LIBS )
 
 # Set libs and include dirs of projects
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
-set (INC_DIR 
+set (INC_DIR "../../../vkt/include/" "../../../vkt/include/rapidjson"
     "${DEP_DIR}/include/JiviX/"
     "${DEP_DIR}/include/*/*/"
     "${DEP_DIR}/include/*/"
     "${DEP_DIR}/include/" 
+    "${DEP_DIR}/include/vkt3/"
+    "${DEP_DIR}/include/misc/"
+    "${DEP_DIR}/include/nlohmann/"
     "${DEP_DIR}/src/" 
-    "${DEP_DIR}/src/base/" 
+    "${DEP_DIR}/src/base/"
     "${DEP_DIR}")
 
 # Set definition
 set (DEFINES
     -DNOMINMAX
     #-DENABLE_OPENGL_INTEROP
+    -DTINYGLTF_NOEXCEPTION
     -DVK_ENABLE_BETA_EXTENSIONS
     -D_CRT_SECURE_NO_WARNINGS
     -D_USE_MATH_DEFINES
@@ -101,6 +109,8 @@ set (DEFINES
     -DGLFW_INCLUDE_NONE
     -DEXPERIMENTAL_GLTF
     -DUSE_VULKAN
+    #-DTINYGLTF_USE_RAPIDJSON
+    -DTINYGLTF_USE_CPP14
 )
 
 # Set MSVC/Windows specific 
@@ -126,14 +136,14 @@ endif()
 
 # GLFW 
 if (GLFW_LIBRARIES)
-    set (LIBS ${LIBS} ${GLFW_LIBRARIES})
-    #set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
+    #set (LIBS ${LIBS} ${GLFW_LIBRARIES})
+    set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
 endif()
 
 # glbinding
-if (glbinding_DIR)
-    set (INC_DIR ${INC_DIR} ${glbinding_DIR} "${glbinding_DIR}/include")
-endif()
+#if (glbinding_DIR)
+#    set (INC_DIR ${INC_DIR} ${glbinding_DIR} "${glbinding_DIR}/include")
+#endif()
 
 # set GCC8 (Linux) libs
 # MingW-W64 TODO
@@ -156,13 +166,13 @@ else()
     set (COMMON_LIBS glfw X11 Xrandr GL rt dl)
     set (LIBS ${LIBS} ${COMMON_LIBS})
 
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++2a -march=skylake -mtune=skylake -fpermissive ")
-    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive ")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -std=c++2a -march=skylake -mtune=skylake -fpermissive")
+    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -g -Wall -std=c1x   -march=skylake -mtune=skylake -fpermissive")
 endif()
 
 # Set optimizations for build types
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
+set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g")
 
 # Set default compiler options
 link_directories(${LIB_DIR})
@@ -173,7 +183,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
 add_executable(${APPLICATION_NAME} src/main.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan glbinding::glbinding glbinding::glbinding-aux)
+target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
 
 # Add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)
@@ -181,3 +191,4 @@ foreach(source IN LISTS RSOURCES)
     string(REPLACE "/" "\\" source_path_msvc "${source_path}")
     source_group("${source_path_msvc}" FILES "${source}")
 endforeach()
+

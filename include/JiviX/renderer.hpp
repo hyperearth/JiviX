@@ -14,10 +14,10 @@ namespace jvx {
         CALLIFY(sharedPtr);
         CALLIFY(linkMaterial);
         CALLIFY(linkNode);
-        CALLIFY(setupSkyboxedState);
-        CALLIFY(saveDiffuseColor);
-        CALLIFY(setupResamplingPipeline);
-        CALLIFY(setupResampleCommand);
+        //CALLIFY(setupSkyboxedState);
+        //CALLIFY(saveDiffuseColor);
+        //CALLIFY(setupResamplingPipeline);
+        //CALLIFY(setupResampleCommand);
         CALLIFY(setupRenderer);
         CALLIFY(setupCommands);
         CALLIFY(refCommandBuffer);

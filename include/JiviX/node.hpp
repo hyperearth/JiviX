@@ -17,11 +17,11 @@ namespace jvx {
         CALLIFY(setGpuInstance);
         CALLIFY(resetInstances);
         CALLIFY(pushInstance);
-        CALLIFY(mapMeshData);
+        //CALLIFY(mapMeshData);
         CALLIFY(pushMesh);
-        CALLIFY(copyMeta);
-        CALLIFY(buildAccelerationStructure);
-        CALLIFY(createAccelerationStructure);
+        //CALLIFY(copyMeta);
+        //CALLIFY(buildAccelerationStructure);
+        //CALLIFY(createAccelerationStructure);
 
         uintptr_t pushMesh(vkt::uni_arg<jvx::MeshBinding> binding) {
             return object->pushMesh(binding->sharedPtr());

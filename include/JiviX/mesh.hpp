@@ -34,7 +34,7 @@ namespace jvx {
 
         CALLIFY(sharedPtr);
         CALLIFY(makeQuad);
-        CALLIFY(copyMeta);
+        //CALLIFY(copyMeta);
         CALLIFY(addBinding);
         CALLIFY(manifestIndex);
         CALLIFY(addAttribute);
@@ -43,7 +43,7 @@ namespace jvx {
         CALLIFY(setPrimitiveCount);
         CALLIFY(setIndexData);
         CALLIFY(createRasterizePipeline);
-        CALLIFY(linkCounterBuffer);
+        //CALLIFY(linkCounterBuffer);
         CALLIFY(linkBViewSet);
         CALLIFY(getIndexCount);
         //CALLIFY(getOffsetMeta);
@@ -74,17 +74,17 @@ namespace jvx {
           CALLIFY(manifestIndex);
           CALLIFY(setIndexCount);
           CALLIFY(setPrimitiveCount);
-          CALLIFY(linkWithInstance);
-          CALLIFY(increaseGeometryCount);
+          //CALLIFY(linkWithInstance);
+          //CALLIFY(increaseGeometryCount);
           CALLIFY(setGeometryCount);
           CALLIFY(setTransformData);
-          CALLIFY(setBinding);
-          CALLIFY(setAttribute);
-          CALLIFY(copyBuffers);
+          //CALLIFY(setBinding);
+          //CALLIFY(setAttribute);
+          //CALLIFY(copyBuffers);
           CALLIFY(addMeshInput);
-          CALLIFY(createAccelerationStructure);
-          CALLIFY(createRasterizePipeline);
-          CALLIFY(createRasterizeCommand);
+          //CALLIFY(createAccelerationStructure);
+          //CALLIFY(createRasterizePipeline);
+          //CALLIFY(createRasterizeCommand);
           CALLIFY(addRangeInput);
           CALLIFY(resetGeometry);
 

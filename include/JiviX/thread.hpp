@@ -15,11 +15,11 @@ namespace jvx {
         Thread(std::shared_ptr<jvi::Driver> driver) { this->object = std::make_shared<jvi::Thread>(driver); };
 
         CALLIFY(sharedPtr);
-        CALLIFY(createThreadPool);
+        //CALLIFY(createThreadPool);
         CALLIFY(setDriver);
-        CALLIFY(createQueue);
-        CALLIFY(createCommandPool);
-        CALLIFY(createDescriptorPool);
+        //CALLIFY(createQueue);
+        //CALLIFY(createCommandPool);
+        //CALLIFY(createDescriptorPool);
         CALLIFY(getCommandPool);
         CALLIFY(getDescriptorPool);
         CALLIFY(getQueue);

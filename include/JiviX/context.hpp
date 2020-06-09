@@ -22,7 +22,7 @@ namespace jvx {
         CALLIFY(refViewport);
         CALLIFY(refRenderPass);
         CALLIFY(getDriver);
-        CALLIFY(createRenderPass);
+        //CALLIFY(createRenderPass);
         CALLIFY(getDescriptorSets);
         CALLIFY(getPipelineLayout);
         CALLIFY(registerTime);
@@ -37,9 +37,9 @@ namespace jvx {
         CALLIFY(getFlip0Buffer);
         CALLIFY(getFlip1Buffer);
         CALLIFY(getFrameBuffer);
-        CALLIFY(createFramebuffers);
-        CALLIFY(createDescriptorSetLayouts);
-        CALLIFY(createDescriptorSets);
+        //CALLIFY(createFramebuffers);
+        //CALLIFY(createDescriptorSetLayouts);
+        //CALLIFY(createDescriptorSets);
         CALLIFY(initialize);
         CALLIFY(setDescriptorSet);
         CALLIFY(setDescriptorSetLayout);

@@ -31,8 +31,8 @@
 #include "misc/tinyexr.h"
 
 // 
-#include <glbinding-aux/debug.h>
-#include <glbinding/getProcAddress.h>
+//#include <glbinding-aux/debug.h>
+//#include <glbinding/getProcAddress.h>
 
 
 // 
@@ -472,9 +472,10 @@ int main() {
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
     // 
-    const float unitScale = 100.f;
+    const float unitScale = 1.f;
     const float unitHeight = -0.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    const std::string filename = "Cube.gltf";
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, filename.c_str());
 
     // 
     //const float unitScale = 1.f;

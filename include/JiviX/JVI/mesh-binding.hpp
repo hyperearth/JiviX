@@ -313,11 +313,12 @@ namespace jvi {
 
         // 
         protected: virtual uPTR(MeshBinding) copyBuffers(const vkt::uni_arg<VkCommandBuffer>& buildCommand = {}) {
+            const auto vect0 = glm::uvec4(0u);
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawAttributes, this->gpuAttributes, 1u, vkh::VkBufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawBindings, this->gpuBindings, 1u, vkh::VkBufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawInstanceMap, this->gpuInstanceMap, 1u, vkh::VkBufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawMaterialIDs, this->gpuMaterialIDs, 1u, vkh::VkBufferCopy{ this->rawMaterialIDs.offset(), this->gpuMaterialIDs.offset(), this->gpuMaterialIDs.range() });
-            this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &glm::uvec4(0u));
+            this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &vect0);
             if (this->inputs.size() > 0) { for (auto& I : this->inputs) if (I.has()) { I->copyMeta(buildCommand); }; };
             return uTHIS;
         };
