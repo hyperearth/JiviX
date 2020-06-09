@@ -513,7 +513,7 @@ namespace jvi {
                 this->deferredDescriptorSetLayoutHelper = templ;
                 this->materialDescriptorSetLayoutHelper = templ;
 
-                auto pipusage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 };
+                auto pipusage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
                 auto indexedf = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 };
 
                 // Raw Data
@@ -774,12 +774,12 @@ namespace jvi {
         // 
         vkh::VkRect2D scissor = {};
         vkh::VkViewport viewport = {};
-        VkRenderPass renderPass = {};
-        VkRenderPass mapRenderPass = {};
-        VkFramebuffer smpFlip0Framebuffer = {};
-        VkFramebuffer smpFlip1Framebuffer = {};
-        VkFramebuffer deferredFramebuffer = {};
-        VkFramebuffer rasteredFramebuffer = {};
+        VkRenderPass renderPass = VK_NULL_HANDLE;
+        VkRenderPass mapRenderPass = VK_NULL_HANDLE;
+        VkFramebuffer smpFlip0Framebuffer = VK_NULL_HANDLE;
+        VkFramebuffer smpFlip1Framebuffer = VK_NULL_HANDLE;
+        VkFramebuffer deferredFramebuffer = VK_NULL_HANDLE;
+        VkFramebuffer rasteredFramebuffer = VK_NULL_HANDLE;
 
         // 
         vkt::Vector<Matrices> uniformGPUData = {};
@@ -796,17 +796,17 @@ namespace jvi {
         vkt::ImageRegion depthImage = {};
 
         // 
-        VkDescriptorSet deferredDescriptorSet = {};
-        VkDescriptorSet smpFlip0DescriptorSet = {};
-        VkDescriptorSet smpFlip1DescriptorSet = {};
-        VkPipelineLayout unifiedPipelineLayout = {};
+        VkDescriptorSet deferredDescriptorSet = VK_NULL_HANDLE;
+        VkDescriptorSet smpFlip0DescriptorSet = VK_NULL_HANDLE;
+        VkDescriptorSet smpFlip1DescriptorSet = VK_NULL_HANDLE;
+        VkPipelineLayout unifiedPipelineLayout = VK_NULL_HANDLE;
 
         // 
-        VkDescriptorSetLayout materialDescriptorSetLayout = {}; // Material Descriptions
-        VkDescriptorSetLayout deferredDescriptorSetLayout = {}; // Deferred Shading Descriptions (Diffuse Texturing)
-        VkDescriptorSetLayout meshDataDescriptorSetLayout = {}; // Packed Mesh Data (8-bindings)
-        VkDescriptorSetLayout samplingDescriptorSetLayout = {}; // Framebuffers and Samples (Diffuse, Path-Tracing and ReProjection)
-        VkDescriptorSetLayout bindingsDescriptorSetLayout = {}; // Bindings, Attributes Descriptions
+        VkDescriptorSetLayout materialDescriptorSetLayout = VK_NULL_HANDLE; // Material Descriptions
+        VkDescriptorSetLayout deferredDescriptorSetLayout = VK_NULL_HANDLE; // Deferred Shading Descriptions (Diffuse Texturing)
+        VkDescriptorSetLayout meshDataDescriptorSetLayout = VK_NULL_HANDLE; // Packed Mesh Data (8-bindings)
+        VkDescriptorSetLayout samplingDescriptorSetLayout = VK_NULL_HANDLE; // Framebuffers and Samples (Diffuse, Path-Tracing and ReProjection)
+        VkDescriptorSetLayout bindingsDescriptorSetLayout = VK_NULL_HANDLE; // Bindings, Attributes Descriptions
         std::vector<VkDescriptorSetLayout> extDescriptorSetLayout = {};
 
         // 

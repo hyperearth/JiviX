@@ -416,7 +416,8 @@ namespace jvi {
         protected: virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; // Map BROKEN in here!
             //if (this->fullGeometryCount <= 0u) return uTHIS;
-            if (!this->accelerationStructure || !this->gpuScratchBuffer.has()) { this->createAccelerationStructure(); };
+            const auto hasAlloc = this->gpuScratchBuffer.has();
+            if (!this->accelerationStructure || !hasAlloc || (hasAlloc && !this->gpuScratchBuffer.buffer())) { this->createAccelerationStructure(); };
 
             //std::vector<vkh::VkAccelerationStructureGeometryKHR> ptrs = {};
             //ptrs.push_back(reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR&>(this->buildGInfo[i] = this->buildGTemp));
@@ -438,12 +439,12 @@ namespace jvi {
                 }; f += this->instances[i++];
             };
 
-            // 
+            //
             this->bdHeadInfo.geometryCount = this->buildGInfo.size();
             this->bdHeadInfo.dstAccelerationStructure = this->accelerationStructure;
             this->bdHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>(this->buildGPtr.data());
             this->bdHeadInfo.scratchData = this->gpuScratchBuffer;
-            this->bdHeadInfo.update = this->needsUpdate;
+            this->bdHeadInfo.update = false;//this->needsUpdate;
 
             // 
             if (buildCommand) {
@@ -862,12 +863,12 @@ namespace jvi {
         // CAN BE MULTIPLE! (single element of array, array of array[0])
         std::vector<vkh::VkAccelerationStructureGeometryKHR>   buildGInfo = { {} };
         std::vector<vkh::VkAccelerationStructureGeometryKHR*>  buildGPtr = { {} };
-        vkh::VkAccelerationStructureGeometryKHR                buildGTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
+        vkh::VkAccelerationStructureGeometryKHR                buildGTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY!
 
         // 
-        VkPipeline rasterizationState = {}; // Vertex Input can changed, so use individual rasterization stages
-        VkPipeline covergenceState = {};
-        VkPipeline mapState = {};
+        VkPipeline rasterizationState = VK_NULL_HANDLE; // Vertex Input can changed, so use individual rasterization stages
+        VkPipeline covergenceState = VK_NULL_HANDLE;
+        VkPipeline mapState = VK_NULL_HANDLE;
 
         // 
         vkt::Vector<uint8_t> TempBuffer = {};
@@ -881,9 +882,9 @@ namespace jvi {
         vkt::Vector<uint32_t> gpuInstanceMap = {};
 
         // 
-        VkAccelerationStructureKHR accelerationStructure = {};
+        VkAccelerationStructureKHR accelerationStructure = VK_NULL_HANDLE;
         VmaAllocationInfo allocationInfo = {};
-        VmaAllocation allocation = {};
+        VmaAllocation allocation = VK_NULL_HANDLE;
 
         // 
         vkt::Vector<glm::uvec4> counterData = {};
@@ -972,7 +973,7 @@ namespace jvi {
              this->meta.geometryCount = mGeometryCount;
 
              //
-             auto stage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
+             auto stage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
              this->driver->getDeviceDispatch()->CmdSetViewport(buildCommand, 0u, 1u, viewport);
              this->driver->getDeviceDispatch()->CmdSetScissor(buildCommand, 0u, 1u, renderArea);

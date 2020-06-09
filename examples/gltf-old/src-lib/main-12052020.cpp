@@ -467,14 +467,14 @@ int main() {
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
     //
-    const float unitScale = 1.f;
+    const float unitScale = 100.f;
     const float unitHeight = -0.f;
 
     //
     tinygltf::Model model = {};
     tinygltf::TinyGLTF loader = {};
     std::string err = "", wrn = "";
-    std::string name = "Cube.gltf";
+    std::string name = "BoomBoxWithAxes.gltf";
     const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, name.c_str());
 
     //
@@ -722,6 +722,9 @@ int main() {
         mdk.emissionTexture = mat.emissiveTexture.index;
         mdk.specular = glm::vec4(1.f, mat.pbrMetallicRoughness.roughnessFactor, mat.pbrMetallicRoughness.metallicFactor, 0.f);
         mdk.normals = glm::vec4(0.5f, 0.5f, 1.0f, 1.f);
+
+        mdk.emission = glm::vec4(0.f);
+        mdk.diffuse = glm::vec4(1.f);
 
         if (mat.emissiveFactor.size() > 0) {
             mdk.emission = glm::vec4(mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2], 0.f);

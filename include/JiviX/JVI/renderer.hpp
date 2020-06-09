@@ -317,18 +317,19 @@ namespace jvi {
 
             if (parameters->eEnableDenoise) {
                 const auto vect0 = glm::uvec4(0u);
+                auto pstages = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
 
                 // Denoise diffuse data
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->denoiseState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), &vect0);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, pstages, 0u, sizeof(glm::uvec4), &vect0);
                 this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
 
                 // Denoise reflection data
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->reflectState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), &vect0);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, pstages, 0u, sizeof(glm::uvec4), &vect0);
                 this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
@@ -353,7 +354,7 @@ namespace jvi {
         //vkt::uni_arg<VkCommandBuffer> cmdbuf = {};
 
         //std::array<vkt::uni_arg<VkCommandBuffer>, 2> cmdBuf = {}; uint8_t current = 1u;
-        std::array<VkCommandBuffer, 2> cmdBuf = {}; uint8_t current = 1u; // TODO: Comfort SWAP Class
+        std::array<VkCommandBuffer, 2> cmdBuf = {VK_NULL_HANDLE,VK_NULL_HANDLE}; uint8_t current = 1u; // TODO: Comfort SWAP Class
 
         // binding data
         vkt::uni_ptr<Material> materials = {}; // materials
@@ -375,11 +376,11 @@ namespace jvi {
         vkh::VkPipelineShaderStageCreateInfo raytraceStage = {};
          
         // 
-        VkPipeline resamplingState = {};
-        VkPipeline denoiseState = {};
-        VkPipeline reflectState = {};
-        VkPipeline raytraceState = {};
-        VkPipeline raytraceTypeState = {};
+        VkPipeline resamplingState = VK_NULL_HANDLE;
+        VkPipeline denoiseState = VK_NULL_HANDLE;
+        VkPipeline reflectState = VK_NULL_HANDLE;
+        VkPipeline raytraceState = VK_NULL_HANDLE;
+        VkPipeline raytraceTypeState = VK_NULL_HANDLE;
 
         // 
         vkt::uni_ptr<Context> context = {};

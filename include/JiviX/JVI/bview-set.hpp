@@ -130,8 +130,8 @@ namespace jvi {
         bool descriptorUpdated = false;
 
         // 
-        std::vector<VkDescriptorSet> bufferViewSet = { {} };
-        std::vector<VkDescriptorSetLayout> bufferViewSetLayout = { {} };
+        std::vector<VkDescriptorSet> bufferViewSet = { VK_NULL_HANDLE };
+        std::vector<VkDescriptorSetLayout> bufferViewSetLayout = { VK_NULL_HANDLE };
         vkh::VsDescriptorSetLayoutCreateInfoHelper bufferViewSetLayoutHelper = {};
         vkh::VsDescriptorSetCreateInfoHelper bufferViewSetHelper = {};
 

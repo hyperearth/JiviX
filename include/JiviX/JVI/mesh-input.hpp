@@ -372,9 +372,9 @@ namespace jvi {
         MeshInfo meta = {};
 
         // 
-        VkPipelineLayout transformPipelineLayout = {};
-        std::vector<VkDescriptorSet> descriptorSet = { {}, {} };
-        std::vector<VkDescriptorSetLayout> transformSetLayout = { {}, {} };
+        VkPipelineLayout transformPipelineLayout = VK_NULL_HANDLE;
+        std::vector<VkDescriptorSet> descriptorSet = { VK_NULL_HANDLE, VK_NULL_HANDLE };
+        std::vector<VkDescriptorSetLayout> transformSetLayout = { VK_NULL_HANDLE, VK_NULL_HANDLE };
         vkh::VsDescriptorSetLayoutCreateInfoHelper transformSetLayoutHelper = {};
         vkh::VsDescriptorSetCreateInfoHelper descriptorSetHelper = {};
 
@@ -413,7 +413,7 @@ namespace jvi {
         // 
         vkh::VkComputePipelineCreateInfo quadInfo = {};
         vkh::VkPipelineShaderStageCreateInfo quadStage = {};
-        VkPipeline quadGenerator = {}, transformState = {};
+        VkPipeline quadGenerator = VK_NULL_HANDLE, transformState = VK_NULL_HANDLE;
 
         // 
         vkt::uni_ptr<Driver> driver = {};

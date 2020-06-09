@@ -227,7 +227,7 @@ namespace jvi {
 
         // 
         vkh::VsDescriptorSetCreateInfoHelper descriptorSetInfo = {};
-        VkDescriptorSet descriptorSet = {};
+        VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
         // 
         uintptr_t MaxMaterialCount = 64u;

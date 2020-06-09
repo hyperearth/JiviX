@@ -337,6 +337,19 @@ namespace jvi {
 
             { //
                 auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = uint32_t(meshCount),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                });
+
+                for (uint32_t i = 0; i < meshCount; i++) {
+                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuBindings;
+                };
+            };
+
+            { //
+                auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 1u,
                     .dstArrayElement = 0u,
                     .descriptorCount = uint32_t(meshCount),
@@ -507,7 +520,8 @@ namespace jvi {
 
         // INCOMPATIBLE WITH OPENGL! UNKNOWN REASON! F&CKING NVIDIA! PIDORS! PROBABLY, HARDWARE PROBLEMS... 
         protected: virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
-            if (!this->accelerationStructure || !this->gpuScratchBuffer.has()) { this->createAccelerationStructure(); };
+            const auto hasAlloc = this->gpuScratchBuffer.has();
+            if (!this->accelerationStructure || !hasAlloc || (hasAlloc && !this->gpuScratchBuffer.buffer())) { this->createAccelerationStructure(); };
 
             // 
             this->buildGeometryAccelerationStructure(buildCommand);
@@ -624,7 +638,7 @@ namespace jvi {
         vkt::ImageRegion mapImage = {};
         vkt::ImageRegion colImage = {};
         vkt::ImageRegion depImage = {};
-        VkFramebuffer mapFramebuffer = {};
+        VkFramebuffer mapFramebuffer = VK_NULL_HANDLE;
 
         // 
         std::vector<vkh::VsGeometryInstance> prepareInstances = {};
@@ -663,12 +677,12 @@ namespace jvi {
         vkt::Vector<glm::uvec4> gpuMeshInfo = {};
 
         // 
-        VkDescriptorSet meshDataDescriptorSet = {};
-        VkDescriptorSet bindingsDescriptorSet = {};
-        VkAccelerationStructureKHR accelerationStructure = {};
+        VkDescriptorSet meshDataDescriptorSet = VK_NULL_HANDLE;
+        VkDescriptorSet bindingsDescriptorSet = VK_NULL_HANDLE;
+        VkAccelerationStructureKHR accelerationStructure = VK_NULL_HANDLE;
         vkt::Vector<uint8_t> gpuScratchBuffer = {};
         VmaAllocationInfo allocationInfo = {};
-        VmaAllocation allocation = {};
+        VmaAllocation allocation = VK_NULL_HANDLE;
         
         // 
         vkt::uni_ptr<Driver> driver = {};

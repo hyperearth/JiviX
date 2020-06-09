@@ -135,9 +135,9 @@ namespace jvi {
 
     // 
     protected: friend Thread; friend Driver; // 
-        VkQueue queue = {};
-        VkCommandPool commandPool = {};
-        VkDescriptorPool descriptorPool = {};
+        VkQueue queue = VK_NULL_HANDLE;
+        VkCommandPool commandPool = VK_NULL_HANDLE;
+        VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
         vkt::uni_ptr<Driver> driver = {};
     };
 
