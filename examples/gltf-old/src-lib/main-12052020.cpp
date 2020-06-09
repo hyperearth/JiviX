@@ -553,17 +553,25 @@ int main() {
     allocInfo.instanceDispatch = fw->getInstanceDispatch();
     allocInfo.deviceDispatch = fw->getDeviceDispatch();
 
+    //
+    auto aspect = vkh::VkImageAspectFlags{.eColor = 1};
+    auto apres = vkh::VkImageSubresourceRange{.aspectMask = aspect};
+
     // 
     std::vector<VkSampler> samplers = {};
     std::vector<vkt::ImageRegion> images = {};
     for (uint32_t i = 0; i < model.images.size(); i++) {
         const auto& img = model.images[i];
 
-        // 
+        //
+        vkh::VkImageCreateFlags flg = {};
+        vkt::unlock32(flg) = 0u;
+
         images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
-            .format = VK_FORMAT_R8G8B8A8_UNORM, .extent = {uint32_t(img.width),uint32_t(img.height),1u}, .usage = imageUsage,
+            .flags = flg, .format = VK_FORMAT_R8G8B8A8_UNORM, .extent = {uint32_t(img.width),uint32_t(img.height),1u}, .usage = imageUsage,
         }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
             .format = VK_FORMAT_R8G8B8A8_UNORM,
+            .subresourceRange = apres
         }));
 
         // 
@@ -577,11 +585,14 @@ int main() {
             .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
         }, nullptr, &image.refSampler()));
 
-        // 
+        //
+        vkh::VkImageCreateFlags bflg = {};
+        vkt::unlock32(bflg) = 0u;
+
         vkt::Vector<> imageBuf = {};
         if (img.image.size() > 0u) {
             imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                .size = img.image.size(), .usage = uploadUsage,
+                .flags = bflg, .size = img.image.size(), .usage = uploadUsage,
             }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
             memcpy(imageBuf.data(), &img.image[0u], img.image.size());
         };
@@ -629,13 +640,19 @@ int main() {
             }
         };
 
-        {
+        {   //
+            vkh::VkImageCreateFlags bflg = {};
+            vkt::unlock32(bflg) = 0u;
+
+            //
             images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
+                .flags = bflg,
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 .extent = vkh::VkExtent3D{uint32_t(width),uint32_t(height),1u},
                 .usage = imageUsage,
             }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .subresourceRange = apres
             }));
 
             // 
@@ -653,7 +670,7 @@ int main() {
             vkt::Vector<> imageBuf = {};
             if (width > 0u && height > 0u && rgba) {
                 imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                    .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = uploadUsage,
+                    .flags = bflg, .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = uploadUsage,
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
                 memcpy(imageBuf.data(), rgba, size_t(width) * size_t(height) * sizeof(glm::vec4));
             };

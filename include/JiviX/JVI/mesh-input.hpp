@@ -27,6 +27,10 @@ namespace jvi {
 
         // 
         protected: virtual uPTR(MeshInput) construct() {
+            vkh::VkBufferCreateFlags bflg = {};
+            vkt::unlock32(bflg) = 0u;
+
+            //
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
 
@@ -47,10 +51,10 @@ namespace jvi {
 
             // transformPipelineLayout
             // create required buffers
-            this->rawBindings = vkt::Vector<vkh::VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkVertexInputBindingDescription) * 8u, .usage = hostUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            this->gpuBindings = vkt::Vector<vkh::VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkVertexInputBindingDescription) * 8u, .usage = gpuUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
-            this->rawAttributes = vkt::Vector<vkh::VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkVertexInputAttributeDescription) * 8u, .usage = hostUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            this->gpuAttributes = vkt::Vector<vkh::VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkVertexInputAttributeDescription) * 8u, .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->rawBindings = vkt::Vector<vkh::VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflg, .size = sizeof(vkh::VkVertexInputBindingDescription) * 8u, .usage = hostUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->gpuBindings = vkt::Vector<vkh::VkVertexInputBindingDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflg, .size = sizeof(vkh::VkVertexInputBindingDescription) * 8u, .usage = gpuUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->rawAttributes = vkt::Vector<vkh::VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflg, .size = sizeof(vkh::VkVertexInputAttributeDescription) * 8u, .usage = hostUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->gpuAttributes = vkt::Vector<vkh::VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflg, .size = sizeof(vkh::VkVertexInputAttributeDescription) * 8u, .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             // 
             return uTHIS;
@@ -298,7 +302,12 @@ namespace jvi {
             const auto& TFI = vkh::VkPipelineRasterizationStateStreamCreateInfoEXT{};
 
             //
+            auto templ = vkh::VkDescriptorSetLayoutCreateInfo{};
+            vkt::unlock32(templ.flags) = 0u;
+
+            //
             auto stage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
+            this->transformSetLayoutHelper = templ;
             this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = stage });
             this->transformSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = stage });
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(transformSetLayoutHelper, nullptr, &this->transformSetLayout[0]));

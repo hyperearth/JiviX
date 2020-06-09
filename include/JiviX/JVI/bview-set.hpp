@@ -23,10 +23,15 @@ namespace jvi {
         protected: virtual uPTR(BufferViewSet) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
+            auto templ = vkh::VkDescriptorSetLayoutCreateInfo{};
+            vkt::unlock32(templ.flags) = 0u;
 
             //
             auto stagef = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 };
             auto incomp = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 };
+
+            // 
+            this->bufferViewSetLayoutHelper = templ;
             this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]));
 
@@ -78,7 +83,7 @@ namespace jvi {
         public: virtual size_t getBufferCount() { return bufferViews.size(); };
 
         // 
-        protected: virtual uPTR(BufferViewSet) createDescriptorSet() { // 
+        protected: virtual uPTR(BufferViewSet) createDescriptorSet() { //
             this->bufferViewSetHelper = vkh::VsDescriptorSetCreateInfoHelper(this->bufferViewSetLayout[0], this->driver->getDescriptorPool());
 
             // 

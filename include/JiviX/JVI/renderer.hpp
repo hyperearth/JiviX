@@ -50,8 +50,12 @@ namespace jvi {
             };
 
             //
+            auto bflgs = vkh::VkBufferCreateFlags{};
+            vkt::unlock32(bflgs) = 0u;
+
+            //
             auto sbtUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
-            this->sbtBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 4u, .usage = sbtUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->sbtBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(glm::u64vec4) * 4u, .usage = sbtUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
 
             // 
             return uTHIS;
@@ -155,7 +159,7 @@ namespace jvi {
             const size_t uHandleSize = this->rayTracingProperties.shaderGroupHandleSize, rHandleSize = uHandleSize * 3u;
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateRayTracingPipelinesKHR(driver->getPipelineCache(), 1u, this->raytraceInfo, nullptr, &this->raytraceTypeState));
             vkh::handleVk(this->driver->getDeviceDispatch()->GetRayTracingShaderGroupHandlesKHR(this->raytraceTypeState, 0u, 3u, rHandleSize, this->sbtBuffer.data()));
-
+            
             // 
             this->rgenSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * 0u, 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);
             this->rchitSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * this->raytraceInfo.hitOffsetIndex(), 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);

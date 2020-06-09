@@ -34,10 +34,16 @@ namespace jvi {
         //virtual vkt::uni_ptr<Context> sharedPtr() const { return shared_from_this(); };
 
         // 
-        protected: virtual uPTR(Context) construct() {
+        protected: virtual uPTR(Context) construct() {//
+            vkh::VkBufferCreateFlags bflgs = {};
+            vkt::unlock32(bflgs) = 0u;
+
+            auto hostUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
+            auto gpuUsage  = vkh::VkBufferUsageFlags{.eTransferSrc = 1,                    .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
+
             this->thread = std::make_shared<Thread>(this->driver);
-            this->uniformGPUData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = VkDeviceSize(sizeof(Matrices) * 2u), .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
-            this->uniformRawData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = VkDeviceSize(sizeof(Matrices) * 2u), .usage = {.eTransferSrc = 1,                    .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->uniformGPUData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = VkDeviceSize(sizeof(Matrices) * 2u), .usage = hostUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->uniformRawData = vkt::Vector<jvi::Matrices>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = VkDeviceSize(sizeof(Matrices) * 2u), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
             this->beginTime = std::chrono::high_resolution_clock::now();
             this->leastTime = std::chrono::high_resolution_clock::now();
             this->previTime = std::chrono::high_resolution_clock::now();
@@ -274,6 +280,10 @@ namespace jvi {
         protected: virtual uPTR(Context) createFramebuffers(const uint32_t& width = 1600u, const uint32_t& height = 1200u) { // 
             std::cout << "Create Frame Buffer" << std::endl; // DEBUG!!
 
+            //
+            vkh::VkBufferCreateFlags bflg = {};
+            vkt::unlock32(bflg) = 0u;
+
             // Used Native Perspective
             if (!changedPerspective) {
                 glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(width) / float(height), 0.001f, 10000.f);
@@ -290,13 +300,14 @@ namespace jvi {
             auto fbusage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
             auto aspect = vkh::VkImageAspectFlags{.eColor = 1};
             auto apres = vkh::VkImageSubresourceRange{.aspectMask = aspect};
-
-            //
+            auto flagsU32 = 0u;
+            auto& flags = reinterpret_cast<vkh::VkImageCreateFlags&>(flagsU32);
             auto& allocInfo = driver->memoryAllocationInfo();
 
             // 
             for (uint32_t b = 0u; b < 12u; b++) { // 
                 this->frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                    .flags = flags,
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = fbusage,
@@ -320,6 +331,7 @@ namespace jvi {
             // 
             for (uint32_t b=0u;b<12u;b++) { { // 
                 this->smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                    .flags = flags,
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = fbusage,
@@ -343,6 +355,7 @@ namespace jvi {
             // 
             {
                 this->smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                    .flags = flags,
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = fbusage,
@@ -366,6 +379,7 @@ namespace jvi {
             // 
             for (uint32_t b = 0u; b < 8u; b++) { // 
                 this->rastersImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                    .flags = flags,
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
                     .usage = fbusage,
@@ -393,6 +407,7 @@ namespace jvi {
                 auto dpuse = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 };
                 auto dpres = vkh::VkImageSubresourceRange{.aspectMask = aspect};
                 this->depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                    .flags = flags,
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                     .extent = {width,height,1u},
                     .usage = dpuse,
@@ -481,11 +496,14 @@ namespace jvi {
             if (!this->unifiedPipelineLayout) {
                 std::cout << "Create Descriptor Set Layouts" << std::endl; // DEBUG!!
 
-                this->meshDataDescriptorSetLayoutHelper = {};
-                this->bindingsDescriptorSetLayoutHelper = {};
-                this->samplingDescriptorSetLayoutHelper = {};
-                this->deferredDescriptorSetLayoutHelper = {};
-                this->materialDescriptorSetLayoutHelper = {};
+                auto templ = vkh::VkDescriptorSetLayoutCreateInfo{};
+                vkt::unlock32(templ.flags) = 0u;
+
+                this->meshDataDescriptorSetLayoutHelper = templ;
+                this->bindingsDescriptorSetLayoutHelper = templ;
+                this->samplingDescriptorSetLayoutHelper = templ;
+                this->deferredDescriptorSetLayoutHelper = templ;
+                this->materialDescriptorSetLayoutHelper = templ;
 
                 auto pipusage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 };
                 auto indexedf = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 };
