@@ -20,7 +20,7 @@
 #define VKT_ENABLE_GLFW_LINKED
 #define VKT_ENABLE_GLFW_SURFACE
 
-// 
+//
 #include <string>
 #include <iostream>
 
@@ -474,9 +474,10 @@ int main() {
     tinygltf::Model model = {};
     tinygltf::TinyGLTF loader = {};
     std::string err = "", wrn = "";
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
+    std::string name = "Cube.gltf";
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, name.c_str());
 
-    // 
+    //
     //const float unitScale = 1.f;
     //const float unitHeight = -32.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
@@ -510,10 +511,13 @@ int main() {
 
 
     // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
+    auto imageUsage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
+    auto bufferUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 };
+    auto uploadUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 };
+
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = vkt::tiled(uint64_t(model.buffers[i].data.size()), uint64_t(4ull)) * uint64_t(4ull),
-            .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
+            .size = vkt::tiled(uint64_t(model.buffers[i].data.size()), uint64_t(4ull)) * uint64_t(4ull), .usage = bufferUsage,
         }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU })));
 
         // 
@@ -557,9 +561,7 @@ int main() {
 
         // 
         images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
-            .format = VK_FORMAT_R8G8B8A8_UNORM,
-            .extent = {uint32_t(img.width),uint32_t(img.height),1u},
-            .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+            .format = VK_FORMAT_R8G8B8A8_UNORM, .extent = {uint32_t(img.width),uint32_t(img.height),1u}, .usage = imageUsage,
         }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
             .format = VK_FORMAT_R8G8B8A8_UNORM,
         }));
@@ -579,9 +581,8 @@ int main() {
         vkt::Vector<> imageBuf = {};
         if (img.image.size() > 0u) {
             imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                .size = img.image.size(),
-                .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
-                }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+                .size = img.image.size(), .usage = uploadUsage,
+            }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
             memcpy(imageBuf.data(), &img.image[0u], img.image.size());
         };
 
@@ -600,7 +601,7 @@ int main() {
 
         });
 
-        material->pushSampledImage(image.getDescriptor());
+        material->pushSampledImage(vkt::uni_arg <vkh::VkDescriptorImageInfo>(image.getDescriptor()));
     };
 
 
@@ -631,8 +632,8 @@ int main() {
         {
             images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                .extent = {uint32_t(width),uint32_t(height),1u},
-                .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                .extent = vkh::VkExtent3D{uint32_t(width),uint32_t(height),1u},
+                .usage = imageUsage,
             }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
             }));
@@ -652,8 +653,7 @@ int main() {
             vkt::Vector<> imageBuf = {};
             if (width > 0u && height > 0u && rgba) {
                 imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                    .size = size_t(width) * size_t(height) * sizeof(glm::vec4),
-                    .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 },
+                    .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = uploadUsage,
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
                 memcpy(imageBuf.data(), rgba, size_t(width) * size_t(height) * sizeof(glm::vec4));
             };

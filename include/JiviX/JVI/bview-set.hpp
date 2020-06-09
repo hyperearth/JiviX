@@ -24,8 +24,10 @@ namespace jvi {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
 
-            // 
-            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 256u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+            //
+            auto stagef = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 };
+            auto incomp = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 };
+            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]));
 
             // 

@@ -1,5 +1,6 @@
 #pragma once // #
 
+#include <array>
 #include "./config.hpp"
 #include "./driver.hpp"
 #include "./thread.hpp"
@@ -87,6 +88,26 @@ namespace jvi {
         protected: virtual uPTR(Context) createRenderPass() { // 
             std::cout << "Create Render Pass" << std::endl; // DEBUG!!
 
+            auto dep0 = vkh::VkSubpassDependency{
+                .srcSubpass = VK_SUBPASS_EXTERNAL,
+                .dstSubpass = 0u,
+                .srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
+                .dstStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1},
+                .srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentWrite = 1},
+                .dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                .dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1}
+            };
+
+            auto dep1 = vkh::VkSubpassDependency{
+                .srcSubpass = 0u,
+                .dstSubpass = VK_SUBPASS_EXTERNAL,
+                .srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1},
+                .dstStageMask = vkh::VkPipelineStageFlags{.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
+                .srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                .dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
+                .dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1}
+            };
+
             {
                 vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
 
@@ -99,7 +120,7 @@ namespace jvi {
                         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                         .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
-                        });
+                    });
                 };
 
                 // 
@@ -111,29 +132,11 @@ namespace jvi {
                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                     .finalLayout = VK_IMAGE_LAYOUT_GENERAL//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                    });
+                });
 
-                // 
-                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
-                    .srcSubpass = VK_SUBPASS_EXTERNAL,
-                    .dstSubpass = 0u,
-                    .srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
-                    .dstStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1},
-                    .srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentWrite = 1},
-                    .dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                    .dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1}
-                    });
-
-                // 
-                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
-                    .srcSubpass = 0u,
-                    .dstSubpass = VK_SUBPASS_EXTERNAL,
-                    .srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1},
-                    .dstStageMask = vkh::VkPipelineStageFlags{.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
-                    .srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                    .dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                    .dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1}
-                    });
+                //
+                rpsInfo.addSubpassDependency(dep0);
+                rpsInfo.addSubpassDependency(dep1);
 
                 // 
                 //this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
@@ -167,26 +170,8 @@ namespace jvi {
                 });
 
                 // 
-                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
-                    .srcSubpass = VK_SUBPASS_EXTERNAL,
-                    .dstSubpass = 0u,
-                    .srcStageMask = {.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
-                    .dstStageMask = {.eColorAttachmentOutput = 1},
-                    .srcAccessMask = {.eColorAttachmentWrite = 1},
-                    .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                    .dependencyFlags = {.eByRegion = 1}
-                });
-
-                // 
-                rpsInfo.addSubpassDependency(vkh::VkSubpassDependency{
-                    .srcSubpass = 0u,
-                    .dstSubpass = VK_SUBPASS_EXTERNAL,
-                    .srcStageMask = {.eColorAttachmentOutput = 1},
-                    .dstStageMask = {.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
-                    .srcAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                    .dstAccessMask = {.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                    .dependencyFlags = {.eByRegion = 1}
-                });
+                rpsInfo.addSubpassDependency(dep0);
+                rpsInfo.addSubpassDependency(dep1);
 
                 // 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->mapRenderPass));
@@ -302,7 +287,11 @@ namespace jvi {
             std::array<VkImageView, 9u> smpFlip1Attachments = {};
             std::array<VkImageView, 9u> rasteredAttachments = {};
 
-            // 
+            auto fbusage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
+            auto aspect = vkh::VkImageAspectFlags{.eColor = 1};
+            auto apres = vkh::VkImageSubresourceRange{.aspectMask = aspect};
+
+            //
             auto& allocInfo = driver->memoryAllocationInfo();
 
             // 
@@ -310,9 +299,10 @@ namespace jvi {
                 this->frameBfImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
-                    .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                    .usage = fbusage,
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .subresourceRange = apres
                 });
 
                 // Create Sampler By Reference
@@ -332,9 +322,10 @@ namespace jvi {
                 this->smFlip0Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
-                    .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                    .usage = fbusage,
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .subresourceRange = apres
                 });
 
                 // Create Sampler By Reference
@@ -354,9 +345,10 @@ namespace jvi {
                 this->smFlip1Images[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
-                    .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                    .usage = fbusage,
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .subresourceRange = apres
                 });
 
                 // Create Sampler By Reference
@@ -376,9 +368,10 @@ namespace jvi {
                 this->rastersImages[b] = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .extent = {width,height,1u},
-                    .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                    .usage = fbusage,
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .subresourceRange = apres
                 });
 
                 // Create Sampler By Reference
@@ -395,14 +388,17 @@ namespace jvi {
 
             // 
             {
-                // 
+                //
+                auto aspect = vkh::VkImageAspectFlags{.eDepth = 1, .eStencil = 1};
+                auto dpuse = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 };
+                auto dpres = vkh::VkImageSubresourceRange{.aspectMask = aspect};
                 this->depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                     .extent = {width,height,1u},
-                    .usage = {.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 },
+                    .usage = dpuse,
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                    .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
+                    .subresourceRange = dpres,
                 });
 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
@@ -491,49 +487,52 @@ namespace jvi {
                 this->deferredDescriptorSetLayoutHelper = {};
                 this->materialDescriptorSetLayoutHelper = {};
 
+                auto pipusage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 };
+                auto indexedf = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 };
+
                 // Raw Data
                 for (uint32_t b = 0u; b < 2u; b++) { // For Ray Tracers
-                    this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+                    this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
                 };
 
                 // Data Buffer
-                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
 
                 // R32UI Map Buffer
-                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
 
                 // RGBA32F and depth buffer
-                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 2u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 2u, .stageFlags = pipusage }, indexedf);
 
 
                 // IndeX Data
-                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 });
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
 
                 // BETA: Ray Query Requirements
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 5u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 6u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 }); // Super-Instance
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 7u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 5u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 6u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 1u, .stageFlags = pipusage }, indexedf); // Super-Instance
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 7u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
 
                 // 
-                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 8u , .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE         , .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 8u , .stageFlags = pipusage }, indexedf);
 
                 // 
-                this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE        , .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE        , .descriptorCount = 12u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
+                this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE        , .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
+                this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE        , .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
 
                 // 
-                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 128u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount = 8u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
-                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1u, .stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 } }, vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 });
+                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 128u, .stageFlags = pipusage }, indexedf);
+                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount = 8u, .stageFlags = pipusage }, indexedf);
+                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 2u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
 
                 // 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->meshDataDescriptorSetLayoutHelper, nullptr, &this->meshDataDescriptorSetLayout));
@@ -542,8 +541,9 @@ namespace jvi {
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->samplingDescriptorSetLayoutHelper, nullptr, &this->samplingDescriptorSetLayout));
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->materialDescriptorSetLayoutHelper, nullptr, &this->materialDescriptorSetLayout));
 
-                // 
-                std::vector<vkh::VkPushConstantRange> ranges = { {.stageFlags = {.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, .offset = 0u, .size = 16u } };
+                //
+                const auto pstage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
+                std::vector<vkh::VkPushConstantRange> ranges = { vkh::VkPushConstantRange{.stageFlags = pstage, .offset = 0u, .size = 16u } };
                 std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
 
                 // 
@@ -737,9 +737,9 @@ namespace jvi {
         };
 
     protected: // 
-        std::chrono::time_point<std::chrono::system_clock> beginTime = std::chrono::high_resolution_clock::now();
-        std::chrono::time_point<std::chrono::system_clock> leastTime = std::chrono::high_resolution_clock::now();
-        std::chrono::time_point<std::chrono::system_clock> previTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::steady_clock> beginTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::steady_clock> leastTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::steady_clock> previTime = std::chrono::high_resolution_clock::now();
         bool descriptorUpdated0 = false;
         bool descriptorUpdated1 = false;
         bool descriptorUpdatedF = false;

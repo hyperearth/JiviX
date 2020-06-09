@@ -28,19 +28,22 @@ namespace jvi {
             // 
             this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
-            // 
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = vkh::VkBufferUsageFlags{.eTransferDst = 1, .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            //
+            auto hostUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageBuffer = 1, .eUniformBuffer = 1, .eRayTracing = 1 };
+            auto gpuUsage =vkh::VkBufferUsageFlags{.eTransferDst = 1, .eStorageBuffer = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 };
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = hostUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = gpuUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
-            // 
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = uint64_t(16u * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull))), .usage = vkh::VkBufferUsageFlags{ .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            //
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = uint64_t(16u * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull))), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
-            // FOR BUILD! 
+            // FOR BUILD!
+            auto bdHeadFlags = vkh::VkBuildAccelerationStructureFlagsKHR{ .eAllowUpdate = 1, .ePreferFastTrace = 1 };
             this->instancHeadInfo = vkh::VkAccelerationStructureBuildGeometryInfoKHR{};
             this->instancHeadInfo.geometryCount = this->instancInfo.size();
             this->instancHeadInfo.ppGeometries = reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR**>((this->instancPtr = this->instancInfo.data()).ptr());
             this->instancHeadInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
-            this->instancHeadInfo.flags = vkh::VkBuildAccelerationStructureFlagsKHR{ .eAllowUpdate = 1, .ePreferFastTrace = 1 };
+            this->instancHeadInfo.flags = bdHeadFlags;
             this->instancHeadInfo.geometryArrayOfPointers = false;//true;
 
             // FOR BUILD! // originally, it should to be array (like as old version of LancER)
@@ -186,14 +189,16 @@ namespace jvi {
             auto& allocInfo = driver->memoryAllocationInfo();
 
             // With Additional Elements, For Counters
-            this->mapData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 2048u * 2048u * 4u + 64u, .usage = vkh::VkBufferUsageFlags{.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            auto mapUsage = vkh::VkBufferUsageFlags{.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
+            this->mapData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 2048u * 2048u * 4u + 64u, .usage = mapUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
 
-            // 
+            //
+            auto imgUsage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
             this->colImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 .extent = {mapWidth,mapHeight,1u},
-                .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                .usage = imgUsage,
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
             });
@@ -212,7 +217,7 @@ namespace jvi {
             this->mapImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_R32_UINT,
                 .extent = {mapWidth,mapHeight,1u},
-                .usage = {.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 },
+                .usage = imgUsage,
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32_UINT,
             });
@@ -227,14 +232,15 @@ namespace jvi {
             //}, nullptr, &this->mapImage.refSampler()));
 
 
-            // 
+            //
+            auto aspectMask = vkh::VkImageAspectFlags{.eDepth = 1, .eStencil = 1};
             this->depImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .extent = {mapWidth,mapHeight,1u},
-                .usage = {.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 },
+                .usage = imgUsage,
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .subresourceRange = {.aspectMask = {.eDepth = 1, .eStencil = 1}},
+                .subresourceRange = {.aspectMask = aspectMask},
             });
 
             // Create Sampler By Reference
@@ -590,9 +596,9 @@ namespace jvi {
                 }, requirements);
 
                 // TODO: fix memoryProperties issue
+                auto usage = vkh::VkBufferUsageFlags{.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 };
                 TempBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = requirements.memoryRequirements.size,
-                    .usage = {.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 },
+                    .size = requirements.memoryRequirements.size, .usage = usage,
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch() }));
 
                 // 
@@ -612,10 +618,10 @@ namespace jvi {
                     .accelerationStructure = this->accelerationStructure
                 }, requirements);
 
-                // 
+                //
+                auto usage = vkh::VkBufferUsageFlags{ .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 };
                 this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .size = requirements.memoryRequirements.size,
-                    .usage = { .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 }
+                    .size = requirements.memoryRequirements.size, .usage = usage
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch() }));
             };
 
