@@ -141,14 +141,22 @@ namespace jvi {
                     glm::vec4(0.9f,0.98,0.999f, 1.f)
                 };
 
+                auto iflgs = vkh::VkImageCreateFlags{};
+                auto bflgs = vkh::VkBufferCreateFlags{};
+                vkt::unlock32(iflgs) = 0u;
+                vkt::unlock32(bflgs) = 0u;
+
+                const auto aspectMask = vkh::VkImageAspectFlags{.eColor = 1};
                 { //
                     auto bgUsage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
                     this->backgroundImageClass = vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(this->driver->getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
+                        .flags = iflgs,
                         .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                         .extent = {uint32_t(width),uint32_t(height),1u},
                         .usage = bgUsage,
                     }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
                         .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                        .subresourceRange = {.aspectMask = aspectMask},
                     });
 
                     // Create Sampler By Reference
@@ -162,8 +170,7 @@ namespace jvi {
                     //
                     auto usage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 };
                     vkt::Vector<> imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                        .size = size_t(width) * size_t(height) * sizeof(glm::vec4),
-                        .usage = usage,
+                        .flags = bflgs, .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = usage,
                     }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
                     memcpy(imageBuf.data(), rgba = (float*)gSkyColor.data(), size_t(width) * size_t(height) * sizeof(glm::vec4));
 

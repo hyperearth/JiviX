@@ -189,7 +189,9 @@ namespace jvi {
 
             //
             auto bflgs = vkh::VkBufferCreateFlags{};
+            auto iflgs = vkh::VkImageCreateFlags{};
             vkt::unlock32(bflgs) = 0u;
+            vkt::unlock32(iflgs) = 0u;
 
             // 
             const auto mapWidth = 1024u, mapHeight = 1024u;
@@ -200,13 +202,16 @@ namespace jvi {
             this->mapData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = 2048u * 2048u * 4u + 64u, .usage = mapUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             //
+            const auto aspectMask = vkh::VkImageAspectFlags{.eColor = 1};
             auto imgUsage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
             this->colImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                .flags = iflgs,
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 .extent = {mapWidth,mapHeight,1u},
                 .usage = imgUsage,
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .subresourceRange = {.aspectMask = aspectMask},
             });
 
             // Create Sampler By Reference
@@ -221,11 +226,13 @@ namespace jvi {
 
             // 
             this->mapImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                .flags = iflgs,
                 .format = VK_FORMAT_R32_UINT,
                 .extent = {mapWidth,mapHeight,1u},
                 .usage = imgUsage,
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32_UINT,
+                .subresourceRange = {.aspectMask = aspectMask},
             });
 
             // Create Sampler By Reference
@@ -239,14 +246,15 @@ namespace jvi {
 
 
             //
-            auto aspectMask = vkh::VkImageAspectFlags{.eDepth = 1, .eStencil = 1};
+            auto dAspectMask = vkh::VkImageAspectFlags{.eDepth = 1, .eStencil = 1};
             this->depImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
+                .flags = iflgs,
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .extent = {mapWidth,mapHeight,1u},
                 .usage = imgUsage,
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                .subresourceRange = {.aspectMask = aspectMask},
+                .subresourceRange = {.aspectMask = dAspectMask},
             });
 
             // Create Sampler By Reference

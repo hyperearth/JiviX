@@ -52,7 +52,7 @@ namespace jvi {
             glm::mat4x4 projected = glm::perspective(80.f / 180.f * glm::pi<float>(), float(1600) / float(1200), 0.001f, 10000.f);
             glm::mat4x4 modelview = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 1.f), glm::vec3(0.f, 1.f, 0.f)); // Defaultly - Center Of World into Z coordinate
 
-            // 
+            //
             uniformRawData[0].modelview = glm::transpose(modelview);
             uniformRawData[0].modelviewInv = glm::transpose(glm::inverse(modelview));
             uniformRawData[0].projection = glm::transpose(projected);
@@ -96,23 +96,31 @@ namespace jvi {
 
             auto dep0 = vkh::VkSubpassDependency{
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = 0u,
-                .srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1},
-                .dstStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1},
-                .srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentWrite = 1},
-                .dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                .dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1}
+                .dstSubpass = 0u
             };
 
             auto dep1 = vkh::VkSubpassDependency{
                 .srcSubpass = 0u,
-                .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1},
-                .dstStageMask = vkh::VkPipelineStageFlags{.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1},
-                .srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                .dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1},
-                .dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1}
+                .dstSubpass = VK_SUBPASS_EXTERNAL
             };
+
+            // Fixing Linux Issue?
+            {
+                auto srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1}; ASSIGN(dep0, srcStageMask);
+                auto dstStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1};                                     ASSIGN(dep0, dstStageMask);
+                auto srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentWrite = 1};                                            ASSIGN(dep0, srcAccessMask);
+                auto dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1};                 ASSIGN(dep0, dstAccessMask);
+                auto dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1};                                                  ASSIGN(dep0, dependencyFlags);
+            }
+
+            // Fixing Linux Issue?
+            {
+                auto srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1};                                     ASSIGN(dep1, srcStageMask);
+                auto dstStageMask = vkh::VkPipelineStageFlags{.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1};    ASSIGN(dep1, dstStageMask);
+                auto srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1};                 ASSIGN(dep1, srcAccessMask);
+                auto dstAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1};                 ASSIGN(dep1, dstAccessMask);
+                auto dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1};                                                  ASSIGN(dep1, dependencyFlags);
+            }
 
             {
                 vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
