@@ -367,6 +367,7 @@ void error(int errnum, const char * errmsg)
     std::cerr << errnum << ": " << errmsg << std::endl;
 }
 
+//
 int main() {
     glfwSetErrorCallback(error);
     glfwInit();
@@ -459,23 +460,21 @@ int main() {
     auto material = jvx::Material(context);
     renderer->linkMaterial(material->sharedPtr())->linkNode(node->sharedPtr());
 
-    // 
-    tinygltf::Model model = {};
-    tinygltf::TinyGLTF loader = {};
-    std::string err = "";
-    std::string wrn = "";
-
 
     // 
     //const float unitScale = 10.f;
     //const float unitHeight = -0.f;
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
-    // 
+    //
     const float unitScale = 1.f;
     const float unitHeight = -0.f;
-    const std::string filename = "Cube.gltf";
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, filename.c_str());
+
+    //
+    tinygltf::Model model = {};
+    tinygltf::TinyGLTF loader = {};
+    std::string err = "", wrn = "";
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
     // 
     //const float unitScale = 1.f;

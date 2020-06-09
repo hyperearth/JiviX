@@ -166,8 +166,8 @@ else()
     set (COMMON_LIBS glfw X11 Xrandr GL rt dl)
     set (LIBS ${LIBS} ${COMMON_LIBS})
 
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -std=c++2a -march=skylake -mtune=skylake -fpermissive")
-    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -g -Wall -std=c1x   -march=skylake -mtune=skylake -fpermissive")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -std=gnu++2a -march=skylake -mtune=skylake -fpermissive")
+    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -g -Wall -std=gnu1x   -march=skylake -mtune=skylake -fpermissive")
 endif()
 
 # Set optimizations for build types
