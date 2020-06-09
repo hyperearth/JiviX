@@ -86,6 +86,9 @@ namespace jvi {
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 
+            // Stub Transform Data
+            this->gpuTransformData = vkt::Vector<glm::mat3x4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflg, .size = GeometryInitial.size(), .usage =  gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+
             // 
             auto& almac = driver->memoryAllocationInfo();
             almac.memUsage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -413,7 +416,7 @@ namespace jvi {
         protected: virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; // Map BROKEN in here!
             //if (this->fullGeometryCount <= 0u) return uTHIS;
-            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
+            if (!this->accelerationStructure || !this->gpuScratchBuffer.has()) { this->createAccelerationStructure(); };
 
             //std::vector<vkh::VkAccelerationStructureGeometryKHR> ptrs = {};
             //ptrs.push_back(reinterpret_cast<vkh::VkAccelerationStructureGeometryKHR&>(this->buildGInfo[i] = this->buildGTemp));
@@ -618,6 +621,7 @@ namespace jvi {
 
             // 
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
+            vkt::unlock32(this->pipelineInfo.graphicsPipelineCreateInfo.flags) = 0u;
             this->pipelineInfo.vertexInputAttributeDescriptions = this->vertexInputAttributeDescriptions;
             this->pipelineInfo.vertexInputBindingDescriptions = this->vertexInputBindingDescriptions;
             this->pipelineInfo.stages = this->stages;

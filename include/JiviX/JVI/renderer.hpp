@@ -35,7 +35,7 @@ namespace jvi {
             this->denoiseStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/denoise.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
             this->reflectStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/reflect.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
 
-            // 
+            //
             this->resampStages = {
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/resample.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/resample.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT),
@@ -114,8 +114,11 @@ namespace jvi {
             const auto& viewport = this->context->refViewport();
             const auto& renderArea = this->context->refScissor();
 
-            // 
+            //
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
+            vkt::unlock32(this->pipelineInfo.graphicsPipelineCreateInfo.flags) = 0u;
+
+            //
             for (uint32_t i = 0u; i < 8u; i++) { // 
                 this->pipelineInfo.colorBlendAttachmentStates.push_back(vkh::VkPipelineColorBlendAttachmentState{
                     .blendEnable = true,
@@ -147,6 +150,7 @@ namespace jvi {
             // 
             //this->raytraceStages
             vkh::VkRayTracingPipelineCreateInfoKHR rInfo = {};
+            vkt::unlock32(rInfo.flags) = 0u;
             rInfo.layout = this->context->unifiedPipelineLayout;
             rInfo.maxRecursionDepth = 4u;
             //rInfo.setStages(this->raytraceStages);
@@ -200,10 +204,10 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdEndRenderPass(resampleCommand);
             vkt::commandBarrier(this->driver->getDeviceDispatch(), resampleCommand);
 
-            // 
+            //
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
-            // 
+            //
             return uTHIS;
         };
 

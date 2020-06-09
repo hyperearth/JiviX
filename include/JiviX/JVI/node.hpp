@@ -266,7 +266,6 @@ namespace jvi {
                 .unnormalizedCoordinates = true,
             }, nullptr, &this->depImage.refSampler()));
 
-
             // Mapping Attachment
             std::vector<VkImageView> attachments = { colImage, depImage };
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateFramebuffer(vkh::VkFramebufferCreateInfo{
@@ -276,7 +275,6 @@ namespace jvi {
                 .width = mapWidth,
                 .height = mapHeight
             }, nullptr, &this->mapFramebuffer));
-
 
             // 
             thread->submitOnce([&, this](VkCommandBuffer& cmd) {
@@ -288,23 +286,21 @@ namespace jvi {
 
 
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
-            const auto bindingCount = 1u; //8u;
             const auto meshCount = std::min(uint64_t(this->meshes.size()), uint64_t(64ull));
-            for (uint32_t j=0;j<bindingCount;j++) {
-                auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = j,
+            {
+                auto &handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 0u,
                     .dstArrayElement = 0u,
                     .descriptorCount = uint32_t(meshCount),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
                 });
 
-                for (uint32_t i=0;i<meshCount;i++) { if (j < this->meshes[i]->bindings.size() && this->meshes[i]->bindings[j].has()) {
-                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[j].createBufferView(VK_FORMAT_R8_UINT);
-                }};
-                //handle.offset<VkBufferView>(meshCount) = this->meshes[meshCount-1]->bindings[j].createBufferView(VK_FORMAT_R8_UINT);
-            };
+                for (uint32_t i = 0; i < meshCount; i++) {
+                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0u].createBufferView(VK_FORMAT_R8_UINT);
+                };
+            }
 
-            {
+            { //
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 2u,
                     .dstArrayElement = 0u,
@@ -315,7 +311,7 @@ namespace jvi {
                 handle.offset<VkDescriptorBufferInfo>(0u) = mapData;
             };
 
-            {
+            { //
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 3u,
                     .dstArrayElement = 0u,
@@ -326,7 +322,7 @@ namespace jvi {
                 handle.offset<VkDescriptorImageInfo>(0u) = mapImage;
             };
 
-            {
+            { //
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 4u,
                     .dstArrayElement = 0u,
@@ -339,39 +335,7 @@ namespace jvi {
             };
 
 
-
-            { // [0] Plush Index Data (VkBufferView)
-                auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 8u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                });
-
-                for (uint32_t i = 0; i < meshCount; i++) {
-                    if (this->meshes[i]->indexData.has()) {
-                        handle.offset<VkBufferView>(i) = this->meshes[i]->indexData.createBufferView(VK_FORMAT_R8_UINT);
-                    }
-                    else {
-                        handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VK_FORMAT_R8_UINT);
-                    };
-                };
-            };
-
-            { // [1] plush bindings
-                auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 0u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                });
-
-                for (uint32_t i = 0; i < meshCount; i++) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuBindings;
-                };
-            };
-
-            { // [2] plush attributes
+            { //
                 auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 1u,
                     .dstArrayElement = 0u,
@@ -384,7 +348,63 @@ namespace jvi {
                 };
             };
 
-            { // [2] material IDs
+            //
+            if (this->accelerationStructure) {
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 2u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+                }).offset<VkAccelerationStructureKHR>(0u) = this->accelerationStructure;
+            };
+
+            //
+            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 3u,
+                .descriptorCount = 1u,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->context->uniformGPUData;
+
+            // Broken!
+            for (uint32_t i = 0; i < meshCount; i++) {
+                if (this->meshes[i]->gpuTransformData.has()) {
+                    this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                            .dstBinding = 4u,
+                            .dstArrayElement = i,
+                            .descriptorCount = 1u,
+                            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                    }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[i]->gpuTransformData;
+                };
+            };
+
+            { //
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                        .dstBinding = 5u,
+                        .dstArrayElement = 0u,
+                        .descriptorCount = 1u,//uint32_t(meshCount),
+                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = gpuMeshInfo;
+            };
+
+            //
+            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 6u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuInstances;
+
+            { //
+                auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                        .dstBinding = 7u,
+                        .dstArrayElement = 0u,
+                        .descriptorCount = uint32_t(meshCount),
+                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                });
+                for (uint32_t i = 0; i < meshCount; i++) {
+                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuInstanceMap;
+                };
+            };
+
+            { //
                 auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 8u,
                     .dstArrayElement = 0u,
@@ -397,61 +417,6 @@ namespace jvi {
                 };
             };
 
-            // [3] acceleration structure
-            if (this->accelerationStructure) {
-                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 2u,
-                    .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
-                }).offset<VkAccelerationStructureKHR>(0u) = this->accelerationStructure;
-            };
-
-            // [4] plush uniforms 
-            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 3u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->context->uniformGPUData;
-
-            // [5] Mesh Data Info (Has Indices, Material ID, etc.)
-            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 6u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuInstances;
-
-            // 
-            for (uint32_t i = 0; i < meshCount; i++) {
-                if (this->meshes[i]->gpuTransformData.has()) {
-                    this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 4u,
-                        .dstArrayElement = i,
-                        .descriptorCount = 1u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                    }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[i]->gpuTransformData;
-                };
-            };
-
-            { // [7] Mesh Data Info (Has Indices, Material ID, etc.)
-                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 5u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = 1u,//uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }).offset<vkh::VkDescriptorBufferInfo>(0u) = gpuMeshInfo;
-            };
-
-            { // [8] 
-                auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 7u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                });
-                for (uint32_t i = 0; i < meshCount; i++) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuInstanceMap;
-                };
-            };
 
             // 
             vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet, this->descriptorUpdatedM));
@@ -542,7 +507,7 @@ namespace jvi {
 
         // INCOMPATIBLE WITH OPENGL! UNKNOWN REASON! F&CKING NVIDIA! PIDORS! PROBABLY, HARDWARE PROBLEMS... 
         protected: virtual uPTR(Node) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}) {
-            if (!this->accelerationStructure) { this->createAccelerationStructure(); };
+            if (!this->accelerationStructure || !this->gpuScratchBuffer.has()) { this->createAccelerationStructure(); };
 
             // 
             this->buildGeometryAccelerationStructure(buildCommand);
