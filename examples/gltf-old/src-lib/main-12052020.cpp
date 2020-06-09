@@ -402,6 +402,7 @@ int main() {
 
     // Ininitialize by GlBinding
     //glfwMakeContextCurrent(appObj.opengl = glfwCreateWindow(canvasWidth, canvasHeight, "GLTest", nullptr, nullptr));
+#ifdef ENABLE_OPENGL_INTEROP
     glbinding::initialize(0, glfwGetProcAddress, true, false);
     glbinding::aux::enableGetErrorCallback();
 
@@ -415,6 +416,7 @@ int main() {
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         glCheckError();
     }
+#endif
 
     // 
     float xscale = 1.f, yscale = 1.f;
@@ -510,7 +512,7 @@ int main() {
     // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = vkt::tiled(model.buffers[i].data.size(), 4ull) * 4ull,
+            .size = vkt::tiled(uint64_t(model.buffers[i].data.size()), uint64_t(4ull)) * uint64_t(4ull),
             .usage = {.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
         }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU })));
 
@@ -535,8 +537,8 @@ int main() {
     std::vector<vkt::Vector<uint8_t>> buffersViews = {};
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
         const auto& BV = model.bufferViews[i];
-        const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
-        buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer].getAllocation(), BV.byteOffset, vkt::tiled(BV.byteLength, 4ull) * 4ull));
+        const auto range = vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull);
+        buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer].getAllocation(), BV.byteOffset, vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull)));
         bvse->pushBufferView(buffersViews.back());
     };
 
@@ -744,11 +746,11 @@ int main() {
                 vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
             };
             vertexCountAll += vertexCount;
-            primitiveCountPer.push_back(vkt::tiled(vertexCount,3ull));
+            primitiveCountPer.push_back(vkt::tiled(uint64_t(vertexCount),uint64_t(3ull)));
         };
 
         // 
-        const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCountAll, 3ull), 1ull);
+        const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(uint64_t(vertexCountAll), uint64_t(3ull)), uint64_t(1ull));
         jvx::MeshBinding mBinding(context, PrimitiveCount, primitiveCountPer);
         meshes.push_back(mBinding->setIndexCount(vertexCountAll)->sharedPtr()); // mBinding->addMeshInput(mInput, primitive.material);
 
@@ -767,7 +769,7 @@ int main() {
             };
 
             // 
-            const VkDeviceSize PrimitiveCount = std::max(vkt::tiled(vertexCount, 3ull), 1ull); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
+            const VkDeviceSize PrimitiveCount = std::max(vkt::tiled(uint64_t(vertexCount), uint64_t(3ull)), uint64_t(1ull)); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
 
             // 
             auto& mesh = mBinding; instancedTransformPerMesh.push_back({});
@@ -821,7 +823,7 @@ int main() {
             if (primitive.indices >= 0) { // determine index type
                 auto& attribute = model.accessors[primitive.indices];
                 const auto& BV = model.bufferViews[attribute.bufferView];
-                const auto range = vkt::tiled(BV.byteLength, 4ull) * 4ull;
+                const auto range = vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull);
 
                 // 
                 auto stride = std::max(VkDeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
@@ -954,7 +956,7 @@ int main() {
         //fw->getDeviceDispatch()->SignalSemaphore(vkh::VkSemaphoreSignalInfo{.semaphore = framebuffers[n_semaphore].semaphore, .value = 1u});
 
         { // submit rendering (and wait presentation in device)
-            std::vector<vkh::VkClearValue> clearValues = { vkh::VkClearValue{.color = glm::vec4(0.f, 0.f, 0.f, 0.f)}, vkh::VkClearValue{.depthStencil = vkh::VkClearDepthStencilValue{1.0f, 0} } };
+            std::vector<vkh::VkClearValue> clearValues = {vkh::VkClearValue{.color = vkh::VkClearColorValue{glm::vec4(0.f, 0.f, 0.f, 0.f)}}, vkh::VkClearValue{.depthStencil = vkh::VkClearDepthStencilValue{1.0f, 0} } };
             Shared::TimeCallback(double(context->registerTime()->setModelView(glm::mat4x4(cameraController->handle().project()))->drawTime()));
 
             // Create render submission 

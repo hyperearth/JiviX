@@ -50,15 +50,15 @@ namespace jvi {
             this->counterData = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 4u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             // 
-            this->offsetCounterData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = vkt::tiled((std::max(GeometryInitial.size(), 64ull)+1u), 2ull) * 8u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_TO_CPU }));
+            this->offsetCounterData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = vkt::tiled((std::max(uint64_t(GeometryInitial.size()), uint64_t(64ull))+uint64_t(1u)), uint64_t(2ull)) * 8u, .usage = { .eTransferSrc = 1, .eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndirectBuffer = 1, .eRayTracing = 1, .eTransformFeedbackBuffer = 1, .eTransformFeedbackCounterBuffer = 1, .eSharedDeviceAddress = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_TO_CPU }));
 
             // 
             //this->gpuMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
             this->rawMeshInfo = vkt::Vector<MeshInfo>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
 
             // Internal Instance Map Per Global Node
-            this->rawInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = std::max(GeometryInitial.size(), 64ull) * sizeof(uint32_t), .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            this->gpuInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = std::max(GeometryInitial.size(), 64ull) * sizeof(uint32_t), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->rawInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = uint64_t(std::max(static_cast<uint64_t>(GeometryInitial.size()), uint64_t(64ull)) * sizeof(uint32_t)), .usage = {.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->gpuInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = uint64_t(std::max(static_cast<uint64_t>(GeometryInitial.size()), uint64_t(64ull)) * sizeof(uint32_t)), .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             // for faster code, pre-initialize
             this->stages = {
@@ -196,7 +196,6 @@ namespace jvi {
         // 
         public: virtual GLuint& getIndexBufferGL() { return this->indexDataOGL.second; };
         public: virtual const GLuint& getIndexBufferGL() const { return this->indexDataOGL.second; };
-#endif
 
         // Win32 Only (currently)
         protected: virtual HANDLE& getBindingMemoryHandle(const uintptr_t& i = 0u) {
@@ -223,6 +222,7 @@ namespace jvi {
         //    this->rawMeshInfo[0u].materialID = materialID;
         //    return uTHIS;
         //};
+#endif
 
         // 
         public: virtual uPTR(MeshBinding) manifestIndex(const VkIndexType& type = VK_INDEX_TYPE_NONE_KHR) {
@@ -231,7 +231,7 @@ namespace jvi {
         };
 
         // TODO: Add QUADs support for GEN-2.0
-        public: virtual uPTR(MeshBinding) setIndexCount(const VkDeviceSize& count = 65536u * 3u) { this->setPrimitiveCount(std::min(VkDeviceSize(vkt::tiled(count, 3ull)), VkDeviceSize(this->MaxPrimitiveCount))); return uTHIS; };
+        public: virtual uPTR(MeshBinding) setIndexCount(const VkDeviceSize& count = 65536u * 3u) { this->setPrimitiveCount(std::min(VkDeviceSize(vkt::tiled(uint64_t(count), uint64_t(3ull))), VkDeviceSize(this->MaxPrimitiveCount))); return uTHIS; };
         public: virtual uPTR(MeshBinding) setPrimitiveCount(const VkDeviceSize& count = 65536u) { this->primitiveCount = std::min(VkDeviceSize(count), VkDeviceSize(this->MaxPrimitiveCount)); return uTHIS; };
 
 
@@ -355,7 +355,7 @@ namespace jvi {
                 auto offsetp = this->offsetTemp;
                 {
                     //offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE; //+ this->bindings[0u].offset();
-                    offsetp.primitiveCount = I.has() ? vkt::tiled(I->getIndexCount(), 3ull) : vkt::tiled(this->ranges[i], 1ull); // TODO: De-Facto primitive count...
+                    offsetp.primitiveCount = I.has() ? vkt::tiled(uint64_t(I->getIndexCount()), uint64_t(3ull)) : vkt::tiled(uint64_t(this->ranges[i]), uint64_t(1ull)); // TODO: De-Facto primitive count...
                     offsetp.firstVertex = uOffset;
                     this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = i * sizeof(uint32_t), .size = sizeof(uint32_t) });
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier In 
@@ -480,7 +480,7 @@ namespace jvi {
         public: virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const VkDeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
-            this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
+            this->ranges.push_back(vkt::tiled(uint64_t(input->getIndexCount()), uint64_t(3ull)));
             this->instances.push_back(instanceCount);
             for (uint32_t i = 0; i < instanceCount; i++) { this->rawMaterialIDs[this->fullGeometryCount + uintptr_t(i)] = materialID; }; // TODO: Material ID per instance
             this->fullGeometryCount += instanceCount;
@@ -491,7 +491,7 @@ namespace jvi {
         public: virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
-            this->ranges.push_back(vkt::tiled(input->getIndexCount(), 3ull));
+            this->ranges.push_back(vkt::tiled(uint64_t(input->getIndexCount()), uint64_t(3ull)));
             this->instances.push_back(materialIDs.size());
             for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawMaterialIDs[this->fullGeometryCount + uintptr_t(i)] = materialIDs[i]; }; // TODO: Material ID per instance
             this->fullGeometryCount += materialIDs.size();

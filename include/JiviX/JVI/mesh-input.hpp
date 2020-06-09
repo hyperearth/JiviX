@@ -141,7 +141,7 @@ namespace jvi {
 
                 // 
                 const auto originalCt = this->currentUnitCount;
-                const uint32_t ucount = vkt::tiled(originalCt, 1024ull);
+                const uint32_t ucount = vkt::tiled(uint64_t(originalCt), uint64_t(1024ull));
 
                 // 
                 this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->quadGenerator);
@@ -152,7 +152,7 @@ namespace jvi {
 
                 // Now should to be triangles!
                 if (this->indexData) {
-                    this->setIndexData(this->meta.indexID, this->indexType)->manifestIndex(VK_INDEX_TYPE_UINT32)->setIndexCount(vkt::tiled(originalCt, 4ull) * 6u);
+                    this->setIndexData(this->meta.indexID, this->indexType)->manifestIndex(VK_INDEX_TYPE_UINT32)->setIndexCount(vkt::tiled(uint64_t(originalCt), uint64_t(4ull)) * 6u);
                 };
             };
 

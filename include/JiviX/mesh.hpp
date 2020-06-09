@@ -67,8 +67,10 @@ namespace jvx {
           CALLIFY(setDriver);
           CALLIFY(getBindingBuffer);
           CALLIFY(getIndexBuffer);
+#ifdef ENABLE_OPENGL_INTEROP
           CALLIFY(getBindingMemoryHandle);
           CALLIFY(getIndexMemoryHandle);
+#endif
           CALLIFY(manifestIndex);
           CALLIFY(setIndexCount);
           CALLIFY(setPrimitiveCount);

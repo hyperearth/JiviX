@@ -69,15 +69,14 @@ set (SOURCES_LIST
 )
 
 # Find packages (Linux Prior)
+find_package(GLFW QUIET)
 find_package(Vulkan REQUIRED)
-find_package(GLFW3 QUIET)
 find_package(PkgConfig QUIET)
 find_package (glbinding REQUIRED) # if it is really required in your project
-pkg_search_module(GLFW QUIET glfw3)
+pkg_search_module(GLFW QUIET glfw)
 pkg_search_module(GLFW QUIET renderdoc)
 
 # Set libs and include dirs of projects
-set (LIBS glfw3)
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
 set (INC_DIR 
     "${DEP_DIR}/include/JiviX/"
@@ -91,7 +90,7 @@ set (INC_DIR
 # Set definition
 set (DEFINES
     -DNOMINMAX
-    -DENABLE_OPENGL_INTEROP
+    #-DENABLE_OPENGL_INTEROP
     -DVK_ENABLE_BETA_EXTENSIONS
     -D_CRT_SECURE_NO_WARNINGS
     -D_USE_MATH_DEFINES
@@ -124,10 +123,11 @@ if (Vulkan_LIBRARY)
     #set (LIBS ${LIBS} ${Vulkan_LIBRARY}) #Da poshlo ono... 
 endif()
 
+
 # GLFW 
 if (GLFW_LIBRARIES)
     set (LIBS ${LIBS} ${GLFW_LIBRARIES})
-    set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
+    #set (INC_DIR ${INC_DIR} ${GLFW_INCLUDE_DIRS})
 endif()
 
 # glbinding
@@ -149,11 +149,15 @@ endif()
 # Compiler specific options
 if (MSVC) # Clang in Visual Studio 2017
     #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
+    set (LIBS ${LIBS} glfw3)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3")
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
 else()
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -march=skylake -mtune=skylake -fpermissive ")
-    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -std=c1x   -march=skylake -mtune=skylake -fpermissive ")
+    set (COMMON_LIBS glfw X11 Xrandr GL rt dl)
+    set (LIBS ${LIBS} ${COMMON_LIBS})
+
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -std=c++2a -march=skylake -mtune=skylake -fpermissive ")
+    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -m64 -std=c1x   -march=skylake -mtune=skylake -fpermissive ")
 endif()
 
 # Set optimizations for build types
