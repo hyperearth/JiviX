@@ -430,7 +430,6 @@ namespace jvi {
                 };
             };
 
-
             // 
             vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->meshDataDescriptorSetInfo, this->meshDataDescriptorSet, this->descriptorUpdatedM));
             vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(driver->getDeviceDispatch(), this->bindingsDescriptorSetInfo, this->bindingsDescriptorSet, this->descriptorUpdatedB));

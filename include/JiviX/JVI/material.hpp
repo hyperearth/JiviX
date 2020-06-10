@@ -15,10 +15,7 @@ namespace jvi {
         glm::vec4 normals = { 0.5f,0.5f,1.f,1.f };
         glm::vec4 emission = { 0.0f,0.0f,0.f,1.f };
 
-        int diffuseTexture = -1;
-        int specularTexture = -1;
-        int normalsTexture = -1;
-        int emissionTexture = -1;
+        int diffuseTexture = -1, specularTexture = -1, normalsTexture = -1,  emissionTexture = -1;
 
         glm::uvec4 udata = glm::uvec4(0u);
     };

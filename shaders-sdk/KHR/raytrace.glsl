@@ -133,7 +133,7 @@ void main() {
                     } else 
                     if ( result.diffuseColor.w > 0.001f ) {
                         if (couldReflection) {
-+                            gEnergy *= vec4(mix(1.f.xxx, result.diffuseColor.xyz, result.specularColor.zzz), 1.f);
+                            gEnergy *= vec4(mix(1.f.xxx, result.diffuseColor.xyz, result.specularColor.zzz), 1.f);
                         } else {
                             gSignal.xyz += gEnergy.xyz * result.emissionColor.xyz * result.emissionColor.w;
                             gEnergy *= vec4(max(result.diffuseColor.xyz - clamp(result.emissionColor.xyz*result.emissionColor.w,0.f.xxx,1.f.xxx), 0.f.xxx), 1.f);
