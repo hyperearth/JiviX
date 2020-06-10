@@ -1,4 +1,6 @@
 
+//#define RES hits[gl_LocalInvocationIndex]
+
 // 
 void main() {
     const uvec2 lanQ = LAUNCH_ID;//gl_LaunchIDEXT.xy;//gl_GlobalInvocationID.xy;
