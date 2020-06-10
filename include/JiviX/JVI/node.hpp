@@ -5,8 +5,15 @@
 #include "./thread.hpp"
 #include "./mesh-binding.hpp"
 
+
 namespace jvi {
 
+// The Switch
+#if !defined(NEW_VERSION) && !defined(OLD_VERSION)
+#define NEW_VERSION
+#endif
+
+#ifdef NEW_VERSION
     // WIP Instances
     // ALSO, RAY-TRACING PIPELINES WILL USE NATIVE BINDING AND ATTRIBUTE READERS
     class Node : public std::enable_shared_from_this<Node> { public: friend Renderer; 
@@ -156,7 +163,8 @@ namespace jvi {
         // Push Mesh "Template" For Any Other Instances
         public: virtual uintptr_t pushMesh(const vkt::uni_ptr<MeshBinding>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
-            this->meshes.push_back(mesh);
+            //if (ptr < 1u)
+                this->meshes.push_back(mesh);
             return ptr;
         };
 
@@ -373,8 +381,9 @@ namespace jvi {
                 .descriptorCount = 1u,
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
             }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->context->uniformGPUData;
-
+             
             // Broken!
+            /*
             for (uint32_t i = 0; i < meshCount; i++) {
                 if (this->meshes[i]->gpuTransformData.has()) {
                     this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -384,7 +393,7 @@ namespace jvi {
                         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                     }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[i]->gpuTransformData;
                 };
-            };
+            };*/
 
             { //
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
@@ -686,5 +695,6 @@ namespace jvi {
         vkt::uni_ptr<Thread> thread = {};
         vkt::uni_ptr<Context> context = {};
     };
+#endif
 
 };

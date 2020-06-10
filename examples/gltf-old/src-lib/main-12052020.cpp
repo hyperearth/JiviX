@@ -897,15 +897,15 @@ int main() {
     // load scene
     uint32_t sceneID = 0;
     if (model.scenes.size() > 0) {
-        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(0., unitHeight, 0.)) * glm::scale(glm::dvec3(unitScale))), 16);
-        //};
-
         for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
             auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., unitHeight - 2.f, -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(0., unitHeight, 0.)) * glm::scale(glm::dvec3(unitScale))), 16);
         };
+
+        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
+        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
+        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., unitHeight - 2.f, -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
+        //};
     };
 
     // 

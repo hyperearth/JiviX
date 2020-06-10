@@ -289,7 +289,7 @@ namespace jvi {
             if (parameters->eEnableBuildGeometry) { this->node->copyMeta(currentCmd); };
             if (parameters->eEnableBuildAccelerationStructure) { this->node->buildAccelerationStructure(currentCmd); };
             if (parameters->eEnableMapping) { this->node->mappingGeometry(currentCmd); };
-            if (parameters->eEnableRasterization) { this->node->rasterizeGeometry(currentCmd); };
+            //if (parameters->eEnableRasterization) { this->node->rasterizeGeometry(currentCmd); };
 
             // Compute ray-tracing (RTX)
             auto pstage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
