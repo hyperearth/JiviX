@@ -116,7 +116,7 @@ namespace jvi {
                 .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
             };
 
-            // 
+            //
             auto dep0 = vkh::VkSubpassDependency{ .srcSubpass = VK_SUBPASS_EXTERNAL, .dstSubpass = 0u };
             auto dep1 = vkh::VkSubpassDependency{ .srcSubpass = 0u, .dstSubpass = VK_SUBPASS_EXTERNAL };
 
