@@ -29,14 +29,11 @@ namespace jvi {
             this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             //
-            auto bflgs = vkh::VkBufferCreateFlags{};
-            vkt::unlock32(bflgs) = 0u;
-
-            //
-            auto hostUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageBuffer = 1, .eUniformBuffer = 1, .eRayTracing = 1 };
-            auto gpuUsage =vkh::VkBufferUsageFlags{.eTransferDst = 1, .eStorageBuffer = 1, .eUniformBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 };
+            auto bflgs = vkh::VkBufferCreateFlags::create();
+            auto hostUsage = vkh::VkBufferUsageFlags::create([&](auto* it){ it->eTransferSrc = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1; return it; });
+            auto gpuUsage = vkh::VkBufferUsageFlags::create([&](auto* it) { it->eTransferDst = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1, it->eSharedDeviceAddress = 1; return it; });
             this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = hostUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = gpuUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             //
             this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = uint64_t(16u * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull))), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
@@ -159,7 +156,7 @@ namespace jvi {
         // Push Mesh "Template" For Any Other Instances
         public: virtual uintptr_t pushMesh(const vkt::uni_ptr<MeshBinding>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
-            if (ptr < 1u) this->meshes.push_back(mesh);
+            this->meshes.push_back(mesh);
             return ptr;
         };
 
