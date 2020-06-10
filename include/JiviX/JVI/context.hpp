@@ -90,22 +90,37 @@ namespace jvi {
         public: virtual vkt::uni_ptr<Driver>& getDriver() { return driver; };
         public: virtual const vkt::uni_ptr<Driver>& getDriver() const { return driver; };
 
-        // 
+        //
         protected: virtual uPTR(Context) createRenderPass() { // 
             std::cout << "Create Render Pass" << std::endl; // DEBUG!!
 
-            auto dep0 = vkh::VkSubpassDependency{
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = 0u
+            //
+            auto colAttachment = vkh::VkAttachmentDescription{
+                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
             };
 
-            auto dep1 = vkh::VkSubpassDependency{
-                .srcSubpass = 0u,
-                .dstSubpass = VK_SUBPASS_EXTERNAL
+            //
+            auto depAttachment = vkh::VkAttachmentDescription{
+                .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
+                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
             };
 
-            // Fixing Linux Issue?
-            {
+            // 
+            auto dep0 = vkh::VkSubpassDependency{ .srcSubpass = VK_SUBPASS_EXTERNAL, .dstSubpass = 0u };
+            auto dep1 = vkh::VkSubpassDependency{ .srcSubpass = 0u, .dstSubpass = VK_SUBPASS_EXTERNAL };
+
+            { // Fixing Linux Issue?
                 auto srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1, .eTransfer = 1, .eBottomOfPipe = 1}; ASSIGN(dep0, srcStageMask);
                 auto dstStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1};                                     ASSIGN(dep0, dstStageMask);
                 auto srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentWrite = 1};                                            ASSIGN(dep0, srcAccessMask);
@@ -113,8 +128,7 @@ namespace jvi {
                 auto dependencyFlags = vkh::VkDependencyFlags{.eByRegion = 1};                                                  ASSIGN(dep0, dependencyFlags);
             }
 
-            // Fixing Linux Issue?
-            {
+            { // Fixing Linux Issue?
                 auto srcStageMask = vkh::VkPipelineStageFlags{.eColorAttachmentOutput = 1};                                     ASSIGN(dep1, srcStageMask);
                 auto dstStageMask = vkh::VkPipelineStageFlags{.eTopOfPipe = 1, .eColorAttachmentOutput = 1, .eTransfer = 1};    ASSIGN(dep1, dstStageMask);
                 auto srcAccessMask = vkh::VkAccessFlags{.eColorAttachmentRead = 1, .eColorAttachmentWrite = 1};                 ASSIGN(dep1, srcAccessMask);
@@ -124,70 +138,19 @@ namespace jvi {
 
             {
                 vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
-
-                for (uint32_t b = 0u; b < 8u; b++) {
-                    rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
-                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-                        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                        .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
-                    });
-                };
-
-                // 
-                rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
-                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                    .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-                    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                    .finalLayout = VK_IMAGE_LAYOUT_GENERAL//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                });
-
-                //
+                for (uint32_t b = 0u; b < 8u; b++) { rpsInfo.addColorAttachment(colAttachment); };
+                rpsInfo.setDepthStencilAttachment(depAttachment);
                 rpsInfo.addSubpassDependency(dep0);
                 rpsInfo.addSubpassDependency(dep1);
-
-                // 
-                //this->renderPass = driver->getDevice().createRenderPass(rpsInfo);
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->renderPass));
             }
 
             {
                 vkh::VsRenderPassCreateInfoHelper rpsInfo = {};
-
-                for (uint32_t b = 0u; b < 1u; b++) {
-                    rpsInfo.addColorAttachment(vkh::VkAttachmentDescription{
-                        .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-                        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                        .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
-                    });
-                };
-
-                // 
-                rpsInfo.setDepthStencilAttachment(vkh::VkAttachmentDescription{
-                    .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
-                    .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-                    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                    .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                    .finalLayout = VK_IMAGE_LAYOUT_GENERAL//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                });
-
-                // 
+                for (uint32_t b = 0u; b < 1u; b++) { rpsInfo.addColorAttachment(colAttachment); };
+                rpsInfo.setDepthStencilAttachment(depAttachment);
                 rpsInfo.addSubpassDependency(dep0);
                 rpsInfo.addSubpassDependency(dep1);
-
-                // 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateRenderPass(rpsInfo, nullptr, &this->mapRenderPass));
             }
 
@@ -422,7 +385,7 @@ namespace jvi {
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                     .subresourceRange = dpres,
-                });
+                }, VK_IMAGE_LAYOUT_GENERAL);
 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
@@ -431,8 +394,6 @@ namespace jvi {
                     .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                     .unnormalizedCoordinates = true,
                 }, nullptr, &this->depthImage.refSampler()));
-
-                //this->depthImage.setImageLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
                 // 5th attachment
                 deferredAttachments[8u] = depthImage;

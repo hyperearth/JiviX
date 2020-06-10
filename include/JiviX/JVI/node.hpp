@@ -92,9 +92,8 @@ namespace jvi {
 
         // 
         public: virtual uPTR(Node) setRawInstance(const vkt::Vector<vkh::VsGeometryInstance>& rawInstances = {}, const uint32_t& instanceCounter = 0u) {
-            this->rawInstances = rawInstances; 
-            this->instanceCounter = instanceCounter;
-            this->mapMeshes.resize(instanceCounter);
+            this->rawInstances = rawInstances;
+            this->mapMeshes.resize(this->instanceCounter = instanceCounter);
             return uTHIS;
         };
 
@@ -113,11 +112,11 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        //
         public: virtual uPTR(Node) pushInstance(vkt::uni_arg<vkh::VsGeometryInstance> instance = vkh::VsGeometryInstance{}) {
             //if (this->meshes[instance->instanceId] && this->meshes[instance->instanceId]->fullGeometryCount > 0) {
-            if (this->meshes[instance->instanceId]) {
-                const auto instanceID = this->instanceCounter++;
+            if (instance->instanceId < this->meshes.size() && this->meshes[instance->instanceId]) {
+                const auto instanceID = this->prepareInstances.size(); //this->instanceCounter++;
                 const auto meshID = instance->instanceId;
                 //this->rawInstances[instanceID] = instance; // List Of Instances
 
@@ -139,7 +138,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        //
         protected: virtual uPTR(Node) mapMeshData(const VkCommandBuffer& cmdBuffer) {
             for (auto& Mesh : this->meshes) { Mesh->resetInstanceMap(); }; uintptr_t I = 0;
             for (uint32_t i = 0; i < this->mapMeshes.size(); i++) {
@@ -160,7 +159,8 @@ namespace jvi {
         // Push Mesh "Template" For Any Other Instances
         public: virtual uintptr_t pushMesh(const vkt::uni_ptr<MeshBinding>& mesh = {}) {
             const uintptr_t ptr = this->meshes.size();
-            this->meshes.push_back(mesh); return ptr;
+            if (ptr < 1u) this->meshes.push_back(mesh);
+            return ptr;
         };
 
         // 
@@ -381,36 +381,36 @@ namespace jvi {
             for (uint32_t i = 0; i < meshCount; i++) {
                 if (this->meshes[i]->gpuTransformData.has()) {
                     this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                            .dstBinding = 4u,
-                            .dstArrayElement = i,
-                            .descriptorCount = 1u,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                        .dstBinding = 4u,
+                        .dstArrayElement = i,
+                        .descriptorCount = 1u,
+                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                     }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[i]->gpuTransformData;
                 };
             };
 
             { //
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 5u,
-                        .dstArrayElement = 0u,
-                        .descriptorCount = 1u,//uint32_t(meshCount),
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }).offset<vkh::VkDescriptorBufferInfo>(0u) = gpuMeshInfo;
+                    .dstBinding = 5u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = 1u,//uint32_t(meshCount),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuMeshInfo;
             };
 
             //
             this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 6u,
-                    .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                .dstBinding = 6u,
+                .descriptorCount = 1u,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
             }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuInstances;
 
             { //
                 auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 7u,
-                        .dstArrayElement = 0u,
-                        .descriptorCount = uint32_t(meshCount),
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                    .dstBinding = 7u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = uint32_t(meshCount),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 });
                 for (uint32_t i = 0; i < meshCount; i++) {
                     handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuInstanceMap;
@@ -452,7 +452,7 @@ namespace jvi {
             return uTHIS;
         };
 
-        // 
+        //
         protected: virtual uPTR(Node) mappingGeometry(const VkCommandBuffer& currentCmd = {}) {
             this->clearMappedData(currentCmd);
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
@@ -485,8 +485,9 @@ namespace jvi {
             };
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
 
-            // 
+            //
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+            //uintptr_t I = 0u; for (uint32_t i = 0u; i < this->instanceCounter; i++) {
             uintptr_t I = 0u; for (uint32_t i = 0u; i < this->instanceCounter; i++) {
                 auto& Mesh = this->meshes[this->rawInstances[i].instanceId];
                 Mesh->createRasterizeCommand(currentCmd, glm::uvec4(I = this->rawInstances[i].instanceId, 0u, i, 0u), true);
@@ -501,7 +502,7 @@ namespace jvi {
         protected: virtual uPTR(Node) copyMeta(const VkCommandBuffer& copyCommand = {}) { // 
             this->mapMeshData(copyCommand); // Needs to Mapping! NOW!
 
-            auto I = 0u; // Selection Only Accounted Chunks
+            auto& I = this->instanceCounter; I = 0u; // Selection Only Accounted Chunks
             for (auto i = 0; i < std::min(this->prepareInstances.size(), this->rawInstances.size()); i++) {
                 auto& Instance = this->prepareInstances[i]; auto& Mesh = this->meshes[Instance.instanceId];
                 if (Mesh->fullGeometryCount > 0 && Mesh->mapCount > 0) { this->rawInstances[I++] = Instance; };

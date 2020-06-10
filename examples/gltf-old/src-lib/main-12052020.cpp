@@ -287,7 +287,7 @@ struct FDStruct {
 };
 
 
-
+/*
 void APIENTRY glDebugOutput(GLenum source,
     GLenum type,
     unsigned int id,
@@ -360,7 +360,7 @@ GLenum glCheckError_(const char* file, int line) {
 }
 
 #define glCheckError() glCheckError_(__FILE__, __LINE__) 
-
+*/
 
 void error(int errnum, const char * errmsg)
 {

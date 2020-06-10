@@ -157,6 +157,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                     processing.direct = vec4(raydir.xyz, 0.f);
                     processing.origin = vec4(lastOrigin, 1.f);
                     processing.txcmid = vec4(uintBitsToFloat(packUnorm2x16(fract(gTexcoord.xy))), uintBitsToFloat(MatID), 1.f, 0.f); // 
+                    //processing.txcmid.y = uintBitsToFloat(0u);
                     //processing.tangent = gTangent; // UNUSED
 
                     // 1.f, 0.f, 0.f, 

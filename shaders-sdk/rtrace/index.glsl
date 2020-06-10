@@ -117,13 +117,6 @@ layout (binding = 2, set = 0, scalar) readonly buffer MapData { uint32_t data[];
 layout (binding = 3, set = 0, r32ui) readonly uniform uimage2D mapImage[];
 layout (binding = 4, set = 0) uniform texture2D mapColor[];
 
-// 
-#ifdef GEN_QUAD_INDEX // For Minecraft
-layout (binding = 8, set = 0, r8ui) uniform uimageBuffer index[]; // indices compatible 
-#else
-layout (binding = 8, set = 0, r8ui) readonly uniform uimageBuffer index[]; // indices compatible 
-#endif
-
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
 layout (binding = 0, set = 1, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
 layout (binding = 1, set = 1, scalar) readonly buffer Attributes { Attribute data[]; } attributes[];
@@ -171,7 +164,6 @@ layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 // System Specified
 uint8_t load_u8(in uint offset, in uint binding, in uint nodeMeshID) {
     if (binding == 0u) { return uint8_t(imageLoad(mesh0[meshID], int(offset)).x); };
-    if (binding == 8u) { return uint8_t(imageLoad(index[meshID], int(offset)).x); };
     return uint8_t(0u);
 };
 

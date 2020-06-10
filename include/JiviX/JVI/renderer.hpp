@@ -264,7 +264,7 @@ namespace jvi {
                 currentCmd = cmdBuf;
             };
 
-            //
+            // 
             if (this->node->meshDataDescriptorSet) { this->context->descriptorSets[0] = this->node->meshDataDescriptorSet; };
             if (this->node->bindingsDescriptorSet) { this->context->descriptorSets[1] = this->node->bindingsDescriptorSet; };
             if (this->materials->descriptorSet) {  this->context->descriptorSets[4] = this->materials->descriptorSet; };

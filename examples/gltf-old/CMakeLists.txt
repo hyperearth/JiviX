@@ -163,7 +163,7 @@ if (MSVC) # Clang in Visual Studio 2017
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3")
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
 else()
-    set (COMMON_LIBS glfw X11 Xrandr GL rt dl)
+    set (COMMON_LIBS glfw X11 Xrandr rt dl)
     set (LIBS ${LIBS} ${COMMON_LIBS})
 
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -stdlib=libc++ -lc++ -lc++abi -lm -lc -lgcc_s -lgcc -g -Wall -std=std++2a -march=skylake -mtune=skylake -fpermissive")
