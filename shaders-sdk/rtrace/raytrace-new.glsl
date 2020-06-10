@@ -30,7 +30,7 @@ void main() {
 
     // Replacement for rasterization
     //XHIT SUF =                                                       traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
-      XHIT RES =                                                       traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+      XHIT RES =                                                       rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
     //XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
     imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(RES.origin.xyz, RES.geoNormal.w)); // Prefer From TOP layer (like as in Minecraft)
     imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), RES.geoNormal.w < 9999.f && checker ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
