@@ -31,16 +31,19 @@ void main() {
      vec3 geonrm = vec3(0.f);
 
     // Replacement for rasterization
-    //XHIT SUF = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+    //XHIT RES = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
       XHIT RES = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
 
     // TODO: Optimize Fetching and Interpolation 
       XGEO GEO = interpolate(RES);
       XPOL MAT = materialize(RES, GEO);
 
+    // 
+     vec4 gposition = vec4(RES.origin.xyz, RES.gBarycentric.w);
+
     //XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
     imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(RES.origin.xyz, RES.gBarycentric.w)); // Prefer From TOP layer (like as in Minecraft)
-    imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), RES.gBarycentric.w < 9999.f && checker ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
+    imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), (RES.gBarycentric.w < 9999.f && checker) ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
 
     // By Geometry Data
     const uint globalInstanceID = RES.gIndices.y, geometryInstanceID = RES.gIndices.x;
@@ -58,6 +61,7 @@ void main() {
     //imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(RES.origin .xyz, RES.gBarycentric.w));
       imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(instanceRel.xyz, RES.gBarycentric.w));
       imageStore(writeImages[nonuniformEXT(IW_GEOMETRY)], ivec2(lanQ), uintBitsToFloat(uvec4(RES.gIndices.xy, RES.gIndices.xy)));
+      imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(1.f.xxx, 1.f));
 
     // Will Resampled Itself (anchors)
     imageStore(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ), vec4(MAT.txcmid  ));
@@ -73,9 +77,12 @@ void main() {
     vec4 diffused = vec4(MAT.diffuseColor.xyz, 1.f);
     vec4 emission = vec4(MAT.emissionColor.xyz, 1.f);
     diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
-    if (MAT.txcmid.z < 0.99f) { 
+    if (RES.gBarycentric.w >= 9999.f) {
         diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz;
         diffused.xyz += emission.xyz;
+        //imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(diffused.xyz, 1.f));
+    } else {
+        //imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), checker ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
     };
     imageStore(writeImages[nonuniformEXT(IW_SMOOTHED)], ivec2(lanQ), vec4(diffused));
 
@@ -83,7 +90,7 @@ void main() {
     //
 #ifdef RAY_TRACE
     vec4 adaptiveData = 10000.f.xxxx;
-    if ( (MAT.diffuseColor.w > 0.001f && GEO.gNormal.w < 9999.f) && checker ) { // 
+    if ( (MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f) && checker ) { // 
         const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
         const vec4 bspher = vec4(origin,10000.f);
         const float inIOR = 1.f, outIOR = 1.6666f;
@@ -176,7 +183,7 @@ void main() {
     // Used By Reprojection (comparsion)
     imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ), adaptiveData); // For Adaptive Denoise
     imageStore(writeBuffer[nonuniformEXT(BW_INDIRECT)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ)));
-    imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), vec4(RES.origin.xyz, RES.gBarycentric.w)); // Stay The Same... 
+    imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), gposition); // Stay The Same... 
     //imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ))); // Broken!
     imageStore(writeBuffer[nonuniformEXT(BW_GEONORML)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ)));
     imageStore(writeBuffer[nonuniformEXT(BW_SMOOTHED)], ivec2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_SMOOTHED)], ivec2(lanQ)));

@@ -61,13 +61,9 @@ void main() { // TODO: Re-Interpolate for Randomized Center
         processing.origin   = vec4(fPosition.xyz, 1.f);
 
         // 
-        //oDiffused = processing.diffuseColor;
-        //oBarycent = vec4(BARYCOORD.xy, 0.f, 1.f);
         oPosition = processing.origin; // Save texcoord for Parallax Mapping with alpha channel
         oMaterial = uintBitsToFloat(uvec4(floatBitsToUint(max(BARYCOORD,0.00001f.xx)), packUnorm2x16(fTexcoord.xy), floatBitsToUint(1.f)));
         oGeoIndice = uintBitsToFloat(uvec4(globalInstanceID, geometryInstanceID, primitiveID, floatBitsToUint(1.f)));
-
-        // 
         gl_FragDepth = gl_FragCoord.z;
         
     };
