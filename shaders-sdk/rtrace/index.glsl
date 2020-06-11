@@ -86,6 +86,15 @@ struct MeshInfo {
     uint32_t flags;
 };
 
+// 
+struct RTXInstance {
+    mat3x4 transform;
+    uint32_t instance_mask;
+    uint32_t offset_flags;
+    uvec2 handle;
+};
+
+
 bool hasTransform(in MeshInfo meshInfo){
     return bool(bitfieldExtract(meshInfo.flags,0,1));
 };
@@ -138,23 +147,31 @@ layout (binding = 3, set = 1, scalar) uniform Matrices {
 layout (binding = 4, set = 1, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
 layout (binding = 5, set = 1, scalar) readonly buffer MeshData { MeshInfo meshInfo[]; };
 
+//layout (binding = 7, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
+  layout (binding = 8, set = 1, scalar) readonly buffer MeshMaterial { uint materialID[]; } geomMTs[];
+  layout (binding = 6, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
+
+// Deferred and Rasterization Set
+layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];  // Sampled by gl_FragCoord.xy
+layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // Will used by rasterization stage (writing)
+layout (binding = 3, set = 2) uniform sampler2D rasterBuffers[];
+layout (binding = 2, set = 2, rgba32f) uniform image2D writeBuffer[]; // For EDIT!
+
 // 
-struct RTXInstance {
-    mat3x4 transform;
-    uint32_t instance_mask;
-    uint32_t offset_flags;
-    uvec2 handle;
-};
+layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
+layout (binding = 1, set = 3, rgba32f) uniform image2D writeImagesBack[];
+
+// Material Set
+layout (binding = 0, set = 4) uniform sampler2D textures[];
+layout (binding = 1, set = 4, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
+layout (binding = 2, set = 4) uniform sampler2D background;
+
 
 // 
 highp uint getMeshID(in RTXInstance instance){
     return bitfieldExtract(instance.instance_mask, 0, 24); // only hack method support
 };
 
-// 
-//layout (binding = 7, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
-  layout (binding = 8, set = 1, scalar) readonly buffer MeshMaterial { uint materialID[]; } geomMTs[];
-  layout (binding = 6, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 
 // 
 layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
@@ -224,23 +241,6 @@ vec4 mul4(in vec4 v, in mat3x4 M) {
 #define IndexU16 0
 #define IndexU32 1
 
-
-// Deferred and Rasterization Set
-layout (binding = 0, set = 2) uniform sampler2D frameBuffers[];  // Sampled by gl_FragCoord.xy
-layout (binding = 1, set = 2) uniform sampler2D renderBuffers[]; // Will used by rasterization stage (writing)
-layout (binding = 3, set = 2) uniform sampler2D rasterBuffers[];
-layout (binding = 2, set = 2, rgba32f) uniform image2D writeBuffer[]; // For EDIT!
-
-
-// 
-layout (binding = 0, set = 3, rgba32f) uniform image2D writeImages[];
-layout (binding = 1, set = 3, rgba32f) uniform image2D writeImagesBack[];
-
-
-// Material Set
-layout (binding = 0, set = 4) uniform sampler2D textures[];
-layout (binding = 1, set = 4, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
-layout (binding = 2, set = 4) uniform sampler2D background;
 
 // 
 float raySphereIntersect(in vec3 r0, in vec3 rd, in vec3 s0, in float sr) {
