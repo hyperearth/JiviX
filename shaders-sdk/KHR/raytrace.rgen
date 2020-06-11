@@ -18,6 +18,7 @@ layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 layout (location = 0) rayPayloadEXT RCData rcdata;
 
 // 
+/* // TODO: New Official Ray Tracing Shader Update
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
     XHIT result; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin;
     const vec4 skyColor = gSkyShader(raydir.xyz, origin.xyz);//vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
@@ -100,7 +101,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                 // 
                 //lastOrigin = raydir*tHit + forigin;
 
-#define MatID geomMTs[nonuniformEXT(/* {TODO: First Material From Instance} + */ nodeMeshID)].materialID[geometryInstanceID]
+#define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
 
                 // 
                 //const MaterialUnit unit = materials[0u].data[meshInfo[nodeMeshID].materialID];
@@ -182,7 +183,12 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     // 
     return processing;///(fullLength >= (maxT-1.f)) ? result : processing;
 };
+*/
 
 #define LAUNCH_ID gl_LaunchIDEXT.xy
-#include "./stuff.glsl"
-#include "./raytrace.glsl"
+//#include "./stuff.glsl"
+//#include "./raytrace.glsl"
+
+void main(){
+    
+}

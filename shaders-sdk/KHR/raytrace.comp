@@ -21,31 +21,115 @@ layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 shared XHIT hits[workX*workY];
 
 // 
+XGEO interpolate(in XHIT hit) { // By Geometry Data
+    const uint geometryInstanceID = hit.gIndices.x;
+    const uint globalInstanceID = hit.gIndices.y;
+    const uint primitiveID = hit.gIndices.z;
+    const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
+    const vec3 baryCoord = hit.gBarycentric.xyz;
+
+    // 
+    mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+    if (!hasTransform(meshInfo[nodeMeshID])) {
+        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    };
+
+    // By Instance Data
+    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
+
+    // Native Normal Transform
+    const mat3x3 normalTransform = inverse(transpose(regen3(matras)));
+    const mat3x3 normInTransform = inverse(transpose(regen3(matra4)));
+
+    // 
+    XGEO geometry;
+
+    // 
+    uvec3 idx3 = uvec3(primitiveID*3u+0u,primitiveID*3u+1u,primitiveID*3u+2u);
+    geometry.gTexcoord  = vec4(triangulate(idx3, 1u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+    geometry.gNormal    = vec4(triangulate(idx3, 2u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+    geometry.gTangent   = vec4(triangulate(idx3, 3u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+    geometry.gBinormal  = vec4(triangulate(idx3, 4u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+
+    // 
+    geometry.gNormal.xyz *= normalTransform * normInTransform;
+    geometry.gTangent.xyz *= normalTransform * normInTransform;
+    geometry.gBinormal.xyz *= normalTransform * normInTransform;
+
+    //
+    geometry.gNormal.xyz = normalize(geometry.gNormal.xyz);
+    geometry.gTangent.xyz = normalize(geometry.gTangent.xyz);
+    geometry.gBinormal.xyz = normalize(geometry.gBinormal.xyz);
+
+    // 
+    return geometry;
+}
+
+// 
+XPOL materialize(in XHIT hit, in XGEO geo) { // 
+#define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
+
+    // 
+    const uint geometryInstanceID = hit.gIndices.x;
+    const uint globalInstanceID = hit.gIndices.y;
+    const uint primitiveID = hit.gIndices.z;
+    const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
+    const MaterialUnit unit = materials[0u].data[MatID]; // NEW! 20.04.2020
+    const vec2 gTexcoord = geo.gTexcoord.xy;
+    const vec3 gNormal = geo.gNormal.xyz;
+
+    // 
+    XPOL processing;
+
+    // 
+    processing. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
+    processing.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
+    processing. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
+    processing.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
+
+    // Mapping
+    processing.mapNormal = vec4(normalize(mat3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz) * normalize(processing.normalsColor.xyz * 2.f - 1.f)), 1.f);
+
+    // Use real origin
+    processing.txcmid = vec4(uintBitsToFloat(packUnorm2x16(fract(geo.gTexcoord.xy))), uintBitsToFloat(MatID), 1.f, 0.f); // 
+
+    // 
+    return processing;
+}
+
+// 
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
-    XHIT result; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(-normal.xyz, raydir.xyz, normal.xyz) * lastMin + faceforward(raydir.xyz, raydir.xyz, normal.xyz) * lastMin;
+    XPOL material; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(-normal.xyz, raydir.xyz, normal.xyz) * lastMin + faceforward(raydir.xyz, raydir.xyz, normal.xyz) * lastMin;
     const vec4 skyColor = gSkyShader(raydir.xyz, origin.xyz);//vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
-    result. diffuseColor = vec4(1.f.xxx, 0.f);
-    result.emissionColor = vec4(skyColor.xyz,0.f.x);
-    result. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
-    result.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
-    result.geoNormal = vec4(vec3(0.f,1.f,0.f),lastMax);
-    result.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
-    result.txcmid = vec4(uintBitsToFloat(packUnorm2x16(0.f.xx)), 0.f, 0.f, 0.f); // 
-    result.origin.xyz = origin.xyz;
-    result.gIndices = uvec4(0u);
-    //result.gObject = mat4x4(vec4(1.f,0.f,0.f,0.f), vec4(0.f,1.f,0.f,0.f), vec4(0.f,0.f,1.f,0.f), vec4(0.f,0.f,0.f,1.f));
-    //result.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
+    material. diffuseColor = vec4(1.f.xxx, 0.f);
+    material.emissionColor = vec4(skyColor.xyz,0.f.x);
+    material. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
+    material.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
+    material.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
+    material.txcmid = vec4(uintBitsToFloat(packUnorm2x16(0.f.xx)), 0.f, 0.f, 0.f); // 
+    //material.gObject = mat4x4(vec4(1.f,0.f,0.f,0.f), vec4(0.f,1.f,0.f,0.f), vec4(0.f,0.f,1.f,0.f), vec4(0.f,0.f,0.f,1.f));
+    //material.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
 
     float fullLength = 0.f;
     vec3 forigin = lastOrigin; // REQUIRED!
     bool restart = false;
 
     // 
-    XHIT processing = result;
+    XHIT processing;
+    processing.origin.xyz = origin.xyz;
+    processing.direct.xyz = raydir.xyz;
+    processing.gIndices = uvec4(0u);
+    processing.gBarycentric = vec4(0.f.xxx, lastMax);
+
+    // 
+    XGEO geometry;
+    geometry.gNormal = vec4(vec3(0.f,1.f,0.f),0.f);
+
+    // 
     while((R++) < 16) { // restart needs for transparency (after every resolve)
         rayQueryEXT rayQuery;
         rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
-            0xFF, (forigin = fullLength * raydir + result.origin.xyz) + faceforward(normal.xyz,raydir.xyz,-normal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
+            0xFF, (forigin = fullLength * raydir + processing.origin.xyz) + faceforward(geometry.gNormal.xyz,raydir.xyz,-geometry.gNormal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
 
         while((I++) < 64) {
             bool complete = !rayQueryProceedEXT(rayQuery);
@@ -77,96 +161,25 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
                 //worldToObject = rayQueryGetIntersectionWorldToObjectEXT(rayQuery, false);
             };
 
-            //worldToObject = transpose(mat4x4(worldToObject[0], worldToObject[1], worldToObject[2], vec4(0.f,0.f,0.f,1.f)));
-
-            // TODO: ???
-            //origin = raydir*tHit + forigin;
-
             // 
             if (tHit < lastMax) { lastOrigin = origin, lastMax = tHit; // Choice Only MINIMAL
-                //processing. diffuseColor = 0.f.xxxx;
-                //processing.emissionColor = 0.f.xxxx;
-
                 const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
-                uvec3 idx3 = uvec3(primitiveID*3u+0u,primitiveID*3u+1u,primitiveID*3u+2u);
-                //if (IdxType == IndexU8 ) { idx3 = uvec3(load_u8 (idx3.x*1u, 8u, nodeMeshID),load_u32(idx3.y*1u, 8u, nodeMeshID),load_u32(idx3.z*1u, 8u, nodeMeshID)); };
-                //if (IdxType == IndexU16) { idx3 = uvec3(load_u16(idx3.x*2u, 8u, nodeMeshID),load_u16(idx3.y*2u, 8u, nodeMeshID),load_u16(idx3.z*2u, 8u, nodeMeshID)); };
-                //if (IdxType == IndexU32) { idx3 = uvec3(load_u32(idx3.x*4u, 8u, nodeMeshID),load_u32(idx3.y*4u, 8u, nodeMeshID),load_u32(idx3.z*4u, 8u, nodeMeshID)); };
 
-                // Interpolate In Ray-Tracing 
-                const vec4 gTexcoord = vec4(triangulate(idx3, 1u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
-                const vec4 gNormal = vec4(triangulate(idx3, 2u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
-                const vec4 gTangent = vec4(triangulate(idx3, 3u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
-                const vec4 gBinormal = vec4(triangulate(idx3, 4u, nodeMeshID,vec3(1.f-baryCoord.x-baryCoord.y,baryCoord)).xyz,0.f);
+                // Interpolate In Ray-Tracing
+                processing.gIndices = uvec4(geometryInstanceID, globalInstanceID, primitiveID, 0u);
+                processing.gBarycentric.xyz = vec3(1.f-baryCoord.x-baryCoord.y,baryCoord);
 
-                // By Geometry Data
-                mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
-                if (!hasTransform(meshInfo[nodeMeshID])) {
-                    matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+                // 
+                if (!complete) { // WARNING: 
+                    geometry = interpolate(processing);
+                    material = materialize(processing, geometry);
                 };
 
-                // By Instance Data
-                const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
-
-                // Native Normal Transform
-                const mat3x3 normalTransform = inverse(transpose(regen3(matras)));
-                const mat3x3 normInTransform = inverse(transpose(regen3(matra4)));
-
                 // 
-                //lastOrigin = raydir*tHit + forigin;
-
-#define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
-
-                // 
-                //const MaterialUnit unit = materials[0u].data[meshInfo[nodeMeshID].materialID];
-                const MaterialUnit unit = materials[0u].data[MatID]; // NEW! 20.04.2020
-                const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
-                if (diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
-                    //lastOrigin = origin, lastMax = tHit;
-
-                    // 
-                    processing. diffuseColor = diffuseColor;//toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
-                    processing.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
-                    processing. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
-                    processing.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
-
-                    // 
-                    processing.geoNormal = normalize(gNormal);
-                    processing.gBinormal = normalize(gBinormal);
-                    processing.gTangent  = normalize(gTangent);
-
-                    // FIX NORMAL ISSUE (04.04.2020)
-                    processing.geoNormal.xyz = normalize(processing.geoNormal.xyz * normalTransform * normInTransform);
-                    processing.gBinormal.xyz = normalize(processing.gBinormal.xyz * normalTransform * normInTransform);
-                    processing.gTangent .xyz = normalize(processing.gTangent .xyz * normalTransform * normInTransform);
-
-                    // Mapping
-                    processing.geoNormal.xyz = normalize(faceforward(processing.geoNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
-                    processing.mapNormal = vec4(normalize(mat3x3(processing.gTangent.xyz, processing.gBinormal.xyz, processing.geoNormal.xyz) * normalize(processing.normalsColor.xyz * 2.f - 1.f)), 1.f);
-                    processing.geoNormal.w = fullLength + lastMax;
-
-                    // Normalize
-                    processing.geoNormal.xyz = normalize(processing.geoNormal.xyz);
-                    processing.gTangent .xyz = normalize(processing.gTangent.xyz);
-                    processing.gBinormal.xyz = normalize(processing.gBinormal.xyz);
-
-                    // Fix light leaks
-                    processing.mapNormal.xyz = normalize(faceforward(processing.mapNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
-
-                    // Use real origin
+                if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold) || complete) { // Only When Opaque!
+                    processing.gBarycentric.w = fullLength + lastMax;
                     processing.direct = vec4(raydir.xyz, 0.f);
                     processing.origin = vec4(lastOrigin, 1.f);
-                    processing.txcmid = vec4(uintBitsToFloat(packUnorm2x16(fract(gTexcoord.xy))), uintBitsToFloat(MatID), 1.f, 0.f); // 
-                    //processing.txcmid.y = uintBitsToFloat(0u);
-                    //processing.tangent = gTangent; // UNUSED
-
-                    // 1.f, 0.f, 0.f, 
-                    // 0.f, 1.f, 0.f,
-                    // 0.f, 0.f, 1.f,
-                    // 0.f, 0.f, 0.f
-
-                    //processing.gObject = mat4x4(vec4(worldToObject[0],0.f), vec4(worldToObject[1],0.f), vec4(worldToObject[2],0.f), vec4(worldToObject[3],1.f));//worldToObject;
-                    processing.gIndices = uvec4(geometryInstanceID, globalInstanceID, 0u, 0u); // already nodeMeshID used by instance
 
                     if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
                 } else 
@@ -188,7 +201,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
     // 
     //if (processing.txcmid.z <= 0u) {
-        processing.origin.xyz = processing.geoNormal.w * raydir + result.origin.xyz;
+        processing.origin.xyz = processing.gBarycentric.w * raydir + processing.origin.xyz;
     //};
 
     // 

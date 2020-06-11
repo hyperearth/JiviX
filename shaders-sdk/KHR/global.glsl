@@ -9,22 +9,24 @@ struct RCData {
 ivec2 launchSize = ivec2(1600, 1200);
 
 // 
-struct XHIT {
+struct XPOL {
      vec4  diffuseColor;
      vec4 emissionColor;
      vec4  normalsColor;
      vec4 specularColor;
 
-     vec4 geoNormal;
-     vec4 mapNormal;
-     vec4 origin;
-     vec4 txcmid;
+     vec4 mapNormal; vec4 txcmid;
+};
+
+struct XGEO {
+    vec4 gTangent; vec4 gBinormal; vec4 gNormal; vec4 gTexcoord;
+};
+
+struct XHIT {
+     vec4 origin; vec4 direct;
      
-     vec4 direct;
-     vec4 gTangent;
-     vec4 gBinormal;
+     vec4 gBarycentric;
     uvec4 gIndices;
-    //mat4x4 gObject;
 };
 
 // 

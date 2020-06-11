@@ -57,23 +57,8 @@ void main() { // TODO: Re-Interpolate for Randomized Center
 
     XHIT processing;
     if (diffuseColor.w > 0.f) { // Only When Opaque!
-        processing. diffuseColor = vec4(diffuseColor.xyz, 1.f);//toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
-        processing.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],fTexcoord.xy) : unit.emission);
-        processing. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],fTexcoord.xy) : unit.normals;
-        processing.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],fTexcoord.xy) : unit.specular;
-
-        // Normalize
-        //processing.geoNormal.xyz = normalize(fNormal.xyz);
-        //processing.gTangent .xyz = normalize(fTangent.xyz);
-        //processing.gBinormal.xyz = normalize(fBinormal.xyz);
-        processing.gIndices      = uvec4(geometryInstanceID, globalInstanceID, 0u, 0u); // already nodeMeshID used by instance
-
-        // Fix light leaks
-        //processing.mapNormal.xyz = normalize(faceforward(processing.mapNormal.xyz, raydir.xyz, processing.geoNormal.xyz));
-        processing.mapNormal = vec4(normalize(mat3x3(processing.gTangent.xyz, processing.gBinormal.xyz, processing.geoNormal.xyz) * normalize(processing.normalsColor.xyz * 2.f - 1.f)), 1.f);
-
-        // Use real origin
-        processing.origin = vec4(fPosition.xyz + processing.mapNormal.xyz * 0.f, 1.f);
+        processing.gIndices = uvec4(geometryInstanceID, globalInstanceID, primitiveID, 0u); // already nodeMeshID used by instance
+        processing.origin   = vec4(fPosition.xyz, 1.f);
 
         // 
         //oDiffused = processing.diffuseColor;
