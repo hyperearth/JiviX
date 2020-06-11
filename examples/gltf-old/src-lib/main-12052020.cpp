@@ -1006,6 +1006,14 @@ int main() {
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(fw->getDeviceDispatch(), commandPool, false, false); // do reference of cmd buffer
 
+                // Already present, prepare to render
+                vkt::imageBarrier(commandBuffer, vkt::ImageBarrierInfo{
+                    .image = framebuffers[c_semaphore].image,
+                    .originLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                    .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
+                });
+
+                //
                 decltype(auto) descriptorSets = context->getDescriptorSets();
                 fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->applicationWindow.renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data()}, VK_SUBPASS_CONTENTS_INLINE);
                 fw->getDeviceDispatch()->CmdSetViewport(commandBuffer, 0u, 1u, viewport);
