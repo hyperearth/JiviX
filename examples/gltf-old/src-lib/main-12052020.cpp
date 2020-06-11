@@ -1009,8 +1009,13 @@ int main() {
                 // Already present, prepare to render
                 vkt::imageBarrier(commandBuffer, vkt::ImageBarrierInfo{
                     .image = framebuffers[c_semaphore].image,
-                    .originLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                     .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    .originLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                    .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([&](auto* it) {
+                        auto aspect = vkh::VkImageAspectFlags{ .eColor = 1u };
+                        it->aspectMask = aspect;
+                        return it;
+                    })
                 });
 
                 //
