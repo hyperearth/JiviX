@@ -191,4 +191,4 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
 void main(){
     
-}
+};
