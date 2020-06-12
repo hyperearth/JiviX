@@ -24,7 +24,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Portfolio       : Work in Progress
 - License         : BSD-3 (Currently)
 - Execute Day     : [2021:Q1]
-- Support OS      : Windows 10 (2004 or Newer)
+- Support OS      : Windows 10 (2004 or Newer), Ubuntu 20.04 (Experimental)
 - Support HW      : RTX 2070 or familiar...
 - Commercial      : Under Consideration
 - Project Type    : Experimental, Personal
@@ -36,8 +36,9 @@ Planned to beat world record as most perfect and most long-time development prod
 - Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
 - Replacement Of  : Project "Satellite" ("engine", 2017)
+- Shaders Version : v2.0
 
-Date:[09.04.2020]:[helix.d@IMN]
+Date:[12.06.2020]:[helix.d@IMN]
 ```
 
 
