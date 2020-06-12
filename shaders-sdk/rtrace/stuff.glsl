@@ -18,9 +18,8 @@ void directLight(inout XHIT RES, in vec4 sphere, in vec3 origin, in vec3 normal,
 // 
 XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
     XPOL material; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(-normal.xyz, raydir.xyz, normal.xyz) * lastMin + faceforward(raydir.xyz, raydir.xyz, normal.xyz) * lastMin;
-    const vec4 skyColor = gSkyShader(raydir.xyz, origin.xyz);//vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
     material. diffuseColor = vec4(1.f.xxx, 0.f);
-    material.emissionColor = vec4(skyColor.xyz,0.f.x);
+    material.emissionColor = vec4(gSkyShader(raydir.xyz, origin.xyz).xyz, 0.f.x);
     material. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
     material.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
     material.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
