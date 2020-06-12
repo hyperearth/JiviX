@@ -1,10 +1,14 @@
-
-//#define RES hits[gl_LocalInvocationIndex]
+#define RES hits[gl_LocalInvocationIndex]
 
 // 
 void main() {
+    const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
+    const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
+    const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
+
     const uvec2 lanQ = LAUNCH_ID;//gl_LaunchIDEXT.xy;//gl_GlobalInvocationID.xy;
     launchSize = imageSize(writeImages[IW_POSITION]);
+
 
     // 
     const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
@@ -12,11 +16,6 @@ void main() {
 
     // WARNING! Quality may critically drop when move! 
     const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x))&1u);
-
-    // 
-    const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
-    const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
-    const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
 
     //
     packed = pack32(u16vec2(curPixel)), seed = uvec2(packed, rdata.x);
@@ -32,7 +31,7 @@ void main() {
 
     // Replacement for rasterization
     //XHIT RES = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
-      XHIT RES = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+           RES = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
 
     // TODO: Optimize Fetching and Interpolation 
       XGEO GEO = interpolate(RES);

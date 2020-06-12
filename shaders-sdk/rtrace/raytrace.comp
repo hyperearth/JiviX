@@ -13,12 +13,12 @@
 //#define TOP_LAYERED // Has reflection problems
 
 // 
-const uint workX = 32u, workY = 24u;
+const uint workX = 32u, workY = 12u; // Optimal Work Size for RTX 2070
 layout ( local_size_x = workX, local_size_y = workY ) in; 
 layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 
 // 
-shared XHIT hits[workX*workY];
+shared XHIT hits[workX*workY*2u];
 
 // 
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
@@ -135,4 +135,4 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
 #define LAUNCH_ID gl_GlobalInvocationID.xy
 #include "./stuff.glsl"
-#include "./raytrace-new.glsl"
+#include "./raytrace-adv-new.glsl"
