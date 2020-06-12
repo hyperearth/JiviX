@@ -164,8 +164,8 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     const uvec4 datapass = floatBitsToUint(texelFetch(rasterBuffers[RS_MATERIAL], samplep, 0));
 
     // 
-    const vec2 baryCoord = uintBitsToFloat(datapass.xy);
-    const bool isSkybox = dot(baryCoord.xy,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
+    const vec3 baryCoord = texelFetch(rasterBuffers[RS_BARYCENT], samplep, 0).xyz;
+    const bool isSkybox = dot(baryCoord.yz,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
     const uint primitiveID = indices.z;
     const uint geometryInstanceID = indices.y;
     const uint globalInstanceID = indices.x;
@@ -178,8 +178,7 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
         // Interpolate In Ray-Tracing
         processing.gIndices = indices;
-        processing.gBarycentric.xyz = vec3(1.f-baryCoord.x-baryCoord.y,baryCoord);
-        processing.gBarycentric.w = distance(processing.origin.xyz, origin.xyz);
+        processing.gBarycentric = vec4(baryCoord, distance(processing.origin.xyz, origin.xyz));
 
         // TODO: optimize material fetching
         geometry = interpolate(processing);

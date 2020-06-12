@@ -6,10 +6,10 @@
 
 #ifdef AMD_SOLUTION
 #extension GL_AMD_shader_explicit_vertex_parameter : require
-#define BARYCOORD gl_BaryCoordSmoothAMD
+#define BARYCOORD vec3(1.f-gl_BaryCoordSmoothAMD.x-gl_BaryCoordSmoothAMD.y,gl_BaryCoordSmoothAMD)
 #else
 #extension GL_NV_fragment_shader_barycentric : require
-#define BARYCOORD gl_BaryCoordNV.yz
+#define BARYCOORD gl_BaryCoordNV
 #endif
 
 #include "./driver.glsl"

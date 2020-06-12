@@ -6,10 +6,10 @@
 
 #ifdef AMD_SOLUTION
 #extension GL_AMD_shader_explicit_vertex_parameter : require
-#define BARYCOORD gl_BaryCoordSmoothAMD
+#define BARYCOORD vec3(1.f-gl_BaryCoordSmoothAMD.x-gl_BaryCoordSmoothAMD.y,gl_BaryCoordSmoothAMD)
 #else
 #extension GL_NV_fragment_shader_barycentric : require
-#define BARYCOORD gl_BaryCoordNV.yz
+#define BARYCOORD gl_BaryCoordNV
 #endif
 
 #include "./driver.glsl"
@@ -30,6 +30,8 @@ layout (location = 3) flat in uvec4 uData;
 layout (location = RS_MATERIAL) out vec4 oMaterial;
 layout (location = RS_GEOMETRY) out vec4 oGeoIndice;
 layout (location = RS_POSITION) out vec4 oPosition;
+layout (location = RS_BARYCENT) out vec4 oBarycent;
+
 //layout (location = RS_DIFFUSED) out vec4 oDiffused;
 //layout (location = RS_BARYCENT) out vec4 oBarycent;
 
@@ -62,8 +64,9 @@ void main() { // TODO: Re-Interpolate for Randomized Center
 
         // 
         oPosition = processing.origin; // Save texcoord for Parallax Mapping with alpha channel
-        oMaterial = uintBitsToFloat(uvec4(floatBitsToUint(max(BARYCOORD,0.00001f.xx)), packUnorm2x16(fTexcoord.xy), floatBitsToUint(1.f)));
+        oMaterial = uintBitsToFloat(uvec4(0u, 0u, 0u, floatBitsToUint(1.f)));
         oGeoIndice = uintBitsToFloat(uvec4(globalInstanceID, geometryInstanceID, primitiveID, floatBitsToUint(1.f)));
+        oBarycent = vec4(max(BARYCOORD, 0.0001f.xxx), 1.f);
         gl_FragDepth = gl_FragCoord.z;
         
     };
