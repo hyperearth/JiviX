@@ -59,6 +59,7 @@ Date:[12.06.2020]:[helix.d@IMN]
 - [x] Support VKT-3 for 12.05.2020 and later... 
 - [x] Checker-board ray-tracing optimization...
 - [x] New optional rasterization base (writing to dedicated buffers)
+- [x] Reorganized and better ray-tracing shaders
 - [ ] Adaptive denoise (i.e. depended by trace length and roughness)
 - [ ] OpenGL compatibility`**` (Transform Feedback and Materials)
 - [ ] Advanced FPS counter (TODO)
@@ -92,7 +93,7 @@ Date:[12.06.2020]:[helix.d@IMN]
 ### Remarks...
 
 - `*  : Means shared array of buffer views for complex Node class`
-- `** : Use OpenGL version of transform feedback, uses GL import`
+- `** : Use OpenGL version of transform feedback, uses GL import, NOT supported by Ubuntu currently`
 - `***: There is no priority, we prefer live testing and have MVP soon as possible`
 - `MVP: Minimal Valuable Product`
 
