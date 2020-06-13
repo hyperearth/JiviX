@@ -34,6 +34,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     //material.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
 
     float fullLength = 0.f;
+    vec3 sorigin = lastOrigin;
     vec3 forigin = lastOrigin; // REQUIRED!
     bool restart = false;
 
@@ -53,7 +54,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     while((R++) < 16) { // restart needs for transparency (after every resolve)
         rayQueryEXT rayQuery;
         rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
-            0xFF, (forigin = fullLength * raydir + processing.origin.xyz) + faceforward(geometry.gNormal.xyz,raydir.xyz,-geometry.gNormal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
+            0xFF, (forigin = fullLength * raydir + sorigin) + faceforward(geometry.gNormal.xyz,raydir.xyz,-geometry.gNormal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
 
         while((I++) < 64) {
             bool complete = !rayQueryProceedEXT(rayQuery);
@@ -126,7 +127,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
     // 
     //if (processing.txcmid.z <= 0u) {
-        confirmed.origin.xyz = origin.xyz + fullLength * raydir;
+        //confirmed.origin.xyz = sorigin + fullLength * raydir;
     //};
 
     // 

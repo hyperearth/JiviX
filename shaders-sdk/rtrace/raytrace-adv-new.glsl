@@ -44,7 +44,7 @@ void main() {
         vec3 geonrm = vec3(0.f);
 
         // Replacement for rasterization
-        //XHIT RES = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+        //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
         XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
         if (checker) { RES = RPM; };
 
