@@ -10,8 +10,8 @@ void main() {
     const uvec2 locQs = uvec2(gl_LocalInvocationID.xy);
     const uvec2 locQ = uvec2(locQs.x, (locQs.y<<1u) | ((locQs.x+rdata.x)&1u));
     const uvec2 lanQ = uvec2(gl_WorkGroupID.xy*gl_WorkGroupSize.xy*uvec2(1u,2u) + locQ).xy;
-    const uint lIdx = locQ.y * workX + locQ.x;
-    //const uint lIdx = gl_LocalInvocationIndex;
+    //const uint lIdx = locQ.y * workX + locQ.x;
+    const uint lIdx = gl_LocalInvocationIndex;
 
     // 
     launchSize = imageSize(writeImages[IW_POSITION]);
@@ -21,14 +21,15 @@ void main() {
     for (uint Q = 0u; Q < 2u; Q++) {
         const uvec2 locQ = uvec2(locQs.x, Q*workY + locQs.y);
         const uvec2 lanQ = uvec2(gl_WorkGroupID.xy*uvec2(gl_WorkGroupSize.xy*uvec2(1u,2u)) + locQ).xy;
-        const uint lIdx = locQ.y * workX + locQ.x;
+        //const uint lIdx = locQ.y * workX + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * workX + locQ.x;
         
         // 
         const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
         const ivec2 sizPixel = ivec2(launchSize);
 
         // WARNING! Quality may critically drop when move! 
-        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x))&1u);
+        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x^1))&1u);
 
         //
         packed = pack32(u16vec2(curPixel)), seed = uvec2(packed, rdata.x);
@@ -43,22 +44,23 @@ void main() {
         vec3 geonrm = vec3(0.f);
 
         // Replacement for rasterization
-            //RES = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
-              RES = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+        //XHIT RES = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+        XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.01f);
+        if (checker) { RES = RPM; };
 
         // TODO: Optimize Fetching and Interpolation 
-        XGEO GEO = interpolate(RES);
-        XPOL MAT = materialize(RES, GEO);
+        XGEO GEO = interpolate(RPM);
+        XPOL MAT = materialize(RPM, GEO);
 
         // 
-        vec4 gposition = vec4(RES.origin.xyz, RES.gBarycentric.w);
+        vec4 gposition = vec4(RPM.origin.xyz, RPM.gBarycentric.w);
 
-        //XHIT RES = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
-        imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(RES.origin.xyz, RES.gBarycentric.w)); // Prefer From TOP layer (like as in Minecraft)
-        imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), (RES.gBarycentric.w < 9999.f && checker) ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
+        //XHIT RPM = SUF.txcmid.z >=0.99f && SUF.diffuseColor.w <= 0.99f ? traceRays(SUF.origin.xyz, refractive(raydir), normal, 10000.f, false, 0.99f) : SUF; // Ground Deep
+        imageStore(writeBuffer[nonuniformEXT(BW_GROUNDPS)], ivec2(lanQ), vec4(RPM.origin.xyz, RPM.gBarycentric.w)); // Prefer From TOP layer (like as in Minecraft)
+        imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), (RPM.gBarycentric.w < 9999.f && checker) ? vec4(1.f.xxx, 1.f) : vec4(0.f.xxx, 0.f));
 
         // By Geometry Data
-        const uint globalInstanceID = RES.gIndices.y, geometryInstanceID = RES.gIndices.x;
+        const uint globalInstanceID = RPM.gIndices.y, geometryInstanceID = RPM.gIndices.x;
         const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
         mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
         if (!hasTransform(meshInfo[nodeMeshID])) {
@@ -66,13 +68,13 @@ void main() {
         };
 
         // Initial Position
-        vec4 instanceRel = inverse(matras) * inverse(rtxInstances[globalInstanceID].transform) * vec4(RES.origin.xyz,1.f);
+        vec4 instanceRel = inverse(matras) * inverse(rtxInstances[globalInstanceID].transform) * vec4(RPM.origin.xyz,1.f);
 
         // Problem: NOT enough slots for writables
         // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 
-        //imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(RES.origin .xyz, RES.gBarycentric.w));
-        imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(instanceRel.xyz, RES.gBarycentric.w));
-        imageStore(writeImages[nonuniformEXT(IW_GEOMETRY)], ivec2(lanQ), uintBitsToFloat(uvec4(RES.gIndices.xy, RES.gIndices.xy)));
+        //imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(RPM.origin .xyz, RPM.gBarycentric.w));
+        imageStore(writeImages[nonuniformEXT(IW_POSITION)], ivec2(lanQ), vec4(instanceRel.xyz, RPM.gBarycentric.w));
+        imageStore(writeImages[nonuniformEXT(IW_GEOMETRY)], ivec2(lanQ), uintBitsToFloat(uvec4(RPM.gIndices.xy, RPM.gIndices.xy)));
         imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(1.f.xxx, 1.f));
 
         // Will Resampled Itself (anchors)
@@ -82,14 +84,14 @@ void main() {
 
         // 
         imageStore(writeImages[nonuniformEXT(IW_GEONORML)], ivec2(lanQ), vec4(GEO.gNormal.xyz, 1.f));
-        imageStore(writeImages[nonuniformEXT(IW_MAPNORML)], ivec2(lanQ), vec4(MAT.mapNormal.xyz, RES.gBarycentric.w < 9999.f ? 1.f : 0.f));
+        imageStore(writeImages[nonuniformEXT(IW_MAPNORML)], ivec2(lanQ), vec4(MAT.mapNormal.xyz, RPM.gBarycentric.w < 9999.f ? 1.f : 0.f));
 
 
         // Make Visible Color as Anti-Aliased!
         vec4 diffused = vec4(MAT.diffuseColor.xyz, 1.f);
         vec4 emission = vec4(MAT.emissionColor.xyz, 1.f);
         diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
-        if (RES.gBarycentric.w >= 9999.f) {
+        if (RPM.gBarycentric.w >= 9999.f) {
             diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz;
             diffused.xyz += emission.xyz;
             //imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(diffused.xyz, 1.f));
@@ -205,7 +207,8 @@ void main() {
     for (uint Q = 0u; Q < 2u; Q++) {
         const uvec2 locQ = uvec2(locQs.x, Q*workY + locQs.y);
         const uvec2 lanQ = uvec2(gl_WorkGroupID.xy*uvec2(gl_WorkGroupSize.xy*uvec2(1u,2u)) + locQ).xy;
-        const uint lIdx = locQ.y * workX + locQ.x;
+        //const uint lIdx = locQ.y * workX + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * workX + locQ.x;
         
         vec4 gposition = vec4(RES.origin.xyz, RES.gBarycentric.w);
 

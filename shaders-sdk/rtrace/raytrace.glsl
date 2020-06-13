@@ -20,7 +20,7 @@ void main() {
     packed = pack32(u16vec2(curPixel)), seed = uvec2(packed, rdata.x);
       const vec2 shift = random2(seed), pixel = vec2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
     //const vec2 shift = 0.5f.xx,       pixel = vec2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
-    
+
     // 
      vec3 origin = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.001f));
      vec3 target = screen2world(vec3((vec2(pixel)/vec2(sizPixel))*2.f-1.f,0.999f));
