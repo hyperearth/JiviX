@@ -5,7 +5,7 @@
 void main() {
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
-    const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
+    
 
     // 
     const uvec2 locQs = uvec2(gl_LocalInvocationID.xy);
