@@ -12,8 +12,8 @@
 //#define FAST_BW_TRANSPARENT // Can be denoised, but with WRONG results!
 //#define TOP_LAYERED // Has reflection problems
 
-// 
-const uint workX = 32u, workY = 24u; // Optimal Work Size for RTX 2070
+// TODO: X-Based Optimization
+const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
 layout ( local_size_x = workX, local_size_y = workY ) in; 
 layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 

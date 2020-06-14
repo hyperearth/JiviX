@@ -10,7 +10,7 @@ void main() {
     const uvec2 locQs = uvec2(gl_LocalInvocationID.xy);
     const uvec2 locQ = uvec2(locQs.x, (locQs.y<<1u) | ((locQs.x+rdata.x)&1u));
     const uvec2 lanQ = uvec2(gl_WorkGroupID.xy*gl_WorkGroupSize.xy*uvec2(1u,2u) + locQ).xy;
-    //const uint lIdx = locQ.y * workX + locQ.x;
+    //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
     const uint lIdx = gl_LocalInvocationIndex;
 
     // 
@@ -19,10 +19,10 @@ void main() {
 
     // 
     for (uint Q = 0u; Q < 2u; Q++) {
-        const uvec2 locQ = uvec2(locQs.x, Q*workY + locQs.y);
+        const uvec2 locQ = uvec2(locQs.x, Q*gl_WorkGroupSize.y + locQs.y);
         const uvec2 lanQ = uvec2(gl_WorkGroupID.xy*uvec2(gl_WorkGroupSize.xy*uvec2(1u,2u)) + locQ).xy;
-        //const uint lIdx = locQ.y * workX + locQ.x;
-        const uint lIdx = (locQ.y >> 1u) * workX + locQ.x;
+        //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * gl_WorkGroupSize.x + locQ.x;
         
         // 
         const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
@@ -205,10 +205,10 @@ void main() {
     
     // 
     for (uint Q = 0u; Q < 2u; Q++) {
-        const uvec2 locQ = uvec2(locQs.x, Q*workY + locQs.y);
+        const uvec2 locQ = uvec2(locQs.x, Q*gl_WorkGroupSize.y + locQs.y);
         const uvec2 lanQ = uvec2(gl_WorkGroupID.xy*uvec2(gl_WorkGroupSize.xy*uvec2(1u,2u)) + locQ).xy;
-        //const uint lIdx = locQ.y * workX + locQ.x;
-        const uint lIdx = (locQ.y >> 1u) * workX + locQ.x;
+        //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * gl_WorkGroupSize.x + locQ.x;
         
         vec4 gposition = vec4(RES.origin.xyz, RES.gBarycentric.w);
 
