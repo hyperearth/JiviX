@@ -467,20 +467,20 @@ int main() {
     //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
     //
-    const float unitScale = 100.f;
-    const float unitHeight = -0.f;
+    //const float unitScale = 100.f;
+    //const float unitHeight = -0.f;
 
     //
     tinygltf::Model model = {};
     tinygltf::TinyGLTF loader = {};
     std::string err = "", wrn = "";
-    std::string name = "BoomBoxWithAxes.gltf";
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, name.c_str());
+    //std::string name = "BoomBoxWithAxes.gltf";
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, name.c_str());
 
     //
-    //const float unitScale = 1.f;
-    //const float unitHeight = -32.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
+    const float unitScale = 1.f;
+    const float unitHeight = -32.f;
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
 
     //const float unitScale = 1.f;
     //const float unitHeight = -0.f;

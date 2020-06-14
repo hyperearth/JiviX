@@ -133,13 +133,7 @@ XPOL materialize(inout XHIT hit, inout XGEO geo) { //
 
 // 
 XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
-    XPOL material; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(-normal.xyz, raydir.xyz, normal.xyz) * lastMin + faceforward(raydir.xyz, raydir.xyz, normal.xyz) * lastMin;
-    material. diffuseColor = vec4(1.f.xxx, 0.f);
-    material.emissionColor = vec4(gSkyShader(raydir.xyz, origin.xyz).xyz, 0.f.x);
-    material. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
-    material.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
-    material.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
-    material.txcmid = vec4(uintBitsToFloat(packUnorm2x16(0.f.xx)), 0.f, 0.f, 0.f); // 
+    uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(-normal.xyz, raydir.xyz, normal.xyz) * lastMin + faceforward(raydir.xyz, raydir.xyz, normal.xyz) * lastMin;
 
     // 
     float fullLength = 0.f;
@@ -147,15 +141,13 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     bool restart = false;
 
     // 
-    XHIT processing;
+    XHIT processing, confirmed;
     processing.origin.xyz = origin.xyz;
     processing.direct.xyz = raydir.xyz;
     processing.gIndices = uvec4(0u);
     processing.gBarycentric = vec4(0.f.xxx, lastMax);
-
-    //
-    XGEO geometry;
-    geometry.gNormal = vec4(vec3(0.f,1.f,0.f),0.f);
+    confirmed = processing;
+    
 
     // 
     const ivec2 tsize = textureSize(rasterBuffers[RS_MATERIAL], 0);
@@ -181,16 +173,15 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
         processing.gBarycentric = vec4(baryCoord, distance(processing.origin.xyz, origin.xyz));
 
         // TODO: optimize material fetching
-        geometry = interpolate(processing);
-        material = materialize(processing, geometry);
+        XGEO geometry = interpolate(processing);
+        XPOL material = materialize(processing, geometry);
         
         // TODO: rasterization direct diffuse access
         if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
-            
+            confirmed = processing;
         };
     };
-    //processing.gBarycentric.w = lastMax; // Debug
 
-    return processing;
+    return confirmed;
 };
 

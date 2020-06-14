@@ -55,10 +55,10 @@ void main() { // TODO: Re-Interpolate for Randomized Center
     oPosition  = vec4(0.f.xxxx);
     oMaterial  = vec4(0.f.xxxx);
     oGeoIndice = vec4(0.f.xxxx);
-    gl_FragDepth = 1.f;
+    gl_FragDepth = 1.1f;
 
     XHIT processing;
-    if (diffuseColor.w > 0.f) { // Only When Opaque!
+    if (diffuseColor.w > 0.9999f) { // Only When Opaque!
         processing.gIndices = uvec4(geometryInstanceID, globalInstanceID, primitiveID, 0u); // already nodeMeshID used by instance
         processing.origin   = vec4(fPosition.xyz, 1.f);
 

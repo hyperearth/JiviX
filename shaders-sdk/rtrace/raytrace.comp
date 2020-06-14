@@ -22,116 +22,81 @@ shared XHIT hits[workX*workY];
 
 // 
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
-    XPOL material; uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(-normal.xyz, raydir.xyz, normal.xyz) * lastMin + faceforward(raydir.xyz, raydir.xyz, normal.xyz) * lastMin;
-    const vec4 skyColor = gSkyShader(raydir.xyz, origin.xyz);//vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
-    material. diffuseColor = vec4(0.f.xxx, 0.f);
-    material.emissionColor = vec4(skyColor.xyz,0.f.x);
-    material. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
-    material.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
-    material.mapNormal = vec4(vec3(0.f,1.f,0.f),1.f);
-    material.txcmid = vec4(uintBitsToFloat(packUnorm2x16(0.f.xx)), 0.f, 0.f, 0.f); // 
-    //material.gObject = mat4x4(vec4(1.f,0.f,0.f,0.f), vec4(0.f,1.f,0.f,0.f), vec4(0.f,0.f,1.f,0.f), vec4(0.f,0.f,0.f,1.f));
-    //material.tangent = vec4(vec3(0.f,0.f,1.f),lastMin); // UNUSED
-
-    float fullLength = 0.f;
-    vec3 sorigin = lastOrigin;
-    vec3 forigin = lastOrigin; // REQUIRED!
-    bool restart = false;
+    uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f, fullLength = 0.f; vec3 forigin = origin + faceforward(normal.xyz, raydir.xyz, -normal.xyz) * lastMin + raydir.xyz * lastMin, sorigin = forigin;
+    const vec4 skyColor = gSkyShader(raydir.xyz, origin.xyz);
 
     // 
     XHIT processing, confirmed;
     processing.origin.xyz = origin.xyz;
     processing.direct.xyz = raydir.xyz;
     processing.gIndices = uvec4(0u);
-    processing.gBarycentric = vec4(0.f.xxx, lastMax);
+    processing.gBarycentric = vec4(0.f.xxx, maxT);
     confirmed = processing;
 
     // 
-    XGEO geometry;
-    geometry.gNormal = vec4(vec3(0.f,1.f,0.f),0.f);
-
-    // 
-    while((R++) < 16) { // restart needs for transparency (after every resolve)
-        rayQueryEXT rayQuery;
+    bool restart = true;
+    while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
+        rayQueryEXT rayQuery; float lastMax = (maxT - fullLength); vec3 lastOrigin = raydir * fullLength + sorigin; 
         rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
-            0xFF, (forigin = fullLength * raydir + sorigin) + faceforward(geometry.gNormal.xyz,raydir.xyz,-geometry.gNormal.xyz) * 0.001f + raydir.xyz * 0.001f, lastMin, raydir, lastMax = (maxT - fullLength));
+            0xFF, lastOrigin + raydir.xyz * lastMin, lastMin, raydir, lastMax);
 
-        while((I++) < 64) {
-            bool complete = !rayQueryProceedEXT(rayQuery);
-
-            // Full Instance ID of Node (BY GEOMETRY INSTATNCE!!)
-            uint primitiveID = -1, nodeMeshID = -1, geometryInstanceID = -1, globalInstanceID = -1;
-            vec2 baryCoord = vec2(0.f,0.f);
-            float tHit = lastMax;
-            vec3 origin = forigin;
-            //mat4x3 worldToObject;
-
-            // 
-            if (complete) {
-                nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, true); // Mesh ID from Node Mesh List (because indexing)
-                geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, true); // TODO: Using In Ray Tracing (and Query) shaders!
-                globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, true);
-                baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, true);
-                primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, true); 
-                origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true);
-                tHit = rayQueryGetIntersectionTEXT(rayQuery, true);
-                //worldToObject = rayQueryGetIntersectionWorldToObjectEXT(rayQuery, true);
-            } else {
-                nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, false); // Mesh ID from Node Mesh List (because indexing)
-                geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, false); // TODO: Using In Ray Tracing (and Query) shaders!
-                globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, false);
-                baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, false);
-                primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, false); 
-                origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false);
-                tHit = rayQueryGetIntersectionTEXT(rayQuery, false);
-                //worldToObject = rayQueryGetIntersectionWorldToObjectEXT(rayQuery, false);
-            };
+        while((I++) < 64 && rayQueryProceedEXT(rayQuery)) { // 
+            uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, false); // Mesh ID from Node Mesh List (because indexing)
+            uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, false); // TODO: Using In Ray Tracing (and Query) shaders!
+            uint globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, false);
+            vec2 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, false);
+            uint primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, false); 
+            vec3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false);
+            float tHit = rayQueryGetIntersectionTEXT(rayQuery, false);
 
             // 
-            if (tHit < lastMax) { lastOrigin = raydir*tHit + forigin, lastMax = tHit; // Choice Only MINIMAL
-                const int IdxType = int(meshInfo[nodeMeshID].indexType)-1;
-
-                // Interpolate In Ray-Tracing
+            if (tHit < lastMax) { lastOrigin = raydir*(lastMax = tHit) + forigin;
                 processing.gIndices = uvec4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
                 processing.gBarycentric.xyz = vec3(1.f-baryCoord.x-baryCoord.y,baryCoord);
-                processing.gBarycentric.w = fullLength + lastMax;
+                processing.gBarycentric.w = fullLength + tHit;
                 processing.direct = vec4(raydir.xyz, 0.f);
                 processing.origin = vec4(lastOrigin, 1.f);
 
-                // 
-                if (!complete) { // WARNING: 
-                    geometry = interpolate(processing);
-                    material = materialize(processing, geometry);
+                // Interpolate In Ray-Tracing
+                XGEO geometry = interpolate(processing);
+                XPOL material = materialize(processing, geometry);
+
+                // confirm that hit 
+                if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
+                    rayQueryConfirmIntersectionEXT(rayQuery); // override processing hit
                 };
-
-                // 
-                if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold) || complete) { // Only When Opaque!
-                    if (!complete) { rayQueryConfirmIntersectionEXT(rayQuery); };
-                    confirmed = processing;
-                } else 
-                if ((fullLength + lastMax) <= (maxT-0.1f)) { // It's transparent, need ray-trace again! (but with another position)
-                    if (complete) { restart = true; };
-                }
             };
-
-            if (complete) { break; };
         };
-        
+
         // 
-        //rayQueryConfirmIntersectionEXT(rayQuery);
+        processing = confirmed; lastMax = (maxT - fullLength); lastOrigin = raydir*maxT + sorigin;
+        if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionNoneEXT) {
+            uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, true); // Mesh ID from Node Mesh List (because indexing)
+            uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, true); // TODO: Using In Ray Tracing (and Query) shaders!
+            uint globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, true);
+            vec2 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, true);
+            uint primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, true); 
+            vec3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true);
+            float tHit = rayQueryGetIntersectionTEXT(rayQuery, true);
+
+            // 
+            if (tHit < lastMax) { lastOrigin = raydir*(lastMax=tHit) + forigin;
+                processing.gIndices = uvec4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
+                processing.gBarycentric.xyz = vec3(1.f-baryCoord.x-baryCoord.y,baryCoord);
+                processing.direct = vec4(raydir.xyz, 0.f);
+                processing.origin = vec4(forigin = (raydir*(processing.gBarycentric.w = (fullLength += tHit)) + sorigin), 1.f);
+            };
+        } else { fullLength = maxT; };
         rayQueryTerminateEXT(rayQuery);
 
-        // 
-        if (!restart || (fullLength += lastMax) >= (maxT-0.1f)) { break; } else { restart = false; }; // With Correction* 
+        if (fullLength <= (maxT-1.f)) {
+            confirmed = processing; restart = true;
+        };
+
+        if (!restart) { break; };
     };
 
-    // 
-    //if (processing.txcmid.z <= 0u) {
-        //confirmed.origin.xyz = sorigin + fullLength * raydir;
-    //};
-
-    // 
-    return confirmed;///(fullLength >= (maxT-1.f)) ? result : processing;
+    return confirmed;
 };
 
 #define LAUNCH_ID gl_GlobalInvocationID.xy

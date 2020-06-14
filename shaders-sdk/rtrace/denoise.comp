@@ -147,7 +147,7 @@ void main() { // TODO: explicit sampling
      currentReflection = ( currentReflection/max( currentReflection.w,1.f));
 
     // Can't denoised! Going deeper than "opaque" types... mixing with main color... 
-    //vec4 transpar = getTransparent(samplep).w;
+    //vec4 transpar = getTransparent(samplep);
     //float alpha = transpar.w;
     vec4 transpar = getDenoised(samplep, 2, 3);//getTransparent(samplep);
     transpar.xyz /= max(transpar.w,1.f);
