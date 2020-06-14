@@ -80,7 +80,7 @@ void main() {
 
         // Will Resampled Itself (anchors)
         imageStore(writeImages[nonuniformEXT(IW_MATERIAL)], ivec2(lanQ), vec4(MAT.txcmid  ));
-        imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx, 0.f));
+        imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(0.f.xxx, RPM.gBarycentric.w < 9999.f ? 0.f : 1.f));
         imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(0.f.xxx, 1.f)); // Py-Clone
 
         // 
@@ -136,10 +136,13 @@ void main() {
             if ( I == 0 ) { directLight(RES, sphere, origin, fnormal, seed, gSignal, gEnergy); };
 
             // 
+            bool hasSkybox = false;
             for (uint i=0;i<2;i++) { // fast trace
                 XHIT hit = traceRays(origin, raydir, normal, 10000.f, true, 0.001f);
                 XGEO result = interpolate(hit);
                 XPOL material = materialize(hit, result);
+
+                if (i == 0 && I == 2) { hasSkybox = hit.gBarycentric.w > 9999.f; }; 
 
                 // 
                 normal.xyz = material.mapNormal.xyz = normalize(faceforward(material.mapNormal.xyz, raydir.xyz, result.gNormal.xyz));
@@ -190,7 +193,7 @@ void main() {
             { gSignal.xyz = clamp(gSignal.xyz,0.f.xxx,16.f.xxx); };
             if (I == 0) { imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
             if (I == 1) { imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), 1.f)); };
-            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), RES.gBarycentric.w < 9999.f ? 1.f : 0.f)); }; // alpha channel reserved, zero always opaque type
+            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), (hasSkybox?1.f:2.f))); }; // alpha channel reserved, zero always opaque type
         
         };
         imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ), adaptiveData); // For Adaptive Denoise

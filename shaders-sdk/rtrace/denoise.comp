@@ -32,6 +32,13 @@ ivec2 mapc(in ivec2 map) {
     return ivec2(map.x,size.y-map.y-1);
 }
 
+bool skyboxPixel(in ivec2 samplep) {
+    const  vec4 dataflat = getData(samplep);
+    const uvec4 datapass = floatBitsToUint(dataflat);
+    const vec2 texcoord = unpackUnorm2x16(datapass.x);
+    return uintBitsToFloat(datapass.z) <= 0.f;
+}
+
 // 
 vec4 getDenoised(in ivec2 coord, in int type, in uint maxc) {
     vec4 centerNormal = getNormal(coord);
@@ -46,15 +53,14 @@ vec4 getDenoised(in ivec2 coord, in int type, in uint maxc) {
             vec4 nsample = getNormal(map), psample = vec4(world2screen(getPosition(map).xyz), 1.f);
 
             if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == (maxc>>1) && y == (maxc>>1)) || centerc.w <= 0.0001f && sampled.w <= 0.0001f) {
-                vec4 samp = 0.f.xxxx;
-                if (type == 0) { samp = getIndirect(map); };
-                if (type == 1) { samp = getPReflection(map); };
-                if (type == 2) { samp = getTransparent(map); samp.w = samp.w > 0.0001f ? 1.f : 0.f; };
+                vec4 samp = 0.f.xxxx; float simp = 1.f;
+                if (type == 0) { samp = getIndirect   (map); simp = samp.w; };
+                if (type == 1) { samp = getPReflection(map); simp = samp.w; };
+                if (type == 2) { samp = getTransparent(map); simp = samp.w; };
 
-                samp.xyz = clamp(samp.xyz/max(samp.w,1.f), 0.f.xxx, type == 2 ? 1.f.xxx : 16.f.xxx)*samp.w;
+                // 
+                samp.xyz = clamp(samp.xyz/max(samp.w,0.5f), 0.f.xxx, type == 2 ? 2.f.xxx : 16.f.xxx)*samp.w; samp.w = simp;
                 sampled += samp;
-
-                //sampled += clamp(samp/max(samp.w,1.f),0.f.xxxx,1.f.xxxx);
             };
         };
     };
@@ -64,6 +70,7 @@ vec4 getDenoised(in ivec2 coord, in int type, in uint maxc) {
     //    sampled.w = getPReflection(coord).w;
     //};
 
+    sampled.w = max(sampled.w, 1.f);
     return sampled;
 };
 
@@ -148,7 +155,7 @@ void main() { // TODO: explicit sampling
 
     // 
     vec4 transpar = getDenoised(samplep, 2, 3);
-    transpar.xyz /= max(transpar.w,1.f);
+    transpar.xyz /= max(transpar.w, 0.5f);
     transpar.w = diffused.w <= 0.9999f ? 1.f : 0.f;
     float alpha = clamp((transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f), 0.f, 1.f);
 
@@ -169,8 +176,8 @@ void main() { // TODO: explicit sampling
     };
 
 #else
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,1.f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,1.f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
+    imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
+    imageStore(writeBuffer[BW_RENDERED],     (samplep), vec4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
     //imageStore(writeBuffer[BW_RENDERED],   (samplep), vec4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif
 
