@@ -30,7 +30,7 @@ void main() {
         const ivec2 sizPixel = ivec2(launchSize);
 
         // WARNING! Quality may critically drop when move! 
-        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x^1))&1u);
+        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x^1u))&1u);
 
         //
         packed = pack32(u16vec2(curPixel)), seed = uvec2(packed, rdata.x);
@@ -190,7 +190,7 @@ void main() {
             { gSignal.xyz = clamp(gSignal.xyz,0.f.xxx,16.f.xxx); };
             if (I == 0) { imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], ivec2(lanQ), vec4(gSignal.xyz, 1.f)); };
             if (I == 1) { imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], ivec2(lanQ), vec4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), 1.f)); };
-            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(gSignal.xyz, RES.gBarycentric.w < 9999.f ? 1.f : 0.f)); }; // alpha channel reserved, zero always opaque type
+            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], ivec2(lanQ), vec4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), RES.gBarycentric.w < 9999.f ? 1.f : 0.f)); }; // alpha channel reserved, zero always opaque type
         
         };
         imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ), adaptiveData); // For Adaptive Denoise

@@ -146,14 +146,11 @@ void main() { // TODO: explicit sampling
     previousReflection = (previousReflection/max(previousReflection.w,1.f));
      currentReflection = ( currentReflection/max( currentReflection.w,1.f));
 
-    // Can't denoised! Going deeper than "opaque" types... mixing with main color... 
-    //vec4 transpar = getTransparent(samplep);
-    //float alpha = 1.f * (isSkybox ? 0.f : 1.f);
-
-    vec4 transpar = getDenoised(samplep, 2, 3);//getTransparent(samplep);
+    // 
+    vec4 transpar = getDenoised(samplep, 2, 3);
     transpar.xyz /= max(transpar.w,1.f);
-    transpar.w = fixedTranparency(samplep);
-    float alpha = (transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f);
+    transpar.w = diffused.w <= 0.9999f ? 1.f : 0.f;
+    float alpha = clamp((transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f), 0.f, 1.f);
 
 #ifndef LATE_STAGE
     imageStore(writeImages[IW_REFLECLR], mapc(samplep), reflects = vec4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
