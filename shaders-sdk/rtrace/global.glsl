@@ -94,11 +94,9 @@ XGEO interpolate(inout XHIT hit) { // By Geometry Data
 // 
 XPOL materialize(inout XHIT hit, inout XGEO geo) { // 
 #define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
-    XPOL material; const vec4 skyColor = gSkyShader(hit.direct.xyz, hit.origin.xyz);
-
-    // 
-    material. diffuseColor = vec4(1.f.xxx, 0.f.x);
-    material.emissionColor = skyColor;
+    XPOL material;
+    material. diffuseColor = vec4(0.f.xxx, 1.f.x);
+    material.emissionColor = gSkyShader(hit.direct.xyz, hit.origin.xyz);
     material. normalsColor = vec4(0.5f,0.5f,1.f,1.f);
     material.specularColor = vec4(0.f.xxx,0.f.x); // TODO: Correct Specular Initial
     material.mapNormal = geo.gNormal;
@@ -133,7 +131,7 @@ XPOL materialize(inout XHIT hit, inout XGEO geo) { //
 
 // 
 XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
-    uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(-normal.xyz, raydir.xyz, normal.xyz) * lastMin + faceforward(raydir.xyz, raydir.xyz, normal.xyz) * lastMin;
+    uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f; vec3 lastOrigin = origin + faceforward(normal.xyz, raydir.xyz, normal.xyz) * lastMin + raydir.xyz * lastMin;
 
     // 
     float fullLength = 0.f;

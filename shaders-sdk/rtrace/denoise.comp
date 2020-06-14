@@ -113,7 +113,7 @@ void main() { // TODO: explicit sampling
 
     // Updated for 12.05.2020
     diffused.xyz = max(diffused.xyz - emission.xyz, 0.f.xxx);
-    diffused = getSmoothed(samplep), diffused /= max(diffused.w, 1.f);
+    //diffused = getSmoothed(samplep), diffused /= max(diffused.w, 1.f); // BROKEN!
     diffused.w = dtexdata.w; // Replace Into Diffuse Alpha Channel
 
     if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
@@ -148,11 +148,11 @@ void main() { // TODO: explicit sampling
 
     // Can't denoised! Going deeper than "opaque" types... mixing with main color... 
     //vec4 transpar = getTransparent(samplep);
-    //float alpha = transpar.w;
+    //float alpha = 1.f * (isSkybox ? 0.f : 1.f);
+
     vec4 transpar = getDenoised(samplep, 2, 3);//getTransparent(samplep);
     transpar.xyz /= max(transpar.w,1.f);
     transpar.w = fixedTranparency(samplep);
-    
     float alpha = (transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f);
 
 #ifndef LATE_STAGE

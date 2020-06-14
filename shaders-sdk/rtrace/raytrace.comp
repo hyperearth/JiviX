@@ -22,24 +22,24 @@ shared XHIT hits[workX*workY];
 
 // 
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
-    uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f, fullLength = 0.f; vec3 forigin = origin + faceforward(normal.xyz, raydir.xyz, -normal.xyz) * lastMin + raydir.xyz * lastMin, sorigin = forigin;
-    const vec4 skyColor = gSkyShader(raydir.xyz, origin.xyz);
+    uint32_t I = 0, R = 0; float lastMax = maxT, lastMin = 0.001f, fullLength = 0.f; vec3 forigin = origin + faceforward(normal.xyz, -raydir.xyz, normal.xyz) * lastMin + raydir.xyz * lastMin, sorigin = forigin;
 
     // 
     XHIT processing, confirmed;
-    processing.origin.xyz = origin.xyz;
-    processing.direct.xyz = raydir.xyz;
+    processing.origin = vec4(origin.xyz, 1.f);
+    processing.direct = vec4(raydir.xyz, 0.f);
     processing.gIndices = uvec4(0u);
     processing.gBarycentric = vec4(0.f.xxx, maxT);
     confirmed = processing;
 
     // 
-    bool restart = true;
+    bool restart = true, opaque = false;
     while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
-        rayQueryEXT rayQuery; float lastMax = (maxT - fullLength); vec3 lastOrigin = raydir * fullLength + sorigin; 
+        rayQueryEXT rayQuery; float lastMax = (maxT - fullLength); vec3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
         rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
-            0xFF, lastOrigin + raydir.xyz * lastMin, lastMin, raydir, lastMax);
+            0xFF, lastOrigin, 0.001f, raydir, lastMax);
 
+        // 
         while((I++) < 64 && rayQueryProceedEXT(rayQuery)) { // 
             uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, false); // Mesh ID from Node Mesh List (because indexing)
             uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, false); // TODO: Using In Ray Tracing (and Query) shaders!
@@ -53,9 +53,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
             if (tHit < lastMax) { lastOrigin = raydir*(lastMax = tHit) + forigin;
                 processing.gIndices = uvec4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
                 processing.gBarycentric.xyz = vec3(1.f-baryCoord.x-baryCoord.y,baryCoord);
-                processing.gBarycentric.w = fullLength + tHit;
-                processing.direct = vec4(raydir.xyz, 0.f);
-                processing.origin = vec4(lastOrigin, 1.f);
+                processing.origin = vec4(raydir*(processing.gBarycentric.w = (fullLength + tHit)) + sorigin, 1.f);
 
                 // Interpolate In Ray-Tracing
                 XGEO geometry = interpolate(processing);
@@ -63,7 +61,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
                 // confirm that hit 
                 if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
-                    rayQueryConfirmIntersectionEXT(rayQuery); // override processing hit
+                    opaque = true; rayQueryConfirmIntersectionEXT(rayQuery); // override processing hit
                 };
             };
         };
@@ -83,19 +81,28 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
             if (tHit < lastMax) { lastOrigin = raydir*(lastMax=tHit) + forigin;
                 processing.gIndices = uvec4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
                 processing.gBarycentric.xyz = vec3(1.f-baryCoord.x-baryCoord.y,baryCoord);
-                processing.direct = vec4(raydir.xyz, 0.f);
-                processing.origin = vec4(forigin = (raydir*(processing.gBarycentric.w = (fullLength += tHit)) + sorigin), 1.f);
+                processing.origin.xyz = (forigin = (raydir*(processing.gBarycentric.w = (fullLength += tHit)) + sorigin));
+
+                // Interpolate In Ray-Tracing
+                XGEO geometry = interpolate(processing);
+                XPOL material = materialize(processing, geometry);
+
+                // 
+                forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
+
+                // confirm that hit 
+                if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
             };
         } else { fullLength = maxT; };
         rayQueryTerminateEXT(rayQuery);
 
-        if (fullLength <= (maxT-1.f)) {
-            confirmed = processing; restart = true;
-        };
-
+        // 
+        if (fullLength <= (maxT-1.f) && !opaque) { restart = true; };
         if (!restart) { break; };
     };
 
+    // 
+    if (fullLength <= (maxT-1.f)) { confirmed = processing; };
     return confirmed;
 };
 

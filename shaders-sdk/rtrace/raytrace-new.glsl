@@ -1,6 +1,7 @@
 #define RES hits[gl_LocalInvocationIndex]
 
-// 
+
+// CRITICAL TODO: Fully Remake That Shader for Ray Gen Shaders
 void main() {
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);

@@ -1054,6 +1054,6 @@ int main() {
 
     // 
     glfwDestroyWindow(manager.window);
-    glfwTerminate();
+    glfwTerminate(); exit(0);
     return 0;
 };
