@@ -22,7 +22,7 @@ Planned to beat world record as most perfect and most long-time development prod
 ```MD
 - Architecture    : [ARC:F2020]
 - Portfolio       : Work in Progress
-- License         : BSD-3 (Currently)
+- License         : Apache-2.0 (Currently)
 - Execute Day     : [2021:Q1]
 - Support OS      : Windows 10 (2004 or Newer), Ubuntu 20.04 (Experimental)
 - Support HW      : RTX 2070 or familiar...
@@ -38,7 +38,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Replacement Of  : Project "Satellite" ("engine", 2017)
 - Shaders Version : v2.0
 
-Date:[12.06.2020]:[helix.d@IMN]
+Date:[22.06.2020]:[helix.d@IMN]
 ```
 
 
