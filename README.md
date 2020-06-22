@@ -1,6 +1,6 @@
 # LancER
 
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Real-Time oriented Vulkan API rendering and computing library...
 Writing for C++20 prior...
