@@ -103,6 +103,7 @@ Cargo.lock
 *.exe
 *.out
 *.app
+*.pdb
 
 # 
 ipch/*
