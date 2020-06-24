@@ -23,7 +23,7 @@ namespace jvi {
         protected: virtual uPTR(BufferViewSet) construct() {
             this->driver = context->getDriver();
             this->thread = std::make_shared<Thread>(this->driver);
-            auto templ = vkh::VkDescriptorSetLayoutCreateInfo{}.also([&](auto* it) { vkt::zero32(it->flags); return it; });
+            auto templ = vkh::VkDescriptorSetLayoutCreateInfo{}.also([=](auto* it) { vkt::zero32(it->flags); return it; });
             auto stagef = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 };
             auto incomp = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 };
 

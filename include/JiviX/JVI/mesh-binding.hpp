@@ -157,7 +157,7 @@ namespace jvi {
 
             // 
             const glm::uvec4 initialCount = glm::uvec4(0u);
-            this->thread->submitOnce([&](const VkCommandBuffer& cmdbuf) {
+            this->thread->submitOnce([=](const VkCommandBuffer& cmdbuf) {
                 this->driver->getDeviceDispatch()->CmdUpdateBuffer(cmdbuf, counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &initialCount);
             });
 

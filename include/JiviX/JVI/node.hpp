@@ -37,8 +37,8 @@ namespace jvi {
 
             //
             auto bflgs = vkh::VkBufferCreateFlags::create();
-            auto hostUsage = vkh::VkBufferUsageFlags::create([&](auto* it){ it->eTransferSrc = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1; return it; });
-            auto gpuUsage = vkh::VkBufferUsageFlags::create([&](auto* it) { it->eTransferDst = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1, it->eSharedDeviceAddress = 1; return it; });
+            auto hostUsage = vkh::VkBufferUsageFlags::create([=](auto* it){ it->eTransferSrc = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1; return it; });
+            auto gpuUsage = vkh::VkBufferUsageFlags::create([=](auto* it) { it->eTransferDst = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1, it->eSharedDeviceAddress = 1; return it; });
             this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = hostUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
             this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
