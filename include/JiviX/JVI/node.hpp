@@ -408,14 +408,17 @@ namespace jvi {
                 };
             };
 
-            //
-            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 9u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->context->uniformGPUData;
 
-            { //
+            {   // 
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 9u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->context->uniformGPUData;
+            };
+
+
+            {   // 
                 this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 10u,
                     .dstArrayElement = 0u,
@@ -424,12 +427,15 @@ namespace jvi {
                 }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuMeshInfo;
             };
 
-            //
-            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 11u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuInstances;
+
+            {   //
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 11u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuInstances;
+            };
+
 
             //
             if (this->accelerationStructure) {
