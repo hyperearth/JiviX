@@ -311,14 +311,14 @@ namespace jvi {
                 this->buildGTemp.geometry.triangles.vertexData = bindingBuffer;
                 this->buildGTemp.flags = bflags;
 
-                // 
-                for (auto& CR : this->bottomDataCreate) {
-                    CR.vertexFormat = attribute->format;
-                };
-
                 // Fix vec4 formats into vec3, without alpha (but still can be passed by stride value)
                 if (attribute->format == VK_FORMAT_R32G32B32A32_SFLOAT) this->buildGTemp.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
                 if (attribute->format == VK_FORMAT_R16G16B16A16_SFLOAT) this->buildGTemp.geometry.triangles.vertexFormat = VK_FORMAT_R16G16B16_SFLOAT;
+
+                //
+                for (auto& CR : this->bottomDataCreate) {
+                    CR.vertexFormat = this->buildGTemp.geometry.triangles.vertexFormat;
+                };
             };
 
             return uTHIS;
@@ -993,7 +993,8 @@ namespace jvi {
                  this->driver->getDeviceDispatch()->CmdDraw(buildCommand, this->currentUnitCount, 1u, 0u, 0u);
              };
 
-             // 
+             //
+             this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 0u, nullptr, nullptr, nullptr);
              this->driver->getDeviceDispatch()->CmdEndTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
              this->driver->getDeviceDispatch()->CmdEndRenderPass(buildCommand);
 
