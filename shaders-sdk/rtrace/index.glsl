@@ -124,24 +124,24 @@ vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
 // But arrays are allowed...
 
 // 
-layout (binding = 0, r8ui) readonly uniform uimageBuffer mesh0[];
-layout (binding = 1, r8ui) readonly uniform uimageBuffer index[];
+layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
+layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer index[];
 
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
-layout (binding = 2, scalar) readonly buffer MapData { uint32_t data[]; } map[];
-layout (binding = 3, r32ui) readonly uniform uimage2D mapImage[];
-layout (binding = 4) uniform texture2D mapColor[];
+layout (binding = 2, set = 0, scalar) readonly buffer MapData { uint32_t data[]; } map[];
+layout (binding = 3, set = 0, r32ui) readonly uniform uimage2D mapImage[];
+layout (binding = 4, set = 0) uniform texture2D mapColor[];
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
-layout (binding = 5, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
-layout (binding = 6, scalar) readonly buffer Attributes { Attribute data[]; } attributes[];
+layout (binding = 5, set = 1, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
+layout (binding = 6, set = 1, scalar) readonly buffer Attributes { Attribute data[]; } attributes[];
 
 // 
-  layout (binding = 7, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
-  layout (binding = 8, scalar) readonly buffer MeshMaterial { uint materialID[]; } geomMTs[];
-//layout (binding = 9, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
+  layout (binding = 7, set = 1, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
+  layout (binding = 8, set = 1, scalar) readonly buffer MeshMaterial { uint materialID[]; } geomMTs[];
+//layout (binding = 9, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
 
-layout (binding = 9, scalar) uniform Matrices {
+layout (binding = 9, set = 1, scalar) uniform Matrices {
     mat4 projection;    
     mat4 projectionInv; 
     mat3x4 modelview;   
@@ -153,23 +153,23 @@ layout (binding = 9, scalar) uniform Matrices {
     uvec2 tdata;
     uvec2 rdata;
 };
-layout (binding = 10, scalar) readonly buffer MeshData { MeshInfo meshInfo[]; };
-layout (binding = 11, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
+layout (binding = 10, set = 1, scalar) readonly buffer MeshData { MeshInfo meshInfo[]; };
+layout (binding = 11, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 
 // Deferred and Rasterization Set
-layout (binding = 13) uniform sampler2D frameBuffers[12u];  // Pre-resampled buffers
-layout (binding = 14) uniform sampler2D renderBuffers[12u]; // Used by final rendering
-layout (binding = 15) uniform sampler2D rasterBuffers[ 8u]; // Used by rasterization
+layout (binding = 13, set = 2) uniform sampler2D  frameBuffers[12u];  // Pre-resampled buffers
+layout (binding = 14, set = 2) uniform sampler2D renderBuffers[12u]; // Used by final rendering
+layout (binding = 15, set = 2) uniform sampler2D rasterBuffers[ 8u]; // Used by rasterization
 
 // 
-layout (binding = 16, rgba32f) uniform image2D writeBuffer[]; // Pre-resampled buffers, For EDIT!
-layout (binding = 17, rgba32f) uniform image2D writeImages[]; 
-layout (binding = 18, rgba32f) uniform image2D writeImagesBack[]; 
+layout (binding = 16, set = 3, rgba32f) uniform image2D writeBuffer[]; // Pre-resampled buffers, For EDIT!
+layout (binding = 17, set = 3, rgba32f) uniform image2D writeImages[]; 
+layout (binding = 18, set = 3, rgba32f) uniform image2D writeImagesBack[]; 
 
 // Material Set
-layout (binding = 20, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
-layout (binding = 21) uniform sampler2D background;
-layout (binding = 22) uniform sampler2D textures[];
+layout (binding = 20, set = 4, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
+layout (binding = 21, set = 4) uniform sampler2D background;
+layout (binding = 22, set = 4) uniform sampler2D textures[];
 
 // 
 highp uint getMeshID(in RTXInstance instance){

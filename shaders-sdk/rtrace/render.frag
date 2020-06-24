@@ -12,7 +12,7 @@ layout ( location = 0 ) in vec2 vcoord;
 
 // 
 void main() { // TODO: explicit sampling 
-    const ivec2 size = textureSize(renderBuffers[BW_RENDERED], 0), samplep = ivec2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
+    const ivec2 size = textureSize(renderBuffers[BW_RENDERED], 0), samplep = ivec2(gl_FragCoord.x,gl_FragCoord.y);
     
     // Final Result Rendering
     vec4 zero = 0.f.xxxx;

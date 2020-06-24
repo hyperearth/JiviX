@@ -15,7 +15,7 @@
 // TODO: X-Based Optimization
 const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
 layout ( local_size_x = workX, local_size_y = workY ) in; 
-layout ( binding = 12u ) uniform accelerationStructureEXT Scene;
+layout ( binding = 12u, set = 1u ) uniform accelerationStructureEXT Scene;
 
 // 
 shared XHIT hits[workX*workY];
