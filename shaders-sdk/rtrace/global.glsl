@@ -89,7 +89,7 @@ XGEO interpolate(inout XHIT hit) { // By Geometry Data
 
     // 
     return geometry;
-}
+};
 
 // 
 XPOL materialize(inout XHIT hit, inout XGEO geo) { // 
@@ -127,7 +127,7 @@ XPOL materialize(inout XHIT hit, inout XGEO geo) { //
 
     // 
     return material;
-}
+};
 
 // 
 XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {
@@ -173,7 +173,7 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
         // TODO: optimize material fetching
         XGEO geometry = interpolate(processing);
         XPOL material = materialize(processing, geometry);
-        
+
         // TODO: rasterization direct diffuse access
         if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
             confirmed = processing;
@@ -182,4 +182,3 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
     return confirmed;
 };
-

@@ -106,22 +106,11 @@ namespace jvi {
         protected: virtual uPTR(Material) createDescriptorSet() {
             this->descriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(context->materialDescriptorSetLayout, driver->descriptorPool);
 
-            if (sampledImages.size() > 0u) { // Setup Textures
-                vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 0u,
-                    .descriptorCount = uint32_t(sampledImages.size()),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-                });
-                memcpy(&imagesHandle.offset<vkh::VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(vkh::VkDescriptorImageInfo));
-                //imagesHandle.offset<vkh::VkDescriptorImageInfo>(uint32_t(sampledImages.size())) = sampledImages[uint32_t(sampledImages.size())-1u];
-                //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<vkh::VkDescriptorImageInfo>(i) = sampledImages[i]; };
-            };
-
-            // 
+            //
             this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 1u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                    .dstBinding = 20u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
             }).offset<vkh::VkDescriptorBufferInfo>() = (vkh::VkDescriptorBufferInfo&)this->gpuMaterials;
 
             // 
@@ -192,11 +181,23 @@ namespace jvi {
             // 
             if (this->backgroundImage) { // 
                 vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 2u,
+                    .dstBinding = 21u,
                     .descriptorCount = uint32_t(1u),
                     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
                 imagesHandle.offset<vkh::VkDescriptorImageInfo>(0) = *backgroundImage;
+            };
+
+            //
+            if (sampledImages.size() > 0u) { // Setup Textures
+                vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                        .dstBinding = 22u,
+                        .descriptorCount = uint32_t(sampledImages.size()),
+                        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                });
+                memcpy(&imagesHandle.offset<vkh::VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(vkh::VkDescriptorImageInfo));
+                //imagesHandle.offset<vkh::VkDescriptorImageInfo>(uint32_t(sampledImages.size())) = sampledImages[uint32_t(sampledImages.size())-1u];
+                //for (uint32_t i = 0u; i < sampledImages.size(); i++) { imagesHandle.offset<vkh::VkDescriptorImageInfo>(i) = sampledImages[i]; };
             };
 
             // Reprojection WILL NOT write own depth... 

@@ -8,23 +8,23 @@
 layout (local_size_x = 32u, local_size_y = 24u) in; 
 
 // Not Reprojected by Previous Frame
-vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_POSITION]); return imageLoad(writeBuffer[BW_POSITION],ivec2(map.x,size.y-map.y-1)); };
-vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MAPNORML]); return imageLoad(writeImages[IW_MAPNORML],ivec2(map.x,size.y-map.y-1)); };
-vec4 getData       (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MATERIAL]); return imageLoad(writeImages[IW_MATERIAL],ivec2(map.x,size.y-map.y-1)); };
+vec4 getPosition   (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_POSITION]); return imageLoad(writeBuffer[BW_POSITION],ivec2(map.x,map.y)); };
+vec4 getNormal     (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MAPNORML]); return imageLoad(writeImages[IW_MAPNORML],ivec2(map.x,map.y)); };
+vec4 getData       (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_MATERIAL]); return imageLoad(writeImages[IW_MATERIAL],ivec2(map.x,map.y)); };
 
 // For current frame only
-vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],ivec2(map.x,size.y-map.y-1)); };
-vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_TRANSPAR]); return imageLoad(writeBuffer[BW_TRANSPAR],ivec2(map.x,size.y-map.y-1)); };
-vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
+vec4 getReflection (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],ivec2(map.x,map.y)); };
+vec4 getTransparent(in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_TRANSPAR]); return imageLoad(writeBuffer[BW_TRANSPAR],ivec2(map.x,map.y)); };
+vec4 getColor      (in ivec2 map) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],ivec2(map.x,map.y)); };
 
 // With Resampling
-vec4 getSmoothed   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_SMOOTHED]); return imageLoad(writeImages[IW_SMOOTHED],ivec2(map.x,size.y-map.y-1)); };
-vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],ivec2(map.x,size.y-map.y-1)); };
-vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],ivec2(map.x,size.y-map.y-1)); };
+vec4 getSmoothed   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_SMOOTHED]); return imageLoad(writeImages[IW_SMOOTHED],ivec2(map.x,map.y)); };
+vec4 getIndirect   (in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],ivec2(map.x,map.y)); };
+vec4 getPReflection(in ivec2 map) { const ivec2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],ivec2(map.x,map.y)); };
 
 // 
-void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); imageStore(writeBuffer[BW_INDIRECT],ivec2(map.x,size.y-map.y-1),color); };
-void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[BW_REFLECLR]); imageStore(writeBuffer[BW_REFLECLR],ivec2(map.x,size.y-map.y-1),color); };
+void setColor      (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[BW_INDIRECT]); imageStore(writeBuffer[BW_INDIRECT],ivec2(map.x,map.y),color); };
+void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(writeBuffer[BW_REFLECLR]); imageStore(writeBuffer[BW_REFLECLR],ivec2(map.x,map.y),color); };
 
 // 
 ivec2 mapc(in ivec2 map) {

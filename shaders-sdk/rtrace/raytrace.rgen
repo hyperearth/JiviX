@@ -14,8 +14,8 @@
 
 // 
 //layout (local_size_x = 32u, local_size_y = 24u) in; 
-layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
-layout (location = 0) rayPayloadEXT RCData rcdata;
+layout ( binding = 12u ) uniform accelerationStructureEXT Scene;
+layout ( location = 0u ) rayPayloadEXT RCData rcdata;
 
 // 
 /* // TODO: New Official Ray Tracing Shader Update

@@ -306,7 +306,7 @@ namespace jvi {
 
             { // unknown mystery reason...
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 8u,
+                    .dstBinding = 1u,
                     .dstArrayElement = 0u,
                     .descriptorCount = uint32_t(meshCount),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
@@ -332,7 +332,8 @@ namespace jvi {
                 handle.offset<VkDescriptorBufferInfo>(0u) = mapData;
             };
 
-            { //
+            //
+            {
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 3u,
                     .dstArrayElement = 0u,
@@ -358,7 +359,7 @@ namespace jvi {
 
             { //
                 auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 0u,
+                    .dstBinding = 5u,
                     .dstArrayElement = 0u,
                     .descriptorCount = uint32_t(meshCount),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
@@ -371,7 +372,7 @@ namespace jvi {
 
             { //
                 auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 1u,
+                    .dstBinding = 6u,
                     .dstArrayElement = 0u,
                     .descriptorCount = uint32_t(meshCount),
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
@@ -383,59 +384,14 @@ namespace jvi {
             };
 
             //
-            if (this->accelerationStructure) {
-                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 2u,
-                    .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
-                }).offset<VkAccelerationStructureKHR>(0u) = this->accelerationStructure;
-            };
-
-            //
-            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 3u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->context->uniformGPUData;
-
-            // 
             for (uint32_t i = 0; i < meshCount; i++) {
                 if (this->meshes[i]->gpuTransformData.has()) {
                     this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 4u,
+                        .dstBinding = 7u,
                         .dstArrayElement = i,
                         .descriptorCount = 1u,
                         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                     }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->meshes[i]->gpuTransformData;
-                };
-            };
-
-            { //
-                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 5u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = 1u,//uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuMeshInfo;
-            };
-
-            //
-            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                .dstBinding = 6u,
-                .descriptorCount = 1u,
-                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuInstances;
-
-            { //
-                auto& handle = this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 7u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                });
-
-                for (uint32_t i = 0; i < meshCount; i++) {
-                    handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuInstanceMap;
                 };
             };
 
@@ -450,6 +406,38 @@ namespace jvi {
                 for (uint32_t i = 0; i < meshCount; i++) {
                     handle.offset<vkh::VkDescriptorBufferInfo>(i) = this->meshes[i]->gpuMaterialIDs;
                 };
+            };
+
+            //
+            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 9u,
+                .descriptorCount = 1u,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->context->uniformGPUData;
+
+            { //
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 10u,
+                    .dstArrayElement = 0u,
+                    .descriptorCount = 1u,//uint32_t(meshCount),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuMeshInfo;
+            };
+
+            //
+            this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                .dstBinding = 11u,
+                .descriptorCount = 1u,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+            }).offset<vkh::VkDescriptorBufferInfo>(0u) = this->gpuInstances;
+
+            //
+            if (this->accelerationStructure) {
+                this->bindingsDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 12u,
+                    .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+                }).offset<VkAccelerationStructureKHR>(0u) = this->accelerationStructure;
             };
 
             // 

@@ -11,7 +11,8 @@ layout (location = 4) out vec4 gSpecular;
 layout (location = 5) out vec4 gRescolor;
 layout (location = 6) out vec4 gSmooth;
 
-out gl_PerVertex {   // some subset of these members will be used
+// some subset of these members will be used
+out gl_PerVertex {
     vec4 gl_Position;
     float gl_PointSize;
 };
@@ -50,10 +51,10 @@ void main() {
         positions.xyz = mul4(mul4(vec4(positions.xyz, 1.f), matras), rtxInstances[globalInstanceID].transform).xyz;
 
         //
-        gl_Position = vec4(world2screen(positions.xyz),1.f), gl_Position.y *= -1.f, gl_PointSize = 1.f;
+        gl_Position = vec4(world2screen(positions.xyz),1.f), gl_PointSize = 1.f;
         gColor = clamp(diffcolor, 0.001f, 10000000.f);
         gSpecular = vec4(speccolor.xyz,1.f);
-        gSample = vec4(gl_Position.xyz,1.f), gSample.y *= -1.f;
+        gSample = vec4(gl_Position.xyz,1.f);
         gNormal = vec4(normaling.xyz,1.f);
         gSmooth = smoothedc;
         wPosition = positions;
