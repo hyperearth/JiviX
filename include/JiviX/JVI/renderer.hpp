@@ -83,7 +83,7 @@ namespace jvi {
         };
 
         // 
-        protected: virtual uPTR(Renderer) setupSkyboxedState(const VkCommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
+        protected: virtual uPTR(Renderer) setupSkyboxedState(vkt::uni_arg<VkCommandBuffer> rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) { // 
             this->denoiseState = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->denoiseStage), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
             this->reflectState = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->reflectStage), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
             this->raytraceState = vkt::createCompute(this->driver->getDeviceDispatch(), vkt::FixConstruction(this->raytraceStage), VkPipelineLayout(this->context->unifiedPipelineLayout), this->driver->getPipelineCache());
@@ -94,15 +94,21 @@ namespace jvi {
         };
 
         // 
-        protected: virtual uPTR(Renderer) saveDiffuseColor(const VkCommandBuffer& saveCommand = {}) {
-            const auto& viewport = this->context->refViewport();
-            const auto& renderArea = this->context->refScissor();
+        protected: virtual uPTR(Renderer) saveDiffuseColor(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}) {
+            const vkh::VkViewport viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const vkh::VkRect2D renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
 
             // 
-            this->driver->getDeviceDispatch()->CmdCopyImage(saveCommand, this->context->frameBfImages[0u], this->context->frameBfImages[0u], this->context->smFlip1Images[4u], this->context->smFlip1Images[4u], 1u, vkh::VkImageCopy{
-                .srcSubresource = this->context->frameBfImages[0u], .srcOffset = vkh::VkOffset3D{ 0u,0u,0u },
-                .dstSubresource = this->context->smFlip1Images[4u], .dstOffset = vkh::VkOffset3D{ 0u,0u,0u },
-                .extent = vkh::VkExtent3D{ renderArea.extent.width, renderArea.extent.height, 1u }
+            this->driver->getDeviceDispatch()->CmdCopyImage(cmdBuf,
+                this->context->frameBfImages[0u].getImage(),
+                this->context->frameBfImages[0u].getImageLayout(),
+                this->context->smFlip1Images[4u].getImage(),
+                this->context->smFlip1Images[4u].getImageLayout(),
+                1u, vkh::VkImageCopy{
+                    .srcSubresource = this->context->frameBfImages[0u].subresourceLayers(), .srcOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                    .dstSubresource = this->context->smFlip1Images[4u].subresourceLayers(), .dstOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                    .extent = vkh::VkExtent3D{ renderArea.extent.width, renderArea.extent.height, 1u 
+                }
             });
 
             // 
@@ -111,8 +117,8 @@ namespace jvi {
 
         // 
         protected: virtual uPTR(Renderer) setupResamplingPipeline() {
-            const auto& viewport = this->context->refViewport();
-            const auto& renderArea = this->context->refScissor();
+            const vkh::VkViewport viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const vkh::VkRect2D renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
 
             //
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
@@ -174,19 +180,21 @@ namespace jvi {
         };
 
         // 
-        protected: virtual uPTR(Renderer) setupResampleCommand(const VkCommandBuffer& resampleCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
-            const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
-            const auto& renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
+        protected: virtual uPTR(Renderer) setupResampleCommand(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, const glm::uvec4& meshData = glm::uvec4(0u)) {
+            const vkh::VkViewport viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const vkh::VkRect2D renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
+
+            // 
             const auto clearValues = std::vector<vkh::VkClearValue>{
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                { .depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
+                {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
             };
 
             // 
@@ -194,15 +202,15 @@ namespace jvi {
 
             //
             auto pstage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
-            this->driver->getDeviceDispatch()->CmdBeginRenderPass(resampleCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
-            this->driver->getDeviceDispatch()->CmdBindPipeline(resampleCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->resamplingState);
-            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(resampleCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-            this->driver->getDeviceDispatch()->CmdPushConstants(resampleCommand, this->context->unifiedPipelineLayout, pstage, 0u, sizeof(meshData), &meshData);
-            this->driver->getDeviceDispatch()->CmdSetViewport(resampleCommand, 0u, 1u, viewport);
-            this->driver->getDeviceDispatch()->CmdSetScissor(resampleCommand, 0u, 1u, renderArea);
-            this->driver->getDeviceDispatch()->CmdDraw(resampleCommand, renderArea.extent.width, renderArea.extent.height, 0u, 0u);
-            this->driver->getDeviceDispatch()->CmdEndRenderPass(resampleCommand);
-            vkt::commandBarrier(this->driver->getDeviceDispatch(), resampleCommand);
+            this->driver->getDeviceDispatch()->CmdBeginRenderPass(cmdBuf, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
+            this->driver->getDeviceDispatch()->CmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, this->resamplingState);
+            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdPushConstants(cmdBuf, this->context->unifiedPipelineLayout, pstage, 0u, sizeof(meshData), &meshData);
+            this->driver->getDeviceDispatch()->CmdSetViewport(cmdBuf, 0u, 1u, viewport);
+            this->driver->getDeviceDispatch()->CmdSetScissor(cmdBuf, 0u, 1u, renderArea);
+            this->driver->getDeviceDispatch()->CmdDraw(cmdBuf, renderArea.extent.width, renderArea.extent.height, 0u, 0u);
+            this->driver->getDeviceDispatch()->CmdEndRenderPass(cmdBuf);
+            vkt::commandBarrier(this->driver->getDeviceDispatch(), cmdBuf);
 
             //
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
@@ -213,8 +221,8 @@ namespace jvi {
 
         // 
         public: virtual uPTR(Renderer) setupRenderer() {
-            const auto& viewport = this->context->refViewport();
-            const auto& renderArea = this->context->refScissor();
+            const vkh::VkViewport viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const vkh::VkRect2D renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
 
             // 
             if (!this->context->refRenderPass()) {
@@ -245,8 +253,8 @@ namespace jvi {
 
         // TODO: Fix Command Create For Every Frame
         public: virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf = {}, const bool& once = true, vkt::uni_arg<CommandOptions> parameters = CommandOptions{1u,1u,1u,1u,1u,1u,1u,1u}) { // setup Commands
-            const auto& viewport = this->context->refViewport();
-            const auto& renderArea = this->context->refScissor();
+            const vkh::VkViewport viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const vkh::VkRect2D renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
 
             // 
             if (!this->initialized) { this->setupRenderer(); };
@@ -339,10 +347,6 @@ namespace jvi {
             };
 
             return uTHIS;
-        };
-
-        public: virtual uPTR(Renderer) setupCommands(vkt::uni_arg<VkCommandBuffer> cmdBuf, const bool& once, const int32_t& options) {
-            return setupCommands(cmdBuf, once, reinterpret_cast<const CommandOptions&>(options));
         };
 
         // 

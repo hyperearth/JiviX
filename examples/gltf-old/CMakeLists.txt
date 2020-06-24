@@ -114,6 +114,7 @@ set (DEFINES
     -DENABLE_VULKAN_HPP
     -DVKT_CORE_ENABLE_XVK
     -DVKT_CORE_ENABLE_VMA
+    -DWIN32_LEAN_AND_MEAN 
 )
 
 # Set MSVC/Windows specific 
@@ -161,9 +162,9 @@ endif()
 
 # Compiler specific options
 if (MSVC) # Clang in Visual Studio 2017
-    #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3 /NODEFAULTLIB:library") # Native compiler of Visual Studio 2017
+    #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /NODEFAULTLIB:library /diagnostics:caret /std:c++latest /arch:AVX2 /tune:skylake /fp:strict /permissive- /Qspectre /LTCG /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3") # Native compiler of Visual Studio 2017
     set (LIBS ${LIBS} glfw3)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  /diagnostics:caret /std:c++latest /arch:AVX2 /fp:strict /permissive- /Qspectre /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /NODEFAULTLIB:library /diagnostics:caret /std:c++latest /arch:AVX2 /fp:strict /permissive- /Qspectre /LTCG /JMC /Oy /Oi /Ot /Ox /GT /GL /Gy /Qpar /W3")
     set (CMAKE_DOTNET_TARGET_FRAMEWORK_VERSION "v4.7.2")
 else()
     set (COMMON_LIBS glfw X11 Xrandr rt dl)

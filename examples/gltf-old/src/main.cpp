@@ -1,1 +1,1 @@
-/home/helixd/JiviX/examples/gltf-old/src-lib/main-12052020.cpp
+../src-lib/main-12052020.cpp
