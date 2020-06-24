@@ -112,8 +112,8 @@ namespace jvi {
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                .initialLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                .finalLayout = VK_IMAGE_LAYOUT_GENERAL
             };
 
             //
@@ -378,6 +378,8 @@ namespace jvi {
                 auto aspect = vkh::VkImageAspectFlags{.eDepth = 1, .eStencil = 1};
                 auto dpuse = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 };
                 auto dpres = vkh::VkImageSubresourceRange{.aspectMask = aspect};
+                dpuse = dpuse | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
                 this->depthImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                     .flags = flags,
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
@@ -386,7 +388,7 @@ namespace jvi {
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                     .subresourceRange = dpres,
-                }, VK_IMAGE_LAYOUT_GENERAL);
+                }, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,

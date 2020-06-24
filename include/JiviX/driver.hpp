@@ -25,7 +25,7 @@ namespace jvx {
         CALLIFY(getMemoryProperties);
         CALLIFY(getAllocator);
         //CALLIFY(submitCommandWithSync);
-        CALLIFY(getDepthImageView);
+        //CALLIFY(getDepthImageView);
         CALLIFY(getDepthImage);
         CALLIFY(createInstance);
         CALLIFY(createDevice);

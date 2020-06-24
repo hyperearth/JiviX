@@ -281,13 +281,9 @@ namespace jvi {
             }, nullptr, &this->mapFramebuffer));
 
             // 
-            thread->submitOnce([&, this](VkCommandBuffer& cmd) {
-                this->driver->getDeviceDispatch()->CmdFillBuffer(cmd, this->mapData, 0u, this->mapData.range(), 0u);
-                this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->colImage.transfer(cmd), this->colImage.getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, colImage.getImageSubresourceRange());
-                this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->mapImage.transfer(cmd), this->mapImage.getImageLayout(), vkh::VkClearColorValue{ .uint32 = { 0u,0u,0u,0u } }, 1u, mapImage.getImageSubresourceRange());
-                this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(cmd, this->depImage.transfer(cmd), this->depImage.getImageLayout(), vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0}, 1u, depImage.getImageSubresourceRange());
+            thread->submitOnce([=, this](VkCommandBuffer& cmd) {
+                this->clearMappedData(cmd);
             });
-
 
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const auto meshCount = std::min(uint64_t(this->meshes.size()), uint64_t(64ull));
@@ -461,6 +457,17 @@ namespace jvi {
 
         // 
         protected: virtual uPTR(Node) clearMappedData(const VkCommandBuffer& currentCmd = {}) {
+            vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
+                .image = this->depImage.getImage(),
+                .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .originLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                    auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
+                    it->aspectMask = aspect;
+                    return it;
+                })
+            });
+
             this->driver->getDeviceDispatch()->CmdFillBuffer(currentCmd, this->mapData, 0u, this->mapData.range(), 0u);
             this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->colImage, this->colImage.getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, colImage.getImageSubresourceRange());
             this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->mapImage, this->mapImage.getImageLayout(), vkh::VkClearColorValue{ .uint32 = { 0u,0u,0u,0u } }, 1u, mapImage.getImageSubresourceRange());
@@ -494,6 +501,17 @@ namespace jvi {
                  {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
                  {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
             };
+
+            vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
+                .image = this->context->depthImage.getImage(),
+                .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .originLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                    auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
+                    it->aspectMask = aspect;
+                    return it;
+                })
+            });
 
             // 
             this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->context->depthImage, this->context->depthImage.getImageLayout(), clearValues[8u].depthStencil, 1u, this->context->depthImage.getImageSubresourceRange());
