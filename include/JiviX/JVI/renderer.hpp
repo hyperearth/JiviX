@@ -8,6 +8,7 @@
 #include "./mesh-binding.hpp"
 #include "./node.hpp"
 
+
 namespace jvi {
 
     // TODO: Descriptor Sets
@@ -99,17 +100,16 @@ namespace jvi {
             const vkh::VkRect2D renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
 
             // 
-            this->driver->getDeviceDispatch()->CmdCopyImage(cmdBuf,
-                this->context->frameBfImages[0u].getImage(),
-                this->context->frameBfImages[0u].getImageLayout(),
-                this->context->smFlip1Images[4u].getImage(),
-                this->context->smFlip1Images[4u].getImageLayout(),
+            auto srcImage = this->context->getFrameBuffer(0u);
+            auto dstImage = this->context->getFlip1Buffer(4u);
+            this->driver->getDeviceDispatch()->CmdCopyImage(*cmdBuf,
+                srcImage.getImage(), srcImage.getImageLayout(),
+                dstImage.getImage(), dstImage.getImageLayout(),
                 1u, vkh::VkImageCopy{
-                    .srcSubresource = this->context->frameBfImages[0u].subresourceLayers(), .srcOffset = vkh::VkOffset3D{ 0u,0u,0u },
-                    .dstSubresource = this->context->smFlip1Images[4u].subresourceLayers(), .dstOffset = vkh::VkOffset3D{ 0u,0u,0u },
-                    .extent = vkh::VkExtent3D{ renderArea.extent.width, renderArea.extent.height, 1u 
-                }
-            });
+                    .srcSubresource = srcImage.subresourceLayers(), .srcOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                    .dstSubresource = dstImage.subresourceLayers(), .dstOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                    .extent = vkh::VkExtent3D{ renderArea.extent.width, renderArea.extent.height, 1u }
+                });
 
             // 
             return uTHIS;
