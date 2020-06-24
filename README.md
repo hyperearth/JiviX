@@ -24,22 +24,21 @@ Planned to beat world record as most perfect and most long-time development prod
 - Portfolio       : Work in Progress
 - License         : Apache-2.0 (Currently)
 - Execute Day     : [2021:Q1]
-- Support OS      : Windows 10 (2004 or Newer), Ubuntu 20.04 (Experimental)
-- Support HW      : RTX 2070 or familiar...
 - Commercial      : Under Consideration
 - Project Type    : Experimental, Personal
 - Path-Tracing    : Diffuse noiseless (almost), reflection...
 - Target Games    : Minecraft Java Edition, Neverball...
 - Graphical API   : Vulkan API (VK_KHR_ray_tracing)
-- Code Language   : C++20, [Visual Studio 2019] support
 - General To Do   : Add Transform Feedback support
-- Testing On GPU  : NVIDIA GeForce RTX 2070 (Gigabyte)
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
 - Replacement Of  : Project "Satellite" ("engine", 2017)
 - Shaders Version : v2.0
+- И ВСЕ, ПИЗДЕЦ!  : R.I.P. for Visual Studio 2019 support... (UNKNOWN Internal Compiler Error)
 
-Date:[22.06.2020]:[helix.d@IMN]
+Date:[25.06.2020]:[helix.d@IMN]
 ```
+
+### Visual Studio 2019 RIP... NO possible to resolve that problem... 
 
 
 ### TODO Lists (Gen 3...)
