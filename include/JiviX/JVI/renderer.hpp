@@ -51,12 +51,8 @@ namespace jvi {
             };
 
             //
-            auto bflgs = vkh::VkBufferCreateFlags{};
-            vkt::unlock32(bflgs) = 0u;
-
-            //
             auto sbtUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
-            this->sbtBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(glm::u64vec4) * 4u, .usage = sbtUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->sbtBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 4u, .usage = sbtUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
 
             // 
             return uTHIS;
@@ -304,7 +300,6 @@ namespace jvi {
             if (parameters->eEnableRayTracing) {
                 const auto vect0 = glm::uvec4(0u);
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
-
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->raytraceState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
                 this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, pstage, 0u, sizeof(glm::uvec4), &vect0);
@@ -325,6 +320,7 @@ namespace jvi {
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
 
+            //
             if (parameters->eEnableDenoise) {
                 const auto vect0 = glm::uvec4(0u);
                 auto pstages = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };

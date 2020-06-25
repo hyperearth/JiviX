@@ -36,14 +36,13 @@ namespace jvi {
             this->topCreate.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
 
             //
-            auto bflgs = vkh::VkBufferCreateFlags::create();
             auto hostUsage = vkh::VkBufferUsageFlags::create([=](auto* it){ it->eTransferSrc = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1; return it; });
             auto gpuUsage = vkh::VkBufferUsageFlags::create([=](auto* it) { it->eTransferDst = 1, it->eStorageBuffer = 1, it->eUniformBuffer = 1, it->eRayTracing = 1, it->eSharedDeviceAddress = 1; return it; });
-            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = hostUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->rawInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = hostUsage}, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->gpuInstances = vkt::Vector<vkh::VsGeometryInstance>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VsGeometryInstance) * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull)), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             //
-            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = uint64_t(16u * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull))), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->gpuMeshInfo = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = uint64_t(16u * std::max(uint64_t(MaxInstanceCount), uint64_t(64ull))), .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             // FOR BUILD!
             auto bdHeadFlags = vkh::VkBuildAccelerationStructureFlagsKHR{ .eAllowUpdate = 1, .ePreferFastTrace = 1 };
@@ -192,27 +191,20 @@ namespace jvi {
             this->bindingsDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->bindingsDescriptorSetLayout, this->thread->getDescriptorPool());
             this->meshDataDescriptorSetInfo = vkh::VsDescriptorSetCreateInfoHelper(this->context->meshDataDescriptorSetLayout, this->thread->getDescriptorPool());
 
-            //
-            auto bflgs = vkh::VkBufferCreateFlags{};
-            auto iflgs = vkh::VkImageCreateFlags{};
-            vkt::unlock32(bflgs) = 0u;
-            vkt::unlock32(iflgs) = 0u;
-
             // 
             const auto mapWidth = 1024u, mapHeight = 1024u;
             auto& allocInfo = driver->memoryAllocationInfo();
 
             // With Additional Elements, For Counters
             auto mapUsage = vkh::VkBufferUsageFlags{.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
-            this->mapData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .flags = bflgs, .size = 2048u * 2048u * 4u + 64u, .usage = mapUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->mapData = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 2048u * 2048u * 4u + 64u, .usage = mapUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             //
             const auto aspectMask = vkh::VkImageAspectFlags{.eColor = 1};
-            auto imgUsage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
-            auto depUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eDepthStencilAttachment = 1 };
+            auto imgUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
+            auto depUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 };
 
             this->colImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
-                .flags = iflgs,
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 .extent = {mapWidth,mapHeight,1u},
                 .usage = imgUsage,
@@ -233,7 +225,6 @@ namespace jvi {
 
             // 
             this->mapImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
-                .flags = iflgs,
                 .format = VK_FORMAT_R32_UINT,
                 .extent = {mapWidth,mapHeight,1u},
                 .usage = imgUsage,
@@ -254,7 +245,6 @@ namespace jvi {
             //
             auto dAspectMask = vkh::VkImageAspectFlags{.eDepth = 1, .eStencil = 1};
             this->depImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
-                .flags = iflgs,
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .extent = {mapWidth,mapHeight,1u},
                 .usage = depUsage,
@@ -288,6 +278,18 @@ namespace jvi {
                 this->mapImage.transfer(cmd);
                 this->colImage.transfer(cmd);
                 this->clearMappedData(cmd);
+
+                // 
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{
+                    .image = this->depImage.getImage(),
+                    .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    .originLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                    .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                        auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
+                        it->aspectMask = aspect;
+                        return it;
+                    })
+                });
             });
 
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
@@ -349,12 +351,12 @@ namespace jvi {
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 4u,
                     .dstArrayElement = 0u,
-                    .descriptorCount = 2u,
+                    .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
                 });
 
                 handle.offset<VkDescriptorImageInfo>(0u) = colImage;
-                handle.offset<VkDescriptorImageInfo>(1u) = depImage;
+                //handle.offset<VkDescriptorImageInfo>(1u) = depImage;
             };
 
 
@@ -648,10 +650,6 @@ namespace jvi {
             this->topCreate.maxGeometryCount = this->topDataCreate.size();
             this->topCreate.pGeometryInfos = this->topDataCreate.data();
 
-            //
-            auto bflgs = vkh::VkBufferCreateFlags{};
-            vkt::unlock32(bflgs) = 0u;
-
             // 
             if (!this->accelerationStructure) { // create acceleration structure fastly...
                 vkh::handleVk(driver->getDeviceDispatch()->CreateAccelerationStructureKHR(this->topCreate, nullptr, &this->accelerationStructure));
@@ -667,7 +665,7 @@ namespace jvi {
                 // TODO: fix memoryProperties issue
                 auto usage = vkh::VkBufferUsageFlags{.eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eSharedDeviceAddress = 1 };
                 TempBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .flags = bflgs, .size = requirements.memoryRequirements.size, .usage = usage,
+                    .size = requirements.memoryRequirements.size, .usage = usage,
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch() }));
 
                 // 
@@ -690,7 +688,7 @@ namespace jvi {
                 //
                 auto usage = vkh::VkBufferUsageFlags{ .eStorageBuffer = 1, .eRayTracing = 1, .eSharedDeviceAddress = 1 };
                 this->gpuScratchBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(driver->getAllocator(), vkh::VkBufferCreateInfo{
-                    .flags = bflgs, .size = requirements.memoryRequirements.size, .usage = usage
+                    .size = requirements.memoryRequirements.size, .usage = usage
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY, .deviceDispatch = this->driver->getDeviceDispatch() }));
             };
 
