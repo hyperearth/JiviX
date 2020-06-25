@@ -53,4 +53,5 @@ void main() {
 
     // 
     gl_Position = vec4(fPosition * modelview, 1.f) * projection;
+    gl_Position.y *= -1.f;
 };

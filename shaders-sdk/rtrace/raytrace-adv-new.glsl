@@ -26,7 +26,7 @@ void main() {
         const uint lIdx = (locQ.y >> 1u) * gl_WorkGroupSize.x + locQ.x;
         
         // 
-        const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
+        const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,curPixel.y);
         const ivec2 sizPixel = ivec2(launchSize);
 
         // WARNING! Quality may critically drop when move! 
@@ -101,8 +101,8 @@ void main() {
 
     subgroupBarrier(); barrier();
 
-    //
-#ifdef RAY_TRACE
+    // BROKEN
+/*#ifdef RAY_TRACE
     XGEO GEO = interpolate(RES);
     XPOL MAT = materialize(RES, GEO);
     vec4 adaptiveData = 10000.f.xxxx;
@@ -199,7 +199,7 @@ void main() {
         imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ), adaptiveData); // For Adaptive Denoise
     };
 
-#endif
+#endif*/
 
     subgroupBarrier(); barrier();
 
