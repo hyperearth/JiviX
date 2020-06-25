@@ -613,7 +613,6 @@ namespace jvi {
 
             // 
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
-            vkt::unlock32(this->pipelineInfo.graphicsPipelineCreateInfo.flags) = 0u;
             this->pipelineInfo.vertexInputAttributeDescriptions = this->vertexInputAttributeDescriptions;
             this->pipelineInfo.vertexInputBindingDescriptions = this->vertexInputBindingDescriptions;
             this->pipelineInfo.stages = this->stages;

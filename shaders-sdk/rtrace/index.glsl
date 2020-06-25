@@ -155,6 +155,7 @@ layout (binding = 9, set = 1, scalar) uniform Matrices {
 };
 layout (binding = 10, set = 1, scalar) readonly buffer MeshData { MeshInfo meshInfo[]; };
 layout (binding = 11, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
+layout (binding = 12, set = 1 ) uniform accelerationStructureEXT Scene;
 
 // Deferred and Rasterization Set
 layout (binding = 13, set = 2) uniform sampler2D  frameBuffers[12u]; // Pre-resampled buffers

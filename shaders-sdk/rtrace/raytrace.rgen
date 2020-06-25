@@ -13,8 +13,7 @@
 //#define TOP_LAYERED // Has reflection problems
 
 // 
-//layout (local_size_x = 32u, local_size_y = 24u) in; 
-layout ( binding = 12u, set = 1u ) uniform accelerationStructureEXT Scene;
+//layout (local_size_x = 32u, local_size_y = 24u) in;
 layout ( location = 0u ) rayPayloadEXT RCData rcdata;
 
 // 

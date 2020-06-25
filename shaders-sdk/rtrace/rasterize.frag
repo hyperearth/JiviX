@@ -16,7 +16,6 @@
 #include "./global.glsl"
 
 // 
-layout ( binding = 2, set = 1 ) uniform accelerationStructureEXT Scene;
 //layout ( early_fragment_tests ) in; // Reduce Lag Rate! (but transparency may broken!)
 // Прозрачность с новой прошивкой починим! @RED21
 

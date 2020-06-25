@@ -118,7 +118,6 @@ namespace jvi {
 
             //
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
-            vkt::unlock32(this->pipelineInfo.graphicsPipelineCreateInfo.flags) = 0u;
 
             //
             for (uint32_t i = 0u; i < 8u; i++) { // 
@@ -152,7 +151,6 @@ namespace jvi {
             // 
             //this->raytraceStages
             vkh::VkRayTracingPipelineCreateInfoKHR rInfo = {};
-            vkt::unlock32(rInfo.flags) = 0u;
             rInfo.layout = this->context->unifiedPipelineLayout;
             rInfo.maxRecursionDepth = 4u;
             //rInfo.setStages(this->raytraceStages);

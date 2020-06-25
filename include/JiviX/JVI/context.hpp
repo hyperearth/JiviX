@@ -471,10 +471,8 @@ namespace jvi {
             if (!this->unifiedPipelineLayout) {
                 std::cout << "Create Descriptor Set Layouts" << std::endl; // DEBUG!!
 
-                auto templ = vkh::VkDescriptorSetLayoutCreateInfo{};
-                vkt::unlock32(templ.flags) = 0u;
-
                 // 
+                auto templ = vkh::VkDescriptorSetLayoutCreateInfo{};
                 thread->submitOnce([=, this](VkCommandBuffer& cmd) {
                     vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{
                         .image = this->depthImage.getImage(),
