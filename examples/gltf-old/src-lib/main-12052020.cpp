@@ -971,8 +971,6 @@ int main() {
         // 
         vkh::handleVk(fw->getDeviceDispatch()->WaitForFences(1u, &framebuffers[c_semaphore].waitFence, true, 30ull * 1000ull * 1000ull * 1000ull));
         vkh::handleVk(fw->getDeviceDispatch()->ResetFences(1u, &framebuffers[c_semaphore].waitFence));
-
-        // 
         vkh::handleVk(fw->getDeviceDispatch()->AcquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer));
         //fw->getDeviceDispatch()->SignalSemaphore(vkh::VkSemaphoreSignalInfo{.semaphore = framebuffers[n_semaphore].semaphore, .value = 1u});
 
@@ -981,7 +979,7 @@ int main() {
             Shared::TimeCallback(double(context->registerTime()->setModelView(glm::mat4x4(cameraController->handle().project()))->drawTime()));
 
             // Create render submission 
-            std::vector<VkSemaphore> waitSemaphores = { framebuffers[c_semaphore].presentSemaphore }, signalSemaphores = { framebuffers[c_semaphore].computeSemaphore };
+            std::vector<VkSemaphore> waitSemaphores = { framebuffers[currentBuffer].presentSemaphore }, signalSemaphores = { framebuffers[currentBuffer].computeSemaphore };
             std::vector<vkh::VkPipelineStageFlags> waitStages = { 
                 vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 },
                 vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 }
@@ -996,16 +994,16 @@ int main() {
             }, {}));
 
             // 
-            waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
+            waitSemaphores = { framebuffers[currentBuffer].computeSemaphore }, signalSemaphores = { framebuffers[currentBuffer].drawSemaphore };
 
             // create command buffer (with rewrite)
-            VkCommandBuffer& commandBuffer = framebuffers[c_semaphore].commandBuffer;
+            VkCommandBuffer& commandBuffer = framebuffers[currentBuffer].commandBuffer;
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(fw->getDeviceDispatch(), commandPool, false, false); // do reference of cmd buffer
 
                 // Already present, prepare to render
                 vkt::imageBarrier(commandBuffer, vkt::ImageBarrierInfo{
-                    .image = framebuffers[c_semaphore].image,
+                    .image = framebuffers[currentBuffer].image,
                     .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
                     .originLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                     .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
@@ -1045,7 +1043,7 @@ int main() {
                 .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
                 .commandBufferCount = 1u, .pCommandBuffers = &commandBuffer,
                 .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
-            }, framebuffers[c_semaphore].waitFence));
+            }, framebuffers[currentBuffer].waitFence));
 
             // 
             context->setDrawCount(frameCount++);

@@ -460,7 +460,7 @@ namespace jvi {
 
                 vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{
                     .image = this->depthImage.getImage(),
-                    .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                    .targetLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                     .originLayout = VK_IMAGE_LAYOUT_GENERAL,
                     .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
                         auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };

@@ -209,6 +209,8 @@ namespace jvi {
             //
             const auto aspectMask = vkh::VkImageAspectFlags{.eColor = 1};
             auto imgUsage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
+            auto depUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eDepthStencilAttachment = 1 };
+
             this->colImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                 .flags = iflgs,
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
@@ -217,7 +219,7 @@ namespace jvi {
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 .subresourceRange = {.aspectMask = aspectMask},
-            });
+            }, VK_IMAGE_LAYOUT_GENERAL);
 
             // Create Sampler By Reference
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
@@ -238,7 +240,7 @@ namespace jvi {
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_R32_UINT,
                 .subresourceRange = {.aspectMask = aspectMask},
-            });
+            }, VK_IMAGE_LAYOUT_GENERAL);
 
             // Create Sampler By Reference
             //vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
@@ -255,11 +257,11 @@ namespace jvi {
                 .flags = iflgs,
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .extent = {mapWidth,mapHeight,1u},
-                .usage = imgUsage,
+                .usage = depUsage,
             }, allocInfo), vkh::VkImageViewCreateInfo{
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .subresourceRange = {.aspectMask = dAspectMask},
-            });
+            }, VK_IMAGE_LAYOUT_GENERAL);
 
             // Create Sampler By Reference
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
@@ -282,6 +284,9 @@ namespace jvi {
 
             // 
             thread->submitOnce([=, this](VkCommandBuffer& cmd) {
+                this->depImage.transfer(cmd);
+                this->mapImage.transfer(cmd);
+                this->colImage.transfer(cmd);
                 this->clearMappedData(cmd);
             });
 
@@ -460,7 +465,7 @@ namespace jvi {
             vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
                 .image = this->depImage.getImage(),
                 .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .originLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .originLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
                     auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
                     it->aspectMask = aspect;
@@ -478,7 +483,7 @@ namespace jvi {
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
                 .image = this->depImage.getImage(),
-                .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .targetLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 .originLayout = VK_IMAGE_LAYOUT_GENERAL,
                 .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
                     auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
@@ -525,7 +530,7 @@ namespace jvi {
             vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
                 .image = this->context->depthImage.getImage(),
                 .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .originLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .originLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
                     auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
                     it->aspectMask = aspect;
@@ -543,7 +548,7 @@ namespace jvi {
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
                 .image = this->context->depthImage.getImage(),
-                .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .targetLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 .originLayout = VK_IMAGE_LAYOUT_GENERAL,
                 .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
                     auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
