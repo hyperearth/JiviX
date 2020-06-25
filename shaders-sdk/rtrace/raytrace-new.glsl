@@ -10,9 +10,8 @@ void main() {
     const uvec2 lanQ = LAUNCH_ID;//gl_LaunchIDEXT.xy;//gl_GlobalInvocationID.xy;
     launchSize = imageSize(writeImages[IW_POSITION]);
 
-
     // 
-    const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,launchSize.y-curPixel.y-1u);
+    const ivec2 curPixel = ivec2(lanQ), invPixel = ivec2(curPixel.x,curPixel.y);
     const ivec2 sizPixel = ivec2(launchSize);
 
     // WARNING! Quality may critically drop when move! 
