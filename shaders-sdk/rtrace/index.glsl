@@ -125,7 +125,7 @@ vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
 
 // 
 layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
-layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer index[];
+//layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer index[];
 
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
 layout (binding = 2, set = 0, scalar) readonly buffer MapData { uint32_t data[]; } map[];

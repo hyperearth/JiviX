@@ -434,7 +434,7 @@ namespace jvi {
 
             // 
             scissor = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{width, height} };
-            viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), -static_cast<float>(scissor.extent.height), 0.f, 1.f };
+            viewport = vkh::VkViewport{ 0.0f, static_cast<float>(scissor.extent.height), static_cast<float>(scissor.extent.width), -static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
             // 
             thread->submitOnce([=,this](VkCommandBuffer& cmd) {
@@ -495,8 +495,9 @@ namespace jvi {
                 this->deferredDescriptorSetLayoutHelper = templ;
                 this->materialDescriptorSetLayoutHelper = templ;
 
+                // 
                 auto pipusage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
-                auto indexedf = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1, .eVariableDescriptorCount = 1 };
+                auto indexedf = vkh::VkDescriptorBindingFlags{ .eUpdateAfterBind = 1, .eUpdateUnusedWhilePending = 1, .ePartiallyBound = 1 };
 
                 // Raw Data
                 for (uint32_t b = 0u; b < 2u; b++) { // For Ray Tracers
