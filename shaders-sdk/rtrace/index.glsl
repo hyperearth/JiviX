@@ -157,7 +157,7 @@ layout (binding = 10, set = 1, scalar) readonly buffer MeshData { MeshInfo meshI
 layout (binding = 11, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 
 // Deferred and Rasterization Set
-layout (binding = 13, set = 2) uniform sampler2D  frameBuffers[12u];  // Pre-resampled buffers
+layout (binding = 13, set = 2) uniform sampler2D  frameBuffers[12u]; // Pre-resampled buffers
 layout (binding = 14, set = 2) uniform sampler2D renderBuffers[12u]; // Used by final rendering
 layout (binding = 15, set = 2) uniform sampler2D rasterBuffers[ 8u]; // Used by rasterization
 

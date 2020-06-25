@@ -575,27 +575,12 @@ namespace jvi {
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout, thread->getDescriptorPool());
 
                 { // 
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 13u,
-                        .descriptorCount = 12u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-                    });
-
-                    // 
-                    //memcpy(&handle, &frameBfImages[0u].getDescriptor(), sizeof(VkDescriptorImageInfo) * 8u);
-                    for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<vkh::VkDescriptorImageInfo>(i) = frameBfImages[i].getDescriptor();
-                    };
-                }
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 13u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER });
+                    for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = frameBfImages[i].getDescriptor(); };
+                };
 
                 { //
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 14u,
-                        .descriptorCount = 12u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-                    });
-
-                    // 
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 14u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER });
                     for (uint32_t i = 0; i < 12u; i++) {
                         this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                            .magFilter = VK_FILTER_LINEAR,
@@ -604,25 +589,19 @@ namespace jvi {
                            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
                         }, nullptr, &(handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor())->sampler);
                     }
-                }
+                };
 
                 { //
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                            .dstBinding = 15u,
-                            .descriptorCount = 8u,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
-                    });
-
-                    //
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 15u, .descriptorCount = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER });
                     for (uint32_t i = 0; i < 8u; i++) {
                         this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                                .magFilter = VK_FILTER_LINEAR,
-                                .minFilter = VK_FILTER_LINEAR,
-                                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+                            .magFilter = VK_FILTER_LINEAR,
+                            .minFilter = VK_FILTER_LINEAR,
+                            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
                         }, nullptr, &(handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(rastersImages[i]).getDescriptor())->sampler);
                     }
-                }
+                };
 
                 // 
                 vkh::handleVk(vkt::AllocateDescriptorSetWithUpdate(this->driver->getDeviceDispatch(), descInfo, this->deferredDescriptorSet, this->descriptorUpdatedF));
@@ -632,42 +611,18 @@ namespace jvi {
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
 
                 { //
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                            .dstBinding = 16u,
-                            .descriptorCount = 12u,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                    });
-
-                    //
-                    for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor();
-                    };
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 16u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE });
+                    for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor(); };
                 }
 
                 {
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 17u,
-                        .descriptorCount = 12u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                    });
-
-                    // 
-                    for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip0Images[i].getDescriptor();
-                    };
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 17u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE });
+                    for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip0Images[i].getDescriptor(); };
                 };
 
                 {
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 18u,
-                        .descriptorCount = 12u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                    });
-
-                    // 
-                    for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip1Images[i].getDescriptor();
-                    };
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 18u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE });
+                    for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip1Images[i].getDescriptor(); };
                 };
 
                 // Reprojection WILL NOT write own depth... 
@@ -678,42 +633,18 @@ namespace jvi {
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(samplingDescriptorSetLayout, thread->getDescriptorPool());
 
                 { //
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 16u,
-                        .descriptorCount = 12u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                    });
-
-                    //
-                    for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor();
-                    };
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{.dstBinding = 16u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE });
+                    for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor(); };
                 }
 
                 {
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 17u,
-                        .descriptorCount = 12u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                    });
-
-                    // 
-                    for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip1Images[i].getDescriptor();
-                    };
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 17u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE });
+                    for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip1Images[i].getDescriptor(); };
                 };
 
                 {
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 18u,
-                        .descriptorCount = 12u,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-                    });
-
-                    // 
-                    for (uint32_t i = 0; i < 12u; i++) {
-                        handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip0Images[i].getDescriptor();
-                    };
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 18u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE });
+                    for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = smFlip0Images[i].getDescriptor(); };
                 };
 
                 // Reprojection WILL NOT write own depth... 
