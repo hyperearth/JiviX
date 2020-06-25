@@ -610,7 +610,7 @@ namespace jvi {
             this->instancHeadInfo.ppGeometries = (this->instancPtr = this->instancInfo.data()).ptr();
             this->instancHeadInfo.scratchData = this->gpuScratchBuffer;
             this->instancHeadInfo.geometryCount = this->instancInfo.size();
-            this->instancHeadInfo.update = this->needsUpdate;
+            this->instancHeadInfo.update = false;//this->needsUpdate;
 
             // 
             if (this->needsUpdate) {

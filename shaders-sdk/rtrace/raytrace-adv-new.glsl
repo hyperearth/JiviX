@@ -102,7 +102,7 @@ void main() {
     subgroupBarrier(); barrier();
 
     // BROKEN
-/*#ifdef RAY_TRACE
+#ifdef RAY_TRACE
     XGEO GEO = interpolate(RES);
     XPOL MAT = materialize(RES, GEO);
     vec4 adaptiveData = 10000.f.xxxx;
@@ -198,8 +198,7 @@ void main() {
         };
         imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], ivec2(lanQ), adaptiveData); // For Adaptive Denoise
     };
-
-#endif*/
+#endif
 
     subgroupBarrier(); barrier();
 
