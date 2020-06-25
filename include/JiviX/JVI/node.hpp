@@ -468,11 +468,26 @@ namespace jvi {
                 })
             });
 
+            // 
             this->driver->getDeviceDispatch()->CmdFillBuffer(currentCmd, this->mapData, 0u, this->mapData.range(), 0u);
             this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->colImage, this->colImage.getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, colImage.getImageSubresourceRange());
             this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->mapImage, this->mapImage.getImageLayout(), vkh::VkClearColorValue{ .uint32 = { 0u,0u,0u,0u } }, 1u, mapImage.getImageSubresourceRange());
             this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->depImage, this->depImage.getImageLayout(), vkh::VkClearDepthStencilValue{ .depth = 1.0f, .stencil = 0 }, 1u, depImage.getImageSubresourceRange());
+
+            // 
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+            vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
+                .image = this->depImage.getImage(),
+                .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .originLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                    auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
+                    it->aspectMask = aspect;
+                    return it;
+                })
+            });
+
+            // 
             return uTHIS;
         };
 
@@ -480,10 +495,14 @@ namespace jvi {
         protected: virtual uPTR(Node) mappingGeometry(const VkCommandBuffer& currentCmd = {}) {
             this->clearMappedData(currentCmd);
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
+
+            // 
             uintptr_t I = 0u; for (uint32_t i = 0u; i < this->instanceCounter; i++) {
                 auto& Mesh = this->meshes[this->rawInstances[i].instanceId];
                 Mesh->createMappingCommand(currentCmd, glm::uvec4(I = this->rawInstances[i].instanceId, 0u, i, 0u), this->mapFramebuffer);
             };
+
+            // 
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             return uTHIS;
         };
@@ -502,6 +521,7 @@ namespace jvi {
                  {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
             };
 
+            // As General Layout
             vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
                 .image = this->context->depthImage.getImage(),
                 .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
@@ -518,7 +538,19 @@ namespace jvi {
             for (uint32_t i = 0; i < 8u; i++) {
                 this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), clearValues[i].color, 1u, this->context->rastersImages[i].getImageSubresourceRange());
             };
+
+            // As Optimal Layout
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+            vkt::imageBarrier(currentCmd, vkt::ImageBarrierInfo{
+                .image = this->context->depthImage.getImage(),
+                .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                .originLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                    auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
+                    it->aspectMask = aspect;
+                    return it;
+                })
+            });
 
             //
             this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;

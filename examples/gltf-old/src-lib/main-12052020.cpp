@@ -999,7 +999,7 @@ int main() {
             waitSemaphores = { framebuffers[c_semaphore].computeSemaphore }, signalSemaphores = { framebuffers[c_semaphore].drawSemaphore };
 
             // create command buffer (with rewrite)
-            VkCommandBuffer& commandBuffer = framebuffers[n_semaphore].commandBuffer;
+            VkCommandBuffer& commandBuffer = framebuffers[c_semaphore].commandBuffer;
             if (!commandBuffer) {
                 commandBuffer = vkt::createCommandBuffer(fw->getDeviceDispatch(), commandPool, false, false); // do reference of cmd buffer
 

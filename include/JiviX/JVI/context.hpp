@@ -113,7 +113,7 @@ namespace jvi {
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                .finalLayout = VK_IMAGE_LAYOUT_GENERAL
+                .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             };
 
             //
@@ -388,7 +388,7 @@ namespace jvi {
                 }, allocInfo), vkh::VkImageViewCreateInfo{
                     .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                     .subresourceRange = dpres,
-                }, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+                }, VK_IMAGE_LAYOUT_GENERAL);
 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
                     .magFilter = VK_FILTER_LINEAR,
@@ -446,7 +446,7 @@ namespace jvi {
             viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(scissor.extent.width), -static_cast<float>(scissor.extent.height), 0.f, 1.f };
 
             // 
-            thread->submitOnce([&,this](VkCommandBuffer& cmd) {
+            thread->submitOnce([=,this](VkCommandBuffer& cmd) {
                 this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(cmd, this->depthImage.transfer(cmd), this->depthImage.getImageLayout(), vkh::VkClearDepthStencilValue{ .depth = 1.0f, .stencil = 0 }, 1u, depthImage.getImageSubresourceRange());
                 for (uint32_t i = 0u; i < 12u; i++) { // Definitely Not an Hotel
                     this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->smFlip1Images[i].transfer(cmd), this->smFlip1Images[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->smFlip1Images[i].getImageSubresourceRange());
@@ -457,6 +457,17 @@ namespace jvi {
                         this->driver->getDeviceDispatch()->CmdClearColorImage(cmd, this->rastersImages[i].transfer(cmd), this->rastersImages[i].getImageLayout(), vkh::VkClearColorValue{ .float32 = { 0.f,0.f,0.f,0.f } }, 1u, this->rastersImages[i].getImageSubresourceRange());
                     };
                 };
+
+                vkt::imageBarrier(cmd, vkt::ImageBarrierInfo{
+                    .image = this->depthImage.getImage(),
+                    .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                    .originLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                        auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
+                        it->aspectMask = aspect;
+                        return it;
+                    })
+                });
             });
 
             // 
