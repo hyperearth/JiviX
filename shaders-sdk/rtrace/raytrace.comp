@@ -19,7 +19,7 @@ layout ( local_size_x = workX, local_size_y = workY ) in;
 shared XHIT hits[workX*workY];
 
 // Needs 1000$ for fix BROKEN ray query...
-const uint MAX_ITERATION = 64u;
+const uint MAX_ITERATION = 0u;
 
 // Ray Query Broken In Latest Driver... 
 XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool scatterTransparency, float threshold) {

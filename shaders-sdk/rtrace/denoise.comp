@@ -29,7 +29,7 @@ void setReflection (in ivec2 map, in vec4 color) { const ivec2 size = imageSize(
 // 
 ivec2 mapc(in ivec2 map) {
     const ivec2 size = imageSize(writeImages[IW_REFLECLR]);
-    return ivec2(map.x,size.y-map.y-1);
+    return ivec2(map.x, map.y);
 }
 
 bool skyboxPixel(in ivec2 samplep) {

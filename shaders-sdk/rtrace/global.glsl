@@ -148,8 +148,9 @@ XHIT rasterize(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     
 
     // 
+    vec3 sslr = world2screen(origin);
     const ivec2 tsize = textureSize(rasterBuffers[RS_MATERIAL], 0);
-    const ivec2 samplep = ivec2((world2screen(origin).xy*0.5f+0.5f) * textureSize(rasterBuffers[RS_MATERIAL], 0)); //samplep.y = tsize.y - samplep.y;
+    const ivec2 samplep = ivec2((sslr.xy*0.5f+0.5f) * textureSize(rasterBuffers[RS_MATERIAL], 0));
     const uvec4 indices  = floatBitsToUint(texelFetch(rasterBuffers[RS_GEOMETRY], samplep, 0));
     const uvec4 datapass = floatBitsToUint(texelFetch(rasterBuffers[RS_MATERIAL], samplep, 0));
 
