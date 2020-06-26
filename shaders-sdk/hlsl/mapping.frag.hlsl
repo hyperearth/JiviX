@@ -1,16 +1,4 @@
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
-#extension GL_EXT_ray_tracing          : require
-#extension GL_EXT_ray_query            : require
-#extension GL_ARB_post_depth_coverage  : require
-
-#ifdef AMD_SOLUTION
-#extension GL_AMD_shader_explicit_vertex_parameter : require
-#define BARYCOORD float3(1.f-gl_BaryCoordSmoothAMD.x-gl_BaryCoordSmoothAMD.y,gl_BaryCoordSmoothAMD)
-#else
-#extension GL_NV_fragment_shader_barycentric : require
 #define BARYCOORD gl_BaryCoordNV
-#endif
 
 #include "./driver.glsl"
 #include "./global.glsl"

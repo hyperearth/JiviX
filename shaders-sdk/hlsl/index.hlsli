@@ -130,7 +130,8 @@ float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 // But arrays are allowed...
 // TODO: dedicated sampler
 
-[[vk::ignore]] SamplerState dummySampler; 
+// Due Updated Version 
+//[[vk::ignore]] SamplerState dummySampler; 
 
 // 
 [[vk::binding(0,0)]] ByteAddressBuffer mesh0[] : register(t0, space0);
@@ -139,7 +140,7 @@ float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
 [[vk::binding(2,0)]] StructuredBuffer<uint> map[] : register(u0, space2);
 [[vk::binding(3,0)]] RWTexture2D<uint> mapImage[] : register(t0, space3);
-[[vk::binding(4,0), vk::combinedImageSampler]] Texture2D<float4> mapColor[] : register(t0, space4);
+[[vk::binding(4,0)]] Texture2D<float4> mapColor[] : register(t0, space4);
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
 [[vk::binding(5,1)]] StructuredBuffer<Binding> bindings[] : register(u0, space5);
@@ -174,9 +175,9 @@ struct Matrices {
 #endif
 
 // Deferred and Rasterization Set
-[[vk::binding(13,2), vk::combinedImageSampler]] Texture2D<float4>  frameBuffers[12u] : register(t0, space13); // Pre-resampled buffers
-[[vk::binding(14,2), vk::combinedImageSampler]] Texture2D<float4> renderBuffers[12u] : register(t0, space14); // Used by final rendering
-[[vk::binding(15,2), vk::combinedImageSampler]] Texture2D<float4> rasterBuffers[ 8u] : register(t0, space15); // Used by rasterization
+[[vk::binding(13,2)]] Texture2D<float4>  frameBuffers[12u] : register(t0, space13); // Pre-resampled buffers
+[[vk::binding(14,2)]] SamplerState samplers[4u] : register(t0, space14);
+[[vk::binding(15,2)]] Texture2D<float4> rasterBuffers[ 8u] : register(t0, space15); // Used by rasterization
 
 // 
 [[vk::binding(16,3)]] RWTexture2D<float4> writeBuffer[] : register(t0, space16); // Pre-resampled buffers, For EDIT!
@@ -185,17 +186,16 @@ struct Matrices {
 
 // 
 [[vk::binding(20,4)]] StructuredBuffer<MaterialUnit> materials[] : register(u0, space20);
-[[vk::binding(21,4), vk::combinedImageSampler]] Texture2D<float4> background : register(t0, space21);
-[[vk::binding(22,4), vk::combinedImageSampler]] Texture2D<float4> textures[] : register(t0, space22);
+[[vk::binding(21,4)]] Texture2D<float4> background : register(t0, space21);
+[[vk::binding(22,4)]] Texture2D<float4> textures[] : register(t0, space22);
 
 // 
 uint getMeshID(in RTXInstance instance){
     return bitfieldExtract(instance.instance_mask, 0, 24); // only hack method support
 };
 
-
 // 
-ConstantBuffer<uint4> drawInfo : register(b0, space23);
+[[vk::push_constant]] ConstantBuffer<uint4> drawInfo : register(b0, space23);
 
 
 // System Specified
@@ -501,5 +501,5 @@ float3 screen2world(in float3 origin){
 
 float4 gSkyShader(in float3 raydir, in float3 origin) {
     //return float4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
-    return background.Sample(dummySampler, flip(lcts(raydir.xyz)).xy);
+    return background.Sample(samplers[3u], flip(lcts(raydir.xyz)).xy);
 };

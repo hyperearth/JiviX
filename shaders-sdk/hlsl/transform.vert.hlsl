@@ -1,5 +1,3 @@
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
 #define TRANSFORM_FEEDBACK
 #include "./driver.glsl"
 

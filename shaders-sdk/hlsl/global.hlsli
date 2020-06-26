@@ -30,7 +30,7 @@ struct XHIT {
 };
 
 struct CHIT {
-     float4 gBarycentric;
+    float4 gBarycentric;
     uint4 gIndices;
 };
 

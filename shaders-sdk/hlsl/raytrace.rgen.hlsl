@@ -1,7 +1,3 @@
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
-#extension GL_EXT_ray_tracing          : require
-
 #define ENABLE_AS
 #include "./driver.glsl"
 #include "./global.glsl"

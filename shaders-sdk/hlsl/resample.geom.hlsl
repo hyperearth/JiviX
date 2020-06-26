@@ -1,5 +1,3 @@
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
 #include "./driver.glsl"
 
 // RESERVED for adaptive denoise and RTX-like reflections... 
