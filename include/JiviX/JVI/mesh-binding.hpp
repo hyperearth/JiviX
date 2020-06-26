@@ -760,6 +760,7 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
             this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
 
+            // 
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
