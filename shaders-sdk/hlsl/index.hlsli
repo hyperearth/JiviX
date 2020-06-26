@@ -1,5 +1,9 @@
+#ifndef INDEX_HLSL
+#define INDEX_HLSL
 // #
 
+#include "./driver.hlsli"
+#include "./matrix.hlsli"
 
 // Ray-Tracing Data (With resampling output support!)
 #define IW_INDIRECT 0  // Indrect Diffuse
@@ -147,7 +151,7 @@ float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 [[vk::binding(6,1)]] StructuredBuffer<Attribute> attributes[] : register(u0, space6);
 
 // 
-[[vk::binding(7,1)]] StructuredBuffer<uint> transform[] : register(u0, space7);
+[[vk::binding(7,1)]] StructuredBuffer<float3x4> transforms[] : register(u0, space7);
 [[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(u0, space8);
 
 // 
@@ -166,8 +170,8 @@ struct Matrices {
 
 // 
 [[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);
-[[vk::binding(10,1)]] StructuredBuffer<MeshInfo> meshInfo[] : register(u0, space10);
-[[vk::binding(11,1)]] StructuredBuffer<RTXInstance> rtxInstances[] : register(u0, space11);
+[[vk::binding(10,1)]] StructuredBuffer<MeshInfo> meshInfo : register(u0, space10);
+[[vk::binding(11,1)]] StructuredBuffer<RTXInstance> rtxInstances : register(u0, space11);
 
 // 
 #ifdef ENABLE_AS
@@ -503,3 +507,5 @@ float4 gSkyShader(in float3 raydir, in float3 origin) {
     //return float4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
     return background.Sample(samplers[3u], flip(lcts(raydir.xyz)).xy);
 };
+
+#endif
