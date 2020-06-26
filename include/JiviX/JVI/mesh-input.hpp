@@ -329,6 +329,8 @@ namespace jvi {
             //this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{ .depthTestEnable = true, .depthWriteEnable = true };
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT);          // NEW!
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT); // NEW!
             this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->transformPipelineLayout;
 

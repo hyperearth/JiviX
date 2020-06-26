@@ -619,6 +619,8 @@ namespace jvi {
             this->pipelineInfo.depthStencilState = vkh::VkPipelineDepthStencilStateCreateInfo{ .depthTestEnable = true, .depthWriteEnable = true };
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
             this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT);          // NEW!
+            this->pipelineInfo.dynamicStates.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT); // NEW!
             this->pipelineInfo.graphicsPipelineCreateInfo.renderPass = this->context->renderPass;
             this->pipelineInfo.graphicsPipelineCreateInfo.layout = this->context->unifiedPipelineLayout;
             this->pipelineInfo.viewportState.pViewports = &(vkh::VkViewport&)viewport;
@@ -732,10 +734,23 @@ namespace jvi {
                 this->createRasterizePipeline();
             };
 
+            //
+            std::vector<VkBuffer> buffers(this->bindings.size());
+            std::vector<VkDeviceSize> offsets(this->bindings.size());
+            std::vector<VkDeviceSize> strides(this->bindings.size());
+            std::vector<VkDeviceSize> sizes(this->bindings.size());
+
             // 
-            std::vector<VkBuffer> buffers = {}; std::vector<VkDeviceSize> offsets = {};
-            buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
-            for (auto& B : this->bindings) { if (B.has()) { const uintptr_t i = I++; buffers[i] = B.buffer(); offsets[i] = B.offset(); }; };
+            uintptr_t I = 0u;
+            for (auto& B : this->bindings) {
+                if (B.has()) {
+                    const uintptr_t i = I++;
+                    buffers[i] = this->bindings[i].buffer();
+                    offsets[i] = this->bindings[i].offset();
+                    strides[i] = DEFAULT_STRIDE;
+                    sizes[i] = this->bindings[i].range();
+                };
+            };
 
             // 
             const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
@@ -758,7 +773,8 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
             this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
             this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
-            this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
+            this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
+            this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(rasterCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 
             // 
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
@@ -924,9 +940,24 @@ namespace jvi {
          // 
          if (HasCommand && this->needUpdate) {
              this->needUpdate = false; // 
-             std::vector<VkBuffer> buffers = {}; std::vector<VkDeviceSize> offsets = {};
-             buffers.resize(this->bindings.size()); offsets.resize(this->bindings.size()); uintptr_t I = 0u;
-             for (auto& B : this->bindings) { if (this->bvs->get(B).has()) { const uintptr_t i = I++; buffers[i] = this->bvs->get(B).buffer(); offsets[i] = this->bvs->get(B).offset(); }; };
+
+             // 
+             std::vector<VkBuffer> buffers(this->bindings.size());
+             std::vector<VkDeviceSize> offsets(this->bindings.size());
+             std::vector<VkDeviceSize> strides(this->bindings.size());
+             std::vector<VkDeviceSize> sizes(this->bindings.size());
+
+             // 
+             uintptr_t I = 0u;
+             for (auto& B : this->bindings) {
+                 if (this->bvs->get(B).has()) {
+                     const uintptr_t i = I++;
+                     buffers[i] = this->bvs->get(B).buffer();
+                     offsets[i] = this->bvs->get(B).offset();
+                     strides[i] = this->bvs->get(B).stride();
+                     sizes[i] = this->bvs->get(B).range();
+                 };
+             };
 
              // 
              const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
@@ -972,7 +1003,8 @@ namespace jvi {
              this->driver->getDeviceDispatch()->CmdBeginTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
              this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformState);
              this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformPipelineLayout, 0u, this->descriptorSet.size(), this->descriptorSet.data(), 0u, nullptr);
-             this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
+             this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
+             this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(buildCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
              this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, stage, 0u, sizeof(meta), & meta);
 
              // 

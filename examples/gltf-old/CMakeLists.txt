@@ -46,6 +46,8 @@ set (SOURCES_LIST
     "./include/vma/*.h"
     "./include/vkh/*.hpp"
     "./include/vkh/*.h"
+	"./include/xvk/*.hpp"
+    "./include/xvk/*.h"
     "./include/vkt3/*.hpp"
     "./include/vkt3/*.h"
     "./include/volk/*.hpp"
@@ -130,9 +132,9 @@ if (UNIX OR LINUX)
 endif()
 
 # Vulkan Directories 
-if (Vulkan_INCLUDE_DIR)
-    set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
-endif()
+#if (Vulkan_INCLUDE_DIR)
+#    set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
+#endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)
@@ -189,7 +191,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
 add_executable(${APPLICATION_NAME} src/main.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS})
+target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
 
 # Add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)
