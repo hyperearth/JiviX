@@ -1,41 +1,43 @@
 
-#include "./driver.glsl"
+#include "./driver.hlsli"
+#include "./index.hlsli"
 
 // 
-//layout ( location = 0 ) in float2 vcoord;
-//layout ( location = 0 ) out float4 uFragColor;
-layout (local_size_x = 32u, local_size_y = 24u) in; 
+#define FETCH_FX(NAME, BUFFER) \
+    const uint2 size = uint2(0u,0u); BUFFER[NAME].GetDimensions(size.x, size.y); return BUFFER[NAME].Load(uint3(map.x,map.y,0));
+
+#define WRITE_FX(NAME, BUFFER) \
+    const uint2 size = uint2(0u,0u); BUFFER[NAME].GetDimensions(size.x, size.y); writeBuffer[BW_INDIRECT][int2(map.x,map.y)] = color;
 
 // Not Reprojected by Previous Frame
-float4 getPosition   (in int2 map) { const int2 size = imageSize(writeBuffer[BW_POSITION]); return imageLoad(writeBuffer[BW_POSITION],int2(map.x,map.y)); };
-float4 getNormal     (in int2 map) { const int2 size = imageSize(writeImages[IW_MAPNORML]); return imageLoad(writeImages[IW_MAPNORML],int2(map.x,map.y)); };
-float4 getData       (in int2 map) { const int2 size = imageSize(writeImages[IW_MATERIAL]); return imageLoad(writeImages[IW_MATERIAL],int2(map.x,map.y)); };
+float4 getPosition   (in int2 map) { FETCH_FX(BW_POSITION, writeBuffer); };
+float4 getNormal     (in int2 map) { FETCH_FX(IW_MAPNORML, writeImages); };
+float4 getData       (in int2 map) { FETCH_FX(IW_MATERIAL, writeImages); };
 
 // For current frame only
-float4 getReflection (in int2 map) { const int2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],int2(map.x,map.y)); };
-float4 getTransparent(in int2 map) { const int2 size = imageSize(writeBuffer[BW_TRANSPAR]); return imageLoad(writeBuffer[BW_TRANSPAR],int2(map.x,map.y)); };
-float4 getColor      (in int2 map) { const int2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],int2(map.x,map.y)); };
+float4 getReflection (in int2 map) { FETCH_FX(BW_REFLECLR, writeBuffer); };
+float4 getTransparent(in int2 map) { FETCH_FX(BW_TRANSPAR, writeBuffer); };
+float4 getColor      (in int2 map) { FETCH_FX(BW_INDIRECT, writeBuffer); };
 
 // With Resampling
-float4 getSmoothed   (in int2 map) { const int2 size = imageSize(writeImages[IW_SMOOTHED]); return imageLoad(writeImages[IW_SMOOTHED],int2(map.x,map.y)); };
-float4 getIndirect   (in int2 map) { const int2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],int2(map.x,map.y)); };
-float4 getPReflection(in int2 map) { const int2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],int2(map.x,map.y)); };
+float4 getSmoothed   (in int2 map) { FETCH_FX(IW_SMOOTHED, writeImages); };
+float4 getIndirect   (in int2 map) { FETCH_FX(IW_INDIRECT, writeImages); };
+float4 getPReflection(in int2 map) { FETCH_FX(IW_REFLECLR, writeImages); };
 
 // 
-void setColor      (in int2 map, in float4 color) { const int2 size = imageSize(writeBuffer[BW_INDIRECT]); imageStore(writeBuffer[BW_INDIRECT],int2(map.x,map.y),color); };
-void setReflection (in int2 map, in float4 color) { const int2 size = imageSize(writeBuffer[BW_REFLECLR]); imageStore(writeBuffer[BW_REFLECLR],int2(map.x,map.y),color); };
+void setColor      (in int2 map, in float4 color) { WRITE_FX(BW_INDIRECT, writeBuffer); };
+void setReflection (in int2 map, in float4 color) { WRITE_FX(BW_REFLECLR, writeBuffer); };
 
 // 
 int2 mapc(in int2 map) {
-    const int2 size = imageSize(writeImages[IW_REFLECLR]);
     return int2(map.x, map.y);
 }
 
 bool skyboxPixel(in int2 samplep) {
     const  float4 dataflat = getData(samplep);
-    const uint4 datapass = floatBitsToUint(dataflat);
+    const uint4 datapass = asuint(dataflat);
     const float2 texcoord = unpackUnorm2x16(datapass.x);
-    return uintBitsToFloat(datapass.z) <= 0.f;
+    return asfloat(datapass.z) <= 0.f;
 }
 
 // 
@@ -89,22 +91,24 @@ float fixedTranparency(in int2 samplep) {
 
 
 // TODO: Use Texcoord and Material ID's instead of Color, PBR-Map, Emission,  (due, needs only two or one buffers)
-void main() { // TODO: explicit sampling 
-    const int2 size = imageSize(writeImages[IW_INDIRECT]), samplep = int2(gl_GlobalInvocationID.xy);
+[numthreads(32, 24, 1)]
+void main(uint3 DTid : SV_DispatchThreadID) { // TODO: explicit sampling 
+    const uint2 size = int2(0,0); writeImages[IW_INDIRECT].GetDimensions(size.x, size.y);
+    const uint2 samplep = uint2(DTid.xy);
     const  float4 dataflat = getData(samplep);
-    const uint4 datapass = floatBitsToUint(dataflat);
+    const uint4 datapass = asuint(dataflat);
     const  float4 position = getPosition(samplep);
 
     // 
     const float2 texcoord = unpackUnorm2x16(datapass.x);
-    const bool isSkybox = uintBitsToFloat(datapass.z) <= 0.f;
+    const bool isSkybox = asfloat(datapass.z) <= 0.f;
 
     // 
-    const MaterialUnit unit = materials[0u].data[datapass.y];
-          float4 diffused = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],texcoord.xy) : unit.diffuse);
-          float4 emission = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],texcoord.xy) : unit.emission);
-          float4 normaled = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],texcoord.xy) : unit.normals;
-          float4 specular = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],texcoord.xy) : unit.specular;
+    const MaterialUnit unit = materials[0u][datapass.y];
+          float4 diffused = toLinear(unit. diffuseTexture >= 0 ? textures[unit. diffuseTexture].Sample(samplers[2u],texcoord.xy) : unit.diffuse);
+          float4 emission = toLinear(unit.emissionTexture >= 0 ? textures[unit.emissionTexture].Sample(samplers[2u],texcoord.xy) : unit.emission);
+          float4 normaled = unit. normalsTexture >= 0 ? textures[unit. normalsTexture].Sample(samplers[2u],texcoord.xy) : unit.normals;
+          float4 specular = unit.specularTexture >= 0 ? textures[unit.specularTexture].Sample(samplers[2u],texcoord.xy) : unit.specular;
           float4 dtexdata = diffused;
 
     // experimental (unused for alpha transparency)
@@ -112,8 +116,8 @@ void main() { // TODO: explicit sampling
     //if (diffused.w < 0.99f) { diffused.xyz = 1.f.xxx; };
 
     // 
-    const float3 camera = float4(position.xyz,1.f)*modelview;
-    const float3 raydir = (modelview * normalize(camera.xyz)).xyz;
+    const float3 camera = mul(float4(position.xyz,1.f), pushed.modelview);
+    const float3 raydir = mul(pushed.modelview, normalize(camera.xyz)).xyz;
     const float3 origin = getPosition(samplep).xyz;
     const float3 normal = getNormal(samplep).xyz;
 
@@ -145,7 +149,7 @@ void main() { // TODO: explicit sampling
 
     // 
     const float inIOR = 1.f, outIOR = 1.6666f;
-    const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, specular.z) * (isSkybox ? 0.f : 1.f);
+    const float frefl = lerp(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, specular.z) * (isSkybox ? 0.f : 1.f);
 
     // Currently NOT denoised! (impolated with previous frame)
     float4 currentReflection = getReflection(samplep), previousReflection = getPReflection(samplep);
@@ -159,24 +163,23 @@ void main() { // TODO: explicit sampling
     float alpha = clamp((transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f), 0.f, 1.f);
 
 #ifndef LATE_STAGE
-    imageStore(writeImages[IW_REFLECLR], mapc(samplep), reflects = float4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), float4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
-    //imageStore(writeBuffer[BW_RENDERED],   (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+    writeImages[IW_REFLECLR][mapc(samplep)] = (reflects = float4(clamp(lerp(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f));
+    writeBuffer[BW_RENDERED][     samplep ] = float4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f);
 
     // Copy Into Back-Side
-    [[unroll]] for (uint I=0;I<12u;I++) {
-        imageStore(writeImagesBack[I], mapc(samplep), imageLoad(writeImages[I], mapc(samplep)));
+    [unroll] for (uint I=0;I<12u;I++) {
+        writeImagesBack[I][mapc(samplep)] = writeImages[I][mapc(samplep)];
     };
 
     // Will very actual after adaptive denoise... 
     if (!isSkybox && getTransparent(samplep).w > 0.f) {
-        float scount = max(imageLoad(writeImages[IW_INDIRECT], mapc(samplep)).w, 1.f);
-        imageStore(writeImagesBack[IW_INDIRECT], mapc(samplep), float4(diffused.xyz*scount, scount));
+        float scount = max(writeImages[IW_INDIRECT][mapc(samplep)].w, 1.f);
+        writeImagesBack[IW_INDIRECT][mapc(samplep)] = float4(diffused.xyz*scount, scount);
     };
-
 #else
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
+    writeBuffer[BW_RENDERED][samplep] = float4(clamp(mix(writeBuffer[BW_RENDERED][samplep].xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f);
+    writeBuffer[BW_RENDERED][samplep] = float4(clamp(mix(writeBuffer[BW_RENDERED][samplep].xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f);
+
     //imageStore(writeBuffer[BW_RENDERED],   (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif
 

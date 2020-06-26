@@ -1,5 +1,7 @@
 #ifndef GLOBAL_HLSL
 #define GLOBAL_HLSL
+
+// 
 #include "./index.hlsli"
 #include "./matrix.hlsli"
 
@@ -98,18 +100,6 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
 
     // 
     return geometry;
-};
-
-// 
-uint packUnorm2x16(in float2 fp) {
-    uint2 up = uint2(fp * 65536.f);
-    return (up.x&0xFFFFu) | ((up.y&0xFFFFu)<<16u);
-};
-
-// 
-float2 unpackUnorm2x16(in uint up) {
-    uint2 pu = uint2((up&0xFFFFu), ((up>>16u)&0xFFFFu));
-    return float2(pu) / 65536.f;
 };
 
 // 

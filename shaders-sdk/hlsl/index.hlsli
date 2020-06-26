@@ -1,7 +1,7 @@
 #ifndef INDEX_HLSL
 #define INDEX_HLSL
-// #
 
+//
 #include "./driver.hlsli"
 #include "./matrix.hlsli"
 
@@ -96,6 +96,18 @@ struct RTXInstance {
     uint instance_mask;
     uint offset_flags;
     uint2 handle;
+};
+
+// 
+uint packUnorm2x16(in float2 fp) {
+    uint2 up = uint2(fp * 65536.f);
+    return (up.x&0xFFFFu) | ((up.y&0xFFFFu)<<16u);
+};
+
+// 
+float2 unpackUnorm2x16(in uint up) {
+    uint2 pu = uint2((up&0xFFFFu), ((up>>16u)&0xFFFFu));
+    return float2(pu) / 65536.f;
 };
 
 uint bitfieldExtract(uint val, int off, int size) {
