@@ -49,7 +49,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
         const float tHit = hit.gBarycentric.w;
 
         // 
-        if (tHit < lastMax) { lastOrigin = raydir*(lastMax=tHit) + forigin;
+        if (tHit < lastMax && !isSkybox) { lastOrigin = raydir*(lastMax=tHit) + forigin;
             //processing = hit;
             processing.gIndices = hit.gIndices;
             processing.gBarycentric = hit.gBarycentric;
@@ -72,7 +72,7 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
     };
 
     // 
-    if (fullLength <= (maxT-1.f)) { confirmed = processing; };
+    if (fullLength <= (maxT-1.f) && opaque) { confirmed = processing; };
     return confirmed;
 };
 
