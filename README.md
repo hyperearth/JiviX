@@ -69,6 +69,16 @@ Date:[25.06.2020]:[helix.d@IMN]
 - [ ] Immersive Portals mod support (Minecraft, In-Future)
 
 
+### TODO Lists (Black Edition)
+
+- [x] Fallback to ray-tracing shaders
+- [ ] Refactor for DirectX 12 Ultimate compatibility
+- [ ] Using Volk instead of XVK
+- [ ] Using VKT-4 
+- [ ] Support for DXV
+- [ ] HLSL shaders (for DXV)
+
+
 ### TODO Lists (Gen-4 or Beyond)
 
 - [ ] RDNA-2 support (Vulkan-only)

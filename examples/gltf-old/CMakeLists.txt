@@ -50,6 +50,7 @@ set (SOURCES_LIST
     "./include/vkt3/*.h"
     "./include/volk/*.hpp"
     "./include/volk/*.h"
+	"./include/volk/*.c"
     "./include/*.hpp"
     "./include/*.h"
 
@@ -87,6 +88,7 @@ set (INC_DIR "../../../vkt/include/" "../../../vkt/include/rapidjson"
     "${DEP_DIR}/include/*/*/"
     "${DEP_DIR}/include/*/"
     "${DEP_DIR}/include/" 
+	"${DEP_DIR}/include/volk/"
     "${DEP_DIR}/include/vkt3/"
     "${DEP_DIR}/include/misc/"
     "${DEP_DIR}/include/nlohmann/"
@@ -187,7 +189,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
 add_executable(${APPLICATION_NAME} src/main.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
+target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS})
 
 # Add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)
