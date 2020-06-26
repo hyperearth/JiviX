@@ -4,11 +4,9 @@
 #include "./driver.glsl"
 #include "./global.glsl"
 
-layout (location = 0) rayPayloadInEXT XHIT hit;
+layout (location = 0) rayPayloadInEXT CHIT hit;
 
 void main() {
-    hit.direct = vec4(gl_WorldRayDirectionEXT, 0.f);
-    hit.origin = vec4(gl_WorldRayOriginEXT, 1.f);
     hit.gIndices = uvec4(0u.xxx, 0u);
     hit.gBarycentric = vec4(vec3(0.f.xxx), 10000.f);
 };

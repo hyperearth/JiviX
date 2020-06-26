@@ -29,6 +29,11 @@ struct XHIT {
     uvec4 gIndices;
 };
 
+struct CHIT {
+     vec4 gBarycentric;
+    uvec4 gIndices;
+};
+
 // 
 uint packed = 0u;
 uvec2 seed = uvec2(0u.xx);

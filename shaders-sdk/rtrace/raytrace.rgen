@@ -14,7 +14,7 @@
 
 // 
 //layout (local_size_x = 32u, local_size_y = 24u) in;
-layout ( location = 0u ) rayPayloadEXT XHIT hit;
+layout ( location = 0u ) rayPayloadEXT CHIT hit;
 
 // For Cache
 XHIT RES;
@@ -49,9 +49,9 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 
         // 
         if (tHit < lastMax) { lastOrigin = raydir*(lastMax=tHit) + forigin;
-            processing = hit;
-            //processing.gIndices = uvec4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
-            //processing.gBarycentric.xyz = vec3(1.f-baryCoord.x-baryCoord.y,baryCoord);
+            //processing = hit;
+            processing.gIndices = hit.gIndices;
+            processing.gBarycentric = hit.gBarycentric;
             processing.origin.xyz = (forigin = (raydir*(processing.gBarycentric.w = (fullLength += tHit)) + sorigin));
 
             // Interpolate In Ray-Tracing
