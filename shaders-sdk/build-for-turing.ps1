@@ -1,6 +1,6 @@
 #!/snap/bin/pwsh-preview
 
-$CFLAGSV="--source-entrypoint main -e main --target-env spirv1.5 -V -d -t --aml --nsf -Od"
+$CFLAGSV="--source-entrypoint main -e main --target-env spirv1.5 -V -d -t --aml --nsf"
 
 $VNDR="turing"
 . "./shaders-list.ps1"

@@ -4,14 +4,11 @@
 #include "./driver.glsl"
 #include "./global.glsl"
 
-layout (location = 0) rayPayloadInEXT RCData rcdata;
+layout (location = 0) rayPayloadInEXT XHIT hit;
 
 void main() {
-    rcdata.fdata.z = 10000.f;
-    rcdata.fdata.xy = vec2(0.f);
-    rcdata.fdata.w = 0.f; // i.e. miss
-    rcdata.udata.x = 0u;
-    rcdata.udata.y = 0u;
-    rcdata.udata.z = 0u;
-    rcdata.udata.w = 0u;
+    hit.direct = vec4(gl_WorldRayDirectionEXT, 0.f);
+    hit.origin = vec4(gl_WorldRayOriginEXT, 1.f);
+    hit.gIndices = uvec4(0u.xxx, 0u);
+    hit.gBarycentric = vec4(vec3(0.f.xxx), 10000.f);
 };

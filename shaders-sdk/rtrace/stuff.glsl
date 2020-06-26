@@ -1,5 +1,5 @@
 // 
-void directLight(inout XHIT RES, in vec4 sphere, in vec3 origin, in vec3 normal, inout uvec2 seed, inout vec4 gSignal, inout vec4 gEnergy) {
+void directLight(in XHIT RES, in vec4 sphere, in vec3 origin, in vec3 normal, inout uvec2 seed, inout vec4 gSignal, inout vec4 gEnergy) {
     const vec3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
     const vec3 lightd = normalize(lightp.xyz - origin.xyz);
     const vec3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);

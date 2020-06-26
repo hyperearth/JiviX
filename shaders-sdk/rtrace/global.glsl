@@ -47,7 +47,7 @@ mat4x4 inverse(in mat3x4 imat) {
 
 
 // 
-XGEO interpolate(inout XHIT hit) { // By Geometry Data
+XGEO interpolate(in XHIT hit) { // By Geometry Data
     const uint geometryInstanceID = hit.gIndices.y;
     const uint globalInstanceID = hit.gIndices.x;
     const uint primitiveID = hit.gIndices.z;
@@ -92,7 +92,7 @@ XGEO interpolate(inout XHIT hit) { // By Geometry Data
 };
 
 // 
-XPOL materialize(inout XHIT hit, inout XGEO geo) { // 
+XPOL materialize(in XHIT hit, inout XGEO geo) { // 
 #define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
     XPOL material;
     material. diffuseColor = vec4(0.f.xxx, 1.f.x);

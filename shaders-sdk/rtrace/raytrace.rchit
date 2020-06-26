@@ -5,16 +5,13 @@
 #include "./driver.glsl"
 #include "./global.glsl"
 
-layout (location = 0) rayPayloadInEXT RCData rcdata;
+layout (location = 0) rayPayloadInEXT XHIT hit;
 
 hitAttributeEXT vec2 baryCoord;
 
 void main() {
-    rcdata.fdata.z = gl_HitTEXT.x;
-    rcdata.fdata.xy = baryCoord;
-    rcdata.fdata.w = 1.f; // i.e. closest
-    rcdata.udata.x = gl_InstanceID.x;
-    rcdata.udata.y = gl_InstanceCustomIndexEXT.x;
-    rcdata.udata.z = gl_GeometryIndexEXT.x;
-    rcdata.udata.w = gl_PrimitiveID.x;
+    hit.direct = vec4(gl_WorldRayDirectionEXT, 0.f);
+    hit.origin = vec4(gl_WorldRayOriginEXT, 1.f);
+    hit.gIndices = uvec4(gl_InstanceID, gl_GeometryIndexEXT, gl_PrimitiveID, 0u);
+    hit.gBarycentric = vec4(max(vec3(1.f-baryCoord.x-baryCoord.y, baryCoord.xy), 0.0001f.xxx), gl_HitTEXT );
 };
