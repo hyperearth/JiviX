@@ -102,10 +102,10 @@ void main() { // TODO: explicit sampling
 
     // 
     const MaterialUnit unit = materials[0u].data[datapass.y];
-          vec4 diffused = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],texcoord.xy) : unit.diffuse);
-          vec4 emission = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],texcoord.xy) : unit.emission);
-          vec4 normaled = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],texcoord.xy) : unit.normals;
-          vec4 specular = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],texcoord.xy) : unit.specular;
+          vec4 diffused = toLinear(unit. diffuseTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u]),texcoord.xy) : unit.diffuse);
+          vec4 emission = toLinear(unit.emissionTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u]),texcoord.xy) : unit.emission);
+          vec4 normaled = unit. normalsTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u]),texcoord.xy) : unit.normals;
+          vec4 specular = unit.specularTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.specularTexture)],samplers[2u]),texcoord.xy) : unit.specular;
           vec4 dtexdata = diffused;
 
     // experimental (unused for alpha transparency)

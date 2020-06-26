@@ -283,15 +283,6 @@ namespace jvi {
                     .subresourceRange = apres
                 });
 
-                // Create Sampler By Reference
-                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                    .magFilter = VK_FILTER_LINEAR,
-                    .minFilter = VK_FILTER_LINEAR,
-                    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .unnormalizedCoordinates = true,
-                }, nullptr, &this->frameBfImages[b].refSampler()));
-
                 if (b < 8u) { deferredAttachments[b] = frameBfImages[b]; };
             };
 
@@ -305,15 +296,6 @@ namespace jvi {
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .subresourceRange = apres
                 });
-
-                // Create Sampler By Reference
-                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                    .magFilter = VK_FILTER_LINEAR,
-                    .minFilter = VK_FILTER_LINEAR,
-                    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .unnormalizedCoordinates = true,
-                }, nullptr, &this->smFlip0Images[b].refSampler()));
 
                 if (b < 8u) { smpFlip0Attachments[b] = smFlip0Images[b]; };
             };
@@ -329,15 +311,6 @@ namespace jvi {
                     .subresourceRange = apres
                 });
 
-                // Create Sampler By Reference
-                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                    .magFilter = VK_FILTER_LINEAR,
-                    .minFilter = VK_FILTER_LINEAR,
-                    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .unnormalizedCoordinates = true,
-                }, nullptr, &this->smFlip1Images[b].refSampler()));
-
                 if (b < 8u) { smpFlip1Attachments[b] = smFlip1Images[b]; };
             }; };
 
@@ -351,15 +324,6 @@ namespace jvi {
                     .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                     .subresourceRange = apres
                 });
-
-                // Create Sampler By Reference
-                vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                    .magFilter = VK_FILTER_LINEAR,
-                    .minFilter = VK_FILTER_LINEAR,
-                    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    .unnormalizedCoordinates = true,
-                }, nullptr, &this->rastersImages[b].refSampler()));
 
                 if (b < 8u) { rasteredAttachments[b] = rastersImages[b]; };
             };
@@ -509,7 +473,7 @@ namespace jvi {
                 this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 3u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
 
                 // RGBA32F and depth buffer
-                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 2u, .stageFlags = pipusage }, indexedf);
+                this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, .descriptorCount = 2u, .stageFlags = pipusage }, indexedf);
 
                 // BETA: Ray Query Requirements
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 5u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
@@ -523,11 +487,10 @@ namespace jvi {
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 11u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER            , .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
 
-
                 // 
-                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 13u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
-                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 14u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
-                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 15u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 8u , .stageFlags = pipusage }, indexedf);
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 13u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 14u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER, .descriptorCount = 4u, .stageFlags = pipusage }, indexedf);
+                this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 15u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, .descriptorCount = 8u , .stageFlags = pipusage }, indexedf);
 
                 //
                 this->samplingDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 16u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE        , .descriptorCount = 12u, .stageFlags = pipusage }, indexedf);
@@ -536,8 +499,8 @@ namespace jvi {
 
                 //
                 this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 20u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER        , .descriptorCount = 8u, .stageFlags = pipusage }, indexedf);
-                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 21u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
-                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 22u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = 128u, .stageFlags = pipusage }, indexedf);
+                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 21u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
+                this->materialDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 22u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, .descriptorCount = 128u, .stageFlags = pipusage }, indexedf);
 
                 // 
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->meshDataDescriptorSetLayoutHelper, nullptr, &this->meshDataDescriptorSetLayout));
@@ -574,32 +537,51 @@ namespace jvi {
                 vkh::VsDescriptorSetCreateInfoHelper descInfo(deferredDescriptorSetLayout, thread->getDescriptorPool());
 
                 { // 
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 13u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER });
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 13u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE });
                     for (uint32_t i = 0; i < 12u; i++) { handle.offset<vkh::VkDescriptorImageInfo>(i) = frameBfImages[i].getDescriptor(); };
                 };
 
                 { //
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 14u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER });
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 14u, .descriptorCount = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE });
                     for (uint32_t i = 0; i < 12u; i++) {
-                        this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                           .magFilter = VK_FILTER_LINEAR,
-                           .minFilter = VK_FILTER_LINEAR,
-                           .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                           .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-                        }, nullptr, &(handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(frameBfImages[i]).getDescriptor())->sampler);
+                        handle.offset<vkh::VkDescriptorImageInfo>(i) = frameBfImages[i].getDescriptor();
                     }
                 };
 
                 { //
-                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 15u, .descriptorCount = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER });
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 15u, .descriptorCount = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE });
                     for (uint32_t i = 0; i < 8u; i++) {
-                        this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                            .magFilter = VK_FILTER_LINEAR,
-                            .minFilter = VK_FILTER_LINEAR,
-                            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-                        }, nullptr, &(handle.offset<vkh::VkDescriptorImageInfo>(i) = vkt::ImageRegion(rastersImages[i]).getDescriptor())->sampler);
+                        handle.offset<vkh::VkDescriptorImageInfo>(i) = rastersImages[i].getDescriptor();
                     }
+                };
+
+                {
+                    vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> handle = descInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{ .dstBinding = 14u, .descriptorCount = 4u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER });
+                    this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                        .magFilter = VK_FILTER_LINEAR,
+                        .minFilter = VK_FILTER_LINEAR,
+                        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                        .unnormalizedCoordinates = true,
+                    }, nullptr, &handle.offset<vkh::VkDescriptorImageInfo>(0u)->sampler);
+                    this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                        .magFilter = VK_FILTER_LINEAR,
+                        .minFilter = VK_FILTER_LINEAR,
+                        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    }, nullptr, &handle.offset<vkh::VkDescriptorImageInfo>(1u)->sampler);
+                    this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                        .magFilter = VK_FILTER_LINEAR,
+                        .minFilter = VK_FILTER_LINEAR,
+                        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                    }, nullptr, &handle.offset<vkh::VkDescriptorImageInfo>(2u)->sampler);
+                    this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
+                        .magFilter = VK_FILTER_LINEAR,
+                        .minFilter = VK_FILTER_LINEAR,
+                        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    }, nullptr, &handle.offset<vkh::VkDescriptorImageInfo>(3u)->sampler);
                 };
 
                 // 

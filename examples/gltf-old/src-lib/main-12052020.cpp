@@ -578,14 +578,6 @@ int main() {
         // 
         auto image = images.back();
 
-        // Create Sampler By Reference
-        vkh::handleVk(fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        }, nullptr, &image.refSampler()));
-
         //
         vkh::VkImageCreateFlags bflg = {};
         vkt::unlock32(bflg) = 0u;
@@ -658,14 +650,6 @@ int main() {
 
             // 
             auto image = images.back();
-
-            // Create Sampler By Reference
-            vkh::handleVk(fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                .magFilter = VK_FILTER_LINEAR,
-                .minFilter = VK_FILTER_LINEAR,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            }, nullptr, &image.refSampler()));
 
             // 
             vkt::Vector<> imageBuf = {};

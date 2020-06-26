@@ -135,14 +135,6 @@ namespace jvi {
                         .subresourceRange = {.aspectMask = aspectMask},
                     });
 
-                    // Create Sampler By Reference
-                    vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                        .magFilter = VK_FILTER_LINEAR,
-                        .minFilter = VK_FILTER_LINEAR,
-                        .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                    }, nullptr, &this->backgroundImageClass.refSampler()));
-
                     //
                     auto usage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 };
                     vkt::Vector<> imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
@@ -173,7 +165,7 @@ namespace jvi {
                 vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 21u,
                     .descriptorCount = uint32_t(1u),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                    .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
                 });
                 imagesHandle.offset<vkh::VkDescriptorImageInfo>(0) = *backgroundImage;
             };
@@ -181,9 +173,9 @@ namespace jvi {
             //
             if (sampledImages.size() > 0u) { // Setup Textures
                 vkh::VsDescriptorHandle<vkh::VkDescriptorImageInfo> imagesHandle = this->descriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                        .dstBinding = 22u,
-                        .descriptorCount = uint32_t(sampledImages.size()),
-                        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                    .dstBinding = 22u,
+                    .descriptorCount = uint32_t(sampledImages.size()),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
                 });
                 memcpy(&imagesHandle.offset<vkh::VkDescriptorImageInfo>(), sampledImages.data(), sampledImages.size() * sizeof(vkh::VkDescriptorImageInfo));
                 //imagesHandle.offset<vkh::VkDescriptorImageInfo>(uint32_t(sampledImages.size())) = sampledImages[uint32_t(sampledImages.size())-1u];

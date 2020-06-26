@@ -30,7 +30,7 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
     for (int i=0;i<9;i++) {
         const vec2 offt = shift[i];
 
-        vec4 worldspos = vec4(texture(frameBuffers[BW_POSITION], vec2(i2fxm+offt), 0).xyz,1.f);
+        vec4 worldspos = vec4(texture(sampler2D(frameBuffers[BW_POSITION], samplers[0u]), vec2(i2fxm+offt), 0).xyz,1.f);
         vec4 almostpos = vec4(world2screen(worldspos.xyz),1.f);
         //almostpos.y *= -1.f;
 
@@ -38,8 +38,8 @@ bool checkCorrect(in vec4 screenSample, in vec2 i2fxm) {
             //abs(screenSample.z-almostpos.z) < 0.0001f && 
             (screenSample.z-almostpos.z) < 0.0001f && // Reserved for FOG 
             length(almostpos.xy-screenSample.xy) < 4.f && 
-            dot(gNormal.xyz,    texture(frameBuffers[BW_GEONORML],  vec2(i2fxm+offt), 0).xyz) >=0.5f && 
-                             texelFetch(frameBuffers[BW_MATERIAL], ivec2(i2fxm+offt), 0).z > 0.f &&
+            dot(gNormal.xyz,    texture(sampler2D(frameBuffers[BW_GEONORML], samplers[0u]),  vec2(i2fxm+offt), 0).xyz) >=0.5f && 
+                             texelFetch(sampler2D(frameBuffers[BW_MATERIAL], samplers[0u]), ivec2(i2fxm+offt), 0).z > 0.f &&
             distance(wPosition.xyz,worldspos.xyz) < 0.05f || 
             false//(i == 4 && texelFetch(frameBuffers[BW_INDIRECT], ivec2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
         ) { return true; };

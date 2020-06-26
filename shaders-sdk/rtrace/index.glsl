@@ -161,9 +161,10 @@ layout (binding = 12, set = 1 ) uniform accelerationStructureEXT Scene;
 #endif
 
 // Deferred and Rasterization Set
-layout (binding = 13, set = 2) uniform sampler2D  frameBuffers[12u]; // Pre-resampled buffers
-layout (binding = 14, set = 2) uniform sampler2D renderBuffers[12u]; // Used by final rendering
-layout (binding = 15, set = 2) uniform sampler2D rasterBuffers[ 8u]; // Used by rasterization
+layout (binding = 13, set = 2) uniform texture2D  frameBuffers[12u]; // Pre-resampled buffers
+//layout (binding = 14, set = 2) uniform sampler2D renderBuffers[12u]; // Used by final rendering
+layout (binding = 14, set = 2) uniform sampler   samplers[4u];
+layout (binding = 15, set = 2) uniform texture2D rasterBuffers[ 8u]; // Used by rasterization
 
 // 
 layout (binding = 16, set = 3, rgba32f) uniform image2D writeBuffer[]; // Pre-resampled buffers, For EDIT!
@@ -172,8 +173,8 @@ layout (binding = 18, set = 3, rgba32f) uniform image2D writeImagesBack[];
 
 // Material Set
 layout (binding = 20, set = 4, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
-layout (binding = 21, set = 4) uniform sampler2D background;
-layout (binding = 22, set = 4) uniform sampler2D textures[];
+layout (binding = 21, set = 4) uniform texture2D background;
+layout (binding = 22, set = 4) uniform texture2D textures[];
 
 // 
 highp uint getMeshID(in RTXInstance instance){
@@ -482,5 +483,5 @@ vec3 screen2world(in vec3 origin){
 //#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, gSkyColor, gSignal.xyz),0.f.xxx), gEnergy *= 0.f
 
 vec4 gSkyShader(in vec3 raydir, in vec3 origin) {
-    return vec4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
+    return vec4(texture(sampler2D(background, samplers[3u]), flip(lcts(raydir.xyz))).xyz, 1.f);
 };

@@ -213,16 +213,6 @@ namespace jvi {
                 .subresourceRange = {.aspectMask = aspectMask},
             }, VK_IMAGE_LAYOUT_GENERAL);
 
-            // Create Sampler By Reference
-            vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                .magFilter = VK_FILTER_LINEAR,
-                .minFilter = VK_FILTER_LINEAR,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .unnormalizedCoordinates = true,
-            }, nullptr, &this->colImage.refSampler()));
-
-
             // 
             this->mapImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_R32_UINT,
@@ -232,16 +222,7 @@ namespace jvi {
                 .format = VK_FORMAT_R32_UINT,
                 .subresourceRange = {.aspectMask = aspectMask},
             }, VK_IMAGE_LAYOUT_GENERAL);
-
-            // Create Sampler By Reference
-            //vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-            //    .magFilter = VK_FILTER_NEAREST,
-            //    .minFilter = VK_FILTER_NEAREST,
-            //    .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            //    .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            //    .unnormalizedCoordinates = true,
-            //}, nullptr, &this->mapImage.refSampler()));
-
+            
             //
             auto dAspectMask = vkh::VkImageAspectFlags{.eDepth = 1, .eStencil = 1};
             this->depImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
@@ -252,15 +233,6 @@ namespace jvi {
                 .format = VK_FORMAT_D32_SFLOAT_S8_UINT,
                 .subresourceRange = {.aspectMask = dAspectMask},
             }, VK_IMAGE_LAYOUT_GENERAL);
-
-            // Create Sampler By Reference
-            vkh::handleVk(this->driver->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-                .magFilter = VK_FILTER_LINEAR,
-                .minFilter = VK_FILTER_LINEAR,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .unnormalizedCoordinates = true,
-            }, nullptr, &this->depImage.refSampler()));
 
             // Mapping Attachment
             std::vector<VkImageView> attachments = { colImage, depImage };
@@ -352,7 +324,7 @@ namespace jvi {
                     .dstBinding = 4u,
                     .dstArrayElement = 0u,
                     .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+                    .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
                 });
 
                 handle.offset<VkDescriptorImageInfo>(0u) = colImage;

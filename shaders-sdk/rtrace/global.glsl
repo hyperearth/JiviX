@@ -118,10 +118,10 @@ XPOL materialize(in XHIT hit, inout XGEO geo) { //
 
     // 
     if (hit.gBarycentric.w < 9999.f) {
-        material. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(textures[nonuniformEXT(unit. diffuseTexture)],gTexcoord.xy) : unit.diffuse);
-        material.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(textures[nonuniformEXT(unit.emissionTexture)],gTexcoord.xy) : unit.emission);
-        material. normalsColor = unit. normalsTexture >= 0 ? texture(textures[nonuniformEXT(unit. normalsTexture)],gTexcoord.xy) : unit.normals;
-        material.specularColor = unit.specularTexture >= 0 ? texture(textures[nonuniformEXT(unit.specularTexture)],gTexcoord.xy) : unit.specular;
+        material. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u]),gTexcoord.xy) : unit.diffuse);
+        material.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u]),gTexcoord.xy) : unit.emission);
+        material. normalsColor = unit. normalsTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u]),gTexcoord.xy) : unit.normals;
+        material.specularColor = unit.specularTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.specularTexture)],samplers[2u]),gTexcoord.xy) : unit.specular;
 
         // Mapping
         material.mapNormal = vec4(normalize(mat3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz) * normalize(material.normalsColor.xyz * 2.f - 1.f)), 1.f);
