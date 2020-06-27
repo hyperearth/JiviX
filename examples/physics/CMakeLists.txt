@@ -56,7 +56,7 @@ set (SOURCES_LIST
     "./include/*.hpp"
     "./include/*.h"
     "./include/tinyobjloader/*.h"
-    "./include/tinyobjloader/*.cc"
+    "./include/tinyobjloader/tiny_obj_loader.cc"
 
     "./src/*.cpp"
     "./src/*.c"
