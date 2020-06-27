@@ -204,6 +204,7 @@ namespace jvi {
             auto imgUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
             auto depUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eDepthStencilAttachment = 1 };
 
+            //
             this->colImage = vkt::ImageRegion(std::make_shared<vkt::ImageAllocation>(vkh::VkImageCreateInfo{
                 .format = VK_FORMAT_R32G32B32A32_SFLOAT,
                 .extent = {mapWidth,mapHeight,1u},

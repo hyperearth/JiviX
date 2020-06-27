@@ -1,0 +1,3 @@
+[submodule "include/tinyobjloader"]
+	path = include/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git

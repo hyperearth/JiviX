@@ -8,7 +8,7 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
-// 
+//
 #define VMA_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
 #define VKT_FORCE_VMA_IMPLEMENTATION
@@ -24,18 +24,19 @@
 #include <string>
 #include <iostream>
 
-// 
+//
 #include "vkt3/fw.hpp"
 #include "JiviX/JiviX.hpp"
 #include "misc/tiny_gltf.h"
 #include "misc/tinyexr.h"
 
-// 
+//
 //#include <glbinding-aux/debug.h>
 //#include <glbinding/getProcAddress.h>
 
+#include "tinyobjloader/tiny_obj_loader.h"
 
-// 
+//
 struct Active {
     std::vector<uint8_t> keys = {};
     std::vector<uint8_t> mouse = {};
@@ -45,7 +46,7 @@ struct Active {
 };
 
 
-// 
+//
 class Shared : public std::enable_shared_from_this<Shared> {
 public:
     static Active active; // shared properties
@@ -75,12 +76,12 @@ public:
 };
 
 
-// 
+//
 Active Shared::active; // shared properties
 GLFWwindow* Shared::window; // in-bound GLFW window
 
 
-// camera binding control 
+// camera binding control
 class CameraController : public std::enable_shared_from_this<CameraController> {
 public:
     // use pointers
@@ -182,7 +183,7 @@ using namespace gl;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
+    // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
 #ifdef ENABLE_OPENGL_INTEROP
     glViewport(0, 0, width, height);
@@ -200,11 +201,11 @@ public:
         this->fw = std::make_shared<vkt::GPUFramework>();
     };
 
-    // 
+    //
     std::shared_ptr<vkt::GPUFramework> fw = {};
 };
 
-// 
+//
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -214,67 +215,67 @@ const unsigned int SCR_HEIGHT = 1200;
 
 
 const char* vertexShaderSource = "#version 460 compatibility\n"
-"layout (location = 0) in vec4 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.xyz, 1.0f);\n"
-"}\0";
+                                 "layout (location = 0) in vec4 aPos;\n"
+                                 "void main()\n"
+                                 "{\n"
+                                 "   gl_Position = vec4(aPos.xyz, 1.0f);\n"
+                                 "}\0";
 
 
 const char* fragmentShaderSource = "#version 460 compatibility\n"
-"#extension GL_ARB_bindless_texture : require\n"
-"out vec4 FragColor;\n"
-"layout (binding = 0) uniform sampler2D texture0;\n"
-"void main()\n"
-"{\n"
-"	vec2 tx = gl_FragCoord.xy/vec2(1600.f,1200.f);\n"
-"   FragColor = vec4(pow(texture(texture0,tx).xyz,1.f.xxx/2.2.xxx),1.f);\n"
-"   //FragColor = vec4(pow(texture(texture1,tx).xyz/texture(texture1,tx).w*vec3(0.5f,0.5f,1.f),1.f.xxx/2.2.xxx),1.f);\n"
-"   //FragColor = vec4(pow(texture(texture0,tx).xyz,1.f.xxx/2.2.xxx),1.f);\n"
-"}\n\0";
+                                   "#extension GL_ARB_bindless_texture : require\n"
+                                   "out vec4 FragColor;\n"
+                                   "layout (binding = 0) uniform sampler2D texture0;\n"
+                                   "void main()\n"
+                                   "{\n"
+                                   "	vec2 tx = gl_FragCoord.xy/vec2(1600.f,1200.f);\n"
+                                   "   FragColor = vec4(pow(texture(texture0,tx).xyz,1.f.xxx/2.2.xxx),1.f);\n"
+                                   "   //FragColor = vec4(pow(texture(texture1,tx).xyz/texture(texture1,tx).w*vec3(0.5f,0.5f,1.f),1.f.xxx/2.2.xxx),1.f);\n"
+                                   "   //FragColor = vec4(pow(texture(texture0,tx).xyz,1.f.xxx/2.2.xxx),1.f);\n"
+                                   "}\n\0";
 
 
 const char* vertexTFShaderSource = "#version 460 compatibility\n"
-"layout (location = 0) in vec3 aPos;\n"
-"layout (location = 0) out vec3 oPos;\n"
+                                   "layout (location = 0) in vec3 aPos;\n"
+                                   "layout (location = 0) out vec3 oPos;\n"
 
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(oPos = aPos, 1.f);\n"
-"}\0";
+                                   "void main()\n"
+                                   "{\n"
+                                   "   gl_Position = vec4(oPos = aPos, 1.f);\n"
+                                   "}\0";
 
 
 const char* geometryTFShaderSource = "#version 460 compatibility\n"
-"layout (location = 0) in vec3 oPos[];\n"
+                                     "layout (location = 0) in vec3 oPos[];\n"
 
-"layout (location = 0, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 0) out vec4 fPosition;\n"
-"layout (location = 1, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 16) out vec4 fTexcoord;\n"
-"layout (location = 2, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 32) out vec4 fNormal;\n"
-"layout (location = 3, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 48) out vec4 fTangent;\n"
-"layout (location = 4, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 64) out vec4 fBinormal;\n"
+                                     "layout (location = 0, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 0) out vec4 fPosition;\n"
+                                     "layout (location = 1, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 16) out vec4 fTexcoord;\n"
+                                     "layout (location = 2, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 32) out vec4 fNormal;\n"
+                                     "layout (location = 3, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 48) out vec4 fTangent;\n"
+                                     "layout (location = 4, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 64) out vec4 fBinormal;\n"
 
-"layout (lines_adjacency) in; \n"
-"layout (triangle_strip, max_vertices = 4) out; \n"
+                                     "layout (lines_adjacency) in; \n"
+                                     "layout (triangle_strip, max_vertices = 4) out; \n"
 
-"void main()\n"
-"{\n"
-"for (int i=0;i<4;i++) {\n"
-"   gl_Position = vec4(oPos[i].xyz, 1.f);\n"
-"   fNormal = vec4(vec3(0.f,0.f,1.f), 1.f);\n"
-"   fPosition = vec4(oPos[i].xyz, 1.0f);\n"
-"   EmitVertex();\n"
-"}\n"
-"EndPrimitive();\n"
-"}\0";
+                                     "void main()\n"
+                                     "{\n"
+                                     "for (int i=0;i<4;i++) {\n"
+                                     "   gl_Position = vec4(oPos[i].xyz, 1.f);\n"
+                                     "   fNormal = vec4(vec3(0.f,0.f,1.f), 1.f);\n"
+                                     "   fPosition = vec4(oPos[i].xyz, 1.0f);\n"
+                                     "   EmitVertex();\n"
+                                     "}\n"
+                                     "EndPrimitive();\n"
+                                     "}\0";
 
 
 const char* computeTestShaderSource = "#version 460 compatibility\n"
-"layout (binding = 0, rgba32f) uniform image2D source;\n"
-"layout (local_size_x = 16u, local_size_y = 16u) in;\n"
-"void main(){\n"
-    "vec4 color = imageLoad(source, ivec2(gl_GlobalInvocationID.xy));\n"
-    "imageStore(source, ivec2(gl_GlobalInvocationID.xy), vec4(color.xyz * vec3(1.f,0.1f,0.1f), 1.f));\n"
-"}\0";
+                                      "layout (binding = 0, rgba32f) uniform image2D source;\n"
+                                      "layout (local_size_x = 16u, local_size_y = 16u) in;\n"
+                                      "void main(){\n"
+                                      "vec4 color = imageLoad(source, ivec2(gl_GlobalInvocationID.xy));\n"
+                                      "imageStore(source, ivec2(gl_GlobalInvocationID.xy), vec4(color.xyz * vec3(1.f,0.1f,0.1f), 1.f));\n"
+                                      "}\0";
 
 
 
@@ -286,6 +287,8 @@ struct FDStruct {
     glm::vec4 fBinormal = glm::vec4(1.f);
 };
 
+
+class attrib_t;
 
 /*
 void APIENTRY glDebugOutput(GLenum source,
@@ -359,7 +362,7 @@ GLenum glCheckError_(const char* file, int line) {
     return errorCode;
 }
 
-#define glCheckError() glCheckError_(__FILE__, __LINE__) 
+#define glCheckError() glCheckError_(__FILE__, __LINE__)
 */
 
 void error(int errnum, const char * errmsg)
@@ -367,17 +370,24 @@ void error(int errnum, const char * errmsg)
     std::cerr << errnum << ": " << errmsg << std::endl;
 }
 
+struct VertexUnit {
+    glm::vec4 vertex = glm::vec4(0.f,0.f,0.f,1.f);
+    glm::vec4 normal = glm::vec4(0.f,0.f,1.f,0.f);
+    glm::vec4 texcoord = glm::vec4(0.f,0.f,0.f,0.f);
+    glm::vec4 color = glm::vec4(1.f,1.f,1.f,1.f);
+};
+
 //
 int main() {
     glfwSetErrorCallback(error);
     glfwInit();
 
-    // 
+    //
     if (GLFW_FALSE == glfwVulkanSupported()) {
         glfwTerminate(); return -1;
     };
 
-    // 
+    //
     uint32_t canvasWidth = SCR_WIDTH, canvasHeight = SCR_HEIGHT; // For 3840x2160 Resolutions
     //uint32_t canvasWidth = 1920, canvasHeight = 1080;
     glfwDefaultWindowHints();
@@ -410,7 +420,7 @@ int main() {
     // Pravoslavie Smerti
     int flags = 0u; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
     if (flags & int(GL_CONTEXT_FLAG_DEBUG_BIT)) {
-        // initialize debug output 
+        // initialize debug output
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(glDebugOutput, nullptr);
@@ -419,16 +429,16 @@ int main() {
     }
 #endif
 
-    // 
+    //
     float xscale = 1.f, yscale = 1.f;
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     glfwGetMonitorContentScale(primary, &xscale, &yscale);
 
-    // 
+    //
     auto renderArea = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{ uint32_t(canvasWidth / 2.f * xscale), uint32_t(canvasHeight / 2.f * yscale) } };
     auto viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
-    // 
+    //
     auto instance = fw->createInstance();
     //auto manager = fw->createWindowSurface(canvasWidth, canvasHeight);
     auto manager = fw->createWindowSurface(fw->createWindowOnly(renderArea.extent.width, renderArea.extent.height, "VKTest"));
@@ -442,7 +452,7 @@ int main() {
     auto allocator = fw->getAllocator();
 
 
-    // 
+    //
     glfwSetFramebufferSizeCallback(manager.window, framebuffer_size_callback);
     //vkt::initializeGL(); // PentaXIL
 
@@ -460,38 +470,9 @@ int main() {
     auto material = jvx::Material(context);
     renderer->linkMaterial(material->sharedPtr())->linkNode(node->sharedPtr());
 
-    std::string err = "", wrn = "";
-    tinygltf::Model model = {};
-    tinygltf::TinyGLTF loader = {};
 
-    // 
-    //const float unitScale = 10.f;
-    //const float unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Cube.gltf");
 
     //
-    const float unitScale = 100.f;
-    const float unitHeight = -0.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
-
-    //
-    //const float unitScale = 1.f;
-    //const float unitHeight = -32.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "lost_empire.gltf"); // (May) have VMA memory issues
-
-    //const float unitScale = 1.f;
-    //const float unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "Chess_Set.gltf");
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "DamagedHelmet.gltf");
-
-    //const bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, argv[1]); // for binary glTF(.glb)
-
-    //
-    if (!wrn.empty()) { printf("Warn : %s\n", wrn.c_str()); }
-    if (!err.empty()) { printf("Error: %s\n", err.c_str()); }
-    if (!ret) { printf("Failed to parse glTF\n"); return -1; }
-
-    // 
     using mat4_t = glm::mat3x4;
 
     // Every mesh will have transform buffer per internal instances
@@ -503,123 +484,34 @@ int main() {
     std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
-    std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
+    //std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
     //std::vector<vkt::Vector<uint8_t>> gpuBuffers = {};
 
 
-    // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
+
+    // buffer views
     auto imageUsage = vkh::VkImageUsageFlags{.eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
     auto bufferUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 };
     auto uploadUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 };
 
     //
-    auto bflgs = vkh::VkBufferUsageFlags{};
-    vkt::unlock32(bflgs) = 0u;
-
-    for (uint32_t i = 0; i < model.buffers.size(); i++) {
-        cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .flags = bflgs, .size = vkt::tiled(uint64_t(model.buffers[i].data.size()), uint64_t(4ull)) * uint64_t(4ull), .usage = bufferUsage,
-        }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU })));
-
-        // 
-        memcpy(cpuBuffers.back().data(), model.buffers[i].data.data(), model.buffers[i].data.size());
-
-        // 
-        /*
-        gpuBuffers.push_back(vkt::Vector<>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .size = cpuBuffers.back().range(),
-            .usage = {.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 },
-        }, VMA_MEMORY_USAGE_GPU_ONLY));
-
-        //
-        vkt::submitOnce(fw->getDevice(), fw->getQueue(), fw->getCommandPool(), [&](const VkCommandBuffer& cmd) {
-            cmd.copyBuffer(cpuBuffers.back().buffer(), gpuBuffers.back().buffer(), { VkBufferCopy(cpuBuffers.back().offset(), gpuBuffers.back().offset(), cpuBuffers.back().range()) });
-        });
-        */
-    };
-
-    // buffer views
-    std::vector<vkt::Vector<uint8_t>> buffersViews = {};
-    for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
-        const auto& BV = model.bufferViews[i];
-        const auto range = vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull);
-        buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer].getAllocation(), BV.byteOffset, vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull)));
-        bvse->pushBufferView(buffersViews.back());
-    };
-
-    // 
-    auto allocInfo = vkt::MemoryAllocationInfo{};
-    allocInfo.device = fw->getDevice();
-    allocInfo.memoryProperties = fw->getMemoryProperties().memoryProperties;
-    allocInfo.instanceDispatch = fw->getInstanceDispatch();
-    allocInfo.deviceDispatch = fw->getDeviceDispatch();
+    std::vector<vkt::Vector<VertexUnit>> buffersViews = {};
 
     //
     auto aspect = vkh::VkImageAspectFlags{.eColor = 1};
     auto apres = vkh::VkImageSubresourceRange{.aspectMask = aspect};
 
-    // 
-    std::vector<VkSampler> samplers = {};
-    std::vector<vkt::ImageRegion> images = {};
-    for (uint32_t i = 0; i < model.images.size(); i++) {
-        const auto& img = model.images[i];
-
-        //
-        vkh::VkImageCreateFlags flg = {};
-        vkt::unlock32(flg) = 0u;
-
-        images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
-            .flags = flg, .format = VK_FORMAT_R8G8B8A8_UNORM, .extent = {uint32_t(img.width),uint32_t(img.height),1u}, .usage = imageUsage,
-        }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
-            .format = VK_FORMAT_R8G8B8A8_UNORM,
-            .subresourceRange = apres
-        }));
-
-        // 
-        auto image = images.back();
-
-        //
-        vkh::VkImageCreateFlags bflg = {};
-        vkt::unlock32(bflg) = 0u;
-
-        vkt::Vector<> imageBuf = {};
-        if (img.image.size() > 0u) {
-            imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                .flags = bflg, .size = img.image.size(), .usage = uploadUsage,
-            }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            memcpy(imageBuf.data(), &img.image[0u], img.image.size());
-        };
-
-        // 
-        context->getThread()->submitOnce([&](VkCommandBuffer& cmd) { image.transfer(cmd);
-
-            auto buffer = imageBuf.has() ? imageBuf : buffersViews[img.bufferView];
-            fw->getDeviceDispatch()->CmdCopyBufferToImage(cmd, buffer.buffer(), image.getImage(), image.getImageLayout(), 1u, vkh::VkBufferImageCopy{
-                .bufferOffset = buffer.offset(),
-                .bufferRowLength = uint32_t(img.width),
-                .bufferImageHeight = uint32_t(img.height),
-                .imageSubresource = image.subresourceLayers(),
-                .imageOffset = {0u,0u,0u},
-                .imageExtent = {uint32_t(img.width),uint32_t(img.height),1u},
-            });
-
-        });
-
-        material->pushSampledImage(vkt::uni_arg <vkh::VkDescriptorImageInfo>(image.getDescriptor()));
-    };
-
-
-    {
+    {   //
         int width = 0u, height = 0u;
         float* rgba = nullptr;
         const char* err = nullptr;
 
         //
         std::vector<glm::vec4> gSkyColor = {
-            glm::vec4(0.9f,0.98,0.999f, 1.f),
-            glm::vec4(0.9f,0.98,0.999f, 1.f),
-            glm::vec4(0.9f,0.98,0.999f, 1.f),
-            glm::vec4(0.9f,0.98,0.999f, 1.f)
+                glm::vec4(0.9f,0.98,0.999f, 1.f),
+                glm::vec4(0.9f,0.98,0.999f, 1.f),
+                glm::vec4(0.9f,0.98,0.999f, 1.f),
+                glm::vec4(0.9f,0.98,0.999f, 1.f)
         };
 
         { //
@@ -633,19 +525,17 @@ int main() {
             }
         };
 
-        {   //
-            vkh::VkImageCreateFlags bflg = {};
-            vkt::unlock32(bflg) = 0u;
+        //
+        std::vector<vkt::ImageRegion> images = {};
 
-            //
+        {   //
             images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
-                .flags = bflg,
-                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                .extent = vkh::VkExtent3D{uint32_t(width),uint32_t(height),1u},
-                .usage = imageUsage,
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .extent = vkh::VkExtent3D{uint32_t(width),uint32_t(height),1u},
+                    .usage = imageUsage,
             }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
-                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                .subresourceRange = apres
+                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                    .subresourceRange = apres
             }));
 
             //
@@ -655,7 +545,7 @@ int main() {
             vkt::Vector<> imageBuf = {};
             if (width > 0u && height > 0u && rgba) {
                 imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                    .flags = bflg, .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = uploadUsage,
+                    .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = uploadUsage,
                 }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
                 memcpy(imageBuf.data(), rgba, size_t(width) * size_t(height) * sizeof(glm::vec4));
             };
@@ -666,12 +556,12 @@ int main() {
 
                 auto buffer = imageBuf;
                 fw->getDeviceDispatch()->CmdCopyBufferToImage(cmd, buffer.buffer(), image.getImage(), image.getImageLayout(), 1u, vkh::VkBufferImageCopy{
-                    .bufferOffset = buffer.offset(),
-                    .bufferRowLength = uint32_t(width),
-                    .bufferImageHeight = uint32_t(height),
-                    .imageSubresource = image.subresourceLayers(),
-                    .imageOffset = {0u,0u,0u},
-                    .imageExtent = {uint32_t(width),uint32_t(height),1u},
+                        .bufferOffset = buffer.offset(),
+                        .bufferRowLength = uint32_t(width),
+                        .bufferImageHeight = uint32_t(height),
+                        .imageSubresource = image.subresourceLayers(),
+                        .imageOffset = {0u,0u,0u},
+                        .imageExtent = {uint32_t(width),uint32_t(height),1u},
                 });
             });
 
@@ -681,237 +571,105 @@ int main() {
     };
 
 
-    // GLTF Samplers Support
-    for (uint32_t i = 0; i < model.samplers.size(); i++) {
-        const auto& smp = model.samplers[i];
-        samplers.push_back({});
 
-        vkh::handleVk(fw->getDeviceDispatch()->CreateSampler(vkh::VkSamplerCreateInfo{
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-        }, nullptr, &samplers.back()));
+    //
+    std::vector<jvx::MeshInput> inputs = {};
+
+    //
+    std::string inputfile = "sphere.obj";
+    tinyobj::attrib_t attrib = {};
+    std::vector<tinyobj::shape_t> shapes = {};
+    std::vector<tinyobj::material_t> materials = {};
+
+    //
+    std::string warn = "";
+    std::string err = "";
+
+    //
+    bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, inputfile.c_str());
+    if (!warn.empty()) { std::cout << warn << std::endl; }
+    if (!err.empty()) { std::cerr << err << std::endl; }
+    if (!ret) { exit(1); }
+
+    // Loop over shapes
+    std::vector<std::vector<VkDeviceSize>> primitiveCountPer = {};
+    std::vector<VkDeviceSize> vertexCountAll = {};
+    for (size_t s = 0; s < shapes.size(); s++) {
+        vertexCountAll.push_back(0ull);
+        primitiveCountPer.push_back({});
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) { //
+            primitiveCountPer[s].push_back(vertexCountAll[s]);
+            vertexCountAll[s] += shapes[s].mesh.num_face_vertices[f];
+        };
     };
 
-    // Material 
-    for (uint32_t i = 0; i < model.materials.size(); i++) {
-        const auto& mat = model.materials[i]; jvi::MaterialUnit mdk = {};
-        mdk.diffuseTexture = mat.pbrMetallicRoughness.baseColorTexture.index;
-        mdk.normalsTexture = mat.normalTexture.index;
-        mdk.specularTexture = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
-        mdk.emissionTexture = mat.emissiveTexture.index;
-        mdk.specular = glm::vec4(1.f, mat.pbrMetallicRoughness.roughnessFactor, mat.pbrMetallicRoughness.metallicFactor, 0.f);
-        mdk.normals = glm::vec4(0.5f, 0.5f, 1.0f, 1.f);
+    //
+    for (size_t s = 0; s < shapes.size(); s++) {
+        jvx::MeshBinding mBinding(context, vertexCountAll[s], primitiveCountPer[s]);
+        meshes.push_back(mBinding->setIndexCount(vertexCountAll[s])->sharedPtr());
 
-        mdk.emission = glm::vec4(0.f);
-        mdk.diffuse = glm::vec4(1.f);
-
-        if (mat.emissiveFactor.size() > 0) {
-            mdk.emission = glm::vec4(mat.emissiveFactor[0], mat.emissiveFactor[1], mat.emissiveFactor[2], 0.f);
-        };
-        if (mat.pbrMetallicRoughness.baseColorFactor.size() > 0) {
-            mdk.diffuse = glm::vec4(mat.pbrMetallicRoughness.baseColorFactor[0], mat.pbrMetallicRoughness.baseColorFactor[1], mat.pbrMetallicRoughness.baseColorFactor[2], 1.f);
-        };
-
-        material->pushMaterial(mdk);
-    };
-
-
-    // BRICK GAME BANK
-
-    // Gonki  //
-    //   []   //
-    // [][][] //
-    //   []   //
-    // [][][] //
-
-    // Tanki  //        //        //        //
-    //   []   //   []   //   []   //   [][] //
-    // []{}[] // [][][] // [][][] // [][]   //
-    // []  [] // [][][] // []  [] //   [][] //
-
-
-    
-    // Meshes (only one primitive supported)
-    for (uint32_t j = 0; j < model.meshes.size(); j++) {
-        const auto& meshData = model.meshes[j];
-
-        // 
-        std::vector<uintptr_t> primitiveCountPer = {};
-        uintptr_t vertexCountAll = 0u; bool ctype = true;//false;
-        for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
-            const auto& primitive = meshData.primitives[v];
-            uintptr_t vertexCount = 0u;
-            if (primitive.indices >= 0) {
-                vertexCount = model.accessors[primitive.indices].count;
-                if (model.accessors[primitive.indices].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) { ctype = true; };
-            } else
-            if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
-                vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
-            };
-            vertexCountAll += vertexCount;
-            primitiveCountPer.push_back(vkt::tiled(uint64_t(vertexCount),uint64_t(3ull)));
-        };
-
-        // 
-        const vk::DeviceSize PrimitiveCount = std::max(vkt::tiled(uint64_t(vertexCountAll), uint64_t(3ull)), uint64_t(1ull));
-        jvx::MeshBinding mBinding(context, PrimitiveCount, primitiveCountPer);
-        meshes.push_back(mBinding->setIndexCount(vertexCountAll)->sharedPtr()); // mBinding->addMeshInput(mInput, primitive.material);
-
-        // FROM 12.05.2020 We Finally Should Support Multiple Primitives!
-        for (uint32_t v = 0; v < meshData.primitives.size(); v++) {
-            const auto& primitive = meshData.primitives[v];
-
-            // 
-            uintptr_t vertexCount = 0u; bool ctype = true;//false;
-            if (primitive.indices >= 0) {
-                vertexCount = model.accessors[primitive.indices].count;
-                if (model.accessors[primitive.indices].componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) { ctype = true; };
-            } else
-            if (primitive.attributes.find("POSITION") != primitive.attributes.end()) { // Vertices
-                vertexCount = model.accessors[primitive.attributes.find("POSITION")->second].count;
-            };
-
-            // 
-            const VkDeviceSize PrimitiveCount = std::max(vkt::tiled(uint64_t(vertexCount), uint64_t(3ull)), uint64_t(1ull)); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
-
-            // 
-            auto& mesh = mBinding; instancedTransformPerMesh.push_back({});
-
-            // 
+        size_t index_offset = 0; // Loop over faces(polygon)
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) { //
             jvx::MeshInput mInput(context);
-            mInput->linkBViewSet(bvse->sharedPtr())->setIndexCount(PrimitiveCount);
+            inputs.push_back(mInput);
 
-            // 
-            std::array<std::string, 4u> NM = { "POSITION" , "TEXCOORD_0" , "NORMAL" , "TANGENT" };
-            for (uint32_t i = 0u; i < NM.size(); i++) {
-                if (primitive.attributes.find(NM[i]) != primitive.attributes.end()) { // Vertices
-                    auto& attribute = model.accessors[primitive.attributes.find(NM[i])->second];
-                    auto  stride = attribute.ByteStride(model.bufferViews[attribute.bufferView]);
+            //
+            auto verticeCount = shapes[s].mesh.num_face_vertices[f];
+            for (size_t v = 0; v < shapes[s].mesh.num_face_vertices[f]; v++) { //
+                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0], vy = attrib.vertices[3*idx.vertex_index+1], vz = attrib.vertices[3*idx.vertex_index+2];
+                tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0], ny = attrib.normals[3*idx.normal_index+1], nz = attrib.normals[3*idx.normal_index+2];
+                tinyobj::real_t tx = attrib.texcoords[2*idx.texcoord_index+0], ty = attrib.texcoords[2*idx.texcoord_index+1];
 
-                    // 
-                    uint32_t location = 0u;
-                    if (NM[i] == "POSITION") { location = 0u; };
-                    if (NM[i] == "TEXCOORD_0") { location = 1u; };
-                    if (NM[i] == "NORMAL") { location = 2u; };
-                    if (NM[i] == "TANGENT") { location = 3u; };
-
-                    // 
-                    auto type = VK_FORMAT_R32G32B32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC4) type = VK_FORMAT_R32G32B32A32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC3) type = VK_FORMAT_R32G32B32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC2) type = VK_FORMAT_R32G32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
-
-                    // 
-                    mInput->addBinding(attribute.bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
-                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = location, .format = type, .offset = uint32_t(attribute.byteOffset) });
-                }
-                else if (NM[i] == "TANGENT") { // STUB for Tangents
-                    auto& attribute = primitive.attributes.find("NORMAL") != primitive.attributes.end() ? model.accessors[primitive.attributes.find("NORMAL")->second] : model.accessors[primitive.attributes.find("POSITION")->second];
-                    auto  stride = attribute.ByteStride(model.bufferViews[attribute.bufferView]);
-
-                    // 
-                    auto  type = VK_FORMAT_R32G32B32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC4) type = VK_FORMAT_R32G32B32A32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC3) type = VK_FORMAT_R32G32B32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_VEC2) type = VK_FORMAT_R32G32_SFLOAT;
-                    if (attribute.type == TINYGLTF_TYPE_SCALAR) type = VK_FORMAT_R32_SFLOAT;
-
-                    // 
-                    mInput->addBinding(attribute.bufferView, vkh::VkVertexInputBindingDescription{ .stride = uint32_t(stride) }); // TODO: USE SAME BINDING
-                    mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = type, .offset = uint32_t(attribute.byteOffset) }, false);
-                };
+                //
+                buffersViews.back()[index_offset+v].vertex = glm::vec4(vx,vy,vz,1.f);
+                buffersViews.back()[index_offset+v].normal = glm::vec4(nx,ny,nz,0.f);
+                buffersViews.back()[index_offset+v].texcoord = glm::vec4(tx,ty,0.f,0.f);
             };
+            index_offset += verticeCount;
 
-            if (primitive.indices >= 0) { // determine index type
-                auto& attribute = model.accessors[primitive.indices];
-                const auto& BV = model.bufferViews[attribute.bufferView];
-                const auto range = vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull);
+            //
+            buffersViews.push_back(vkt::Vector<VertexUnit>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{ .size = verticeCount * sizeof(VertexUnit), .usage = bufferUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU })));
 
-                // 
-                auto stride = std::max(VkDeviceSize(attribute.ByteStride(model.bufferViews[attribute.bufferView])), buffersViews[attribute.bufferView].stride());
+            //
+            auto bufferIndex = bvse->pushBufferView(vkt::Vector<uint8_t>(buffersViews.back().getAllocation(), VkDeviceSize(0ull), VkDeviceSize(buffersViews.back().range()), VkDeviceSize(buffersViews.back().stride())));
+            mInput->linkBViewSet(bvse)->addBinding(bufferIndex, vkh::VkVertexInputBindingDescription{ .binding = uint32_t(bufferIndex), .stride = uint32_t(buffersViews.back().range()) }); // TODO: USE SAME BINDING
+            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .binding = 0, .location = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(VertexUnit, vertex) });
+            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .binding = 0, .location = 1, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(VertexUnit, texcoord) });
+            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .binding = 0, .location = 2, .format = VK_FORMAT_R32G32_SFLOAT, .offset = offsetof(VertexUnit, normal) });
 
-                // 
-                mInput->setIndexData(attribute.bufferView, attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT ? VK_INDEX_TYPE_UINT16 : (attribute.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE ? VK_INDEX_TYPE_UINT8_EXT : VK_INDEX_TYPE_UINT32));
-                mInput->setIndexCount(attribute.count)->setIndexOffset(attribute.byteOffset);
-            };
-
-            // 
-            mBinding->addMeshInput(mInput->sharedPtr(), primitive.material);
+            // material support NOT added...
+            //mBinding.addMeshInput(mInput, shapes[s].mesh.material_ids[f]);
+            mBinding.addMeshInput(mInput, 0u);
         };
-
-        // 
-        node->pushMesh(meshes.back()->sharedPtr());
     };
 
-    // 
-    std::shared_ptr<std::function<void(const tinygltf::Node&, glm::dmat4, int)>> vertexLoader = {};
-    vertexLoader = std::make_shared<std::function<void(const tinygltf::Node&, glm::dmat4, int)>>([&](const tinygltf::Node& gnode, glm::dmat4 inTransform, int recursive)->void {
-        auto localTransform = glm::dmat4(1.0);
-        localTransform *= glm::dmat4(gnode.matrix.size() >= 16 ? glm::make_mat4(gnode.matrix.data()) : glm::dmat4(1.0));
-        localTransform *= glm::dmat4(gnode.translation.size() >= 3 ? glm::translate(glm::make_vec3(gnode.translation.data())) : glm::dmat4(1.0));
-        localTransform *= glm::dmat4(gnode.scale.size() >= 3 ? glm::scale(glm::make_vec3(gnode.scale.data())) : glm::dmat4(1.0));
-        localTransform *= glm::dmat4((gnode.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(gnode.rotation.data())) : glm::dmat4(1.0)));
 
-        // 
-        if (gnode.mesh >= 0) {
-            auto& mesh = meshes[gnode.mesh]; // load mesh object (it just vector of primitives)
-            node->pushInstance(vkh::VsGeometryInstance{
-                .transform = mat4_t(glm::transpose(glm::dmat4(inTransform) * glm::dmat4(localTransform))),
-                .instanceId = uint32_t(gnode.mesh), // MeshID
-                .mask = 0xff,
-                .instanceOffset = 0u,
-                .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
-            });
-        };
 
-        // 
-        if (gnode.children.size() > 0 && gnode.mesh < 0) {
-            for (int n = 0; n < gnode.children.size(); n++) {
-                if (recursive >= 0) (*vertexLoader)(model.nodes[gnode.children[n]], glm::dmat4(inTransform) * glm::dmat4(localTransform), recursive - 1);
-            };
-        };
-    });
 
-    // load scene
-    uint32_t sceneID = 0;
-    if (model.scenes.size() > 0) {
-        for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-            auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-            (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(0., unitHeight, 0.)) * glm::scale(glm::dvec3(unitScale))), 16);
-        };
-
-        //for (int n = 0; n < model.scenes[sceneID].nodes.size(); n++) {
-        //    auto& gnode = model.nodes[model.scenes[sceneID].nodes[n]];
-        //    (*vertexLoader)(gnode, glm::dmat4(glm::translate(glm::dvec3(-0., unitHeight - 2.f, -2.)) * glm::scale(glm::dvec3(unitScale))), 16);
-        //};
-    };
-
-    // 
+    //
     glm::dvec3 eye = glm::dvec3(5.f, 2.f, 2.f);
     glm::dvec3 foc = glm::dvec3(0.f, 0.f, 0.f);
     glm::dvec3 evc = foc - eye;
     glm::dvec3 upv = glm::dvec3(0.f, 1.f, 0.f);
     glm::uvec2 canvasSize = { canvasWidth, canvasHeight };
 
-    // 
+    //
     auto cameraController = std::make_shared<CameraController>();
     cameraController->canvasSize = &canvasSize;
     cameraController->eyePos = &eye;
     cameraController->upVector = &upv;
     cameraController->viewVector = &evc;
 
-    // 
+    //
     context->setModelView(glm::mat4x4(glm::lookAt(eye, foc, glm::dvec3(0.f, 1.f, 0.f))));
     context->setPerspective(glm::mat4x4(glm::perspective(80.f / 180.f * glm::pi<double>(), double(canvasWidth) / double(canvasHeight), 0.001, 10000.)));
 
-    // 
+    //
     vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
     pipelineInfo.stages = {
-        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/render.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
-        vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/render.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
+            vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/render.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+            vkt::makePipelineStageInfo(fw->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/render.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
     };
     pipelineInfo.graphicsPipelineCreateInfo.layout = context->getPipelineLayout();
     pipelineInfo.graphicsPipelineCreateInfo.renderPass = fw->applicationWindow.renderPass;//context->refRenderPass();
@@ -921,11 +679,11 @@ int main() {
     pipelineInfo.colorBlendAttachmentStates = { {} }; // Default Blend State
     pipelineInfo.dynamicStates = { VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_VIEWPORT };
 
-    // 
+    //
     VkPipeline finalPipeline = {};
     vkh::handleVk(fw->getDeviceDispatch()->CreateGraphicsPipelines(fw->getPipelineCache(), 1u, pipelineInfo, nullptr, &finalPipeline));
 
-    // 
+    //
     int64_t currSemaphore = -1;
     uint32_t currentBuffer = 0u;
     uint32_t frameCount = 0u;
@@ -935,7 +693,7 @@ int main() {
     glfwSetCursorPosCallback(fw->window(), &Shared::MouseMoveCallback);
     glfwSetKeyCallback(fw->window(), &Shared::KeyCallback);
 
-    // 
+    //
     Shared::active = Active{};
     Shared::window = fw->window(); // set GLFW window
     Shared::active.tDiff = 0.0; // reset diff to near-zero (avoid critical math errors)
@@ -943,16 +701,16 @@ int main() {
     Shared::active.mouse.resize(128, uint8_t(0u));
     Shared::TimeCallback(double(context->registerTime()->setDrawCount(frameCount++)->drawTime()));
 
-    // 
-    while (!glfwWindowShouldClose(manager.window)) { // 
+    //
+    while (!glfwWindowShouldClose(manager.window)) { //
         glfwPollEvents();
 
-        // 
+        //
         int64_t n_semaphore = currSemaphore, c_semaphore = (currSemaphore + 1) % framebuffers.size(); // Next Semaphore
         currSemaphore = (c_semaphore = c_semaphore >= 0 ? c_semaphore : int64_t(framebuffers.size()) + c_semaphore); // Current Semaphore
         (n_semaphore = n_semaphore >= 0 ? n_semaphore : int64_t(framebuffers.size()) + n_semaphore); // Fix for Next Semaphores
 
-        // 
+        //
         vkh::handleVk(fw->getDeviceDispatch()->WaitForFences(1u, &framebuffers[c_semaphore].waitFence, true, 30ull * 1000ull * 1000ull * 1000ull));
         vkh::handleVk(fw->getDeviceDispatch()->ResetFences(1u, &framebuffers[c_semaphore].waitFence));
         vkh::handleVk(fw->getDeviceDispatch()->AcquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), framebuffers[c_semaphore].presentSemaphore, nullptr, &currentBuffer));
@@ -962,22 +720,22 @@ int main() {
             std::vector<vkh::VkClearValue> clearValues = {vkh::VkClearValue{.color = vkh::VkClearColorValue{glm::vec4(0.f, 0.f, 0.f, 0.f)}}, vkh::VkClearValue{.depthStencil = vkh::VkClearDepthStencilValue{1.0f, 0} } };
             Shared::TimeCallback(double(context->registerTime()->setModelView(glm::mat4x4(cameraController->handle().project()))->drawTime()));
 
-            // Create render submission 
+            // Create render submission
             std::vector<VkSemaphore> waitSemaphores = { framebuffers[currentBuffer].presentSemaphore }, signalSemaphores = { framebuffers[currentBuffer].computeSemaphore };
-            std::vector<vkh::VkPipelineStageFlags> waitStages = { 
-                vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 },
-                vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 }
+            std::vector<vkh::VkPipelineStageFlags> waitStages = {
+                    vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 },
+                    vkh::VkPipelineStageFlags{.eFragmentShader = 1, .eComputeShader = 1, .eTransfer = 1, .eRayTracingShader = 1, .eAccelerationStructureBuild = 1 }
             };
 
             // Submit command once
             //renderer->setupCommands();
             vkh::handleVk(fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
-                .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
-                .commandBufferCount = 1u, .pCommandBuffers = &renderer->setupCommands()->refCommandBuffer(), 
-                .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
+                    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
+                    .commandBufferCount = 1u, .pCommandBuffers = &renderer->setupCommands()->refCommandBuffer(),
+                    .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
             }, {}));
 
-            // 
+            //
             waitSemaphores = { framebuffers[currentBuffer].computeSemaphore }, signalSemaphores = { framebuffers[currentBuffer].drawSemaphore };
 
             // create command buffer (with rewrite)
@@ -987,26 +745,26 @@ int main() {
 
                 // Already present, prepare to render
                 vkt::imageBarrier(commandBuffer, vkt::ImageBarrierInfo{
-                    .image = framebuffers[currentBuffer].image,
-                    .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
-                    .originLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                    .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
-                        auto aspect = vkh::VkImageAspectFlags{ .eColor = 1u };
-                        it->aspectMask = aspect;
-                        return it;
-                    })
+                        .image = framebuffers[currentBuffer].image,
+                        .targetLayout = VK_IMAGE_LAYOUT_GENERAL,
+                        .originLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                        .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                            auto aspect = vkh::VkImageAspectFlags{ .eColor = 1u };
+                            it->aspectMask = aspect;
+                            return it;
+                        })
                 });
 
                 // Already present, prepare to render
                 vkt::imageBarrier(commandBuffer, vkt::ImageBarrierInfo{
-                    .image = fw->getDepthImage(),
-                    .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
-                    .originLayout = VK_IMAGE_LAYOUT_GENERAL,
-                    .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
-                        auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
-                        it->aspectMask = aspect;
-                        return it;
-                    })
+                        .image = fw->getDepthImage(),
+                        .targetLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+                        .originLayout = VK_IMAGE_LAYOUT_GENERAL,
+                        .subresourceRange = vkh::VkImageSubresourceRange{ {}, 0u, 1u, 0u, 1u }.also([=](auto* it) {
+                            auto aspect = vkh::VkImageAspectFlags{.eDepth = 1u, .eStencil = 1u };
+                            it->aspectMask = aspect;
+                            return it;
+                        })
                 });
 
                 //
@@ -1024,26 +782,26 @@ int main() {
 
             // Submit command once
             vkh::handleVk(fw->getDeviceDispatch()->QueueSubmit(queue, 1u, vkh::VkSubmitInfo{
-                .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
-                .commandBufferCount = 1u, .pCommandBuffers = &commandBuffer,
-                .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
+                    .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()), .pWaitSemaphores = waitSemaphores.data(), .pWaitDstStageMask = waitStages.data(),
+                    .commandBufferCount = 1u, .pCommandBuffers = &commandBuffer,
+                    .signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size()), .pSignalSemaphores = signalSemaphores.data()
             }, framebuffers[currentBuffer].waitFence));
 
-            // 
+            //
             context->setDrawCount(frameCount++);
         };
 
-        // 
+        //
         std::vector<VkSemaphore> waitSemaphoes = { framebuffers[c_semaphore].drawSemaphore };
         vkh::handleVk(fw->getDeviceDispatch()->QueuePresentKHR(queue, vkh::VkPresentInfoKHR{
-            .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphoes.size()), .pWaitSemaphores = waitSemaphoes.data(),
-            .swapchainCount = 1, .pSwapchains = &swapchain,
-            .pImageIndices = &currentBuffer, .pResults = nullptr
+                .waitSemaphoreCount = static_cast<uint32_t>(waitSemaphoes.size()), .pWaitSemaphores = waitSemaphoes.data(),
+                .swapchainCount = 1, .pSwapchains = &swapchain,
+                .pImageIndices = &currentBuffer, .pResults = nullptr
         }));
 
     };
 
-    // 
+    //
     glfwDestroyWindow(manager.window);
     glfwTerminate(); exit(0);
     return 0;

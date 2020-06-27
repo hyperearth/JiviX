@@ -46,15 +46,17 @@ set (SOURCES_LIST
     "./include/vma/*.h"
     "./include/vkh/*.hpp"
     "./include/vkh/*.h"
-	"./include/xvk/*.hpp"
+    "./include/xvk/*.hpp"
     "./include/xvk/*.h"
     "./include/vkt3/*.hpp"
     "./include/vkt3/*.h"
     "./include/volk/*.hpp"
     "./include/volk/*.h"
-	"./include/volk/*.c"
+    "./include/volk/*.c"
     "./include/*.hpp"
     "./include/*.h"
+    "./include/tinyobjloader/*.h"
+    "./include/tinyobjloader/*.cc"
 
     "./src/*.cpp"
     "./src/*.c"
@@ -190,7 +192,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 # Compute test 
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
-add_executable(${APPLICATION_NAME} src/main.cpp ${RSOURCES})
+add_executable(${APPLICATION_NAME} ${RSOURCES} src/physics.cpp src/physics.h)
 target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
 
 # Add includes to MSVC explorer 
