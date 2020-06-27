@@ -773,8 +773,9 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
             this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
             this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
-            this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
-            this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(rasterCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+            //this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
+            //this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(rasterCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+            this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
 
             // 
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
@@ -1003,8 +1004,9 @@ namespace jvi {
              this->driver->getDeviceDispatch()->CmdBeginTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
              this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformState);
              this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformPipelineLayout, 0u, this->descriptorSet.size(), this->descriptorSet.data(), 0u, nullptr);
-             this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
-             this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(buildCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+             //this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
+             //this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(buildCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+             this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
              this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, stage, 0u, sizeof(meta), & meta);
 
              // 
