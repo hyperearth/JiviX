@@ -183,7 +183,7 @@ namespace jvi {
         // Record Geometry (Transform Feedback), Re-Implemented in another file... 
         protected: virtual uPTR(MeshInput) buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand = {});
 
-        // 
+        //
         public: template<class T = uint8_t>
         inline uPTR(MeshInput) addBinding(const uint32_t& rawData, vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
             const uintptr_t bindingID = this->vertexInputBindingDescriptions.size();
@@ -194,6 +194,24 @@ namespace jvi {
             this->rawBindings[bindingID].binding = rawData;
 
             // 
+            this->bindRange.resize(bindingID + 1u);
+            this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = this->bvs->get(rawData).range();
+            this->bindings.resize(bindingID+1u);
+            this->bindings[bindingID] = rawData;
+            return uTHIS;
+        };
+
+        // Added Due New Extension for Vulkan API (just not needed to replace pipeline for that in some situation)
+        public: template<class T = uint8_t>
+        inline uPTR(MeshInput) changeBinding(const uint32_t& rawData, vkt::uni_arg<vkh::VkVertexInputBindingDescription> binding = vkh::VkVertexInputBindingDescription{}) {
+            const uintptr_t bindingID = binding->binding;
+            this->vertexInputBindingDescriptions.resize(bindingID + 1u);
+            this->vertexInputBindingDescriptions[bindingID] = binding;
+            this->vertexInputBindingDescriptions[bindingID].binding = static_cast<uint32_t>(bindingID);
+            this->rawBindings[bindingID] = this->vertexInputBindingDescriptions[bindingID];
+            this->rawBindings[bindingID].binding = rawData;
+
+            //
             this->bindRange.resize(bindingID + 1u);
             this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = this->bvs->get(rawData).range();
             this->bindings.resize(bindingID+1u);

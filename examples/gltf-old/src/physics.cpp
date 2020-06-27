@@ -598,8 +598,8 @@ int main() {
         vertexCountAll.push_back(0ull);
         primitiveCountPer.push_back({});
         for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) { //
-            primitiveCountPer[s].push_back(vertexCountAll[s]);
-            vertexCountAll[s] += shapes[s].mesh.num_face_vertices[f];
+            primitiveCountPer.back().push_back(vertexCountAll[s]);
+            vertexCountAll.back() += shapes[s].mesh.num_face_vertices[f];
         };
     };
 
@@ -610,12 +610,11 @@ int main() {
 
         size_t index_offset = 0; // Loop over faces(polygon)
         for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) { //
-            jvx::MeshInput mInput(context);
-            inputs.push_back(mInput);
+            jvx::MeshInput mInput(context); inputs.push_back(mInput);
 
             //
             auto verticeCount = shapes[s].mesh.num_face_vertices[f];
-            for (size_t v = 0; v < shapes[s].mesh.num_face_vertices[f]; v++) { //
+            for (size_t v = 0; v < verticeCount; v++) { //
                 tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
                 tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0], vy = attrib.vertices[3*idx.vertex_index+1], vz = attrib.vertices[3*idx.vertex_index+2];
                 tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0], ny = attrib.normals[3*idx.normal_index+1], nz = attrib.normals[3*idx.normal_index+2];
@@ -634,9 +633,9 @@ int main() {
             //
             auto bufferIndex = bvse->pushBufferView(vkt::Vector<uint8_t>(buffersViews.back().getAllocation(), VkDeviceSize(0ull), VkDeviceSize(buffersViews.back().range()), VkDeviceSize(buffersViews.back().stride())));
             mInput->linkBViewSet(bvse)->addBinding(bufferIndex, vkh::VkVertexInputBindingDescription{ .binding = uint32_t(bufferIndex), .stride = uint32_t(buffersViews.back().range()) }); // TODO: USE SAME BINDING
-            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .binding = 0, .location = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(VertexUnit, vertex) });
-            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .binding = 0, .location = 1, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(VertexUnit, texcoord) });
-            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .binding = 0, .location = 2, .format = VK_FORMAT_R32G32_SFLOAT, .offset = offsetof(VertexUnit, normal) });
+            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(VertexUnit, vertex) });
+            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(VertexUnit, texcoord) });
+            mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2, .format = VK_FORMAT_R32G32_SFLOAT, .offset = offsetof(VertexUnit, normal) });
 
             // material support NOT added...
             //mBinding.addMeshInput(mInput, shapes[s].mesh.material_ids[f]);
