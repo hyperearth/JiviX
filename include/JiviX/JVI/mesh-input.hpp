@@ -213,7 +213,7 @@ namespace jvi {
 
             //
             this->bindRange.resize(bindingID + 1u);
-            this->bindRange[this->lastBindID = static_cast<uint32_t>(bindingID)] = this->bvs->get(rawData).range();
+            this->bindRange[static_cast<uint32_t>(bindingID)] = this->bvs->get(rawData).range();
             this->bindings.resize(bindingID+1u);
             this->bindings[bindingID] = rawData;
             return uTHIS;
