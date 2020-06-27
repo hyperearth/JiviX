@@ -192,8 +192,9 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 # Compute test 
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
-add_executable(${APPLICATION_NAME} ${RSOURCES} src/physics.cpp src/physics.h)
+add_executable(${APPLICATION_NAME} ${RSOURCES} src/physics.cpp src/pch.cpp)
 target_link_libraries(${APPLICATION_NAME} PRIVATE ${LIBS} Vulkan::Vulkan)
+target_precompile_headers(${APPLICATION_NAME} PRIVATE src/pch.hpp src/pch.hpp src/pch.cpp)
 
 # Add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)
