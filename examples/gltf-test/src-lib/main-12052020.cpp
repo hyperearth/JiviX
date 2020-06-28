@@ -1,6 +1,13 @@
 // #
 #include "./pch.hpp"
 
+//
+//#include <vkt3/fw.hpp>
+//#include "JiviX/JiviX.hpp"
+//#include <misc/tinyexr.h>
+//#include <vma/vk_mem_alloc.h>
+//#include <misc/tiny_gltf.h>
+
 // 
 struct Active {
     std::vector<uint8_t> keys = {};

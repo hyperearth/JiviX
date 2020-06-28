@@ -915,7 +915,7 @@ namespace jvi {
 
 
     // Implemented here due undefined type..
-    uPTR(MeshInput) MeshInput::buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand) { // 
+    inline uPTR(MeshInput) MeshInput::buildGeometry(const vkt::uni_ptr<jvi::MeshBinding>& binding, vkt::uni_arg<glm::u64vec4> offsetHelp, vkt::uni_arg<VkCommandBuffer> buildCommand) { //
          bool DirectCommand = false, HasCommand = buildCommand.has() && *buildCommand;
 
          // Initialize Input
