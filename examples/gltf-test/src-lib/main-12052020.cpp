@@ -516,7 +516,7 @@ int main() {
     for (uint32_t i = 0; i < model.bufferViews.size(); i++) {
         const auto& BV = model.bufferViews[i];
         const auto range = vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull);
-        buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer].getAllocation(), BV.byteOffset, vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull)));
+        buffersViews.push_back(vkt::Vector<uint8_t>(cpuBuffers[BV.buffer].getAllocation(), BV.byteOffset, vkt::tiled(uint64_t(BV.byteLength), uint64_t(4ull)) * uint64_t(4ull), BV.byteStride));
         bvse->pushBufferView(buffersViews.back());
     };
 
