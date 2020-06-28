@@ -33,7 +33,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
 - Replacement Of  : Project "Satellite" ("engine", 2017)
 - Shaders Version : v2.0
-- И ВСЕ, ПИЗДЕЦ!  : R.I.P. for Visual Studio 2019 support... (UNKNOWN Internal Compiler Error)
+- SH&T OF Шindows : R.I.P. for Visual Studio 2019 support... (UNKNOWN Internal Compiler Error)
 
 Date:[25.06.2020]:[helix.d@IMN]
 ```
