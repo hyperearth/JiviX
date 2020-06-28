@@ -5,16 +5,18 @@
 // 
 #define RAY_TRACE
 #define FAST_BW_TRANSPARENT false
-
 //#define FAST_BW_TRANSPARENT // Can be denoised, but with WRONG results!
 //#define TOP_LAYERED // Has reflection problems
 
-// 
-//layout (local_size_x = 32u, local_size_y = 24u) in;
-layout ( location = 0u ) rayPayloadEXT CHIT hit;
+// TODO: X-Based Optimization
+const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
+layout ( local_size_x = workX, local_size_y = workY ) in; 
 
-// For Cache
-XHIT RES;
+// 
+shared XHIT hits[workX*workY];
+
+// Needs 1000$ for fix BROKEN ray query...
+const uint MAX_ITERATION = 64u;
 
 // Ray Query Broken In Latest Driver... 
 XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT, bool scatterTransparency, float threshold) {
@@ -31,36 +33,69 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     // 
     bool restart = true, opaque = false;
     while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
-        float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
-        traceRayEXT (Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
-            0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax, 0);
+        rayQueryEXT rayQuery; float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
+        rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
+            0xFF, lastOrigin, 0.001f, raydir, lastMax);
 
-        // 
-        const float3 baryCoord = hit.gBarycentric.xyz;
-        const bool isSkybox = dot(baryCoord.yz,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
-        const uint primitiveID = hit.gIndices.z;
-        const uint geometryInstanceID = hit.gIndices.y;
-        const uint globalInstanceID = hit.gIndices.x;
-        const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
-        const float tHit = hit.gBarycentric.w;
-
-        // 
-        if (tHit < lastMax && !isSkybox) { lastOrigin = raydir*(lastMax=tHit) + forigin;
-            //processing = hit;
-            processing.gIndices = hit.gIndices;
-            processing.gBarycentric = hit.gBarycentric;
-            processing.origin.xyz = (forigin = (raydir*(processing.gBarycentric.w = (fullLength += tHit)) + sorigin));
-
-            // Interpolate In Ray-Tracing
-            XGEO geometry = interpolate(processing);
-            XPOL material = materialize(processing, geometry);
+        // BROKEN `rayQueryProceedEXT`
+        bool proceed = false;
+        I = 0; while((I++) < MAX_ITERATION && (proceed = rayQueryProceedEXT(rayQuery))) { // 
+            uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, false); // Mesh ID from Node Mesh List (because indexing)
+            uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, false); // TODO: Using In Ray Tracing (and Query) shaders!
+            uint globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, false);
+            float2 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, false);
+            uint primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, false); 
+            float3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false);
+            float tHit = rayQueryGetIntersectionTEXT(rayQuery, false);
 
             // 
-            forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
+            if (tHit < lastMax) { lastOrigin = raydir*(lastMax = tHit) + forigin;
+                processing.gIndices = uint4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
+                processing.gBarycentric.xyz = float3(1.f-baryCoord.x-baryCoord.y,baryCoord);
+                processing.origin = float4(raydir*(processing.gBarycentric.w = (fullLength + tHit)) + sorigin, 1.f);
 
-            // confirm that hit 
-            if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+                // Interpolate In Ray-Tracing
+                XGEO geometry = interpolate(processing);
+                XPOL material = materialize(processing, geometry);
+
+                // confirm that hit 
+                if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
+                    opaque = true; rayQueryConfirmIntersectionEXT(rayQuery); // override processing hit
+                };
+            };
         };
+
+        // 
+        processing = confirmed; lastMax = (maxT - fullLength); lastOrigin = raydir*maxT + sorigin; opaque = false;
+        if (!proceed) { // Attemp to fix Broken Ray Query
+            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionNoneEXT) {
+                uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, true); // Mesh ID from Node Mesh List (because indexing)
+                uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, true); // TODO: Using In Ray Tracing (and Query) shaders!
+                uint globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, true);
+                float2 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, true);
+                uint primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, true); 
+                float3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true);
+                float tHit = rayQueryGetIntersectionTEXT(rayQuery, true);
+
+                // 
+                if (tHit < lastMax) { lastOrigin = raydir*(lastMax=tHit) + forigin;
+                    processing.gIndices = uint4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
+                    processing.gBarycentric.xyz = float3(1.f-baryCoord.x-baryCoord.y,baryCoord);
+                    processing.origin.xyz = (forigin = (raydir*(processing.gBarycentric.w = (fullLength += tHit)) + sorigin));
+
+                    // Interpolate In Ray-Tracing
+                    XGEO geometry = interpolate(processing);
+                    XPOL material = materialize(processing, geometry);
+
+                    // 
+                    forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
+
+                    // confirm that hit 
+                    if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+                };
+            } else { fullLength = maxT; };
+        };
+        rayQueryTerminateEXT(rayQuery);
 
         // 
         if (fullLength <= (maxT-1.f) && !opaque) { restart = true; };
@@ -68,31 +103,46 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     };
 
     // 
-    if (fullLength <= (maxT-1.f) && opaque) { confirmed = processing; };
+    if (fullLength <= (maxT-1.f)) { confirmed = processing; };
     return confirmed;
 };
 
-#define LAUNCH_ID gl_LaunchIDEXT.xy
+#define LAUNCH_ID gl_GlobalInvocationID.xy
 #include "./stuff.glsl"
+#define RES hits[lIdx]
 
-
-// CRITICAL TODO: Fully Remake That Shader for Ray Gen Shaders
+// 14.06.2020
+// Fully Refresh Ray Cast Shaders
 void main() {
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const float4 sphere = float4(float3(16.f,128.f,16.f), 8.f);
-    const float3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
-
-    const uint2 lanQ = LAUNCH_ID;//gl_LaunchIDEXT.xy;//gl_GlobalInvocationID.xy;
-    launchSize = imageSize(writeImages[IW_POSITION]);
+    
 
     // 
-    const int2 curPixel = int2(lanQ), invPixel = int2(curPixel.x,curPixel.y);
-    const int2 sizPixel = int2(launchSize);
+    const uint2 locQs = uint2(gl_LocalInvocationID.xy);
+    const uint2 locQ = uint2(locQs.x, (locQs.y<<1u) | ((locQs.x+rdata.x)&1u));
+    const uint2 lanQ = uint2(gl_WorkGroupID.xy*gl_WorkGroupSize.xy*uint2(1u,2u) + locQ).xy;
+    //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
+    const uint lIdx = gl_LocalInvocationIndex;
 
-    // WARNING! Quality may critically drop when move! 
-    const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x^1u))&1u);
+    // 
+    launchSize = imageSize(writeImages[IW_POSITION]);
+    subgroupBarrier(); barrier();
 
-    {
+    // 
+    for (uint Q = 0u; Q < 2u; Q++) {
+        const uint2 locQ = uint2(locQs.x, Q*gl_WorkGroupSize.y + locQs.y);
+        const uint2 lanQ = uint2(gl_WorkGroupID.xy*uint2(gl_WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
+        //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * gl_WorkGroupSize.x + locQ.x;
+        
+        // 
+        const int2 curPixel = int2(lanQ), invPixel = int2(curPixel.x,curPixel.y);
+        const int2 sizPixel = int2(launchSize);
+
+        // WARNING! Quality may critically drop when move! 
+        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x^1u))&1u);
+
         //
         packed = pack32(u16float2(curPixel)), seed = uint2(packed, rdata.x);
         const float2 shift = random2(seed),   pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
@@ -158,15 +208,17 @@ void main() {
             diffused.xyz += emission.xyz;
         };
         imageStore(writeImages[nonuniformEXT(IW_SMOOTHED)], int2(lanQ), float4(diffused));
-    };
+    }
 
-    //
+    subgroupBarrier(); barrier();
+
+    // BROKEN
 #ifdef RAY_TRACE
-    
-    float4 adaptiveData = 10000.f.xxxx;
     XGEO GEO = interpolate(RES);
     XPOL MAT = materialize(RES, GEO);
-    if ( checker && (MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f) ) { // 
+    float4 adaptiveData = 10000.f.xxxx;
+    if ( (MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f) ) { // 
+        
               float4 origin = float4(RES.origin.xyz-RES.gBarycentric.w*RES.direct.xyz, 1.f);
         const float4 bspher = float4(origin.xyz,10000.f);
         const float inIOR = 1.f, outIOR = 1.6666f;
@@ -259,7 +311,16 @@ void main() {
     };
 #endif
 
-    {   // 
+    subgroupBarrier(); barrier();
+
+    // 
+    for (uint Q = 0u; Q < 2u; Q++) {
+        const uint2 locQ = uint2(locQs.x, Q*gl_WorkGroupSize.y + locQs.y);
+        const uint2 lanQ = uint2(gl_WorkGroupID.xy*uint2(gl_WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
+        //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * gl_WorkGroupSize.x + locQ.x;
+
+        // 
         float4 gposition = float4(RES.origin.xyz, RES.gBarycentric.w);
 
         // Used By Reprojection (comparsion)
@@ -271,6 +332,5 @@ void main() {
         imageStore(writeBuffer[nonuniformEXT(BW_REFLECLR)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_REFLECLR)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_TRANSPAR)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_ADAPTIVE)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_ADAPTIVE)], int2(lanQ)));
-    };
+    }
 };
-

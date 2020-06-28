@@ -130,7 +130,7 @@ XPOL materialize(in XHIT hit, inout XGEO geo) { //
         material.specularColor = unit.specularTexture >= 0 ? textures[unit.specularTexture].Sample(samplers[2u],gTexcoord.xy) : unit.specular;
 
         // Mapping
-        material.mapNormal = float4(normalize(mul(float3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz), normalize(material.normalsColor.xyz * 2.f - 1.f))), 1.f);
+        material.mapNormal = float4(normalize(mul(normalize(material.normalsColor.xyz * 2.f - 1.f), float3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz))), 1.f);
 
         // Use real origin
         material.txcmid = float4(asfloat(packUnorm2x16(frac(geo.gTexcoord.xy))), asfloat(MatID), 1.f, 0.f); // 

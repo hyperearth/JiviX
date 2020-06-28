@@ -116,8 +116,8 @@ void main(uint3 DTid : SV_DispatchThreadID) { // TODO: explicit sampling
     //if (diffused.w < 0.99f) { diffused.xyz = 1.f.xxx; };
 
     // 
-    const float3 camera = mul(float4(position.xyz,1.f), pushed.modelview);
-    const float3 raydir = mul(pushed.modelview, normalize(camera.xyz)).xyz;
+    const float3 camera = mul(pushed.modelview, float4(position.xyz,1.f));
+    const float3 raydir = mul(normalize(camera.xyz), pushed.modelview).xyz;
     const float3 origin = getPosition(samplep).xyz;
     const float3 normal = getNormal(samplep).xyz;
 

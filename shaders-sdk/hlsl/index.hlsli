@@ -40,6 +40,7 @@
 #define RS_BARYCENT 3
 //#define RS_DIFFUSED 4
 
+#define PFX(NAME,T) NAME#T
 
 
 // TODO: Materials
@@ -210,8 +211,12 @@ uint getMeshID(in RTXInstance instance){
     return bitfieldExtract(instance.instance_mask, 0, 24); // only hack method support
 };
 
+struct DrawInfo {
+    uint4 data;
+};
+
 // 
-[[vk::push_constant]] ConstantBuffer<uint4> drawInfo : register(b0, space23);
+[[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space23);
 
 
 // System Specified
@@ -500,11 +505,11 @@ float3 divW(in float4 vect) { return vect.xyz/vect.w; };
 float3 divW(in float3 vect) {return vect.xyz; };
 
 float3 world2screen(in float3 origin){
-    return divW(mul(float4(mul(float4(origin,1.f), pushed.modelview), 1.f), pushed.projection));
+    return divW(mul(pushed.projection, float4(mul(pushed.modelview, float4(origin,1.f)), 1.f)));
 };
 
 float3 screen2world(in float3 origin){
-    return mul(float4(divW(mul(float4(origin,1.f), pushed.projectionInv)), 1.f), pushed.modelviewInv);
+    return mul(pushed.modelviewInv, float4(divW(mul(pushed.projectionInv, float4(origin,1.f))), 1.f));
 };
 
 
