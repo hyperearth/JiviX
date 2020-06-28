@@ -76,7 +76,7 @@ Date:[25.06.2020]:[helix.d@IMN]
 - [ ] Using Volk instead of XVK
 - [ ] Using VKT-4 
 - [ ] Support for DXV
-- [ ] HLSL shaders (for DXV)
+- [ ] HLSL shaders (for [DeViX](https://github.com/helixd2s/DeViX-Overview))
 
 
 ### TODO Lists (Gen-4 or Beyond)
