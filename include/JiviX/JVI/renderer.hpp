@@ -7,7 +7,7 @@
 #include "./mesh-input.hpp"
 #include "./mesh-binding.hpp"
 #include "./node.hpp"
-
+#include "./material.hpp"
 
 namespace jvi {
 
@@ -52,7 +52,7 @@ namespace jvi {
 
             //
             auto sbtUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
-            this->sbtBuffer = vkt::Vector<glm::u64vec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(glm::u64vec4) * 4u, .usage = sbtUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->sbtBuffer = vkt::Vector<uint8_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = this->rayTracingProperties.shaderGroupHandleSize * 4u, .usage = sbtUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
 
             // 
             return uTHIS;
@@ -163,11 +163,12 @@ namespace jvi {
             const size_t uHandleSize = this->rayTracingProperties.shaderGroupHandleSize, rHandleSize = uHandleSize * 3u;
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateRayTracingPipelinesKHR(driver->getPipelineCache(), 1u, this->raytraceInfo, nullptr, &this->raytraceTypeState));
             vkh::handleVk(this->driver->getDeviceDispatch()->GetRayTracingShaderGroupHandlesKHR(this->raytraceTypeState, 0u, 3u, rHandleSize, this->sbtBuffer.data()));
-            
-            // 
-            this->rgenSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * 0u, 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);
-            this->rchitSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * this->raytraceInfo.hitOffsetIndex(), 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);
-            this->rmissSbtBuffer = vkt::Vector<glm::u64vec4>(this->sbtBuffer.getAllocation(), this->rayTracingProperties.shaderGroupHandleSize * this->raytraceInfo.missOffsetIndex(), 1u * this->rayTracingProperties.shaderGroupHandleSize, this->rayTracingProperties.shaderGroupHandleSize);
+
+            //
+            const auto stride = this->rayTracingProperties.shaderGroupHandleSize;
+            this->rgenSbtBuffer  = vkt::Vector<uint8_t>(this->sbtBuffer.getAllocation(), stride * this->raytraceInfo.raygenOffsetIndex(), stride, stride);
+            this->rchitSbtBuffer = vkt::Vector<uint8_t>(this->sbtBuffer.getAllocation(), stride * this->raytraceInfo.hitOffsetIndex()   , stride * this->raytraceInfo.hitShaderCount(), stride);
+            this->rmissSbtBuffer = vkt::Vector<uint8_t>(this->sbtBuffer.getAllocation(), stride * this->raytraceInfo.missOffsetIndex()  , stride * this->raytraceInfo.missShaderCount(), stride);
 
             // 
             return uTHIS;
@@ -363,10 +364,10 @@ namespace jvi {
         vkt::uni_ptr<Node> node = {}; // currently only one node... 
 
         // 
-        vkt::Vector<glm::u64vec4> sbtBuffer = {};
-        vkt::Vector<glm::u64vec4> rgenSbtBuffer = {};
-        vkt::Vector<glm::u64vec4> rchitSbtBuffer = {};
-        vkt::Vector<glm::u64vec4> rmissSbtBuffer = {};
+        vkt::Vector<uint8_t> sbtBuffer = {};
+        vkt::Vector<uint8_t> rgenSbtBuffer = {};
+        vkt::Vector<uint8_t> rchitSbtBuffer = {};
+        vkt::Vector<uint8_t> rmissSbtBuffer = {};
 
         // 
         vkh::VsRayTracingPipelineCreateInfoHelper raytraceInfo = {};
