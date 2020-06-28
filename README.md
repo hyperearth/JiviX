@@ -75,7 +75,7 @@ Date:[25.06.2020]:[helix.d@IMN]
 - [ ] Refactor for DirectX 12 Ultimate compatibility
 - [ ] Using Volk instead of XVK
 - [ ] Using VKT-4 
-- [ ] Support for DXV
+- [ ] Support for [DeViX](https://github.com/helixd2s/DeViX-Overview)
 - [ ] HLSL shaders (for [DeViX](https://github.com/helixd2s/DeViX-Overview))
 
 
