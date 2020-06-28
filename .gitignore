@@ -154,4 +154,10 @@ inclusion
 /inclusion
 */inclusion
 
-
+# 
+examples/*/include
+examples/*/include/
+examples/*/include/*
+/examples/*/include
+/examples/*/include/
+/examples/*/include/*
