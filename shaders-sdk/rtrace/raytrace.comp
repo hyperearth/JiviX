@@ -125,7 +125,6 @@ XHIT traceRays(in vec3 origin, in vec3 raydir, in vec3 normal, float maxT, bool 
 void main() {
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const vec4 sphere = vec4(vec3(16.f,128.f,16.f), 8.f);
-    
 
     // 
     const uvec2 locQs = uvec2(gl_LocalInvocationID.xy);
@@ -136,7 +135,7 @@ void main() {
 
     // 
     launchSize = imageSize(writeImages[IW_POSITION]);
-    subgroupBarrier(); barrier();
+    groupMemoryBarrier(); barrier();
 
     // 
     for (uint Q = 0u; Q < 2u; Q++) {
@@ -217,9 +216,10 @@ void main() {
             diffused.xyz += emission.xyz;
         };
         imageStore(writeImages[nonuniformEXT(IW_SMOOTHED)], ivec2(lanQ), vec4(diffused));
-    }
+    };
 
-    subgroupBarrier(); barrier();
+    // 
+    groupMemoryBarrier(); barrier();
 
     // BROKEN
 #ifdef RAY_TRACE
@@ -320,7 +320,8 @@ void main() {
     };
 #endif
 
-    subgroupBarrier(); barrier();
+    // 
+    groupMemoryBarrier(); barrier();
 
     // 
     for (uint Q = 0u; Q < 2u; Q++) {
