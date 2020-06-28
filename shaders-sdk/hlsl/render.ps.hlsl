@@ -1,19 +1,34 @@
-#include "./driver.glsl"
+#include "./driver.hlsli"
+#include "./global.hlsli"
 
+// 
 #define FXAA_PC 1
 #define FXAA_GLSL_130 1
 #define FXAA_QUALITY_PRESET 39
 #include "./fxaa3_11.h"
 
-layout ( location = 0 ) out float4 uFragColor;
-layout ( location = 0 ) in float2 vcoord;
+// 
+struct PSInput
+{
+    float4 position : SV_POSITION;
+    float2 vcoord : COLOR;
+};
+
+//
+struct PSOutput 
+{
+    float4 uFragColor : SV_TARGET0;
+};
 
 // 
-void main() { // TODO: explicit sampling 
-    const int2 size = textureSize(renderBuffers[BW_RENDERED], 0), samplep = int2(gl_FragCoord.x,gl_FragCoord.y);
-    
+PSOutput main(in PSInput input) { // TODO: explicit sampling 
+    const int2 size = int2(0,0), samplep = int2(input.position.x,input.position.y);
+    frameBuffers[BW_RENDERED].GetDimensions(size.x, size.y);
+
     // Final Result Rendering
-    float4 zero = 0.f.xxxx;
-    //uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);// = imageLoad(writeImages[BW_RENDERED], samplep);
-    uFragColor = texture(renderBuffers[BW_RENDERED], vcoord);
+    PSOutput output;
+    output.uFragColor = 0.f.xxxx;
+    //output.uFragColor = FxaaPixelShader(vcoord, output.uFragColor, frameBuffers[BW_RENDERED], frameBuffers[BW_RENDERED], frameBuffers[BW_RENDERED], size, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);
+    output.uFragColor = frameBuffers[BW_RENDERED].Sample(samplers[1u], input.vcoord);
+    return output;
 };

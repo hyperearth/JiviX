@@ -165,6 +165,27 @@ float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 //[[vk::ignore]] SamplerState dummySampler; 
 
 // 
+struct Matrices {
+    float4x4 projection;    
+    float4x4 projectionInv; 
+    float3x4 modelview;   
+    float3x4 modelviewInv; 
+    float3x4 modelviewPrev;   
+    float3x4 modelviewPrevInv; 
+    uint4 mdata;        // mesh mutation or modification data
+    //uint2 tdata, rdata; // first for time, second for randoms
+    uint2 tdata;
+    uint2 rdata;
+};
+
+// 
+uint getMeshID(in RTXInstance instance){
+    return bitfieldExtract(instance.instance_mask, 0, 24); // only hack method support
+};
+
+struct DrawInfo { uint4 data; };
+
+// 
 [[vk::binding(0,0)]] ByteAddressBuffer mesh0[] : register(t0, space0);
 [[vk::binding(1,0)]] ByteAddressBuffer index[] : register(t0, space1);
 
@@ -180,20 +201,6 @@ float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 // 
 [[vk::binding(7,1)]] StructuredBuffer<float3x4> transforms[] : register(u0, space7);
 [[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(u0, space8);
-
-// 
-struct Matrices {
-    float4x4 projection;    
-    float4x4 projectionInv; 
-    float3x4 modelview;   
-    float3x4 modelviewInv; 
-    float3x4 modelviewPrev;   
-    float3x4 modelviewPrevInv; 
-    uint4 mdata;        // mesh mutation or modification data
-    //uint2 tdata, rdata; // first for time, second for randoms
-    uint2 tdata;
-    uint2 rdata;
-};
 
 // 
 [[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);
@@ -219,17 +226,6 @@ struct Matrices {
 [[vk::binding(20,4)]] StructuredBuffer<MaterialUnit> materials[] : register(u0, space20);
 [[vk::binding(21,4)]] Texture2D<float4> background : register(t0, space21);
 [[vk::binding(22,4)]] Texture2D<float4> textures[] : register(t0, space22);
-
-// 
-uint getMeshID(in RTXInstance instance){
-    return bitfieldExtract(instance.instance_mask, 0, 24); // only hack method support
-};
-
-struct DrawInfo {
-    uint4 data;
-};
-
-// 
 [[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space23);
 
 
@@ -281,20 +277,20 @@ float4 triangulate(in uint3 indices, in uint loc, in uint nodeMeshID, in float3 
         get_float4(indices[1],loc,nodeMeshID),
         get_float4(indices[2],loc,nodeMeshID)
     );
-    return mc*barycenter;
+    return mul(barycenter,mc);
 };
 
 float4x4 regen4(in float3x4 T) {
     return float4x4(T[0],T[1],T[2],float4(0.f.xxx,1.f));
-}
+};
 
 float3x3 regen3(in float3x4 T) {
     return float3x3(T[0].xyz,T[1].xyz,T[2].xyz);
-}
+};
 
 float4 mul4(in float4 v, in float3x4 M) {
-    return float4(v*M,1.f);
-}
+    return float4(mul(M,v),1.f);
+};
 
 // 
 #define IndexU8 1000265000
