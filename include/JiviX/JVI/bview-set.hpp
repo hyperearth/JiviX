@@ -55,6 +55,12 @@ namespace jvi {
             return ptr;
         };
 
+        //
+        public: virtual const uintptr_t& changeBufferView(const uintptr_t& I, const vkt::Vector<uint8_t>& bufferView) {
+            this->bufferViews.resize(I+1u);
+            this->bufferViews[I] = bufferView; return I;
+        };
+
         // 
         public: virtual vkt::Vector<uint8_t>& get(const uint32_t& I = 0u) {
             return bufferViews[I];
