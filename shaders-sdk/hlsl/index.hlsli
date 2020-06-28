@@ -99,17 +99,31 @@ struct RTXInstance {
     uint2 handle;
 };
 
+
 // 
-uint packUnorm2x16(in float2 fp) {
-    uint2 up = uint2(fp * 65536.f);
+uint packUint2x16(in uint2 up) {
     return (up.x&0xFFFFu) | ((up.y&0xFFFFu)<<16u);
 };
 
 // 
-float2 unpackUnorm2x16(in uint up) {
-    uint2 pu = uint2((up&0xFFFFu), ((up>>16u)&0xFFFFu));
-    return float2(pu) / 65536.f;
+uint2 unpackUint2x16(in uint up) {
+    return uint2((up&0xFFFFu), ((up>>16u)&0xFFFFu));
 };
+
+
+// 
+uint packUnorm2x16(in float2 fp) {
+    return packUint2x16(uint2(fp * 65536.f));
+};
+
+// 
+float2 unpackUnorm2x16(in uint up) {
+    return float2(unpackUint2x16(up)) / 65536.f;
+};
+
+
+
+
 
 uint bitfieldExtract(uint val, int off, int size) {
 	// This built-in function is only support in OpenGL 4.0 and ES 3.1
@@ -188,7 +202,7 @@ struct Matrices {
 
 // 
 #ifdef ENABLE_AS
-[[vk::binding(12,1)]] RaytracingAccelerationStructure MyAccelerationStructure : register(t0, space12);
+[[vk::binding(12,1)]] RaytracingAccelerationStructure Scene : register(t0, space12);
 #endif
 
 // Deferred and Rasterization Set
