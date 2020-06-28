@@ -161,3 +161,23 @@ examples/*/include/*
 /examples/*/include
 /examples/*/include/
 /examples/*/include/*
+
+# Visual Studio Artifacts
+*/.vs/*
+*/.vs/
+*/.vs
+/.vs/*
+/.vs/
+/.vs
+.vs/
+.vs/*
+.vs
+
+# Visual Studio Artifacts
+build/*/.vs/*
+build/*/.vs/
+build/*/.vs
+build/.vs/*
+build/.vs/
+build/.vs
+
