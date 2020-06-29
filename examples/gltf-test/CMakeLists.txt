@@ -194,7 +194,10 @@ set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
 add_executable(${APPLICATION_NAME} ${RSOURCES} src/main.cpp src/pch.hpp src/pch.cpp)
 target_link_libraries(${APPLICATION_NAME} PUBLIC ${LIBS} Vulkan::Vulkan)
-#target_precompile_headers(${APPLICATION_NAME} PUBLIC src/pch.hpp)
+if (MSVC)
+else()
+target_precompile_headers(${APPLICATION_NAME} PUBLIC src/pch.hpp)
+endif()
 
 # Add includes to MSVC explorer 
 foreach(source IN LISTS RSOURCES)
