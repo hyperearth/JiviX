@@ -39,12 +39,11 @@ function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName =
     $process.Close()
 }
 
-function OptimizeMainline($Pfx = "", $RDXI="radix/") {
+function OptimizeMainline($Pfx = "", $RNDX="radix/") {
     # optimize radix sort
-    
 }
 
-function BuildAllShaders($Pfx = "", $RDXI="radix/") {
+function BuildAllShaders($Pfx = "") {
     #[System.Threading.Thread]::CurrentThread.Priority = 'BelowNormal'
     #[System.Threading.Thread]::CurrentThread.Priority = 'Highest'
 

@@ -5,7 +5,7 @@ $CFLAGSV="--source-entrypoint main -e main --target-env spirv1.5 -V -d -t --aml 
 $VNDR="shaders"
 . "./shaders-list.ps1"
 
-BuildAllShaders "" "radix-rapid/"
+BuildAllShaders "" 
 
 #pause for check compile errors
 Pause
