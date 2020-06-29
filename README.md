@@ -33,9 +33,9 @@ Planned to beat world record as most perfect and most long-time development prod
 - Used Libraries  : Vulkan-HPP, VKt/VKh, 
 - Replacement Of  : Project "Satellite" ("engine", 2017)
 - Shaders Version : v2.0
-- SH&T OF Шindows : R.I.P. for Visual Studio 2019 support... (UNKNOWN Internal Compiler Error)
+- SH&T of Шindows : R.I.P. for Visual Studio 2019 Clang-CL support... (also, broken C++20 support by MSVC)
 
-Date:[25.06.2020]:[helix.d@IMN]
+Date:[29.06.2020]:[helix.d@IMN]
 ```
 
 ### Visual Studio 2019 RIP... NO possible to resolve that problem... 
