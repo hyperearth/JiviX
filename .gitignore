@@ -155,12 +155,12 @@ inclusion
 */inclusion
 
 # 
-examples/*/include
-examples/*/include/
-examples/*/include/*
-/examples/*/include
-/examples/*/include/
-/examples/*/include/*
+#examples/*/include
+#examples/*/include/
+#examples/*/include/*
+#/examples/*/include
+#/examples/*/include/
+#/examples/*/include/*
 
 # Visual Studio Artifacts
 */.vs/*
