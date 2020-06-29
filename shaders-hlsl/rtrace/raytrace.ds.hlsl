@@ -269,4 +269,3 @@ void main() {
         writeBuffer[BW_ADAPTIVE][lanQ] = writeImages[IW_ADAPTIVE][lanQ];
     };
 };
-

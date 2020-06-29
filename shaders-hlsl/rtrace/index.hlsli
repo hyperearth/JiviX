@@ -150,8 +150,8 @@ bool hasTangent(in MeshInfo meshInfo){
 
 // color space utils
 const float HDR_GAMMA = 2.2f;
-float3 fromLinear(in float3 linearRGB) { return lerp(float3(1.055)*pow(linearRGB, float3(1.0/2.4)) - float3(0.055), linearRGB * float3(12.92), (linearRGB < float3(0.0031308f.xxx))); }
-float3 toLinear(in float3 sRGB) { return lerp(pow((sRGB + float3(0.055))/float3(1.055), float3(2.4)), sRGB/float3(12.92), (sRGB < float3(0.04045.xxx))); }
+float3 fromLinear(in float3 linearRGB) { return lerp(float3(1.055f.xxx)*pow(linearRGB, float3((1.0f/2.4f).xxx)) - float3(0.055f.xxx), linearRGB * float3(12.92f.xxx), (linearRGB < float3(0.0031308f.xxx))); }
+float3 toLinear(in float3 sRGB) { return lerp(pow(sRGB + float3(0.055f.xxx)/float3(1.055f.xxx), float3(2.4f.xxx)), sRGB/float3(12.92f.xxx), (sRGB < float3(0.04045f.xxx))); }
 float4 fromLinear(in float4 linearRGB) { return float4(fromLinear(linearRGB.xyz), linearRGB.w); }
 float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 
@@ -190,22 +190,22 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(1,0)]] ByteAddressBuffer index[] : register(t0, space1);
 
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
-[[vk::binding(2,0)]] StructuredBuffer<uint> map[] : register(u0, space2);
-[[vk::binding(3,0)]] RWTexture2D<uint> mapImage[] : register(t0, space3);
+[[vk::binding(2,0)]] StructuredBuffer<uint> map[] : register(t0, space2);
+[[vk::binding(3,0)]] RWTexture2D<uint> mapImage[] : register(u0, space3);
 [[vk::binding(4,0)]] Texture2D<float4> mapColor[] : register(t0, space4);
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
-[[vk::binding(5,1)]] StructuredBuffer<Binding> bindings[] : register(u0, space5);
-[[vk::binding(6,1)]] StructuredBuffer<Attribute> attributes[] : register(u0, space6);
+[[vk::binding(5,1)]] StructuredBuffer<Binding> bindings[] : register(t0, space5);
+[[vk::binding(6,1)]] StructuredBuffer<Attribute> attributes[] : register(t0, space6);
 
 // 
-[[vk::binding(7,1)]] StructuredBuffer<float3x4> transforms[] : register(u0, space7);
-[[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(u0, space8);
+[[vk::binding(7,1)]] StructuredBuffer<float3x4> transforms[] : register(t0, space7);
+[[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(t0, space8);
 
 // 
 [[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);
-[[vk::binding(10,1)]] StructuredBuffer<MeshInfo> meshInfo : register(u0, space10);
-[[vk::binding(11,1)]] StructuredBuffer<RTXInstance> rtxInstances : register(u0, space11);
+[[vk::binding(10,1)]] StructuredBuffer<MeshInfo> meshInfo : register(t0, space10);
+[[vk::binding(11,1)]] StructuredBuffer<RTXInstance> rtxInstances : register(t0, space11);
 
 // 
 #ifdef ENABLE_AS
@@ -218,12 +218,12 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(15,2)]] Texture2D<float4> rasterBuffers[ 8u] : register(t0, space15); // Used by rasterization
 
 // 
-[[vk::binding(16,3)]] RWTexture2D<float4> writeBuffer[] : register(t0, space16); // Pre-resampled buffers, For EDIT!
-[[vk::binding(17,3)]] RWTexture2D<float4> writeImages[] : register(t0, space17); 
-[[vk::binding(18,3)]] RWTexture2D<float4> writeImagesBack[] : register(t0, space18); 
+[[vk::binding(16,3)]] RWTexture2D<float4> writeBuffer[] : register(u0, space16); // Pre-resampled buffers, For EDIT!
+[[vk::binding(17,3)]] RWTexture2D<float4> writeImages[] : register(u0, space17); 
+[[vk::binding(18,3)]] RWTexture2D<float4> writeImagesBack[] : register(u0, space18); 
 
 // 
-[[vk::binding(20,4)]] StructuredBuffer<MaterialUnit> materials[] : register(u0, space20);
+[[vk::binding(20,4)]] StructuredBuffer<MaterialUnit> materials[] : register(t0, space20);
 [[vk::binding(21,4)]] Texture2D<float4> background : register(t0, space21);
 [[vk::binding(22,4)]] Texture2D<float4> textures[] : register(t0, space22);
 [[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space23);
