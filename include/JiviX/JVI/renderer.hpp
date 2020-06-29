@@ -101,11 +101,12 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdCopyImage(*cmdBuf,
                 srcImage.getImage(), srcImage.getImageLayout(),
                 dstImage.getImage(), dstImage.getImageLayout(),
-                1u, vkh::VkImageCopy{
-                    .srcSubresource = srcImage.subresourceLayers(), .srcOffset = vkh::VkOffset3D{ 0u,0u,0u },
-                    .dstSubresource = dstImage.subresourceLayers(), .dstOffset = vkh::VkOffset3D{ 0u,0u,0u },
-                    .extent = vkh::VkExtent3D{ renderArea.extent.width, renderArea.extent.height, 1u }
-                });
+                1u, vkh::VkImageCopy{}.also([=](vkh::VkImageCopy* it){
+                    it->srcSubresource = srcImage.subresourceLayers(), it->srcOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                    it->dstSubresource = dstImage.subresourceLayers(), it->dstOffset = vkh::VkOffset3D{ 0u,0u,0u },
+                    it->extent = vkh::VkExtent3D{ renderArea.extent.width, renderArea.extent.height, 1u };
+                    return it;
+                }));
 
             // 
             return uTHIS;
@@ -179,17 +180,21 @@ namespace jvi {
             const vkh::VkViewport viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
             const vkh::VkRect2D renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
 
+            vkh::VkClearValue defValues[2] = { {}, {} };
+            defValues[0].color = vkh::VkClearColorValue{}; defValues[0].color.float32 = glm::vec4(0.f, 0.f, 0.f, 0.f);
+            defValues[1].depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
+
             // 
             const auto clearValues = std::vector<vkh::VkClearValue>{
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[1]
             };
 
             // 

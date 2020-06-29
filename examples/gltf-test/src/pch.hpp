@@ -22,12 +22,9 @@
 #include <iostream>
 
 //
-#include <vkt3/core.hpp>
 #include <vkt3/fw.hpp>
 #include <GLFW/glfw3.h>
 #include <vma/vk_mem_alloc.h>
 #include <JiviX/JiviX.hpp>
 #include <misc/tinyexr.h>
-#include <misc/stb_image_write.h>
-#include <misc/stb_image.h>
-#include <misc/tiny_gltf.h>
+

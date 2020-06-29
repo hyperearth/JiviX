@@ -19,14 +19,16 @@
 #include "./pch.hpp"
 
 //
-#include <vkt3/core.hpp>
 #include <vkt3/fw.hpp>
 #include <GLFW/glfw3.h>
 #include <vma/vk_mem_alloc.h>
 #include <JiviX/JiviX.hpp>
 #include <misc/tinyexr.h>
-#include <misc/stb_image_write.h>
-#include <misc/stb_image.h>
+
+// 
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <misc/tiny_gltf.h>
 
 //
@@ -633,19 +635,18 @@ int main() {
         };
 
         {   //
-            vkh::VkImageCreateFlags bflg = {};
-            vkt::unlock32(bflg) = 0u;
-
-            //
-            images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
-                .flags = bflg,
-                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                .extent = vkh::VkExtent3D{uint32_t(width),uint32_t(height),1u},
-                .usage = imageUsage,
-            }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
-                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                .subresourceRange = apres
-            }));
+            vkt::VmaMemoryInfo memInfo = {};
+            memInfo.memUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+            images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{}.also([=](vkh::VkImageCreateInfo* it){
+                it->format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                it->extent = vkh::VkExtent3D{ uint32_t(width),uint32_t(height),1u },
+                it->usage = imageUsage;
+                return it;
+            }), memInfo), vkh::VkImageViewCreateInfo{}.also([=](vkh::VkImageViewCreateInfo* it) {
+                it->format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                it->subresourceRange = apres;
+                return it;
+            })));
 
             //
             auto image = images.back();
@@ -653,9 +654,10 @@ int main() {
             //
             vkt::Vector<> imageBuf = {};
             if (width > 0u && height > 0u && rgba) {
+                memInfo.memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
                 imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                    .flags = bflg, .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = uploadUsage,
-                }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+                    .size = size_t(width) * size_t(height) * sizeof(glm::vec4), .usage = uploadUsage,
+                }, memInfo));
                 memcpy(imageBuf.data(), rgba, size_t(width) * size_t(height) * sizeof(glm::vec4));
             };
 
@@ -958,7 +960,11 @@ int main() {
         //fw->getDeviceDispatch()->SignalSemaphore(vkh::VkSemaphoreSignalInfo{.semaphore = framebuffers[n_semaphore].semaphore, .value = 1u});
 
         { // submit rendering (and wait presentation in device)
-            std::vector<vkh::VkClearValue> clearValues = {vkh::VkClearValue{.color = vkh::VkClearColorValue{glm::vec4(0.f, 0.f, 0.f, 0.f)}}, vkh::VkClearValue{.depthStencil = vkh::VkClearDepthStencilValue{1.0f, 0} } };
+            vkh::VkClearValue clearValues[2] = { {}, {} };
+            clearValues[0].color = vkh::VkClearColorValue{}; clearValues[0].color.float32 = glm::vec4(0.f, 0.f, 0.f, 0.f);
+            clearValues[1].depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
+
+            // 
             Shared::TimeCallback(double(context->registerTime()->setModelView(glm::mat4x4(cameraController->handle().project()))->drawTime()));
 
             // Create render submission 
@@ -1010,7 +1016,7 @@ int main() {
 
                 //
                 decltype(auto) descriptorSets = context->getDescriptorSets();
-                fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->applicationWindow.renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data()}, VK_SUBPASS_CONTENTS_INLINE);
+                fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->applicationWindow.renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = 2u, .pClearValues = reinterpret_cast<vkh::VkClearValue*>(&clearValues[0])}, VK_SUBPASS_CONTENTS_INLINE);
                 fw->getDeviceDispatch()->CmdSetViewport(commandBuffer, 0u, 1u, viewport);
                 fw->getDeviceDispatch()->CmdSetScissor(commandBuffer, 0u, 1u, renderArea);
                 fw->getDeviceDispatch()->CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, finalPipeline);

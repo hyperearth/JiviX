@@ -489,16 +489,21 @@ namespace jvi {
 
         // 
         protected: virtual uPTR(Node) rasterizeGeometry(const VkCommandBuffer& currentCmd = {}) {
+            vkh::VkClearValue defValues[2] = { {}, {} };
+            defValues[0].color = vkh::VkClearColorValue{}; defValues[0].color.float32 = glm::vec4(0.f, 0.f, 0.f, 0.f);
+            defValues[1].depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
+
+            // 
             const auto clearValues = std::vector<vkh::VkClearValue>{
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.color = vkh::VkClearColorValue{.float32 = glm::vec4(0.f, 0.f, 0.f, 0.0f)} },
-                 {.depthStencil = vkh::VkClearDepthStencilValue{.depth = 1.0f, .stencil = 0} }
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[0],
+                 defValues[1]
             };
 
             // As General Layout
