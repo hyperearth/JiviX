@@ -34,12 +34,12 @@ namespace jvi {
             this->pipelineInfo = vkh::VsGraphicsPipelineCreateInfoConstruction();
 
             // 
-            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/quad.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
+            this->quadStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/quad.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
 
             // for faster code, pre-initialize
             this->stages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/transform.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/transform.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT)
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/transform.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/transform.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT)
             };
 
             auto hostUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 };

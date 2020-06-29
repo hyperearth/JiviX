@@ -65,21 +65,21 @@ namespace jvi {
 
             // for faster code, pre-initialize
             this->stages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/rasterize.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/rasterize.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rasterize.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rasterize.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 
             // 
             this->ctages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/covergence.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/covergence.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/covergence.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/covergence.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 
             // 
             this->mtages = {
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rtrace/mapping.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/mapping.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/mapping.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/mapping.frag.spv")), VK_SHADER_STAGE_FRAGMENT_BIT)
             };
 
             // Stub Transform Data

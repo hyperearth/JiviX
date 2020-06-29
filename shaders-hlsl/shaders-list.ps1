@@ -6,7 +6,7 @@ $INDIR="./"
 $OUTDIR="../prebuilt/shaders/$VNDR/"
 $HRDDIR="../prebuilt/intrusive/$VNDR/"
 $RNDX="rtrace/"
-$RTPU="rtrace/"
+$RTPU=""
 
 $CMPPROF=""
 $OPTFLAGS="-O --skip-validation --strip-debug --inline-entry-points-exhaustive --strength-reduction --vector-dce --workaround-1209 --replace-invalid-opcode --ccp --unify-const --simplify-instructions --remove-duplicates --combine-access-chains  --convert-local-access-chains --private-to-local --merge-return --merge-blocks --if-conversion --cfg-cleanup --flatten-decorations --freeze-spec-const "
@@ -51,36 +51,36 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     new-item -Name $HRDDIR$RDXO -itemtype directory  -Force | Out-Null
 
     # ray-tracing of vector graphics
-    BuildCompute "denoise.cs.hlsl"         "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "denoise.cs.hlsl"         "$INDIR$RNDX" "$HRDDIR$RNDX" "-DLATE_STAGE" "reflect.cs" 
-    BuildCompute "render.ps.hlsl"          "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "render.vs.hlsl"          "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "denoise.cs.hlsl"         "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "denoise.cs.hlsl"         "$INDIR$RNDX" "$HRDDIR$RTPU" "-DLATE_STAGE" "reflect.cs" 
+    BuildCompute "render.ps.hlsl"          "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "render.vs.hlsl"          "$INDIR$RNDX" "$HRDDIR$RTPU"
     
-    BuildCompute "rasterize.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    #BuildCompute "rasterize.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "rasterize.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "rasterize.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU"
+    #BuildCompute "rasterize.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "rasterize.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU"
     
-    BuildCompute "rasterize.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.ps"
-    #BuildCompute "rasterize.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.gs"
-    BuildCompute "rasterize.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.vs"
+    BuildCompute "rasterize.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-DCONSERVATIVE" "covergence.ps"
+    #BuildCompute "rasterize.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-DCONSERVATIVE" "covergence.gs"
+    BuildCompute "rasterize.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-DCONSERVATIVE" "covergence.vs"
     
-    BuildCompute "mapping.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
-    BuildCompute "mapping.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
-    BuildCompute "mapping.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    BuildCompute "mapping.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-DCONSERVATIVE"
+    BuildCompute "mapping.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-DCONSERVATIVE"
+    BuildCompute "mapping.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-DCONSERVATIVE"
     
-    BuildCompute "transform.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "transform.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.ps.hlsl"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.gs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.vs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "quad.cs.hlsl"            "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "transform.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "transform.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "resample.ps.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "resample.gs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "resample.vs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "quad.cs.hlsl"            "$INDIR$RNDX" "$HRDDIR$RTPU"
 
     # 
-    BuildCompute "raytrace.comp"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "raytrace.rgen"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "raytrace.rchit"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "raytrace.rmiss"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "raytrace.comp"        "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "raytrace.rgen"        "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "raytrace.rchit"       "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "raytrace.rmiss"       "$INDIR$RNDX" "$HRDDIR$RTPU"
 
     # optimize built shaders
-    OptimizeMainline $RTPU
+    OptimizeMainline $RNDX
 }
