@@ -18,13 +18,6 @@
 // #
 #include "./pch.hpp"
 
-//
-#include <vkt3/fw.hpp>
-#include <GLFW/glfw3.h>
-#include <vma/vk_mem_alloc.h>
-#include <JiviX/JiviX.hpp>
-#include <misc/tinyexr.h>
-
 // 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
