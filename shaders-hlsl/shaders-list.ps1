@@ -51,29 +51,29 @@ function BuildAllShaders($Pfx = "", $RDXI="radix/") {
     new-item -Name $HRDDIR$RDXO -itemtype directory  -Force | Out-Null
 
     # ray-tracing of vector graphics
-    BuildCompute "denoise.comp"         "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "denoise.comp"         "$INDIR$RNDX" "$HRDDIR$RNDX" "-DLATE_STAGE" "reflect.comp" 
-    BuildCompute "render.frag"          "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "render.vert"          "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "denoise.cs.hlsl"         "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "denoise.cs.hlsl"         "$INDIR$RNDX" "$HRDDIR$RNDX" "-DLATE_STAGE" "reflect.cs" 
+    BuildCompute "render.ps.hlsl"          "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "render.vs.hlsl"          "$INDIR$RNDX" "$HRDDIR$RNDX"
     
-    BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    #BuildCompute "rasterize.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "rasterize.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    #BuildCompute "rasterize.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "rasterize.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
     
-    BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.frag"
-    #BuildCompute "rasterize.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.geom"
-    BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.vert"
+    BuildCompute "rasterize.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.ps"
+    #BuildCompute "rasterize.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.gs"
+    BuildCompute "rasterize.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE" "covergence.vs"
     
-    BuildCompute "mapping.frag"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
-    BuildCompute "mapping.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
-    BuildCompute "mapping.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    BuildCompute "mapping.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    BuildCompute "mapping.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
+    BuildCompute "mapping.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX" "-DCONSERVATIVE"
     
-    BuildCompute "transform.geom"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "transform.vert"       "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.frag"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.geom"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "resample.vert"        "$INDIR$RNDX" "$HRDDIR$RNDX"
-    BuildCompute "quad.comp"            "$INDIR$RTPU" "$HRDDIR$RTPU"
+    BuildCompute "transform.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "transform.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "resample.ps.hlsl"        "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "resample.gs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "resample.vs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RNDX"
+    BuildCompute "quad.cs.hlsl"            "$INDIR$RTPU" "$HRDDIR$RTPU"
 
     # 
     BuildCompute "raytrace.comp"        "$INDIR$RNDX" "$HRDDIR$RNDX"
