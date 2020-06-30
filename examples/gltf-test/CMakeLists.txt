@@ -134,9 +134,9 @@ if (UNIX OR LINUX)
 endif()
 
 # Vulkan Directories 
-#if (Vulkan_INCLUDE_DIR)
-#    set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
-#endif()
+if (Vulkan_INCLUDE_DIR)
+    set (INC_DIR ${INC_DIR} ${Vulkan_INCLUDE_DIR})
+endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)

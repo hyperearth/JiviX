@@ -6,6 +6,10 @@
 #include "./context.hpp"
 #include "./bview-set.hpp"
 
+#include <spirv_cross/spirv.hpp>
+#include <spirv_cross/spirv_cross.hpp>
+
+
 namespace jvi {
 
     // WARNING!!
@@ -36,10 +40,38 @@ namespace jvi {
             // 
             this->quadStage = vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/quad.comp.spv")), VK_SHADER_STAGE_COMPUTE_BIT);
 
+            //
+            auto unModSource = vkt::readBinary(std::string("./shaders/transform.geom.spv"));
+
+            // 
+            spirv_cross::Compiler spirv(std::move(unModSource));
+            spirv_cross::ShaderResources resources = spirv.get_shader_resources();
+
+            // 
+            for (auto& stream : resources.stage_outputs) {
+                unsigned location = spirv.get_decoration(stream.id, spv::DecorationLocation);
+
+                if (location >= 0 && location < 5) {
+                    spirv.set_decoration(stream.id, spv::DecorationXfbBuffer, 0);
+                    spirv.set_decoration(stream.id, spv::DecorationXfbStride, 80);
+                };
+                if (location == 0) { spirv.set_decoration(stream.id, spv::DecorationOffset, 0); };
+                if (location == 1) { spirv.set_decoration(stream.id, spv::DecorationOffset, 16); };
+                if (location == 2) { spirv.set_decoration(stream.id, spv::DecorationOffset, 32); };
+                if (location == 3) { spirv.set_decoration(stream.id, spv::DecorationOffset, 48); };
+                if (location == 4) { spirv.set_decoration(stream.id, spv::DecorationOffset, 64); };
+            };
+
+            // 
+            auto modSourceSrc = spirv.compile();
+            std::vector<uint8_t> modSource8U(modSourceSrc.begin(), modSourceSrc.end());
+            std::vector<uint32_t> modSource(modSource8U.size());
+            memcpy(modSource.data(), modSource8U.data(), modSource8U.size());
+
             // for faster code, pre-initialize
             this->stages = {
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/transform.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
-                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/transform.geom.spv")), VK_SHADER_STAGE_GEOMETRY_BIT)
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), modSource, VK_SHADER_STAGE_GEOMETRY_BIT)
             };
 
             auto hostUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 };
