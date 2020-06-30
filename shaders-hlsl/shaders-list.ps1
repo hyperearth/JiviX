@@ -24,7 +24,7 @@ function Pause ($Message = "Press any key to continue . . . ") {
 }
 
 function Optimize($Name, $Dir = "", $AddArg = "") {
-    $ARGS = "$OPTFLAGS $Dir$Name.spv -Fo $Dir$Name.spv $AddArg"
+    $ARGS = "$$Dir$Name.spv -Fo $Dir$Name.spv $AddArg OPTFLAGS"
     $process = start-process -NoNewWindow -Filepath "spirv-opt" -ArgumentList "$ARGS" -PassThru
     #$process.PriorityClass = 'BelowNormal'
     $process.WaitForExit()
@@ -32,7 +32,7 @@ function Optimize($Name, $Dir = "", $AddArg = "") {
 }
 
 function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName = $Name) {
-    $ARGS = "$CFLAGSV $CMPPROF $InDir$Name -Fo $OutDir$AltName.spv $AddArg"
+    $ARGS = "$CMPPROF $InDir$Name -Fo $OutDir$AltName.spv $AddArg $CFLAGSV"
     $process = start-process -NoNewWindow -Filepath "dxc" -ArgumentList "$ARGS" -PassThru
     #$process.PriorityClass = 'BelowNormal'
     $process.WaitForExit()
