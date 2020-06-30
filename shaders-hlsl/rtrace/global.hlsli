@@ -44,19 +44,6 @@ struct CHIT {
 static uint packed = 0u;
 static uint2 seed = uint2(0u.xx);
 
-// RESERVED FOR OTHER OPERATIONS
-float3 refractive(in float3 dir) {
-    return dir;
-};
-
-// 
-float4x4 inverse(in float3x4 imat) {
-    //return inverse(transpose(float4x4(imat[0],imat[1],imat[2],float4(0.f,0.f,0.f,1.f))));
-    return transpose(inverse(float4x4(imat[0],imat[1],imat[2],float4(0.f,0.f,0.f,1.f))));
-};
-
-
-
 // 
 XGEO interpolate(in XHIT hit) { // By Geometry Data
     const uint geometryInstanceID = hit.gIndices.y;

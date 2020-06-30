@@ -50,10 +50,22 @@ struct Transform3x4 {
     float4 m2;
 };
 
-//float3x4 getMT3x4(inout Transform3x4 data) { return float3x4(data.m0,data.m1,data.m2); };
-//float3x4 getMT3x4(in Transform3x4 data) { return float3x4(data.m0,data.m1,data.m2); };
-//float3x4 getMT3x4(inout float3x4 data) {return data; };
-float3x4 getMT3x4(in float3x4 data) {return data; };
+//
+float3x4 getMT3x4(in float4x3 data) { return transpose(data); };
+float3x4 getMT3x4(in float3x4 data) { return data; };
+float4x4 getMT4x4(in float4x4 data) { return data; };
+float4x4 getMT4x4(in float3x4 data) { return float4x4(data, float4(0.f,0.f,0.f,1.f)); };
+float4x4 getMT4x4(in float4x3 data) { return float4x4(transpose(data), float4(0.f,0.f,0.f,1.f)); };
+
+// RESERVED FOR OTHER OPERATIONS
+float3 refractive(in float3 dir) {
+    return dir;
+};
+
+// 
+float4x4 inverse(in float3x4 imat) {
+    return inverse(getMT4x4(imat));
+};
 
 // TODO: Materials
 struct RayPayloadData {
@@ -105,7 +117,7 @@ struct MeshInfo {
 
 // 
 struct RTXInstance {
-    float3x4 transform;
+    row_major float3x4 transform;
     uint instance_mask;
     uint offset_flags;
     uint2 handle;
@@ -178,12 +190,12 @@ float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 
 // 
 struct Matrices {
-    column_major float4x4 projection;    
-    column_major float4x4 projectionInv; 
-    column_major float3x4 modelview;   
-    column_major float3x4 modelviewInv; 
-    column_major float3x4 modelviewPrev;   
-    column_major float3x4 modelviewPrevInv; 
+    row_major float4x4 projection;    
+    row_major float4x4 projectionInv;
+    row_major float3x4 modelview;   
+    row_major float3x4 modelviewInv; 
+    row_major float3x4 modelviewPrev;   
+    row_major float3x4 modelviewPrevInv; 
     uint4 mdata;        // mesh mutation or modification data
     //uint2 tdata, rdata; // first for time, second for randoms
     uint2 tdata;
@@ -285,12 +297,11 @@ float4 get_float4(in uint idx, in uint loc, in uint nodeMeshID) {
 };
 
 float4 triangulate(in uint3 indices, in uint loc, in uint nodeMeshID, in float3 barycenter){
-    const float3x4 mc = float3x4(
+    return mul(barycenter, float3x4(
         get_float4(indices[0],loc,nodeMeshID),
         get_float4(indices[1],loc,nodeMeshID),
         get_float4(indices[2],loc,nodeMeshID)
-    );
-    return mul(barycenter,mc);
+    ));
 };
 
 float4x4 regen4(in float3x4 T) {
@@ -531,12 +542,12 @@ float3 exchange(inout float3 orig, in float3 data) {
 float3 divW(in float4 vect) { return vect.xyz/vect.w; };
 float3 divW(in float3 vect) {return vect.xyz; };
 
-float3 world2screen(in float3 origin){
-    return divW(mul(pushed.projection, float4(mul(pushed.modelview, float4(origin,1.f)), 1.f)));
+float3 world2screen(in float3 origin) {
+    return divW(mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), float4(origin,1.f)), 1.f)));
 };
 
-float3 screen2world(in float3 origin){
-    return mul(pushed.modelviewInv, float4(divW(mul(pushed.projectionInv, float4(origin,1.f))), 1.f));
+float3 screen2world(in float3 origin) {
+    return mul(getMT3x4(pushed.modelviewInv), float4(divW(mul(getMT4x4(pushed.projectionInv), float4(origin,1.f))), 1.f));
 };
 
 

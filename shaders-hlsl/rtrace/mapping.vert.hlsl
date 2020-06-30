@@ -54,6 +54,6 @@ GS_INPUT main(in VS_INPUT input, in uint InstanceIndex : SV_InstanceID, in uint 
     output.fPosition = float4(mul(matra4, float4(mul(matras, float4(input.iPosition.xyz, 1.f)), 1.f)), 1.f); // CORRECT
     output.fBarycent = float4(0.f.xxxx);
     output.uData = uint4(InstanceIndex, 0u.xxx);
-    output.Position = mul(float4(mul(pushed.modelview, output.fPosition), 1.f), pushed.projection);
+    output.Position = mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), output.fPosition), 1.f));
     return output;
 };

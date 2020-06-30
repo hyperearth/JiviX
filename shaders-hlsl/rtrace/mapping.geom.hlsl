@@ -29,7 +29,7 @@ static const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3
 void main(triangle GS_INPUT input[3], inout TriangleStream<PS_INPUT> OutputStream) { // Just Remap Into... 
     PS_INPUT output;
     [unroll] for (uint i=0u;i<3u;i++) {
-        output.Position = mul(pushed.projection, float4(mul(pushed.modelview, input[i].iPosition), 1.f));
+        output.Position = mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), input[i].iPosition), 1.f));
         //output.PointSize = 1;
         output.fTexcoord = input[i].iTexcoord;
         output.fPosition = input[i].iPosition; // CORRECT
