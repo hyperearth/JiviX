@@ -178,12 +178,12 @@ float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
 
 // 
 struct Matrices {
-    float4x4 projection;    
-    float4x4 projectionInv; 
-    float3x4 modelview;   
-    float3x4 modelviewInv; 
-    float3x4 modelviewPrev;   
-    float3x4 modelviewPrevInv; 
+    column_major float4x4 projection;    
+    column_major float4x4 projectionInv; 
+    column_major float3x4 modelview;   
+    column_major float3x4 modelviewInv; 
+    column_major float3x4 modelviewPrev;   
+    column_major float3x4 modelviewPrevInv; 
     uint4 mdata;        // mesh mutation or modification data
     //uint2 tdata, rdata; // first for time, second for randoms
     uint2 tdata;
