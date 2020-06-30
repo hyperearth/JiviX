@@ -71,7 +71,7 @@ namespace jvi {
             for (int i = 5; i != unModSource.size(); i += unModSource[i] >> 16) {
                 spv::Op op = spv::Op(unModSource[i] & 0xffff);
                 if (op == spv::Op::OpName) {
-                    names[unModSource[i + 1]] = std::string((const char*)&unModSource[i+2], ((unModSource[i] >> 16) - 2u)*4u);//i, (i + (unModSource[i] >> 16));
+                    names[unModSource[i + 1]] = std::string((const char*)&unModSource[i+2], (unModSource[i] >> 16)*4u);//i, (i + (unModSource[i] >> 16));
                 };
             };
 
@@ -80,7 +80,8 @@ namespace jvi {
                 spv::Op op = spv::Op(unModSource[i] & 0xffff);
                 if (op == spv::Op::OpDecorate) {
                     int name = unModSource[i + 1];
-                    if (names[name].find("out") >= 0) {
+                    //if (names[name].find("out_") >= 0)
+                    {
                         if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationLocation) {
                             locations[name] = unModSource[i + 3];
                         };
@@ -103,54 +104,49 @@ namespace jvi {
                     spv::Op op = spv::Op(unModSource[i] & 0xffff);
                     if (op == spv::Op::OpDecorate) {
                         int name = modSource[i + 1];
-                        if (names[name].find("out") >= 0) {
-                            if (spv::Decoration(modSource[i + 2]) == spv::Decoration::DecorationLocation) {
-                                if (name == loc.first) {
+                        if (name == loc.first && spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationLocation) {
 
-                                    // Place Stride info
-                                    if (strides.find(name) == strides.end()) {
-                                        modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
-                                            ((spv::Op::OpDecorate << 16u) + 4u),
-                                            uint32_t(name),
-                                            spv::Decoration::DecorationXfbStride,
-                                            80u
-                                        });
-                                    };
-
-                                    // Place Buffers info
-                                    if (buffers.find(name) == buffers.end()) {
-                                        modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
-                                            ((spv::Op::OpDecorate << 16u) + 4u),
-                                            uint32_t(name),
-                                            spv::Decoration::DecorationXfbBuffer,
-                                            0u
-                                        });
-                                    };
-
-                                    // Place Offset info
-                                    if (offsets.find(name) == offsets.end()) {
-                                        modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
-                                            ((spv::Op::OpDecorate << 16u) + 4u),
-                                            uint32_t(name),
-                                            spv::Decoration::DecorationOffset,
-                                            [=](const int& location){
-                                                switch(location) {
-                                                    case 0: return 0u; break;
-                                                    case 1: return 16u; break;
-                                                    case 2: return 32u; break;
-                                                    case 3: return 48u; break;
-                                                    case 4: return 64u; break;
-                                                };
-                                                return 0u;
-                                            }(locations[name])
-                                        });
-                                    };
-
-                                    //
-                                    locations.erase(loc.first); break;
-                                };
-
+                            // Place Stride info
+                            if (strides.find(name) == strides.end()) {
+                                modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
+                                    ((spv::Op::OpDecorate << 16u) + 4u),
+                                    uint32_t(name),
+                                    spv::Decoration::DecorationXfbStride,
+                                    80u
+                                });
                             };
+
+                            // Place Buffers info
+                            if (buffers.find(name) == buffers.end()) {
+                                modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
+                                    ((spv::Op::OpDecorate << 16u) + 4u),
+                                    uint32_t(name),
+                                    spv::Decoration::DecorationXfbBuffer,
+                                    0u
+                                });
+                            };
+
+                            // Place Offset info
+                            if (offsets.find(name) == offsets.end()) {
+                                modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
+                                    ((spv::Op::OpDecorate << 16u) + 4u),
+                                    uint32_t(name),
+                                    spv::Decoration::DecorationOffset,
+                                    [=](const int& location){
+                                        switch(location) {
+                                            case 0: return 0u; break;
+                                            case 1: return 16u; break;
+                                            case 2: return 32u; break;
+                                            case 3: return 48u; break;
+                                            case 4: return 64u; break;
+                                        };
+                                        return 0u;
+                                    }(locations[name])
+                                });
+                            };
+
+                            //
+                            locations.erase(loc.first); break;
                         };
                     };
                 };
