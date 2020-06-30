@@ -50,9 +50,9 @@ struct Transform3x4 {
     float4 m2;
 };
 
-float3x4 getMT3x4(inout Transform3x4 data) { return float3x4(data.m0,data.m1,data.m2); };
-float3x4 getMT3x4(in Transform3x4 data) { return float3x4(data.m0,data.m1,data.m2); };
-float3x4 getMT3x4(inout float3x4 data) {return data; };
+//float3x4 getMT3x4(inout Transform3x4 data) { return float3x4(data.m0,data.m1,data.m2); };
+//float3x4 getMT3x4(in Transform3x4 data) { return float3x4(data.m0,data.m1,data.m2); };
+//float3x4 getMT3x4(inout float3x4 data) {return data; };
 float3x4 getMT3x4(in float3x4 data) {return data; };
 
 // TODO: Materials

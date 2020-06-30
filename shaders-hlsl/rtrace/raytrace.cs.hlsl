@@ -211,7 +211,7 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         };
 
         // Initial Position
-        float4 instanceRel = mul(mul(inverse(float4x4(getMT3x4(rtxInstances[globalInstanceID].transform), float4(0.f.xxx,1.f))), inverse(float4x4(matras, float4(0.f.xxx,1.f)))), float4(RPM.origin.xyz,1.f));
+        float4 instanceRel = mul(mul(inverse(float4x4(rtxInstances[globalInstanceID].transform, float4(0.f.xxx,1.f))), inverse(float4x4(matras, float4(0.f.xxx,1.f)))), float4(RPM.origin.xyz,1.f));
 
         // Problem: NOT enough slots for writables
         // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 
