@@ -131,9 +131,12 @@ void main() {
         // By Geometry Data
         const uint globalInstanceID = RPM.gIndices.y, geometryInstanceID = RPM.gIndices.x;
         const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
-        mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
-        if (!hasTransform(meshInfo[nodeMeshID])) {
-            matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+            
+        // By Geometry Data
+        mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+        mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
+        if (hasTransform(meshInfo[nodeMeshID])) {
+            matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
         };
 
         // Initial Position

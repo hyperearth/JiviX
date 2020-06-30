@@ -31,21 +31,19 @@ PS_INPUT main(in VS_INPUT input, in uint InstanceIndex : SV_InstanceID, in uint 
     const uint globalInstanceID = drawInfo.data.z;
     const uint idx = uint(VertexIndex.x);
 
-    // Use Apple-Like Attributes
-    //const float4 iPosition = get_float4(idx, 0u, nodeMeshID);
-    //const float4 iTexcoord = get_float4(idx, 1u, nodeMeshID);
-    //const float4 iNormals  = get_float4(idx, 2u, nodeMeshID);
-    //const float4 iTangent  = get_float4(idx, 3u, nodeMeshID);
-    //const float4 iBinormal = get_float4(idx, 4u, nodeMeshID);
-
     // By Geometry Data
-    float3x4 matras = transforms[nodeMeshID][geometryInstanceID];
-    if (!hasTransform(meshInfo[nodeMeshID])) {
-        matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
+    float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
+    float3x4 matra4 = float3x4(rtxInstances[globalInstanceID].transform);
+    if (hasTransform(meshInfo[nodeMeshID])) {
+//#ifdef SUPPORT_LOCAL_MATRIX
+        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+        //matras = asfloat(uint3x4( // UNSUPPORTED BY DXC SPIR-V
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+0u)*16u), 
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+1u)*16u), 
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+2u)*16u)
+        //));
+//#endif
     };
-
-    // By Instance Data
-    const float3x4 matra4 = rtxInstances[globalInstanceID].transform;
 
     // Native Normal Transform
     const float3x3 normalTransform = inverse(transpose(regen3(matras))); // Geometry ID (Mesh)

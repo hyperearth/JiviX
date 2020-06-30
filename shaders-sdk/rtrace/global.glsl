@@ -59,14 +59,12 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
     const vec3 baryCoord = hit.gBarycentric.xyz;
 
-    // 
-    mat3x4 matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
-    if (!hasTransform(meshInfo[nodeMeshID])) {
-        matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    // By Geometry Data
+    mat3x4 matras = mat3x4(vec4(1.f,0.f.xxx),vec4(0.f,1.f,0.f.xx),vec4(0.f.xx,1.f,0.f));
+    mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
+    if (hasTransform(meshInfo[nodeMeshID])) {
+        matras = mat3x4(instances[nodeMeshID].transform[geometryInstanceID]);
     };
-
-    // By Instance Data
-    const mat3x4 matra4 = rtxInstances[globalInstanceID].transform;
 
     // Native Normal Transform
     const mat3x3 normalTransform = inverse(transpose(regen3(matras)));

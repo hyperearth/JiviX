@@ -195,13 +195,23 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         // By Geometry Data
         const uint globalInstanceID = RPM.gIndices.y, geometryInstanceID = RPM.gIndices.x;
         const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
-        float3x4 matras = transforms[nodeMeshID][geometryInstanceID];
-        if (!hasTransform(meshInfo[nodeMeshID])) {
-            matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
+        
+        // By Geometry Data
+        float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
+        float3x4 matra4 = float3x4(rtxInstances[globalInstanceID].transform);
+        if (hasTransform(meshInfo[nodeMeshID])) {
+//#ifdef SUPPORT_LOCAL_MATRIX
+        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+        //matras = asfloat(uint3x4( // UNSUPPORTED BY DXC SPIR-V
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+0u)*16u), 
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+1u)*16u), 
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+2u)*16u)
+        //));
+//#endif
         };
 
         // Initial Position
-        float4 instanceRel = mul(mul(inverse(float4x4(rtxInstances[globalInstanceID].transform, float4(0.f.xxx,1.f))), inverse(float4x4(matras, float4(0.f.xxx,1.f)))), float4(RPM.origin.xyz,1.f));
+        float4 instanceRel = mul(mul(inverse(float4x4(getMT3x4(rtxInstances[globalInstanceID].transform), float4(0.f.xxx,1.f))), inverse(float4x4(matras, float4(0.f.xxx,1.f)))), float4(RPM.origin.xyz,1.f));
 
         // Problem: NOT enough slots for writables
         // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 

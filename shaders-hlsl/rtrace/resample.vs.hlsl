@@ -36,18 +36,28 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
     const uint globalInstanceID = iIndices.y;
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
     const uint geometryInstanceID = iIndices.x;
-    float3x4 matras = transforms[nodeMeshID][geometryInstanceID];
-    if (!hasTransform(meshInfo[nodeMeshID])) {
-        matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
+
+    // By Geometry Data
+    float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
+    float3x4 matra4 = float3x4(rtxInstances[globalInstanceID].transform);
+    if (hasTransform(meshInfo[nodeMeshID])) {
+//#ifdef SUPPORT_LOCAL_MATRIX
+        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+        //matras = asfloat(uint3x4( // UNSUPPORTED BY DXC SPIR-V
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+0u)*16u), 
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+1u)*16u), 
+        //    tmatrices[nodeMeshID].Load4((geometryInstanceID*3u+2u)*16u)
+        //));
+//#endif
     };
 
-    // TODO: MESH USE TRANSFORMS!
+    // TODO: MESH USE tmatrices!
     GS_INPUT output;
     output.PointSize = 0, output.vColor = 0.f.xxxx, output.vNormal.xxxx, output.vPosition = 0.f.xxxx;
     if (diffcolor.w > 0.f && writeImages[IW_MATERIAL][f2fx].z > 0.f && writeImages[IW_INDIRECT][f2fx].w > 0.01f) { // set into current 
 
         // Due real-time geometry, needs to transform!
-        positions.xyz = mul4(mul4(float4(positions.xyz, 1.f), matras), rtxInstances[globalInstanceID].transform).xyz;
+        positions.xyz = mul4(mul4(float4(positions.xyz, 1.f), matras), matra4).xyz;
 
         //
         output.Position = float4(world2screen(positions.xyz),1.f), output.PointSize = 1.f;
