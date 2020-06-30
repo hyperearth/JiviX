@@ -72,11 +72,11 @@ Date:[29.06.2020]:[helix.d@IMN]
 ### TODO Lists (Black Edition)
 
 - [x] Fallback to ray-tracing shaders
-- [ ] Refactor for DirectX 12 Ultimate compatibility
+- [x] HLSL shaders (for [DeViX](https://github.com/helixd2s/DeViX-Overview)), NOT tested
+- [ ] Refactor for DirectX 12 Ultimate compatibility (for [DeViX](https://github.com/helixd2s/DeViX-Overview))
+- [ ] Support for [DeViX](https://github.com/helixd2s/DeViX-Overview)
 - [ ] Using Volk instead of XVK
 - [ ] Using VKT-4 
-- [ ] Support for [DeViX](https://github.com/helixd2s/DeViX-Overview)
-- [ ] HLSL shaders (for [DeViX](https://github.com/helixd2s/DeViX-Overview))
 
 
 ### TODO Lists (Gen-4 or Beyond)
