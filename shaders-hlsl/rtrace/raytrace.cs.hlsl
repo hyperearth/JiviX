@@ -9,8 +9,10 @@
 //#define TOP_LAYERED // Has reflection problems
 
 // TODO: X-Based Optimization
-const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
-shared XHIT hits[workX*workY];
+//const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
+#define workX 64u
+#define workY 12u
+groupshared XHIT hits[workX*workY];
 
 // Needs 1000$ for fix BROKEN ray query...
 const uint MAX_ITERATION = 64u;
@@ -33,7 +35,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     XHIT processing, confirmed;
     processing.origin = float4(origin.xyz, 1.f);
     processing.direct = float4(raydir.xyz, 0.f);
-    processing.gIndices = uint4(0u);
+    processing.gIndices = uint4(0u.xxxx);
     processing.gBarycentric = float4(0.f.xxx, maxT);
     confirmed = processing;
 
@@ -76,7 +78,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
                 // confirm that hit 
                 if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
-                    opaque = true; rayQuery.CommitOpaqueTriangleHit(); // override processing hit
+                    opaque = true; rayQuery.CommitNonOpaqueTriangleHit(); // override processing hit
                 };
             };
         };
@@ -90,7 +92,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
                 uint globalInstanceID = rayQuery.CommittedInstanceIndex();
                 float2 baryCoord = rayQuery.CommittedTriangleBarycentrics();
                 uint primitiveID = rayQuery.CommittedPrimitiveIndex();
-                float tHit = rayQuery.CommittedTriangleRayT();
+                float tHit = rayQuery.CommittedRayT();
 
                 // 
                 if (tHit < lastMax) { lastOrigin = raydir*(lastMax=tHit) + forigin;
@@ -132,7 +134,7 @@ const uint3 WorkGroupSize = uint3(workX, workY, 1);
 
 // 14.06.2020
 // Fully Refresh Ray Cast Shaders
-[numthreads(WorkGroupSize.x, WorkGroupSize.y, WorkGroupSize.z)]
+[numthreads(workX, workY, 1)]
 void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupThreadID, uint3 WorkGroupID : SV_GroupID) {
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const float4 sphere = float4(float3(16.f,128.f,16.f), 8.f);
@@ -171,8 +173,8 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         float3 origin = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.001f));
         float3 target = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.999f));
         float3 raydir = normalize(target - origin);
-        float3 normal = float3(0.f);
-        float3 geonrm = float3(0.f);
+        float3 normal = float3(0.f.xxx);
+        float3 geonrm = float3(0.f.xxx);
 
         // Replacement for rasterization
         //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);

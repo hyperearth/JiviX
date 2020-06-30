@@ -12,7 +12,7 @@ struct RCData {
 };
 
 // BUT DEFAULT OVERRIDEN!
-int2 launchSize = int2(1600, 1200);
+static int2 launchSize = int2(1600, 1200);
 
 // 
 struct XPOL {
@@ -41,8 +41,8 @@ struct CHIT {
 };
 
 // 
-uint packed = 0u;
-uint2 seed = uint2(0u.xx);
+static uint packed = 0u;
+static uint2 seed = uint2(0u.xx);
 
 // RESERVED FOR OTHER OPERATIONS
 float3 refractive(in float3 dir) {
@@ -89,9 +89,9 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     geometry.gBinormal  = float4(triangulate(idx3, 4u, nodeMeshID,baryCoord).xyz,0.f);
 
     // 
-    geometry.gNormal.xyz *= normalTransform * normInTransform;
-    geometry.gTangent.xyz *= normalTransform * normInTransform;
-    geometry.gBinormal.xyz *= normalTransform * normInTransform;
+    geometry.gNormal.xyz = mul(mul(normInTransform, normalTransform), geometry.gNormal.xyz);
+    geometry.gTangent.xyz = mul(mul(normInTransform, normalTransform), geometry.gTangent.xyz);
+    geometry.gBinormal.xyz = mul(mul(normInTransform, normalTransform), geometry.gBinormal.xyz);
 
     //
     geometry.gNormal.xyz = normalize(geometry.gNormal.xyz);
@@ -153,15 +153,15 @@ XHIT rasterize(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     XHIT processing, confirmed;
     processing.origin.xyz = origin.xyz;
     processing.direct.xyz = raydir.xyz;
-    processing.gIndices = uint4(0u);
+    processing.gIndices = uint4(0u.xxxx);
     processing.gBarycentric = float4(0.f.xxx, lastMax);
     confirmed = processing;
     
 
     // 
     float3 sslr = world2screen(origin);
-    const uint2 tsize = uint2(0); rasterBuffers[RS_MATERIAL].GetDimensions(tsize.x, tsize.y);
-    const uint2 samplep = uint2((sslr.xy*0.5f+0.5f) * tsize);
+          uint2 tsize = uint2(0u.xx); rasterBuffers[RS_MATERIAL].GetDimensions(tsize.x, tsize.y);
+    const uint2 samplep = uint2((sslr.xy*0.5f.xx+0.5f.xx) * tsize);
     const uint4 indices  = asuint(rasterBuffers[RS_GEOMETRY].Sample(samplers[1u], samplep));
     const uint4 datapass = asuint(rasterBuffers[RS_MATERIAL].Sample(samplers[1u], samplep));
 

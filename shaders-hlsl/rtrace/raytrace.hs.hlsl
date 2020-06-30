@@ -1,10 +1,10 @@
-#include "./driver.glsl"
-#include "./global.glsl"
+#include "./driver.hlsli"
+#include "./global.hlsli"
 
-hitAttributeEXT float2 baryCoord;
+typedef BuiltInTriangleIntersectionAttributes MyAttributes;
 
 [shader("closesthit")]
-void main(inout CHIT hit) {
-    hit.gIndices = uint4(gl_InstanceID, gl_GeometryIndexEXT, gl_PrimitiveID, 0u);
-    hit.gBarycentric = float4(max(float3(1.f-baryCoord.x-baryCoord.y, baryCoord.xy), 0.0001f.xxx), gl_HitTEXT );
+void chit(inout CHIT hit, in MyAttributes attr) {
+    hit.gIndices = uint4(InstanceIndex(), GeometryIndex(), PrimitiveIndex(), 0u);
+    hit.gBarycentric = float4(max(float3(1.f-attr.barycentrics.x-attr.barycentrics.y, attr.barycentrics.xy), 0.0001f.xxx), RayTCurrent());
 };

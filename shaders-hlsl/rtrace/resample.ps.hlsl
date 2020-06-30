@@ -61,7 +61,7 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
 // 
 PS_OUTPUT main(in PS_INPUT input) { // Currently NO possible to compare
     const int2 f2fx  = int2(input.FragCoord.xy);
-    const int2 size  = int2(0, 0); frameBuffers[BW_POSITION].GetDimensions(size.x,size.y);
+          int2 size  = int2(0, 0); frameBuffers[BW_POSITION].GetDimensions(size.x,size.y);
     const int2 i2fx  = int2(f2fx.x,size.y-f2fx.y-1);
     const float2 i2fxm = input.FragCoord.xy; //float2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 

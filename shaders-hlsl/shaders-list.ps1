@@ -75,10 +75,10 @@ function BuildAllShaders($Pfx = "") {
     BuildCompute "quad.cs.hlsl"            "$INDIR$RNDX" "$HRDDIR$RTPU" "-T cs_6_5"
 
     # 
-    BuildCompute "raytrace.cs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU"
-    BuildCompute "raytrace.rgen.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU"
-    BuildCompute "raytrace.rchit.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU"
-    BuildCompute "raytrace.rmiss.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "raytrace.cs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU" "-T cs_6_5"
+    BuildCompute "raytrace.rs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU" 
+    BuildCompute "raytrace.hs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T hs_6_5"
+    BuildCompute "raytrace.ms.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ms_6_5"
 
     # optimize built shaders
     OptimizeMainline $RNDX

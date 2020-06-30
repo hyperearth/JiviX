@@ -7,7 +7,7 @@
 #define FAST_BW_TRANSPARENT false
 
 // For Cache
-XHIT RES;
+static XHIT RES;
 
 // Ray Query Broken In Latest Driver... 
 XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT, bool scatterTransparency, float threshold) {
@@ -17,7 +17,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     XHIT processing, confirmed;
     processing.origin = float4(origin.xyz, 1.f);
     processing.direct = float4(raydir.xyz, 0.f);
-    processing.gIndices = uint4(0u);
+    processing.gIndices = uint4(0u.xxxx);
     processing.gBarycentric = float4(0.f.xxx, maxT);
     confirmed = processing;
 
@@ -27,7 +27,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
         float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
 
         // 
-        CHIT hit = { float4(0, 0, 0, 0) };
+        CHIT hit = { float4(0, 0, 0, 0), uint4(0, 0, 0, 0) };
         TraceRay(Scene, RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
             0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax, hit);
 
@@ -97,11 +97,11 @@ void main() {
         //const float2 shift = 0.5f.xx,       pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
 
         // 
-        float3 origin = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.001f));
-        float3 target = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.999f));
+        float3 origin = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f.xx-1.f.xx,0.001f.x));
+        float3 target = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f.xx-1.f.xx,0.999f.x));
         float3 raydir = normalize(target - origin);
-        float3 normal = float3(0.f);
-        float3 geonrm = float3(0.f);
+        float3 normal = float3(0.f.xxx);
+        float3 geonrm = float3(0.f.xxx);
 
         // Replacement for rasterization
         //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);

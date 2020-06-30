@@ -18,7 +18,7 @@ struct GS_INPUT
 // 
 GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INSTANCEID) {
     //const uint idx = gl_VertexIndex;
-    const int2 size = int2(0,0); writeImages[0].GetDimensions(size.x, size.y);
+          int2 size = int2(0,0); writeImages[0].GetDimensions(size.x, size.y);
     const int2 f2fx = int2(VertexIndex, InstanceIndex);
     const int2 i2fx = int2(size.x,size.y-f2fx.y-1);
 

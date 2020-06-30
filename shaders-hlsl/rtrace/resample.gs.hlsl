@@ -30,7 +30,8 @@ struct PS_INPUT
 };
 
 // 
-void main(triangle in GS_INPUT input[3], inout TriangleStream<PS_INPUT> OutputStream) {
+[maxvertexcount(1)]
+void main(point in GS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStream) {
     PS_INPUT output;
     output.Position = input[0].Position;
     output.PointSize = 1.f;

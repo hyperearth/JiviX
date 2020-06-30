@@ -195,17 +195,17 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(4,0)]] Texture2D<float4> mapColor[] : register(t0, space4);
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
-[[vk::binding(5,1)]] StructuredBuffer<Binding> bindings[] : register(t0, space5);
-[[vk::binding(6,1)]] StructuredBuffer<Attribute> attributes[] : register(t0, space6);
+[[vk::binding(5,1)]] RWStructuredBuffer<Binding> bindings[] : register(u0, space5);
+[[vk::binding(6,1)]] RWStructuredBuffer<Attribute> attributes[] : register(u0, space6);
 
 // 
-[[vk::binding(7,1)]] StructuredBuffer<float3x4> transforms[] : register(t0, space7);
-[[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(t0, space8);
+[[vk::binding(7,1)]] RWStructuredBuffer<float3x4> transforms[] : register(u0, space7);
+[[vk::binding(8,1)]] RWStructuredBuffer<uint> materialID[] : register(u0, space8);
 
 // 
 [[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);
-[[vk::binding(10,1)]] StructuredBuffer<MeshInfo> meshInfo : register(t0, space10);
-[[vk::binding(11,1)]] StructuredBuffer<RTXInstance> rtxInstances : register(t0, space11);
+[[vk::binding(10,1)]] RWStructuredBuffer<MeshInfo> meshInfo : register(u0, space10);
+[[vk::binding(11,1)]] RWStructuredBuffer<RTXInstance> rtxInstances : register(u0, space11);
 
 // 
 #ifdef ENABLE_AS
@@ -214,8 +214,8 @@ struct DrawInfo { uint4 data; };
 
 // Deferred and Rasterization Set
 [[vk::binding(13,2)]] Texture2D<float4>  frameBuffers[12u] : register(t0, space13); // Pre-resampled buffers
-[[vk::binding(14,2)]] SamplerState samplers[4u] : register(t0, space14);
 [[vk::binding(15,2)]] Texture2D<float4> rasterBuffers[ 8u] : register(t0, space15); // Used by rasterization
+[[vk::binding(14,2)]] SamplerState            samplers[4u] : register(t0, space14);
 
 // 
 [[vk::binding(16,3)]] RWTexture2D<float4> writeBuffer[] : register(u0, space16); // Pre-resampled buffers, For EDIT!
@@ -223,7 +223,7 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(18,3)]] RWTexture2D<float4> writeImagesBack[] : register(u0, space18); 
 
 // 
-[[vk::binding(20,4)]] StructuredBuffer<MaterialUnit> materials[] : register(t0, space20);
+[[vk::binding(20,4)]] RWStructuredBuffer<MaterialUnit> materials[] : register(u0, space20);
 [[vk::binding(21,4)]] Texture2D<float4> background : register(t0, space21);
 [[vk::binding(22,4)]] Texture2D<float4> textures[] : register(t0, space22);
 [[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space23);
@@ -258,7 +258,7 @@ float4 get_float4(in uint idx, in uint loc, in uint nodeMeshID) {
     //Attribute attrib = attributes[loc].data[meshID];
     //Binding  binding = bindings[attrib.binding].data[meshID];
     uint boffset = binding.stride * idx + attrib.offset;
-    float4 vec = float4(0.f);
+    float4 vec = float4(0.f.xxxx);
     
     // 
     //if (binding.stride >  0u) vec = float4(0.f,0.f,1.f,0.f);
@@ -334,7 +334,7 @@ uint hash( uint x ) {
 }
 
 // Compound versions of the hashing algorithm I whipped together.
-uint counter = 0u;
+static uint counter = 0u;
 uint hash( uint2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)                         ); }
 uint hash( uint3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
 uint hash( uint4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
@@ -364,8 +364,8 @@ float2 halfConstruct ( in uint  m ) { return frac(f16tof32((m & 0x03FF03FFu) | (
 //float random( float3  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 //float random( float4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
   //#define QLOCK2 (clockRealtime2x32EXT()+clock2x32ARB())
-  #define QLOCK2 0u.xx
-  uint SCLOCK = 0u;
+#define QLOCK2 0u.xx
+static uint SCLOCK = 0u;
 //#define QLOCK2 uint2(0u,0u)
 
 float random(               ) {         return floatConstruct(hash(QLOCK2)); }
@@ -376,8 +376,12 @@ float2 random2(               ) {         return halfConstruct(hash(QLOCK2)); }
 float2 random2( inout uint2 s ) { s += 1; return halfConstruct(hash(uint4(QLOCK2,s))); }
 float2 random2( inout uint  s ) { s += 1; return halfConstruct(hash(uint3(QLOCK2,s))); }
 
-float staticRandom () { SCLOCK += 1; return floatConstruct(hash(uint4(SCLOCK,0u,pushed.rdata.xy))); }
-float2  staticRandom2() { SCLOCK += 1; return halfConstruct(hash(uint4(SCLOCK,0u,pushed.rdata.xy))); }
+float  staticRandom () { SCLOCK += 1; return floatConstruct(hash(uint4(SCLOCK,0u,pushed.rdata.xy))); }
+float2 staticRandom2() { SCLOCK += 1; return halfConstruct(hash(uint4(SCLOCK,0u,pushed.rdata.xy))); }
+float  fma(in float  a, in float  b, in float  c) { return a*b + c; };
+float2 fma(in float2 a, in float2 b, in float2 c) { return a*b + c; };
+float3 fma(in float3 a, in float3 b, in float3 c) { return a*b + c; };
+float4 fma(in float4 a, in float4 b, in float4 c) { return a*b + c; };
 
 // 
 float2 lcts(in float3 direct) { return float2(fma(atan2(direct.z,direct.x),INV_TWO_PI,0.5f),acos(-direct.y)*INV_PI); };
@@ -464,16 +468,16 @@ bool fequal(in float a, in float b){
         a >= b - 0.0001f;
 };
 
-bool4 fequal(in float2 a, in float2 b){
-    return a <= (b + 0.0001f) && a >= (b - 0.0001f);
+bool2 fequal(in float2 a, in float2 b){
+    return a <= (b + 0.0001f.xx) && a >= (b - 0.0001f.xx);
 };
 
-bool4 fequal(in float3 a, in float3 b){
-    return a <= (b + 0.0001f) && a >= (b - 0.0001f);
+bool3 fequal(in float3 a, in float3 b){
+    return a <= (b + 0.0001f.xxx) && a >= (b - 0.0001f.xxx);
 };
 
 bool4 fequal(in float4 a, in float4 b){
-    return a <= (b + 0.0001f) && a >= (b - 0.0001f);
+    return a <= (b + 0.0001f.xxxx) && a >= (b - 0.0001f.xxxx);
 };
 
 
@@ -496,7 +500,7 @@ float3 boxNormal(in float3 pnt, in float3 boxMin, in float3 boxMax) {
 	float3 center = (boxMax + boxMin) * 0.5;
 	float3 size = (boxMax - boxMin) * 0.5;
 	float3 pc = pnt - center;
-	float3 normal = float3(0.0f);
+	float3 normal = float3(0.0f.xxx);
 	normal += float3(sign(pc.x), 0.0f, 0.0f) * step(abs(abs(pc.x) - size.x), kEpsilon);
 	normal += float3(0.0f, sign(pc.y), 0.0f) * step(abs(abs(pc.y) - size.y), kEpsilon);
 	normal += float3(0.0f, 0.0f, sign(pc.z)) * step(abs(abs(pc.z) - size.z), kEpsilon);
