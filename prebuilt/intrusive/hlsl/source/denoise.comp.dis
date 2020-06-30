@@ -79,7 +79,7 @@
                OpDecorate %textures DescriptorSet 4
                OpDecorate %textures Binding 22
                OpDecorate %_Globals DescriptorSet 0
-               OpDecorate %_Globals Binding 5
+               OpDecorate %_Globals Binding 1
                OpMemberDecorate %type__Globals 0 Offset 0
                OpMemberDecorate %type__Globals 1 Offset 4
                OpMemberDecorate %type__Globals 2 Offset 8

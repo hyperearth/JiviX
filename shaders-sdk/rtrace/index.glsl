@@ -144,12 +144,12 @@ layout (binding = 6, set = 1, scalar) uniform Attributes { Attribute data[8u]; }
 //layout (binding = 9, set = 1, scalar) uniform InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
 
 layout (binding = 9, set = 1, scalar) uniform Matrices {
-    mat4 projection;    
-    mat4 projectionInv; 
-    mat3x4 modelview;   
-    mat3x4 modelviewInv; 
-    mat3x4 modelviewPrev;   
-    mat3x4 modelviewPrevInv; 
+    layout(row_major) mat4 projection;    
+    layout(row_major) mat4 projectionInv; 
+    layout(row_major) mat3x4 modelview;   
+    layout(row_major) mat3x4 modelviewInv;
+    layout(row_major) mat3x4 modelviewPrev;   
+    layout(row_major) mat3x4 modelviewPrevInv; 
     uvec4 mdata;        // mesh mutation or modification data
     //uvec2 tdata, rdata; // first for time, second for randoms
     uvec2 tdata;

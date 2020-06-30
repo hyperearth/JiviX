@@ -15,7 +15,7 @@ struct MaterialUnit
     uvec4 udata;
 };
 
-layout(set = 0, binding = 5, std140) uniform type_Globals
+layout(set = 0, binding = 1, std140) uniform type_Globals
 {
     float HDR_GAMMA;
     float PHI;

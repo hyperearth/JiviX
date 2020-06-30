@@ -1,0 +1,1 @@
+../hlsl/for-compare.bat
