@@ -190,7 +190,7 @@ layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // System Specified
 uint8_t load_u8(in uint offset, in uint binding, in uint nodeMeshID) {
-    if (binding == 0u) { return uint8_t(imageLoad(mesh0[meshID], int(offset)).x); };
+    if (binding == 0u) { return uint8_t(texelFetch(mesh0[meshID], int(offset), 0u).x); };
     return uint8_t(0u);
 };
 

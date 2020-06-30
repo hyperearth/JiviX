@@ -21,7 +21,7 @@ struct RTXInstance
 layout(set = 1, binding = 7, scalar) uniform type_StructuredBuffer_mat3v4float
 {
     layout(row_major) mat3x4 _m0[];
-} tmatrices[64];
+} tmatrices[];
 
 layout(set = 1, binding = 9, std140) uniform type_ConstantBuffer_Matrices
 {
@@ -64,21 +64,21 @@ layout(location = 4) flat out vec4 out_var_COLOR0;
 
 void main()
 {
-    mat3x4 _101;
+    mat3x4 _100;
     if (((meshInfo._m0[drawInfo.data.x].flags >> (uint(0) & 31u)) & ((1u << (uint(1) & 31u)) - 1u)) != 0u)
     {
-        _101 = tmatrices[drawInfo.data.x]._m0[uint(gl_InstanceIndex)];
+        _100 = tmatrices[drawInfo.data.x]._m0[uint(gl_InstanceIndex)];
     }
     else
     {
-        _101 = mat3x4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, 1.0, 0.0, 0.0), vec4(0.0, 0.0, 1.0, 0.0));
+        _100 = mat3x4(vec4(1.0, 0.0, 0.0, 0.0), vec4(0.0, 1.0, 0.0, 0.0), vec4(0.0, 0.0, 1.0, 0.0));
     }
-    vec4 _118 = vec4(vec4(vec4(in_var_LOCATION0, 1.0) * _101, 1.0) * rtxInstances._m0[drawInfo.data.z].transform, 1.0);
-    vec4 _130 = vec4(_118 * pushed.modelview, 1.0) * pushed.projection;
-    vec4 _133 = _130;
-    _133.y = _130.y * (-1.0);
-    gl_Position = _133;
-    out_var_POSITION0 = _118;
+    vec4 _117 = vec4(vec4(vec4(in_var_LOCATION0, 1.0) * _100, 1.0) * rtxInstances._m0[drawInfo.data.z].transform, 1.0);
+    vec4 _129 = vec4(_117 * pushed.modelview, 1.0) * pushed.projection;
+    vec4 _132 = _129;
+    _132.y = _129.y * (-1.0);
+    gl_Position = _132;
+    out_var_POSITION0 = _117;
     out_var_TEXCOORD0 = vec4(in_var_LOCATION1, 0.0, 0.0);
     out_var_TEXCOORD1 = vec4(0.0);
     out_var_COLOR0 = vec4(uvec4(uint(gl_InstanceIndex), 0u, 0u, 0u));

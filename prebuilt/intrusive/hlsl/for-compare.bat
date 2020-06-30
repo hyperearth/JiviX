@@ -1,7 +1,7 @@
-spirv-dis                      denoise.cs.spv >> denoise.cs.dis
-spirv-cross --vulkan-semantics denoise.cs.spv >> denoise.cs.glsl
-spirv-dis                       transform.vs.spv >> transform.vs.dis
-spirv-cross --vulkan-semantics  transform.vs.spv >> transform.vs.glsl
-spirv-dis                       rasterize.vs.spv >> rasterize.vs.dis
-spirv-cross --vulkan-semantics  rasterize.vs.spv >> rasterize.vs.glsl
+spirv-dis                      denoise.comp.spv >> denoise.comp.dis
+spirv-cross --vulkan-semantics denoise.comp.spv >> denoise.comp.glsl
+spirv-dis                       transform.vert.spv >> transform.vert.dis
+spirv-cross --vulkan-semantics  transform.vert.spv >> transform.vert.glsl
+spirv-dis                       rasterize.vert.spv >> rasterize.vert.dis
+spirv-cross --vulkan-semantics  rasterize.vert.spv >> rasterize.vert.glsl
 pause

@@ -267,33 +267,17 @@ namespace jvi {
 
             // plush descriptor set bindings (i.e. buffer bindings array, every have array too)
             const auto meshCount = std::min(uint64_t(this->meshes.size()), uint64_t(64ull));
-            {
-                auto &handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 0u,
-                    .dstArrayElement = 0u,
-                    .descriptorCount = uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
-                });
-
-                for (uint32_t i = 0; i < meshCount; i++) {
-                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0u].createBufferView(VK_FORMAT_R8_UINT);
-                };
-            }
 
             { // unknown mystery reason...
                 auto& handle = this->meshDataDescriptorSetInfo.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
-                    .dstBinding = 1u,
+                    .dstBinding = 0u,
                     .dstArrayElement = 0u,
                     .descriptorCount = uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
                 });
 
                 for (uint32_t i = 0; i < meshCount; i++) {
-                    if (this->meshes[i]->indexData.has()) {
-                        handle.offset<VkBufferView>(i) = this->meshes[i]->indexData.createBufferView(VK_FORMAT_R8_UINT); }
-                    else {
-                        handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VK_FORMAT_R8_UINT);
-                    };
+                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VK_FORMAT_R8_UINT);
                 };
             };
 
