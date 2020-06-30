@@ -128,7 +128,7 @@ layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
 //layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer index[];
 
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
-layout (binding = 2, set = 0, scalar) readonly buffer MapData { uint32_t data[]; } map[];
+layout (binding = 2, set = 0, scalar) readonly buffer MapData { uint32_t data[]; } map;
 layout (binding = 3, set = 0, r32ui) readonly uniform uimage2D mapImage[];
 layout (binding = 4, set = 0) uniform texture2D mapColor[];
 

@@ -23,8 +23,8 @@ layout (binding = 0, set = 1, r8ui) readonly uniform uimageBuffer buffers[256u];
 #endif
 
 // 
-layout (binding = 0, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
-layout (binding = 1, set = 0, scalar) readonly buffer Attributes { Attribute attributes[]; };
+layout (binding = 1, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
+layout (binding = 2, set = 0, scalar) readonly buffer Attributes { Attribute attributes[]; };
 layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // 

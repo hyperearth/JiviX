@@ -30,14 +30,10 @@ struct MeshInfo {
 struct DrawInfo { uint4 data; };
 
 // 
-[[vk::binding(0,1)]] RWByteAddressBuffer buffers[];
-
-// 
-[[vk::binding(0,0)]] ByteAddressBuffer mesh0[] : register(t0, space0);
-[[vk::binding(1,0)]] ByteAddressBuffer index[] : register(t0, space1);
-[[vk::binding(2,0)]] StructuredBuffer<Binding> bindings[] : register(t0, space2);
-[[vk::binding(3,0)]] StructuredBuffer<Attribute> attributes[] : register(t0, space3);
-[[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space4);
+[[vk::binding(0,0)]] RWByteAddressBuffer buffers[] : register(u0, space0);
+[[vk::binding(1,0)]] RWStructuredBuffer<Binding> bindings : register(u0, space1);
+[[vk::binding(2,0)]] RWStructuredBuffer<Attribute> attributes : register(u0, space2);
+[[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space3);
 
 // 
 bool hasTransform() {
@@ -64,13 +60,13 @@ bool hasTangent() {
 // System Specified
 uint load_u32(in uint offset, in uint bufferID) {
     //return pack32(u16float2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
-    return mesh0[bufferID].Load(offset);
+    return buffers[bufferID].Load(offset);
 };
 
 // TODO: Add Uint16_t, uint, Float16_t Support
 float4 get_float4(in uint idx, in uint loc) {
-    Attribute attrib = attributes[loc][idx];
-    Binding  binding = bindings[attrib.binding][attrib.binding];
+    Attribute attrib = attributes[loc];
+    Binding  binding = bindings[attrib.binding];
     uint boffset = binding.stride * idx + attrib.offset;
     float4 vec = 0.f.xxxx;
     

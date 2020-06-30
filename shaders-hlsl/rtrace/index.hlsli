@@ -202,7 +202,7 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(1,0)]] ByteAddressBuffer index[64u] : register(t0, space1);
 
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
-[[vk::binding(2,0)]] StructuredBuffer<uint> map[] : register(t0, space2);
+[[vk::binding(2,0)]] RWStructuredBuffer<uint> map : register(u0, space2);
 [[vk::binding(3,0)]] RWTexture2D<uint> mapImage[] : register(u0, space3);
 [[vk::binding(4,0)]] Texture2D<float4> mapColor[] : register(t0, space4);
 
