@@ -29,7 +29,7 @@ namespace jvi {
 
             // 
             this->bufferViewSetLayoutHelper = templ;
-            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
+            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]));
 
             // 

@@ -463,7 +463,7 @@ namespace jvi {
 
                 // Raw Data
                 for (uint32_t b = 0u; b < 2u; b++) { // For Ray Tracers
-                    this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
+                    this->meshDataDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = b, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
                 };
 
                 // Data Buffer

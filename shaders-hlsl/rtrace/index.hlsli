@@ -198,8 +198,8 @@ uint getMeshID(in RTXInstance instance){
 struct DrawInfo { uint4 data; };
 
 // 
-[[vk::binding(0,0)]] ByteAddressBuffer mesh0[64u] : register(t0, space0);
-[[vk::binding(1,0)]] ByteAddressBuffer index[64u] : register(t0, space1);
+[[vk::binding(0,0)]] RWByteAddressBuffer mesh0[] : register(u0, space0);
+//[[vk::binding(1,0)]] ByteAddressBuffer index[] : register(t0, space1);
 
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
 [[vk::binding(2,0)]] RWStructuredBuffer<uint> map : register(u0, space2);

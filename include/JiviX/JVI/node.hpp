@@ -273,11 +273,12 @@ namespace jvi {
                     .dstBinding = 0u,
                     .dstArrayElement = 0u,
                     .descriptorCount = uint32_t(meshCount),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
                 });
 
                 for (uint32_t i = 0; i < meshCount; i++) {
-                    handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VK_FORMAT_R8_UINT);
+                    //handle.offset<VkBufferView>(i) = this->meshes[i]->bindings[0].createBufferView(VK_FORMAT_R8_UINT);
+                    handle.offset<VkDescriptorBufferInfo>(i) = this->meshes[i]->bindings[0];
                 };
             };
 

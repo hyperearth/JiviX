@@ -8,11 +8,11 @@ layout (local_size_x = 256u) in;
 
 // store 32 value as by 8 bytes
 void lStore(in int loc, in uint32_t val) {
-    u8vec4 cor = unpack8(val);
-    imageStore(buffers[drawInfo.data[2]], loc * 4 + 0, cor.xxxx);
-    imageStore(buffers[drawInfo.data[2]], loc * 4 + 1, cor.yyyy);
-    imageStore(buffers[drawInfo.data[2]], loc * 4 + 2, cor.zzzz);
-    imageStore(buffers[drawInfo.data[2]], loc * 4 + 3, cor.wwww);
+    const u8vec4 cor = unpack8(val);
+    buffers[drawInfo.data[2]].data[loc * 4 + 0] = cor.x;
+    buffers[drawInfo.data[2]].data[loc * 4 + 1] = cor.y;
+    buffers[drawInfo.data[2]].data[loc * 4 + 2] = cor.z;
+    buffers[drawInfo.data[2]].data[loc * 4 + 3] = cor.w;
 };
 
 // THIS SHADER FOR Minecraft Compatibility

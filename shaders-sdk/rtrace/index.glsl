@@ -124,7 +124,8 @@ vec4 toLinear(in vec4 sRGB) { return vec4(toLinear(sRGB.xyz), sRGB.w); }
 // But arrays are allowed...
 
 // 
-layout (binding = 0, set = 0) uniform utextureBuffer mesh0[];
+//layout (binding = 0, set = 0) uniform utextureBuffer mesh0[];
+  layout (binding = 0, set = 0) readonly buffer MeshData { uint8_t data[]; } mesh0[]; 
 //layout (binding = 0, set = 0, r8ui) readonly uniform uimageBuffer mesh0[];
 //layout (binding = 1, set = 0, r8ui) readonly uniform uimageBuffer index[];
 
@@ -154,7 +155,7 @@ layout (binding = 9, set = 1, scalar) uniform Matrices {
     uvec2 tdata;
     uvec2 rdata;
 };
-layout (binding = 10, set = 1, scalar) readonly buffer MeshData { MeshInfo meshInfo[]; };
+layout (binding = 10, set = 1, scalar) readonly buffer MeshInfoData { MeshInfo meshInfo[]; };
 layout (binding = 11, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 
 #ifdef ENABLE_AS
@@ -192,7 +193,7 @@ layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // System Specified
 uint8_t load_u8(in uint offset, in uint binding, in uint nodeMeshID) {
-    if (binding == 0u) { return uint8_t(texelFetch(mesh0[meshID], int(offset)).x); };
+    if (binding == 0u) { return mesh0[nonuniformEXT(meshID)].data[offset]; };
     return uint8_t(0u);
 };
 
