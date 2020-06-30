@@ -42,7 +42,7 @@ PS_OUTPUT main(in PS_INPUT input, in uint gl_PrimitiveID : SV_PrimitiveID, in fl
 
 #define MatID materialID[nodeMeshID][geometryInstanceID]
     const MaterialUnit unit = materials[0u][MatID]; // NEW! 20.04.2020
-    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textures[unit.diffuseTexture].Sample(samplers[2u], input.fTexcoord.xy) : unit.diffuse);
+    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textures[unit.diffuseTexture].SampleLevel(samplers[2u], input.fTexcoord.xy, 0) : unit.diffuse);
     //const float4 diffuseColor = float4(1.f,0.f,0.f,1.f);
 
     //oDiffused = float4(0.f.xxxx);

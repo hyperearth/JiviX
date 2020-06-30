@@ -536,7 +536,7 @@ float3 screen2world(in float3 origin){
 
 float4 gSkyShader(in float3 raydir, in float3 origin) {
     //return float4(texture(background, flip(lcts(raydir.xyz))).xyz, 1.f);
-    return background.Sample(samplers[3u], flip(lcts(raydir.xyz)).xy);
+    return background.SampleLevel(samplers[3u], flip(lcts(raydir.xyz)).xy, 0);
 };
 
 #endif

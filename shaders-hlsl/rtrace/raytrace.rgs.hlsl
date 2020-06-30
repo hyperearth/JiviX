@@ -27,13 +27,19 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
         float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
 
         // 
-        CHIT hit = { float4(0, 0, 0, 0), uint4(0, 0, 0, 0) };
-        TraceRay(Scene, RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
-            0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax, hit);
+        RayDesc desc;
+        desc.Origin = lastOrigin.xyz;
+        desc.TMin = 0.001f;
+        desc.Direction = raydir;
+        desc.TMax = lastMax;
 
         // 
-        const float3 baryCoord = hit.gBarycentric.xyz;
-        const bool isSkybox = dot(baryCoord.yz,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
+        CHIT hit = { float4(0, 0, 0, 0), uint4(0, 0, 0, 0) };
+        TraceRay(Scene, RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+            0xFFu, 0u, 1u, 0u, desc, hit);
+
+        // 
+        const bool isSkybox = dot(hit.gBarycentric.xyz.yz,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
         const uint primitiveID = hit.gIndices.z;
         const uint geometryInstanceID = hit.gIndices.y;
         const uint globalInstanceID = hit.gIndices.x;

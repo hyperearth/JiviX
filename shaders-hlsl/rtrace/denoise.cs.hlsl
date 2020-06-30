@@ -4,10 +4,10 @@
 
 // 
 #define FETCH_FX(NAME, BUFFER) \
-    const uint2 size = uint2(0u,0u); BUFFER[NAME].GetDimensions(size.x, size.y); return BUFFER[NAME].Load(uint3(map.x,map.y,0));
+    uint2 size = uint2(0u,0u); BUFFER[NAME].GetDimensions(size.x, size.y); return BUFFER[NAME].Load(uint3(map.x,map.y,0));
 
 #define WRITE_FX(NAME, BUFFER) \
-    const uint2 size = uint2(0u,0u); BUFFER[NAME].GetDimensions(size.x, size.y); writeBuffer[BW_INDIRECT][int2(map.x,map.y)] = color;
+    uint2 size = uint2(0u,0u); BUFFER[NAME].GetDimensions(size.x, size.y); writeBuffer[BW_INDIRECT][int2(map.x,map.y)] = color;
 
 // Not Reprojected by Previous Frame
 float4 getPosition   (in int2 map) { FETCH_FX(BW_POSITION, writeBuffer); };
@@ -93,7 +93,7 @@ float fixedTranparency(in int2 samplep) {
 // TODO: Use Texcoord and Material ID's instead of Color, PBR-Map, Emission,  (due, needs only two or one buffers)
 [numthreads(32, 24, 1)]
 void main(uint3 DTid : SV_DispatchThreadID) { // TODO: explicit sampling 
-    const uint2 size = int2(0,0); writeImages[IW_INDIRECT].GetDimensions(size.x, size.y);
+          uint2 size = int2(0,0); writeImages[IW_INDIRECT].GetDimensions(size.x, size.y);
     const uint2 samplep = uint2(DTid.xy);
     const  float4 dataflat = getData(samplep);
     const uint4 datapass = asuint(dataflat);
@@ -105,10 +105,10 @@ void main(uint3 DTid : SV_DispatchThreadID) { // TODO: explicit sampling
 
     // 
     const MaterialUnit unit = materials[0u][datapass.y];
-          float4 diffused = toLinear(unit. diffuseTexture >= 0 ? textures[unit. diffuseTexture].Sample(samplers[2u],texcoord.xy) : unit.diffuse);
-          float4 emission = toLinear(unit.emissionTexture >= 0 ? textures[unit.emissionTexture].Sample(samplers[2u],texcoord.xy) : unit.emission);
-          float4 normaled = unit. normalsTexture >= 0 ? textures[unit. normalsTexture].Sample(samplers[2u],texcoord.xy) : unit.normals;
-          float4 specular = unit.specularTexture >= 0 ? textures[unit.specularTexture].Sample(samplers[2u],texcoord.xy) : unit.specular;
+          float4 diffused = toLinear(unit. diffuseTexture >= 0 ? textures[unit. diffuseTexture].SampleLevel(samplers[2u],texcoord.xy,0) : unit.diffuse);
+          float4 emission = toLinear(unit.emissionTexture >= 0 ? textures[unit.emissionTexture].SampleLevel(samplers[2u],texcoord.xy,0) : unit.emission);
+          float4 normaled = unit. normalsTexture >= 0 ? textures[unit. normalsTexture].SampleLevel(samplers[2u],texcoord.xy,0) : unit.normals;
+          float4 specular = unit.specularTexture >= 0 ? textures[unit.specularTexture].SampleLevel(samplers[2u],texcoord.xy,0) : unit.specular;
           float4 dtexdata = diffused;
 
     // experimental (unused for alpha transparency)
@@ -177,10 +177,10 @@ void main(uint3 DTid : SV_DispatchThreadID) { // TODO: explicit sampling
         writeImagesBack[IW_INDIRECT][mapc(samplep)] = float4(diffused.xyz*scount, scount);
     };
 #else
-    writeBuffer[BW_RENDERED][samplep] = float4(clamp(mix(writeBuffer[BW_RENDERED][samplep].xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f);
-    writeBuffer[BW_RENDERED][samplep] = float4(clamp(mix(writeBuffer[BW_RENDERED][samplep].xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f);
+    writeBuffer[BW_RENDERED][samplep] = float4(clamp(lerp(writeBuffer[BW_RENDERED][samplep].xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f);
+    writeBuffer[BW_RENDERED][samplep] = float4(clamp(lerp(writeBuffer[BW_RENDERED][samplep].xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f);
 
-    //imageStore(writeBuffer[BW_RENDERED],   (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+    //imageStore(writeBuffer[BW_RENDERED],   (samplep), float4(lerp((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif
 
 };

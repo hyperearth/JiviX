@@ -13,9 +13,9 @@ struct PSInput
 };
 
 // 
-PSInput main() {
+PSInput main(in uint InstanceIndex : SV_InstanceID, in uint VertexIndex : SV_VertexID) {
     PSInput output;
-    output.position = float4(cpositions[gl_VertexIndex].xy, 0.0f, 1.0f);
-    output.vcoord = tcoords[gl_VertexIndex].xy;
+    output.position = float4(cpositions[VertexIndex].xy, 0.0f, 1.0f);
+    output.vcoord = tcoords[VertexIndex].xy;
     return output;
 };

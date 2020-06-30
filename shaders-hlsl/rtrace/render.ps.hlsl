@@ -2,10 +2,10 @@
 #include "./global.hlsli"
 
 // 
-#define FXAA_PC 1
-#define FXAA_GLSL_130 1
-#define FXAA_QUALITY_PRESET 39
-#include "./fxaa3_11.h"
+//#define FXAA_PC 1
+//#define FXAA_GLSL_130 1
+//#define FXAA_QUALITY_PRESET 39
+//#include "./fxaa3_11.h"
 
 // 
 struct PSInput
@@ -22,13 +22,13 @@ struct PSOutput
 
 // 
 PSOutput main(in PSInput input) { // TODO: explicit sampling 
-    const int2 size = int2(0,0), samplep = int2(input.position.x,input.position.y);
+    uint2 size = uint2(0,0), samplep = int2(input.position.x,input.position.y);
     frameBuffers[BW_RENDERED].GetDimensions(size.x, size.y);
 
     // Final Result Rendering
     PSOutput output;
     output.uFragColor = 0.f.xxxx;
     //output.uFragColor = FxaaPixelShader(vcoord, output.uFragColor, frameBuffers[BW_RENDERED], frameBuffers[BW_RENDERED], frameBuffers[BW_RENDERED], size, zero, zero, zero, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, zero);
-    output.uFragColor = frameBuffers[BW_RENDERED].Sample(samplers[1u], input.vcoord);
+    output.uFragColor = frameBuffers[BW_RENDERED].SampleLevel(samplers[1u], input.vcoord, 0);
     return output;
 };

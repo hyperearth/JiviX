@@ -11,7 +11,7 @@
 // TODO: X-Based Optimization
 //const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
 #define workX 64u
-#define workY 12u
+#define workY 8u   // Exceed 32768 of shared memory
 groupshared XHIT hits[workX*workY];
 
 // Needs 1000$ for fix BROKEN ray query...

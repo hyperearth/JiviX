@@ -124,10 +124,10 @@ XPOL materialize(in XHIT hit, inout XGEO geo) { //
 
     // 
     if (hit.gBarycentric.w < 9999.f) {
-        material. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textures[unit. diffuseTexture].Sample(samplers[2u],gTexcoord.xy) : unit.diffuse);
-        material.emissionColor = toLinear(unit.emissionTexture >= 0 ? textures[unit.emissionTexture].Sample(samplers[2u],gTexcoord.xy) : unit.emission);
-        material. normalsColor = unit. normalsTexture >= 0 ? textures[unit. normalsTexture].Sample(samplers[2u],gTexcoord.xy) : unit.normals;
-        material.specularColor = unit.specularTexture >= 0 ? textures[unit.specularTexture].Sample(samplers[2u],gTexcoord.xy) : unit.specular;
+        material. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textures[unit. diffuseTexture].SampleLevel(samplers[2u],gTexcoord.xy,0) : unit.diffuse);
+        material.emissionColor = toLinear(unit.emissionTexture >= 0 ? textures[unit.emissionTexture].SampleLevel(samplers[2u],gTexcoord.xy,0) : unit.emission);
+        material. normalsColor = unit. normalsTexture >= 0 ? textures[unit. normalsTexture].SampleLevel(samplers[2u],gTexcoord.xy,0) : unit.normals;
+        material.specularColor = unit.specularTexture >= 0 ? textures[unit.specularTexture].SampleLevel(samplers[2u],gTexcoord.xy,0) : unit.specular;
 
         // Mapping
         material.mapNormal = float4(normalize(mul(normalize(material.normalsColor.xyz * 2.f - 1.f), float3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz))), 1.f);
@@ -162,11 +162,11 @@ XHIT rasterize(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     float3 sslr = world2screen(origin);
           uint2 tsize = uint2(0u.xx); rasterBuffers[RS_MATERIAL].GetDimensions(tsize.x, tsize.y);
     const uint2 samplep = uint2((sslr.xy*0.5f.xx+0.5f.xx) * tsize);
-    const uint4 indices  = asuint(rasterBuffers[RS_GEOMETRY].Sample(samplers[1u], samplep));
-    const uint4 datapass = asuint(rasterBuffers[RS_MATERIAL].Sample(samplers[1u], samplep));
+    const uint4 indices  = asuint(rasterBuffers[RS_GEOMETRY].SampleLevel(samplers[1u], samplep, 0));
+    const uint4 datapass = asuint(rasterBuffers[RS_MATERIAL].SampleLevel(samplers[1u], samplep, 0));
 
     // 
-    const float3 baryCoord = rasterBuffers[RS_BARYCENT].Load(uint3(samplep, 0)); //texelFetch(rasterBuffers[RS_BARYCENT], samplep, 0).xyz;
+    const float3 baryCoord = rasterBuffers[RS_BARYCENT][samplep].xyz; //texelFetch(rasterBuffers[RS_BARYCENT], samplep, 0).xyz;
     const bool isSkybox = dot(baryCoord.yz,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
     const uint primitiveID = indices.z;
     const uint geometryInstanceID = indices.y;

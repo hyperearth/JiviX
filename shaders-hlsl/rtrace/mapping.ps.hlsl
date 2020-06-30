@@ -1,5 +1,3 @@
-#define BARYCOORD gl_BaryCoordNV
-
 #include "./driver.hlsli"
 #include "./global.hlsli"
 
@@ -32,7 +30,7 @@ PS_OUTPUT main(in PS_INPUT input, in uint gl_PrimitiveID : SV_PrimitiveID, in fl
 
 #define MatID materialID[nodeMeshID][geometryInstanceID]
     const MaterialUnit unit = materials[0u][MatID]; // NEW! 20.04.2020
-    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textures[unit.diffuseTexture].Sample(samplers[3u], input.fTexcoord.xy) : unit.diffuse);
+    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textures[unit.diffuseTexture].SampleLevel(samplers[3u], input.fTexcoord.xy, 0) : unit.diffuse);
 
     PS_OUTPUT output;
     output.oPosition  = float4(0.f.xxxx);

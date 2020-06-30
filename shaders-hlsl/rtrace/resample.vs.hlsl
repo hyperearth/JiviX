@@ -4,8 +4,6 @@
 // 
 struct GS_INPUT
 {
-    float PointSize  : PSIZE0;
-    float4 Position  : SV_POSITION;
     float4 vColor    : COLOR0;
     float4 vSample   : COLOR1;
     float4 vNormal   : COLOR2;
@@ -13,6 +11,8 @@ struct GS_INPUT
     float4 vSpecular : COLOR4;
     float4 vRescolor : COLOR5;
     float4 vSmooth   : COLOR6;
+    float PointSize  : PSIZE0;
+    float4 Position  : SV_Position;
 };
 
 // 

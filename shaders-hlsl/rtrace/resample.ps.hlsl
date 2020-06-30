@@ -4,8 +4,6 @@
 // 
 struct PS_INPUT
 {
-    float PointSize  : PSIZE0;
-    float4 FragCoord : SV_POSITION;
     float4 gColor    : COLOR0;
     float4 gSample   : COLOR1;
     float4 gNormal   : COLOR2;
@@ -13,6 +11,8 @@ struct PS_INPUT
     float4 gSpecular : COLOR4;
     float4 gRescolor : COLOR5;
     float4 gSmooth   : COLOR6;
+    float PointSize  : PSIZE0;
+    float4 FragCoord : SV_Position;
 };
 
 // 
@@ -35,7 +35,7 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
     for (int i=0;i<9;i++) {
         const float2 offt = shift[i];
 
-        float4 worldspos = float4(frameBuffers[BW_POSITION].Sample(samplers[0u], float2(i2fxm+offt), 0).xyz,1.f);
+        float4 worldspos = float4(frameBuffers[BW_POSITION].SampleLevel(samplers[0u], float2(i2fxm+offt), 0).xyz,1.f);
         float4 almostpos = float4(world2screen(worldspos.xyz),1.f);
         //almostpos.y *= -1.f;
 
@@ -43,7 +43,7 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
             //abs(screenSample.z-almostpos.z) < 0.0001f && 
             (screenSample.z-almostpos.z) < 0.0001f && // Reserved for FOG 
             length(almostpos.xy-screenSample.xy) < 4.f && 
-            dot(gNormal.xyz, frameBuffers[BW_GEONORML].Sample(samplers[0u], float2(i2fxm+offt), 0).xyz) >=0.5f && 
+            dot(gNormal.xyz, frameBuffers[BW_GEONORML].SampleLevel(samplers[0u], float2(i2fxm+offt), 0).xyz) >=0.5f && 
                              frameBuffers[BW_MATERIAL][i2fxm+offt].z > 0.f &&
             distance(wPosition.xyz,worldspos.xyz) < 0.05f || 
             false//(i == 4 && texelFetch(frameBuffers[BW_INDIRECT], int2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
