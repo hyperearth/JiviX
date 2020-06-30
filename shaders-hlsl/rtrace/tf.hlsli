@@ -30,6 +30,9 @@ struct MeshInfo {
 struct DrawInfo { uint4 data; };
 
 // 
+[[vk::binding(0,1)]] RWByteAddressBuffer buffers[];
+
+// 
 [[vk::binding(0,0)]] ByteAddressBuffer mesh0[] : register(t0, space0);
 [[vk::binding(1,0)]] ByteAddressBuffer index[] : register(t0, space1);
 [[vk::binding(2,0)]] StructuredBuffer<Binding> bindings[] : register(t0, space2);

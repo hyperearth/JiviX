@@ -53,7 +53,7 @@ void main() { // TODO: Re-Interpolate for Randomized Center
     const uint globalInstanceID = drawInfo.data.z;
 
 #define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
-    const MaterialUnit unit = materials[0u].data[MatID]; // NEW! 20.04.2020
+    const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020
     const vec4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u]), fTexcoord.xy) : unit.diffuse);
     //const vec4 diffuseColor = vec4(1.f,0.f,0.f,1.f);
 

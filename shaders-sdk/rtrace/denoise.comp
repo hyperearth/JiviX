@@ -101,7 +101,7 @@ void main() { // TODO: explicit sampling
     const bool isSkybox = uintBitsToFloat(datapass.z) <= 0.f;
 
     // 
-    const MaterialUnit unit = materials[0u].data[datapass.y];
+    const MaterialUnit unit = materials[datapass.y];
           vec4 diffused = toLinear(unit. diffuseTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u]),texcoord.xy) : unit.diffuse);
           vec4 emission = toLinear(unit.emissionTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u]),texcoord.xy) : unit.emission);
           vec4 normaled = unit. normalsTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u]),texcoord.xy) : unit.normals;

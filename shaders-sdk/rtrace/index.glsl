@@ -133,13 +133,13 @@ layout (binding = 3, set = 0, r32ui) readonly uniform uimage2D mapImage[];
 layout (binding = 4, set = 0) uniform texture2D mapColor[];
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
-layout (binding = 5, set = 1, scalar) readonly buffer Bindings   { Binding   data[]; } bindings  [];
-layout (binding = 6, set = 1, scalar) readonly buffer Attributes { Attribute data[]; } attributes[];
+layout (binding = 5, set = 1, scalar) uniform Bindings   { Binding   data[8u]; } bindings  [];
+layout (binding = 6, set = 1, scalar) uniform Attributes { Attribute data[8u]; } attributes[];
 
 // 
-  layout (binding = 7, set = 1, scalar) readonly buffer InstanceTransform { mat3x4 transform[]; } instances[];
-  layout (binding = 8, set = 1, scalar) readonly buffer MeshMaterial { uint materialID[]; } geomMTs[];
-//layout (binding = 9, set = 1, scalar) readonly buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
+  layout (binding = 7, set = 1, scalar) uniform InstanceTransform { mat3x4 transform[16u]; } instances[];
+  layout (binding = 8, set = 1, scalar) uniform MeshMaterial { uint materialID[16u]; } geomMTs[];
+//layout (binding = 9, set = 1, scalar) uniform InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
 
 layout (binding = 9, set = 1, scalar) uniform Matrices {
     mat4 projection;    
@@ -172,7 +172,8 @@ layout (binding = 17, set = 3, rgba32f) uniform image2D writeImages[];
 layout (binding = 18, set = 3, rgba32f) uniform image2D writeImagesBack[]; 
 
 // Material Set
-layout (binding = 20, set = 4, scalar) readonly buffer Materials { MaterialUnit data[]; } materials[];
+layout (binding = 20, set = 4, scalar) readonly buffer Materials { MaterialUnit materials[]; };
+//layout (binding = 20, set = 4, scalar) uniform Materials { MaterialUnit data[64u]; } materials[];
 layout (binding = 21, set = 4) uniform texture2D background;
 layout (binding = 22, set = 4) uniform texture2D textures[];
 

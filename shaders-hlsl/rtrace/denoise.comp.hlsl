@@ -104,7 +104,7 @@ void main(uint3 DTid : SV_DispatchThreadID) { // TODO: explicit sampling
     const bool isSkybox = asfloat(datapass.z) <= 0.f;
 
     // 
-    const MaterialUnit unit = materials[0u][datapass.y];
+    const MaterialUnit unit = materials[datapass.y];
           float4 diffused = toLinear(unit. diffuseTexture >= 0 ? textures[unit. diffuseTexture].SampleLevel(samplers[2u],texcoord.xy,0) : unit.diffuse);
           float4 emission = toLinear(unit.emissionTexture >= 0 ? textures[unit.emissionTexture].SampleLevel(samplers[2u],texcoord.xy,0) : unit.emission);
           float4 normaled = unit. normalsTexture >= 0 ? textures[unit. normalsTexture].SampleLevel(samplers[2u],texcoord.xy,0) : unit.normals;

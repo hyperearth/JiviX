@@ -124,7 +124,7 @@ XPOL materialize(in XHIT hit, inout XGEO geo) { //
     const uint globalInstanceID = hit.gIndices.x;
     const uint primitiveID = hit.gIndices.z;
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
-    const MaterialUnit unit = materials[0u][MatID]; // NEW! 20.04.2020
+    const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020
     const float2 gTexcoord = geo.gTexcoord.xy;
     //const float3 gNormal = geo.gNormal.xyz;
 

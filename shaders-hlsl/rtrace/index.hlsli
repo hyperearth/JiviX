@@ -198,8 +198,8 @@ uint getMeshID(in RTXInstance instance){
 struct DrawInfo { uint4 data; };
 
 // 
-[[vk::binding(0,0)]] ByteAddressBuffer mesh0[] : register(t0, space0);
-[[vk::binding(1,0)]] ByteAddressBuffer index[] : register(t0, space1);
+[[vk::binding(0,0)]] ByteAddressBuffer mesh0[64u] : register(t0, space0);
+[[vk::binding(1,0)]] ByteAddressBuffer index[64u] : register(t0, space1);
 
 // LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
 [[vk::binding(2,0)]] StructuredBuffer<uint> map[] : register(t0, space2);
@@ -217,8 +217,8 @@ struct DrawInfo { uint4 data; };
 
 // 
 [[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);
-[[vk::binding(10,1)]] StructuredBuffer<MeshInfo> meshInfo : register(t0, space10);
-[[vk::binding(11,1)]] StructuredBuffer<RTXInstance> rtxInstances : register(t0, space11);
+[[vk::binding(10,1)]] RWStructuredBuffer<MeshInfo> meshInfo : register(u0, space10);
+[[vk::binding(11,1)]] RWStructuredBuffer<RTXInstance> rtxInstances : register(u0, space11);
 
 // 
 #ifdef ENABLE_AS
@@ -236,7 +236,7 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(18,3)]] RWTexture2D<float4> writeImagesBack[] : register(u0, space18); 
 
 // 
-[[vk::binding(20,4)]] StructuredBuffer<MaterialUnit> materials[] : register(t0, space20);
+[[vk::binding(20,4)]] RWStructuredBuffer<MaterialUnit> materials : register(u0, space20);
 [[vk::binding(21,4)]] Texture2D<float4> background : register(t0, space21);
 [[vk::binding(22,4)]] Texture2D<float4> textures[] : register(t0, space22);
 [[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space23);
@@ -261,7 +261,7 @@ uint16_t load_u16(in uint offset, in uint binding, in uint nodeMeshID) {
 // System Specified
 uint load_u32(in uint offset, in uint binding, in uint nodeMeshID) {
     //return pack32(u16float2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
-    return mesh0[nodeMeshID].Load(offset);
+    return mesh0[nodeMeshID].Load(int(offset)).x;
 };
 
 // TODO: Add Uint16_t, uint, Float16_t Support
