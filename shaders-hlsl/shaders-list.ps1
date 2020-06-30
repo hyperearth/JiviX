@@ -25,15 +25,17 @@ function Pause ($Message = "Press any key to continue . . . ") {
 
 function Optimize($Name, $Dir = "", $AddArg = "") {
     $ARGS = "$$Dir$Name.spv -Fo $Dir$Name.spv $AddArg OPTFLAGS"
-    $process = start-process -NoNewWindow -Filepath "spirv-opt" -ArgumentList "$ARGS" -PassThru
+    #$process = start-process -NoNewWindow -Filepath "spirv-opt" -ArgumentList "$ARGS" -PassThru
     #$process.PriorityClass = 'BelowNormal'
     $process.WaitForExit()
     $process.Close()
 }
 
 function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName = $Name) {
-    $ARGS = "$CMPPROF $InDir$Name -Fo $OutDir$AltName.spv $AddArg $CFLAGSV"
-    $process = start-process -NoNewWindow -Filepath "dxc" -ArgumentList "$ARGS" -PassThru
+    $ARGS = "$CMPPROF $InDir$Name -Fo $OutDir$AltName.spv $CFLAGSV"
+    $process = start-process -NoNewWindow -Filepath "dxc" -ArgumentList "$ARGS $AddArg" -PassThru
+    #$ARGS = "$CMPPROF $InDir$Name -o $OutDir$AltName.spv $CFLAGSV"
+    #$process = start-process -NoNewWindow -Filepath "glslangValidator" -ArgumentList "$ARGS" -PassThru
     #$process.PriorityClass = 'BelowNormal'
     $process.WaitForExit()
     $process.Close()
@@ -64,6 +66,12 @@ function BuildAllShaders($Pfx = "") {
     BuildCompute "render.vs.hlsl"          "$INDIR$RNDX" "$HRDDIR$RTPU" "-T vs_6_5"
 
     # 
+    BuildCompute "raytrace.cs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU" "-T cs_6_5"
+    BuildCompute "raytrace.rgs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
+    BuildCompute "raytrace.chs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
+    BuildCompute "raytrace.mhs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
+
+    # 
     BuildCompute "quad.cs.hlsl"            "$INDIR$RNDX" "$HRDDIR$RTPU" "-T cs_6_5"
     BuildCompute "resample.ps.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5"
     BuildCompute "resample.gs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU" "-T gs_6_5"
@@ -75,12 +83,6 @@ function BuildAllShaders($Pfx = "") {
     BuildCompute "mapping.ps.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5 -DCONSERVATIVE"
     BuildCompute "mapping.gs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T gs_6_5 -DCONSERVATIVE"
     BuildCompute "mapping.vs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T vs_6_5 -DCONSERVATIVE"
-
-    # 
-    BuildCompute "raytrace.cs.hlsl"        "$INDIR$RNDX" "$HRDDIR$RTPU" "-T cs_6_5"
-    BuildCompute "raytrace.rgs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
-    BuildCompute "raytrace.chs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
-    BuildCompute "raytrace.mhs.hlsl"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
 
     # optimize built shaders
     OptimizeMainline $RNDX

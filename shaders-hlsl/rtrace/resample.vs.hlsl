@@ -36,7 +36,7 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
     const uint globalInstanceID = iIndices.y;
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
     const uint geometryInstanceID = iIndices.x;
-    float3x4 matras = float3x4(transforms[nodeMeshID][geometryInstanceID]);
+    float3x4 matras = transforms[nodeMeshID][geometryInstanceID];
     if (!hasTransform(meshInfo[nodeMeshID])) {
         matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
     };

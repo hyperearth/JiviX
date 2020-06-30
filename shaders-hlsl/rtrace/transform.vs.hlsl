@@ -35,11 +35,11 @@ GS_INPUT main(in VS_INPUT input, in uint VertexIndex : SV_VERTEXID) { // Cross-L
     //if (IdxType == IndexU32) { idx = load_u32(idx*4u, 0u, true); };
 
     // Use Apple-Like Attributes
-    const float4 iPosition = get_float4(idx, 0u);
-    const float4 iTexcoord = get_float4(idx, 1u);
-    const float4 iNormals  = get_float4(idx, 2u);
-    const float4 iTangent  = get_float4(idx, 3u);
-    const float4 iBinormal = get_float4(idx, 4u);
+    const float4 iPosition = float4(input.iPosition,1.f);//get_float4(idx, 0u);
+    const float4 iTexcoord = float4(input.iTexcoord,0.f.xx);//get_float4(idx, 1u);
+    const float4 iNormals  = float4(input.iNormals,0.f);//get_float4(idx, 2u);
+    const float4 iTangent  = input.iTangent;//get_float4(idx, 3u);
+    const float4 iBinormal = input.iBinormal;//get_float4(idx, 4u);
 
     // 
     GS_INPUT output;

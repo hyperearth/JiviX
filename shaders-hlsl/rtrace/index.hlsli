@@ -195,17 +195,17 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(4,0)]] Texture2D<float4> mapColor[] : register(t0, space4);
 
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
-[[vk::binding(5,1)]] RWStructuredBuffer<Binding> bindings[] : register(u0, space5);
-[[vk::binding(6,1)]] RWStructuredBuffer<Attribute> attributes[] : register(u0, space6);
+[[vk::binding(5,1)]] StructuredBuffer<Binding> bindings[] : register(t0, space5);
+[[vk::binding(6,1)]] StructuredBuffer<Attribute> attributes[] : register(t0, space6);
 
 // 
-[[vk::binding(7,1)]] RWStructuredBuffer<float3x4> transforms[] : register(u0, space7);
-[[vk::binding(8,1)]] RWStructuredBuffer<uint> materialID[] : register(u0, space8);
+[[vk::binding(7,1)]] StructuredBuffer<float3x4> transforms[] : register(t0, space7);
+[[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(t0, space8);
 
 // 
 [[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);
-[[vk::binding(10,1)]] RWStructuredBuffer<MeshInfo> meshInfo : register(u0, space10);
-[[vk::binding(11,1)]] RWStructuredBuffer<RTXInstance> rtxInstances : register(u0, space11);
+[[vk::binding(10,1)]] StructuredBuffer<MeshInfo> meshInfo : register(t0, space10);
+[[vk::binding(11,1)]] StructuredBuffer<RTXInstance> rtxInstances : register(t0, space11);
 
 // 
 #ifdef ENABLE_AS
@@ -223,7 +223,7 @@ struct DrawInfo { uint4 data; };
 [[vk::binding(18,3)]] RWTexture2D<float4> writeImagesBack[] : register(u0, space18); 
 
 // 
-[[vk::binding(20,4)]] RWStructuredBuffer<MaterialUnit> materials[] : register(u0, space20);
+[[vk::binding(20,4)]] StructuredBuffer<MaterialUnit> materials[] : register(t0, space20);
 [[vk::binding(21,4)]] Texture2D<float4> background : register(t0, space21);
 [[vk::binding(22,4)]] Texture2D<float4> textures[] : register(t0, space22);
 [[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space23);
@@ -312,16 +312,16 @@ float raySphereIntersect(in float3 r0, in float3 rd, in float3 s0, in float sr) 
 
 // NEXT standard consts in current
 // Ray tracing NEXT capable shader standard development planned begin in 2019 year
-const float PHI = 1.6180339887498948482f;
-const float SFN = 0.00000011920928955078125f, SFO = 1.f+SFN;//1.00000011920928955078125f;
-const float INFINITY = 1e+5f, N_INFINITY = (INFINITY*(1.f-SFN));
-const float PI = 3.1415926535897932384626422832795028841971f;
-const float TWO_PI = 6.2831853071795864769252867665590057683943f;
-const float SQRT_OF_ONE_THIRD = 0.5773502691896257645091487805019574556476f;
-const float E = 2.7182818284590452353602874713526624977572f;
-const float INV_PI = 0.3183098861837907f;
-const float TWO_INV_PI = 0.6366197723675814f;
-const float INV_TWO_PI = 0.15915494309189535f;
+ float PHI = 1.6180339887498948482f;
+ float SFN = 0.00000011920928955078125f, SFO = 1.f+SFN;//1.00000011920928955078125f;
+ float INFINITY = 1e+5f, N_INFINITY = (INFINITY*(1.f-SFN));
+ float PI = 3.1415926535897932384626422832795028841971f;
+ float TWO_PI = 6.2831853071795864769252867665590057683943f;
+ float SQRT_OF_ONE_THIRD = 0.5773502691896257645091487805019574556476f;
+ float E = 2.7182818284590452353602874713526624977572f;
+ float INV_PI = 0.3183098861837907f;
+ float TWO_INV_PI = 0.6366197723675814f;
+ float INV_TWO_PI = 0.15915494309189535f;
 
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
 uint hash( uint x ) {

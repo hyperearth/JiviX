@@ -31,7 +31,7 @@ GS_INPUT main(in VS_INPUT input, in uint InstanceIndex : SV_InstanceID, in uint 
     const uint idx = uint(VertexIndex.x);
 
     // By Geometry Data
-    float3x4 matras = float3x4(transforms[nodeMeshID][geometryInstanceID]);
+    float3x4 matras = transforms[nodeMeshID][geometryInstanceID];
     if (!hasTransform(meshInfo[nodeMeshID])) {
         matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
     };
