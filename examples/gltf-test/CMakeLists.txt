@@ -83,7 +83,18 @@ find_package(Vulkan REQUIRED)
 find_package(PkgConfig QUIET)
 #find_package(glbinding REQUIRED) # if it is really required in your project
 
-set (LIBS )
+find_package(spirv_cross_c_shared REQUIRED)
+if (spirv_cross_c_shared_FOUND)
+        message(STATUS "Found SPIRV-Cross C API! :)")
+else()
+        message(STATUS "Could not find SPIRV-Cross C API! :(")
+endif()
+
+set (LIBS spirv-cross-c-shared glslang
+    HLSL
+    OSDependent
+    OGLCompiler
+    SPIRV)
 
 # Set libs and include dirs of projects
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
@@ -176,7 +187,7 @@ else()
     set (COMMON_LIBS glfw X11 Xrandr rt dl)
     set (LIBS ${LIBS} ${COMMON_LIBS})
 
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -stdlib=libc++ -lc++ -lc++abi -lm -lc -lgcc_s -lgcc -g -Wall -std=c++2a -march=skylake -mtune=skylake -fpermissive")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -lstdc++ -lc++ -lc++abi -lm -lc -lgcc_s -lgcc -g -Wall -std=c++2a -march=skylake -mtune=skylake -fpermissive")
     set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wmissing-field-initializers -stdlib=libc                                                            -march=skylake -mtune=skylake -fpermissive")
 endif()
 

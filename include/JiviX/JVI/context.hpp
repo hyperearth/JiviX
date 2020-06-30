@@ -667,10 +667,17 @@ namespace jvi {
             return uTHIS;
         };
 
-    protected: // 
+    protected: //
+#ifdef __GNUC__
+        std::chrono::time_point<std::chrono::system_clock> beginTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::system_clock> leastTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::system_clock> previTime = std::chrono::high_resolution_clock::now();
+#else
         std::chrono::time_point<std::chrono::steady_clock> beginTime = std::chrono::high_resolution_clock::now();
         std::chrono::time_point<std::chrono::steady_clock> leastTime = std::chrono::high_resolution_clock::now();
         std::chrono::time_point<std::chrono::steady_clock> previTime = std::chrono::high_resolution_clock::now();
+#endif
+
         bool descriptorUpdated0 = false;
         bool descriptorUpdated1 = false;
         bool descriptorUpdatedF = false;

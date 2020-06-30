@@ -511,7 +511,7 @@ int main() {
 
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
-            .flags = bflgs, .size = vkt::tiled(uint64_t(model.buffers[i].data.size()), uint64_t(4ull)) * uint64_t(4ull), .usage = bufferUsage,
+            .size = vkt::tiled(uint64_t(model.buffers[i].data.size()), uint64_t(4ull)) * uint64_t(4ull), .usage = bufferUsage,
         }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU })));
 
         // 
@@ -572,13 +572,10 @@ int main() {
         auto image = images.back();
 
         //
-        vkh::VkImageCreateFlags bflg = {};
-        vkt::unlock32(bflg) = 0u;
-
         vkt::Vector<> imageBuf = {};
         if (img.image.size() > 0u) {
             imageBuf = vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw.getAllocator(), vkh::VkBufferCreateInfo{ // experimental: callify
-                .flags = bflg, .size = img.image.size(), .usage = uploadUsage,
+                .size = img.image.size(), .usage = uploadUsage,
             }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
             memcpy(imageBuf.data(), &img.image[0u], img.image.size());
         };

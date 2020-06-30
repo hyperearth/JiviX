@@ -6,11 +6,27 @@
 #include "./context.hpp"
 #include "./bview-set.hpp"
 
-#include <spirv_cross/spirv.hpp>
-#include <spirv_cross/spirv_cross.hpp>
-
+#include <spirv_cross/spirv_cross_c.h>
+//#include <glslang/Include/glslang_c_interface.h>
+#include <glslang/Public/ShaderLang.h>
+#include <SPIRV/GLSL.std.450.h>
+#include <SPIRV/spirv.hpp>
+#include <SPIRV/GlslangToSpv.h>
 
 namespace jvi {
+
+    //static spvc_bool g_fail_on_error = SPVC_TRUE;
+    static void error_callback(void *userdata, const char *error)
+    {
+        (void)userdata;
+        if (true)
+        {
+            fprintf(stderr, "Error: %s\n", error);
+            //exit(1);
+        }
+        else
+            printf("Expected error hit: %s.\n", error);
+    };
 
     // WARNING!!
     // FOR VULKAN API ONLY!!
@@ -42,31 +58,207 @@ namespace jvi {
 
             //
             auto unModSource = vkt::readBinary(std::string("./shaders/transform.geom.spv"));
+            auto modSource = unModSource;
 
-            // 
-            spirv_cross::Compiler spirv(std::move(unModSource));
-            spirv_cross::ShaderResources resources = spirv.get_shader_resources();
+            //
+            std::unordered_map<int, std::string> names = {};
+            std::unordered_map<int, int> locations = {};
+            std::unordered_map<int, int> strides = {};
+            std::unordered_map<int, int> offsets = {};
+            std::unordered_map<int, int> buffers = {};
 
-            // 
-            for (auto& stream : resources.stage_outputs) {
-                unsigned location = spirv.get_decoration(stream.id, spv::DecorationLocation);
-
-                if (location >= 0 && location < 5) {
-                    spirv.set_decoration(stream.id, spv::DecorationXfbBuffer, 0);
-                    spirv.set_decoration(stream.id, spv::DecorationXfbStride, 80);
+            //
+            for (int i = 5; i != unModSource.size(); i += unModSource[i] >> 16) {
+                spv::Op op = spv::Op(unModSource[i] & 0xffff);
+                if (op == spv::Op::OpName) {
+                    names[unModSource[i + 1]] = std::string((const char*)&unModSource[i+2], ((unModSource[i] >> 16) - 2u)*4u);//i, (i + (unModSource[i] >> 16));
                 };
-                if (location == 0) { spirv.set_decoration(stream.id, spv::DecorationOffset, 0); };
-                if (location == 1) { spirv.set_decoration(stream.id, spv::DecorationOffset, 16); };
-                if (location == 2) { spirv.set_decoration(stream.id, spv::DecorationOffset, 32); };
-                if (location == 3) { spirv.set_decoration(stream.id, spv::DecorationOffset, 48); };
-                if (location == 4) { spirv.set_decoration(stream.id, spv::DecorationOffset, 64); };
             };
 
-            // 
-            auto modSourceSrc = spirv.compile();
-            std::vector<uint8_t> modSource8U(modSourceSrc.begin(), modSourceSrc.end());
-            std::vector<uint32_t> modSource(modSource8U.size());
-            memcpy(modSource.data(), modSource8U.data(), modSource8U.size());
+            // 16-bit OpCode, 16-bit length, 32-bit NameID, 32-bit DecorationType, 32-bit value
+            for (int i = 5; i != unModSource.size(); i += (unModSource[i] >> 16)) {
+                spv::Op op = spv::Op(unModSource[i] & 0xffff);
+                if (op == spv::Op::OpDecorate) {
+                    int name = unModSource[i + 1];
+                    if (names[name].find("out") >= 0) {
+                        if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationLocation) {
+                            locations[name] = unModSource[i + 3];
+                        };
+                        if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationXfbStride) {
+                            strides[name] = unModSource[i + 3];
+                        };
+                        if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationOffset) {
+                            offsets[name] = unModSource[i + 3];
+                        };
+                        if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationXfbBuffer) {
+                            buffers[name] = unModSource[i + 3];
+                        };
+                    };
+                };
+            };
+
+            for (std::pair<int, int> loc : locations)
+            {
+                for (int i = 5; i != modSource.size(); i += modSource[i] >> 16) {
+                    spv::Op op = spv::Op(unModSource[i] & 0xffff);
+                    if (op == spv::Op::OpDecorate) {
+                        int name = modSource[i + 1];
+                        if (names[name].find("out") >= 0) {
+                            if (spv::Decoration(modSource[i + 2]) == spv::Decoration::DecorationLocation) {
+                                if (name == loc.first) {
+
+                                    // Place Stride info
+                                    if (strides.find(name) == strides.end()) {
+                                        modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
+                                            ((spv::Op::OpDecorate << 16u) + 4u),
+                                            uint32_t(name),
+                                            spv::Decoration::DecorationXfbStride,
+                                            80u
+                                        });
+                                    };
+
+                                    // Place Buffers info
+                                    if (buffers.find(name) == buffers.end()) {
+                                        modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
+                                            ((spv::Op::OpDecorate << 16u) + 4u),
+                                            uint32_t(name),
+                                            spv::Decoration::DecorationXfbBuffer,
+                                            0u
+                                        });
+                                    };
+
+                                    // Place Offset info
+                                    if (offsets.find(name) == offsets.end()) {
+                                        modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
+                                            ((spv::Op::OpDecorate << 16u) + 4u),
+                                            uint32_t(name),
+                                            spv::Decoration::DecorationOffset,
+                                            [=](const int& location){
+                                                switch(location) {
+                                                    case 0: return 0u; break;
+                                                    case 1: return 16u; break;
+                                                    case 2: return 32u; break;
+                                                    case 3: return 48u; break;
+                                                    case 4: return 64u; break;
+                                                };
+                                                return 0u;
+                                            }(locations[name])
+                                        });
+                                    };
+
+                                    //
+                                    locations.erase(loc.first); break;
+                                };
+
+                            };
+                        };
+                    };
+                };
+            };
+
+
+            /*{
+                spvc_context context = NULL;
+                spvc_parsed_ir ir = NULL;
+                spvc_compiler compiler = NULL;
+                spvc_compiler_options options = NULL;
+                spvc_resources resources = NULL;
+                const spvc_reflected_resource *list = NULL;
+                const char *result = NULL;
+                size_t count;
+                size_t i;
+
+                // Create context.
+                spvc_context_create(&context);
+
+                // Set debug callback.
+                //spvc_context_set_error_callback(context, error_callback, NULL);
+
+                // Parse the SPIR-V.
+                spvc_context_parse_spirv(context, unModSource.data(), unModSource.size(), &ir);
+
+                // Hand it off to a compiler instance and give it ownership of the IR.
+                spvc_context_create_compiler(context, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler);
+
+                // Do some basic reflection.
+                spvc_compiler_create_shader_resources(compiler, &resources);
+                spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_OUTPUT, &list, &count);
+
+                for (i = 0; i < count; i++)
+                {
+                    locations.push_back({list[i].id, spvc_compiler_get_decoration(compiler, list[i].id, SpvDecorationLocation)});
+                    if (locations.back().second >= 0 && locations.back().second < 5) {
+                        spvc_compiler_set_decoration(compiler, list[i].id, SpvDecorationXfbBuffer, 0);
+                        spvc_compiler_set_decoration(compiler, list[i].id, SpvDecorationXfbStride, 80);
+                        if (locations.back().second == 0) { spvc_compiler_set_decoration(compiler, list[i].id, SpvDecorationOffset, 0); };
+                        if (locations.back().second == 1) { spvc_compiler_set_decoration(compiler, list[i].id, SpvDecorationOffset, 16); };
+                        if (locations.back().second == 2) { spvc_compiler_set_decoration(compiler, list[i].id, SpvDecorationOffset, 32); };
+                        if (locations.back().second == 3) { spvc_compiler_set_decoration(compiler, list[i].id, SpvDecorationOffset, 48); };
+                        if (locations.back().second == 4) { spvc_compiler_set_decoration(compiler, list[i].id, SpvDecorationOffset, 64); };
+                    };
+                    //spvc_compiler_get_decoration(compiler, list[i].id, SpvDecorationBinding);
+                };
+
+                // Modify options.
+                spvc_compiler_create_compiler_options(compiler, &options);
+                spvc_compiler_options_set_uint(options, SPVC_COMPILER_OPTION_GLSL_VERSION, 460);
+                spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_ES, SPVC_FALSE);
+                spvc_compiler_options_set_bool(options, SPVC_COMPILER_OPTION_GLSL_VULKAN_SEMANTICS, SPVC_TRUE);
+                spvc_compiler_install_compiler_options(compiler, options);
+
+                //
+                spvc_compiler_compile(compiler, &result);
+                printf("Cross-compiled source: %s\n", result);
+
+                //
+                bool glslangInitialized = false;
+                if (!glslangInitialized)
+                {
+                    glslang::InitializeProcess();
+                    glslangInitialized = true;
+                }
+
+                //
+                glslang::TShader Shader(EShLanguage::EShLangGeometry);
+                Shader.setStrings(&result, 1);
+
+                //
+                int ClientInputSemanticsVersion = 100; // maps to, say, #define VULKAN 100
+                glslang::EShTargetClientVersion VulkanClientVersion = glslang::EShTargetVulkan_1_2;
+                glslang::EShTargetLanguageVersion TargetVersion = glslang::EShTargetSpv_1_5;
+
+                //
+                Shader.setEnvInput(glslang::EShSourceGlsl, EShLanguage::EShLangGeometry, glslang::EShClientVulkan, ClientInputSemanticsVersion);
+                Shader.setEnvClient(glslang::EShClientVulkan, VulkanClientVersion);
+                Shader.setEnvTarget(glslang::EShTargetSpv, TargetVersion);
+
+                //
+                const TBuiltInResource DefaultTBuiltInResource = {};
+                TBuiltInResource Resources;
+                Resources = DefaultTBuiltInResource;
+                EShMessages messages = (EShMessages) (EShMsgSpvRules | EShMsgVulkanRules);
+                if (!Shader.parse(&Resources, 100, false, messages))
+                {
+                    std::cout << Shader.getInfoLog() << std::endl;
+                    std::cout << Shader.getInfoDebugLog() << std::endl;
+                }
+
+                //
+                glslang::TProgram Program;
+                Program.addShader(&Shader);
+                if(!Program.link(messages))
+                {
+                    std::cout << Shader.getInfoLog() << std::endl;
+                    std::cout << Shader.getInfoDebugLog() << std::endl;
+                }
+
+                //
+                spv::SpvBuildLogger logger;
+                glslang::SpvOptions spvOptions;
+                glslang::GlslangToSpv(*Program.getIntermediate(EShLanguage::EShLangGeometry), modSource, &logger, &spvOptions);
+            };*/
+
+
 
             // for faster code, pre-initialize
             this->stages = {
