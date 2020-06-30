@@ -24,7 +24,7 @@ struct PS_OUTPUT
 };
 
 // 
-const float2 shift[9] = {
+static const float2 shift[9] = {
     float2(-1.f,-1.f),float2(0.f,-1.f),float2(1.f,-1.f),
     float2(-1.f, 0.f),float2(0.f, 0.f),float2(1.f, 0.f),
     float2(-1.f, 1.f),float2(0.f, 1.f),float2(1.f, 1.f)

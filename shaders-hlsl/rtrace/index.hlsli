@@ -161,7 +161,7 @@ bool hasTangent(in MeshInfo meshInfo){
 };
 
 // color space utils
-const float HDR_GAMMA = 2.2f;
+static const float HDR_GAMMA = 2.2f;
 float3 fromLinear(in float3 linearRGB) { return lerp(float3(1.055f.xxx)*pow(linearRGB, float3((1.0f/2.4f).xxx)) - float3(0.055f.xxx), linearRGB * float3(12.92f.xxx), (linearRGB < float3(0.0031308f.xxx))); }
 float3 toLinear(in float3 sRGB) { return lerp(pow(sRGB + float3(0.055f.xxx)/float3(1.055f.xxx), float3(2.4f.xxx)), sRGB/float3(12.92f.xxx), (sRGB < float3(0.04045f.xxx))); }
 float4 fromLinear(in float4 linearRGB) { return float4(fromLinear(linearRGB.xyz), linearRGB.w); }
@@ -325,16 +325,16 @@ float raySphereIntersect(in float3 r0, in float3 rd, in float3 s0, in float sr) 
 
 // NEXT standard consts in current
 // Ray tracing NEXT capable shader standard development planned begin in 2019 year
- float PHI = 1.6180339887498948482f;
- float SFN = 0.00000011920928955078125f, SFO = 1.f+SFN;//1.00000011920928955078125f;
- float INFINITY = 1e+5f, N_INFINITY = (INFINITY*(1.f-SFN));
- float PI = 3.1415926535897932384626422832795028841971f;
- float TWO_PI = 6.2831853071795864769252867665590057683943f;
- float SQRT_OF_ONE_THIRD = 0.5773502691896257645091487805019574556476f;
- float E = 2.7182818284590452353602874713526624977572f;
- float INV_PI = 0.3183098861837907f;
- float TWO_INV_PI = 0.6366197723675814f;
- float INV_TWO_PI = 0.15915494309189535f;
+static const float PHI = 1.6180339887498948482f;
+static const float SFN = 0.00000011920928955078125f, SFO = 1.f+SFN;//1.00000011920928955078125f;
+static const float INFINITY = 1e+5f, N_INFINITY = (INFINITY*(1.f-SFN));
+static const float PI = 3.1415926535897932384626422832795028841971f;
+static const float TWO_PI = 6.2831853071795864769252867665590057683943f;
+static const float SQRT_OF_ONE_THIRD = 0.5773502691896257645091487805019574556476f;
+static const float E = 2.7182818284590452353602874713526624977572f;
+static const float INV_PI = 0.3183098861837907f;
+static const float TWO_INV_PI = 0.6366197723675814f;
+static const float INV_TWO_PI = 0.15915494309189535f;
 
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
 uint hash( uint x ) {

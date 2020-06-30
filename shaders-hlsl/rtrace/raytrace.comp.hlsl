@@ -15,7 +15,7 @@
 groupshared XHIT hits[workX*workY];
 
 // Needs 1000$ for fix BROKEN ray query...
-const uint MAX_ITERATION = 64u;
+static const uint MAX_ITERATION = 64u;
 
 /*
 struct RayDesc
@@ -130,7 +130,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 #define RES hits[lIdx]
 
 // 
-const uint3 WorkGroupSize = uint3(workX, workY, 1);
+static const uint3 WorkGroupSize = uint3(workX, workY, 1);
 
 // 14.06.2020
 // Fully Refresh Ray Cast Shaders

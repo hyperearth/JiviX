@@ -23,7 +23,7 @@ struct PS_INPUT
 };
 
 // 
-const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.f,1.f) };
+static const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.f,1.f) };
 
 [maxvertexcount(3)]
 void main(triangle GS_INPUT input[3], inout TriangleStream<PS_INPUT> OutputStream) { // Just Remap Into... 
