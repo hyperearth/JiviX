@@ -1,0 +1,398 @@
+; SPIR-V
+; Version: 1.5
+; Generator: Khronos Glslang Reference Front End; 8
+; Bound: 224
+; Schema: 0
+               OpCapability Geometry
+               OpCapability StorageBuffer8BitAccess
+               OpCapability RuntimeDescriptorArray
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Geometry %main "main" %drawInfo %gPosition %gTexcoord %_ %gl_in %out_fPosition %out_fTexcoord %out_fTangent %gTangent %out_fNormal %gNormal %out_fBinormal %buffers %__0 %__1
+               OpExecutionMode %main Triangles
+               OpExecutionMode %main Invocations 1
+               OpExecutionMode %main OutputTriangleStrip
+               OpExecutionMode %main OutputVertices 3
+               OpSource GLSL 460
+               OpSourceExtension "GL_ARB_shader_clock"
+               OpSourceExtension "GL_EXT_control_flow_attributes"
+               OpSourceExtension "GL_EXT_nonuniform_qualifier"
+               OpSourceExtension "GL_EXT_ray_query"
+               OpSourceExtension "GL_EXT_ray_tracing"
+               OpSourceExtension "GL_EXT_samplerless_texture_functions"
+               OpSourceExtension "GL_EXT_scalar_block_layout"
+               OpSourceExtension "GL_EXT_shader_16bit_storage"
+               OpSourceExtension "GL_EXT_shader_8bit_storage"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_float16"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_float32"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_float64"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_int16"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_int32"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_int64"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_int8"
+               OpSourceExtension "GL_EXT_shader_realtime_clock"
+               OpSourceExtension "GL_EXT_shader_subgroup_extended_types_float16"
+               OpSourceExtension "GL_EXT_shader_subgroup_extended_types_int16"
+               OpSourceExtension "GL_EXT_shader_subgroup_extended_types_int64"
+               OpSourceExtension "GL_EXT_shader_subgroup_extended_types_int8"
+               OpSourceExtension "GL_GOOGLE_cpp_style_line_directive"
+               OpSourceExtension "GL_GOOGLE_include_directive"
+               OpSourceExtension "GL_KHR_shader_subgroup_basic"
+               OpName %main "main"
+               OpName %hasNormal_ "hasNormal("
+               OpName %hasTangent_ "hasTangent("
+               OpName %pushConstants "pushConstants"
+               OpMemberName %pushConstants 0 "data"
+               OpName %drawInfo "drawInfo"
+               OpName %dp1 "dp1"
+               OpName %gPosition "gPosition"
+               OpName %dp2 "dp2"
+               OpName %tx1 "tx1"
+               OpName %gTexcoord "gTexcoord"
+               OpName %tx2 "tx2"
+               OpName %normal "normal"
+               OpName %i "i"
+               OpName %gl_PerVertex "gl_PerVertex"
+               OpMemberName %gl_PerVertex 0 "gl_Position"
+               OpMemberName %gl_PerVertex 1 "gl_PointSize"
+               OpName %_ ""
+               OpName %gl_PerVertex_0 "gl_PerVertex"
+               OpMemberName %gl_PerVertex_0 0 "gl_Position"
+               OpMemberName %gl_PerVertex_0 1 "gl_PointSize"
+               OpMemberName %gl_PerVertex_0 2 "gl_ClipDistance"
+               OpMemberName %gl_PerVertex_0 3 "gl_CullDistance"
+               OpName %gl_in "gl_in"
+               OpName %out_fPosition "out_fPosition"
+               OpName %out_fTexcoord "out_fTexcoord"
+               OpName %out_fTangent "out_fTangent"
+               OpName %gTangent "gTangent"
+               OpName %out_fNormal "out_fNormal"
+               OpName %gNormal "gNormal"
+               OpName %coef "coef"
+               OpName %tangent "tangent"
+               OpName %binorml "binorml"
+               OpName %out_fBinormal "out_fBinormal"
+               OpName %MeshData "MeshData"
+               OpMemberName %MeshData 0 "data"
+               OpName %buffers "buffers"
+               OpName %Binding "Binding"
+               OpMemberName %Binding 0 "bufvsd"
+               OpMemberName %Binding 1 "stride"
+               OpMemberName %Binding 2 "rate"
+               OpName %Bindings "Bindings"
+               OpMemberName %Bindings 0 "bindings"
+               OpName %__0 ""
+               OpName %Attribute "Attribute"
+               OpMemberName %Attribute 0 "location"
+               OpMemberName %Attribute 1 "binding"
+               OpMemberName %Attribute 2 "format"
+               OpMemberName %Attribute 3 "offset"
+               OpName %Attributes "Attributes"
+               OpMemberName %Attributes 0 "attributes"
+               OpName %__1 ""
+               OpMemberDecorate %pushConstants 0 Offset 0
+               OpDecorate %pushConstants Block
+               OpDecorate %gPosition Location 0
+               OpDecorate %gTexcoord Location 1
+               OpMemberDecorate %gl_PerVertex 0 BuiltIn Position
+               OpMemberDecorate %gl_PerVertex 1 BuiltIn PointSize
+               OpDecorate %gl_PerVertex Block
+               OpMemberDecorate %gl_PerVertex_0 0 BuiltIn Position
+               OpMemberDecorate %gl_PerVertex_0 1 BuiltIn PointSize
+               OpMemberDecorate %gl_PerVertex_0 2 BuiltIn ClipDistance
+               OpMemberDecorate %gl_PerVertex_0 3 BuiltIn CullDistance
+               OpDecorate %gl_PerVertex_0 Block
+               OpDecorate %out_fPosition Location 0
+               OpDecorate %out_fTexcoord Location 1
+               OpDecorate %out_fTangent Location 3
+               OpDecorate %gTangent Location 3
+               OpDecorate %out_fNormal Location 2
+               OpDecorate %gNormal Location 2
+               OpDecorate %out_fBinormal Location 4
+               OpDecorate %_runtimearr_uchar ArrayStride 1
+               OpMemberDecorate %MeshData 0 NonWritable
+               OpMemberDecorate %MeshData 0 Offset 0
+               OpDecorate %MeshData Block
+               OpDecorate %buffers DescriptorSet 1
+               OpDecorate %buffers Binding 0
+               OpMemberDecorate %Binding 0 Offset 0
+               OpMemberDecorate %Binding 1 Offset 4
+               OpMemberDecorate %Binding 2 Offset 8
+               OpDecorate %_runtimearr_Binding ArrayStride 12
+               OpMemberDecorate %Bindings 0 NonWritable
+               OpMemberDecorate %Bindings 0 Offset 0
+               OpDecorate %Bindings Block
+               OpDecorate %__0 DescriptorSet 0
+               OpDecorate %__0 Binding 1
+               OpMemberDecorate %Attribute 0 Offset 0
+               OpMemberDecorate %Attribute 1 Offset 4
+               OpMemberDecorate %Attribute 2 Offset 8
+               OpMemberDecorate %Attribute 3 Offset 12
+               OpDecorate %_runtimearr_Attribute ArrayStride 16
+               OpMemberDecorate %Attributes 0 NonWritable
+               OpMemberDecorate %Attributes 0 Offset 0
+               OpDecorate %Attributes Block
+               OpDecorate %__1 DescriptorSet 0
+               OpDecorate %__1 Binding 2
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %bool = OpTypeBool
+          %7 = OpTypeFunction %bool
+       %uint = OpTypeInt 32 0
+     %v4uint = OpTypeVector %uint 4
+%pushConstants = OpTypeStruct %v4uint
+%_ptr_PushConstant_pushConstants = OpTypePointer PushConstant %pushConstants
+   %drawInfo = OpVariable %_ptr_PushConstant_pushConstants PushConstant
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+     %uint_3 = OpConstant %uint 3
+%_ptr_PushConstant_uint = OpTypePointer PushConstant %uint
+      %int_1 = OpConstant %int 1
+     %uint_0 = OpConstant %uint 0
+      %int_3 = OpConstant %int 3
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%_arr_v4float_uint_3 = OpTypeArray %v4float %uint_3
+%_ptr_Input__arr_v4float_uint_3 = OpTypePointer Input %_arr_v4float_uint_3
+  %gPosition = OpVariable %_ptr_Input__arr_v4float_uint_3 Input
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+      %int_2 = OpConstant %int 2
+  %gTexcoord = OpVariable %_ptr_Input__arr_v4float_uint_3 Input
+    %v3float = OpTypeVector %float 3
+%_ptr_Function_v3float = OpTypePointer Function %v3float
+%_ptr_Function_uint = OpTypePointer Function %uint
+%gl_PerVertex = OpTypeStruct %v4float %float
+%_ptr_Output_gl_PerVertex = OpTypePointer Output %gl_PerVertex
+          %_ = OpVariable %_ptr_Output_gl_PerVertex Output
+     %uint_1 = OpConstant %uint 1
+%_arr_float_uint_1 = OpTypeArray %float %uint_1
+%gl_PerVertex_0 = OpTypeStruct %v4float %float %_arr_float_uint_1 %_arr_float_uint_1
+%_arr_gl_PerVertex_0_uint_3 = OpTypeArray %gl_PerVertex_0 %uint_3
+%_ptr_Input__arr_gl_PerVertex_0_uint_3 = OpTypePointer Input %_arr_gl_PerVertex_0_uint_3
+      %gl_in = OpVariable %_ptr_Input__arr_gl_PerVertex_0_uint_3 Input
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%out_fPosition = OpVariable %_ptr_Output_v4float Output
+%out_fTexcoord = OpVariable %_ptr_Output_v4float Output
+%out_fTangent = OpVariable %_ptr_Output_v4float Output
+   %gTangent = OpVariable %_ptr_Input__arr_v4float_uint_3 Input
+%out_fNormal = OpVariable %_ptr_Output_v4float Output
+    %gNormal = OpVariable %_ptr_Input__arr_v4float_uint_3 Input
+%_ptr_Function_float = OpTypePointer Function %float
+    %float_1 = OpConstant %float 1
+    %float_0 = OpConstant %float 0
+%out_fBinormal = OpVariable %_ptr_Output_v4float Output
+      %uchar = OpTypeInt 8 0
+%_runtimearr_uchar = OpTypeRuntimeArray %uchar
+   %MeshData = OpTypeStruct %_runtimearr_uchar
+%_runtimearr_MeshData = OpTypeRuntimeArray %MeshData
+%_ptr_StorageBuffer__runtimearr_MeshData = OpTypePointer StorageBuffer %_runtimearr_MeshData
+    %buffers = OpVariable %_ptr_StorageBuffer__runtimearr_MeshData StorageBuffer
+    %Binding = OpTypeStruct %uint %uint %uint
+%_runtimearr_Binding = OpTypeRuntimeArray %Binding
+   %Bindings = OpTypeStruct %_runtimearr_Binding
+%_ptr_StorageBuffer_Bindings = OpTypePointer StorageBuffer %Bindings
+        %__0 = OpVariable %_ptr_StorageBuffer_Bindings StorageBuffer
+  %Attribute = OpTypeStruct %uint %uint %uint %uint
+%_runtimearr_Attribute = OpTypeRuntimeArray %Attribute
+ %Attributes = OpTypeStruct %_runtimearr_Attribute
+%_ptr_StorageBuffer_Attributes = OpTypePointer StorageBuffer %Attributes
+        %__1 = OpVariable %_ptr_StorageBuffer_Attributes StorageBuffer
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+        %dp1 = OpVariable %_ptr_Function_v4float Function
+        %dp2 = OpVariable %_ptr_Function_v4float Function
+        %tx1 = OpVariable %_ptr_Function_v4float Function
+        %tx2 = OpVariable %_ptr_Function_v4float Function
+     %normal = OpVariable %_ptr_Function_v3float Function
+          %i = OpVariable %_ptr_Function_uint Function
+       %coef = OpVariable %_ptr_Function_float Function
+    %tangent = OpVariable %_ptr_Function_v3float Function
+    %binorml = OpVariable %_ptr_Function_v3float Function
+         %44 = OpAccessChain %_ptr_Input_v4float %gPosition %int_1
+         %45 = OpLoad %v4float %44
+         %46 = OpAccessChain %_ptr_Input_v4float %gPosition %int_0
+         %47 = OpLoad %v4float %46
+         %48 = OpFSub %v4float %45 %47
+               OpStore %dp1 %48
+         %51 = OpAccessChain %_ptr_Input_v4float %gPosition %int_2
+         %52 = OpLoad %v4float %51
+         %53 = OpAccessChain %_ptr_Input_v4float %gPosition %int_0
+         %54 = OpLoad %v4float %53
+         %55 = OpFSub %v4float %52 %54
+               OpStore %dp2 %55
+         %58 = OpAccessChain %_ptr_Input_v4float %gTexcoord %int_1
+         %59 = OpLoad %v4float %58
+         %60 = OpAccessChain %_ptr_Input_v4float %gTexcoord %int_0
+         %61 = OpLoad %v4float %60
+         %62 = OpFSub %v4float %59 %61
+               OpStore %tx1 %62
+         %64 = OpAccessChain %_ptr_Input_v4float %gTexcoord %int_2
+         %65 = OpLoad %v4float %64
+         %66 = OpAccessChain %_ptr_Input_v4float %gTexcoord %int_0
+         %67 = OpLoad %v4float %66
+         %68 = OpFSub %v4float %65 %67
+               OpStore %tx2 %68
+         %72 = OpLoad %v4float %dp1
+         %73 = OpVectorShuffle %v3float %72 %72 0 1 2
+         %74 = OpLoad %v4float %dp2
+         %75 = OpVectorShuffle %v3float %74 %74 0 1 2
+         %76 = OpExtInst %v3float %1 Cross %73 %75
+         %77 = OpExtInst %v3float %1 Normalize %76
+               OpStore %normal %77
+               OpStore %i %uint_0
+               OpBranch %80
+         %80 = OpLabel
+               OpLoopMerge %82 %83 Unroll
+               OpBranch %84
+         %84 = OpLabel
+         %85 = OpLoad %uint %i
+         %86 = OpULessThan %bool %85 %uint_3
+               OpBranchConditional %86 %81 %82
+         %81 = OpLabel
+         %96 = OpLoad %uint %i
+         %97 = OpAccessChain %_ptr_Input_v4float %gl_in %96 %int_0
+         %98 = OpLoad %v4float %97
+        %100 = OpAccessChain %_ptr_Output_v4float %_ %int_0
+               OpStore %100 %98
+        %102 = OpLoad %uint %i
+        %103 = OpAccessChain %_ptr_Input_v4float %gPosition %102
+        %104 = OpLoad %v4float %103
+               OpStore %out_fPosition %104
+        %106 = OpLoad %uint %i
+        %107 = OpAccessChain %_ptr_Input_v4float %gTexcoord %106
+        %108 = OpLoad %v4float %107
+               OpStore %out_fTexcoord %108
+        %111 = OpLoad %uint %i
+        %112 = OpAccessChain %_ptr_Input_v4float %gTangent %111
+        %113 = OpLoad %v4float %112
+               OpStore %out_fTangent %113
+        %116 = OpLoad %uint %i
+        %117 = OpAccessChain %_ptr_Input_v4float %gNormal %116
+        %118 = OpLoad %v4float %117
+               OpStore %out_fNormal %118
+        %122 = OpAccessChain %_ptr_Function_float %tx1 %uint_0
+        %123 = OpLoad %float %122
+        %124 = OpAccessChain %_ptr_Function_float %tx2 %uint_1
+        %125 = OpLoad %float %124
+        %126 = OpFMul %float %123 %125
+        %127 = OpAccessChain %_ptr_Function_float %tx2 %uint_0
+        %128 = OpLoad %float %127
+        %129 = OpAccessChain %_ptr_Function_float %tx1 %uint_1
+        %130 = OpLoad %float %129
+        %131 = OpFMul %float %128 %130
+        %132 = OpFSub %float %126 %131
+        %133 = OpFDiv %float %float_1 %132
+               OpStore %coef %133
+        %135 = OpLoad %v4float %dp1
+        %136 = OpVectorShuffle %v3float %135 %135 0 1 2
+        %137 = OpLoad %v4float %tx2
+        %138 = OpVectorShuffle %v3float %137 %137 1 1 1
+        %139 = OpFMul %v3float %136 %138
+        %140 = OpLoad %v4float %dp2
+        %141 = OpVectorShuffle %v3float %140 %140 0 1 2
+        %142 = OpLoad %v4float %tx1
+        %143 = OpVectorShuffle %v3float %142 %142 1 1 1
+        %144 = OpFMul %v3float %141 %143
+        %145 = OpFSub %v3float %139 %144
+        %146 = OpLoad %float %coef
+        %147 = OpVectorTimesScalar %v3float %145 %146
+               OpStore %tangent %147
+        %149 = OpLoad %v4float %dp1
+        %150 = OpVectorShuffle %v3float %149 %149 0 1 2
+        %151 = OpLoad %v4float %tx2
+        %152 = OpVectorShuffle %v3float %151 %151 0 0 0
+        %153 = OpFMul %v3float %150 %152
+        %154 = OpLoad %v4float %dp2
+        %155 = OpVectorShuffle %v3float %154 %154 0 1 2
+        %156 = OpLoad %v4float %tx1
+        %157 = OpVectorShuffle %v3float %156 %156 0 0 0
+        %158 = OpFMul %v3float %155 %157
+        %159 = OpFSub %v3float %153 %158
+        %160 = OpLoad %float %coef
+        %161 = OpVectorTimesScalar %v3float %159 %160
+               OpStore %binorml %161
+        %162 = OpFunctionCall %bool %hasNormal_
+        %163 = OpLogicalNot %bool %162
+               OpSelectionMerge %165 None
+               OpBranchConditional %163 %164 %165
+        %164 = OpLabel
+        %166 = OpLoad %v3float %normal
+        %168 = OpCompositeExtract %float %166 0
+        %169 = OpCompositeExtract %float %166 1
+        %170 = OpCompositeExtract %float %166 2
+        %171 = OpCompositeConstruct %v4float %168 %169 %170 %float_0
+               OpStore %out_fNormal %171
+               OpBranch %165
+        %165 = OpLabel
+        %172 = OpFunctionCall %bool %hasTangent_
+        %173 = OpLogicalNot %bool %172
+               OpSelectionMerge %175 None
+               OpBranchConditional %173 %174 %183
+        %174 = OpLabel
+        %176 = OpLoad %v3float %tangent
+        %177 = OpLoad %v4float %out_fTangent
+        %178 = OpVectorShuffle %v4float %177 %176 4 5 6 3
+               OpStore %out_fTangent %178
+        %180 = OpLoad %v3float %binorml
+        %181 = OpLoad %v4float %out_fBinormal
+        %182 = OpVectorShuffle %v4float %181 %180 4 5 6 3
+               OpStore %out_fBinormal %182
+               OpBranch %175
+        %183 = OpLabel
+        %184 = OpLoad %v4float %out_fNormal
+        %185 = OpVectorShuffle %v3float %184 %184 0 1 2
+        %186 = OpLoad %v4float %out_fTangent
+        %187 = OpVectorShuffle %v3float %186 %186 0 1 2
+        %188 = OpExtInst %v3float %1 Cross %185 %187
+        %189 = OpLoad %v4float %out_fBinormal
+        %190 = OpVectorShuffle %v4float %189 %188 4 5 6 3
+               OpStore %out_fBinormal %190
+               OpBranch %175
+        %175 = OpLabel
+        %191 = OpLoad %v4float %out_fNormal
+        %192 = OpVectorShuffle %v3float %191 %191 0 1 2
+        %193 = OpExtInst %v3float %1 Normalize %192
+        %194 = OpLoad %v4float %out_fNormal
+        %195 = OpVectorShuffle %v4float %194 %193 4 5 6 3
+               OpStore %out_fNormal %195
+        %196 = OpLoad %v4float %out_fTangent
+        %197 = OpVectorShuffle %v3float %196 %196 0 1 2
+        %198 = OpExtInst %v3float %1 Normalize %197
+        %199 = OpLoad %v4float %out_fTangent
+        %200 = OpVectorShuffle %v4float %199 %198 4 5 6 3
+               OpStore %out_fTangent %200
+        %201 = OpLoad %v4float %out_fBinormal
+        %202 = OpVectorShuffle %v3float %201 %201 0 1 2
+        %203 = OpExtInst %v3float %1 Normalize %202
+        %204 = OpLoad %v4float %out_fBinormal
+        %205 = OpVectorShuffle %v4float %204 %203 4 5 6 3
+               OpStore %out_fBinormal %205
+               OpEmitVertex
+               OpBranch %83
+         %83 = OpLabel
+        %206 = OpLoad %uint %i
+        %207 = OpIAdd %uint %206 %int_1
+               OpStore %i %207
+               OpBranch %80
+         %82 = OpLabel
+               OpEndPrimitive
+               OpReturn
+               OpFunctionEnd
+ %hasNormal_ = OpFunction %bool None %7
+          %9 = OpLabel
+         %21 = OpAccessChain %_ptr_PushConstant_uint %drawInfo %int_0 %uint_3
+         %22 = OpLoad %uint %21
+         %24 = OpBitFieldUExtract %uint %22 %int_1 %int_1
+         %26 = OpINotEqual %bool %24 %uint_0
+               OpReturnValue %26
+               OpFunctionEnd
+%hasTangent_ = OpFunction %bool None %7
+         %11 = OpLabel
+         %29 = OpAccessChain %_ptr_PushConstant_uint %drawInfo %int_0 %uint_3
+         %30 = OpLoad %uint %29
+         %32 = OpBitFieldUExtract %uint %30 %int_3 %int_1
+         %33 = OpINotEqual %bool %32 %uint_0
+               OpReturnValue %33
+               OpFunctionEnd

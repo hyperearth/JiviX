@@ -43,4 +43,5 @@ void main(point in GS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStrea
     output.gRescolor = input[0].vRescolor;
     output.gSmooth = input[0].vSmooth;
     OutputStream.Append(output);
+    OutputStream.RestartStrip();
 };

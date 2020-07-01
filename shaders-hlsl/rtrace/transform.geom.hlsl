@@ -60,4 +60,5 @@ void main(in triangle GS_INPUT input[3], inout TriangleStream<TS_OUTPUT> OutputS
         output.fBinormal.xyz = normalize(output.fBinormal.xyz);
         OutputStream.Append(output);
     };
+    OutputStream.RestartStrip();
 };

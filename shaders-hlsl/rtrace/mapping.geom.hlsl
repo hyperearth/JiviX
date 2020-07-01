@@ -37,4 +37,5 @@ void main(triangle GS_INPUT input[3], inout TriangleStream<PS_INPUT> OutputStrea
         output.uData = input[i].inData;
         OutputStream.Append(output);
     };
+    OutputStream.RestartStrip();
 };
