@@ -69,6 +69,15 @@ Date:[29.06.2020]:[helix.d@IMN]
 - [ ] Immersive Portals mod support (Minecraft, In-Future)
 
 
+# WHY Ray Query doesn't working?
+
+- Broken support by NVIDIA
+- Forced to be opaque objects
+- Too big workgroup size
+- Wrong shaders (needs HLSL)
+- Needs DirectX 12 Ultimate ([DeViX](https://github.com/helixd2s/DeViX-Overview))
+
+
 ### TODO Lists (Black Edition)
 
 - [x] Fallback to ray-tracing shaders
