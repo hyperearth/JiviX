@@ -9,6 +9,7 @@
 //
 #include <spirv/unified1/GLSL.std.450.h>
 #include <spirv/unified1/spirv.hpp>
+#include <spirv_cross_c.h>
 
 //
 namespace jvi {
@@ -59,78 +60,112 @@ namespace jvi {
             auto modSource = unModSource;
 
             //
-            std::unordered_map<int, std::string> names = {};
-            std::unordered_map<int, int> locations = {};
+            std::unordered_map<int, std::string> namings = {};
+            std::unordered_map<std::string, int> mapping = {};
             std::unordered_map<int, int> strides = {};
             std::unordered_map<int, int> offsets = {};
             std::unordered_map<int, int> buffers = {};
+            std::unordered_map<int, int> outputs = {};
 
             //
-            for (int i = 5; i != unModSource.size(); i += unModSource[i] >> 16) {
-                spv::Op op = spv::Op(unModSource[i] & 0xffff);
-                if (op == spv::Op::OpName) {
-                    names[unModSource[i + 1]] = (const char*)&unModSource[i+2];//i, (i + (unModSource[i] >> 16));
-                };
-            };
+            std::unordered_map<int, bool> mappingExist = {};
+            std::unordered_map<int, bool> stridesExist = {};
+            std::unordered_map<int, bool> offsetsExist = {};
+            std::unordered_map<int, bool> buffersExist = {};
+            std::unordered_map<int, bool> outputsExist = {};
 
+            // Getting for names and per names...
+            // Checking if decorations exists!
             // 16-bit OpCode, 16-bit length, 32-bit NameID, 32-bit DecorationType, 32-bit value
             for (int i = 5; i != unModSource.size(); i += (unModSource[i] >> 16)) {
                 spv::Op op = spv::Op(unModSource[i] & 0xffff);
                 if (op == spv::Op::OpDecorate) {
                     int name = unModSource[i + 1];
-                    if (names[name].substr(0,4) == "out_")
                     {
-                        if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationLocation) {
-                            locations[name] = unModSource[i + 3];
-                        };
                         if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationXfbStride) {
-                            strides[name] = unModSource[i + 3];
+                            stridesExist[name] = true;
                         };
                         if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationOffset) {
-                            offsets[name] = unModSource[i + 3];
+                            offsetsExist[name] = true;
                         };
                         if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationXfbBuffer) {
-                            buffers[name] = unModSource[i + 3];
+                            buffersExist[name] = true;
                         };
                     };
+                } else
+                if (op == spv::Op::OpName) {
+                    mapping[(const char*)&unModSource[i+2]] = unModSource[i + 1];//i, (i + (unModSource[i] >> 16));
+                    namings[unModSource[i + 1]] = (const char*)&unModSource[i+2];
                 };
             };
 
+            //
+            {
+                spvc_context context = NULL;
+                spvc_parsed_ir ir = NULL;
+                spvc_compiler compiler = NULL;
+                spvc_compiler_options options = NULL;
+                spvc_resources resources = NULL;
+                const spvc_reflected_resource *list = NULL;
+                const char *result = NULL;
+                size_t count = size_t(0ll), i = size_t(0ll);
+
+                //
+                spvc_context_create(&context);
+                spvc_context_set_error_callback(context, error_callback, NULL);
+                spvc_context_parse_spirv(context, unModSource.data(), unModSource.size(), &ir);
+                spvc_context_create_compiler(context, SPVC_BACKEND_NONE, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler);
+                spvc_compiler_create_shader_resources(compiler, &resources);
+
+                // output names
+                spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_OUTPUT, &list, &count);
+                for (i = 0; i < count; i++) {
+                    //locations[list[i].id] = spvc_compiler_get_decoration(compiler_glsl, list[i].id, SpvDecorationLocation);
+                    outputs[list[i].id] = spvc_compiler_get_decoration(compiler, list[i].id, SpvDecorationLocation);
+                    offsets[list[i].id] = spvc_compiler_get_decoration(compiler, list[i].id, SpvDecorationOffset);
+                    strides[list[i].id] = spvc_compiler_get_decoration(compiler, list[i].id, SpvDecorationXfbStride);
+                    buffers[list[i].id] = spvc_compiler_get_decoration(compiler, list[i].id, SpvDecorationXfbBuffer);
+                    //names[list[i].id] = list[i].name;
+                };
+            };
+
+            // Да-да, в ручную, "ручками"... 
             uint32_t I = 0;
-            while (I < 5 && locations.size() > 0) {
-                const auto loc = locations.begin(); bool done = false;
+            while (I < 5 && outputs.size() > 0) {
+                const auto loc = outputs.begin(); bool done = false;
                 for (int i = 5; i < modSource.size(); i += std::max(uint64_t(modSource[i] >> 16), uint64_t(1ull))) {
                     spv::Op op = spv::Op(modSource[i] & 0xffff);
                     if (op == spv::Op::OpDecorate) {
-                        int name = modSource[i + 1];
-                        if (names[name].substr(0,4) == "out_" && name == loc->first && spv::Decoration(modSource[i + 2]) == spv::Decoration::DecorationLocation) {
+                        const auto nameID = modSource[i + 1];
+                        //std::string name = namings[modSource[i + 1]];
+                        if (nameID == loc->first && spv::Decoration(modSource[i + 2]) == spv::Decoration::DecorationLocation) {
                             const auto shift = i + (modSource[i] >> 16);
 
                             // Place Stride info
-                            if (strides.find(name) == strides.end()) {
+                            if (strides.find(nameID) == strides.end() || stridesExist.find(nameID) == stridesExist.end()) {
                                 modSource.insert(modSource.begin() + shift, {
                                     (spv::Op::OpDecorate | (4u << 16u)),
-                                    uint32_t(name),
+                                    uint32_t(nameID),
                                     spv::Decoration::DecorationXfbStride,
                                     80u
                                 });
                             };
 
                             // Place Buffers info
-                            if (buffers.find(name) == buffers.end()) {
+                            if (buffers.find(nameID) == buffers.end() || buffersExist.find(nameID) == buffersExist.end()) {
                                 modSource.insert(modSource.begin() + shift, {
                                     (spv::Op::OpDecorate | (4u << 16u)),
-                                    uint32_t(name),
+                                    uint32_t(nameID),
                                     spv::Decoration::DecorationXfbBuffer,
                                     0u
                                 });
                             };
 
                             // Place Offset info
-                            if (offsets.find(name) == offsets.end()) {
+                            if (offsets.find(nameID) == offsets.end() || offsetsExist.find(nameID) == offsetsExist.end()) {
                                 modSource.insert(modSource.begin() + shift, {
                                     (spv::Op::OpDecorate | (4u << 16u)),
-                                    uint32_t(name),
+                                    uint32_t(nameID),
                                     spv::Decoration::DecorationOffset,
                                     [=](const int& location){
                                         switch(location) {
@@ -147,7 +182,7 @@ namespace jvi {
                             { done = true; break; }; //
                         };
                     };
-                }; locations.erase(locations.begin()); I++;
+                }; outputs.erase(outputs.begin()); I++;
             };
 
             // for faster code, pre-initialize

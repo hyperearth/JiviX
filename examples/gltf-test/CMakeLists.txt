@@ -92,7 +92,7 @@ else()
 endif()
 
 #
-set (LIBS)
+set (LIBS spirv-cross-c-shared)
 
 # Set libs and include dirs of projects
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
@@ -186,7 +186,7 @@ else()
     set (LIBS ${LIBS} ${COMMON_LIBS})
 
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-field-initializers -lstdc++ -lc++ -lc++abi -lm -lc -lgcc_s -lgcc -g -Wall -std=c++2a -march=skylake -mtune=skylake -fpermissive")
-    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wmissing-field-initializers -stdlib=libc                                                            -march=skylake -mtune=skylake -fpermissive")
+    set (CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -Wmissing-field-initializers                                                                   -march=skylake -mtune=skylake -fpermissive")
 endif()
 
 # Set optimizations for build types

@@ -1,6 +1,7 @@
 #pragma once 
 
 //
+#ifdef __cplusplus
 #define VKT_ENABLE_GLFW_LINKED
 #define VKT_ENABLE_GLFW_SURFACE
 
@@ -27,4 +28,5 @@
 #include <vma/vk_mem_alloc.h>
 #include <JiviX/JiviX.hpp>
 #include <misc/tinyexr.h>
+#endif
 
