@@ -31,11 +31,15 @@ struct DrawInfo { uint4 data; };
 
 // 
 #ifdef GEN_QUAD_INDEX
-[[vk::binding(1,0)]] RWByteAddressBuffer buffers[] : register(u0, space0);
+[[vk::binding(1,1)]] RWByteAddressBuffer buffers[] : register(u0, space1);
+//[[vk::binding(1,0)]] RWBuffer<ubyte> buffers[] : register(u0, space1);
 #else
-[[vk::binding(0,0)]]   ByteAddressBuffer buffers[] : register(u0, space1);
+//[[vk::binding(0,0)]]   ByteAddressBuffer buffers[] : register(u0, space0);
+//[[vk::binding(0,1)]] RWBuffer buffers[] : register(t0, space0);
+[[vk::binding(0,1)]] RWByteAddressBuffer buffers[] : register(u0, space0);
 #endif
 
+// 
 [[vk::binding(2,0)]] RWStructuredBuffer<Binding> bindings : register(u0, space2);
 [[vk::binding(3,0)]] RWStructuredBuffer<Attribute> attributes : register(u0, space3);
 [[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space4);
@@ -60,12 +64,16 @@ bool hasTangent() {
     return bool(bitfieldExtract(drawInfo.data[3],3,1));
 };
 
+// 
+void store_u32(in uint offset, in uint binding, in uint value) {
+    buffers[binding].Store(offset, value);
+};
 
-
-// System Specified
-uint load_u32(in uint offset, in uint bufferID) {
-    //return pack32(u16float2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
-    return buffers[bufferID].Load(offset);
+// 
+uint load_u32(in uint offset, in uint binding) {
+    uint v8x4 = buffers[binding].Load(int(offset)).x;
+    store_u32(offset, binding, v8x4);
+    return v8x4;
 };
 
 // TODO: Add Uint16_t, uint, Float16_t Support
@@ -80,7 +88,7 @@ float4 get_float4(in uint idx, in uint loc) {
     if (binding.stride >  4u) vec[1] = asfloat(load_u32(boffset +  4u, binding.bufvsd));
     if (binding.stride >  8u) vec[2] = asfloat(load_u32(boffset +  8u, binding.bufvsd));
     if (binding.stride > 12u) vec[3] = asfloat(load_u32(boffset + 12u, binding.bufvsd));
-    
+
     // 
     return vec;
 };

@@ -27,9 +27,9 @@ namespace jvi {
             auto stagef = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1 };
             auto incomp = vkh::VkDescriptorBindingFlags{ .ePartiallyBound = 1 };
 
-            // 
+            //
             this->bufferViewSetLayoutHelper = templ;
-            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
+            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
             this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]));
 
@@ -96,8 +96,10 @@ namespace jvi {
                     .dstBinding = 0u,
                     .dstArrayElement = j,
                     .descriptorCount = 1u,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                    //.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
                 }).offset<VkDescriptorBufferInfo>(0u) = this->bufferViews[j];
+                //}).offset<VkBufferView>(0u) = this->bufferViews[j].createBufferView(VK_FORMAT_R8_UINT);
                 this->bufferViewSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 1u,
                     .dstArrayElement = j,

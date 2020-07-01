@@ -17,9 +17,11 @@ struct Attribute {
 
 // 
 #ifdef GEN_QUAD_INDEX
-layout (binding = 1, set = 1)  buffer MeshData { uint8_t data[]; } buffers[]; 
+layout (binding = 1, set = 1)          buffer MeshData { uint8_t data[]; } buffers[]; 
 #else
-layout (binding = 0, set = 1) uniform MeshRead { uint8_t data[1048576u]; } buffers[]; 
+layout (binding = 0, set = 1) readonly buffer MeshData { uint8_t data[]; } buffers[];
+//layout (binding = 0, set = 1) uniform utextureBuffer buffers[];
+//layout (binding = 0, set = 1)         uniform MeshData { uint8_t data[16777216]; } buffers[]; 
 #endif
 
 // 
@@ -52,6 +54,8 @@ bool hasTangent() {
 #ifndef GEN_QUAD_INDEX
 uint8_t load_u8(in uint offset, in uint bufferID) {
     return buffers[nonuniformEXT(bufferID)].data[offset];
+    //return uint8_t(texelFetch(buffers[nonuniformEXT(bufferID)], int(offset)).x);
+    //return uint8_t(imageLoad(buffers[nonuniformEXT(bufferID)], int(offset)).x);
 };
 
 // System Specified
