@@ -201,7 +201,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 # Compute test 
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
-add_executable(${APPLICATION_NAME} ${RSOURCES} src/main.cpp src/pch.hpp src/pch.cpp)
+add_executable(${APPLICATION_NAME} ${RSOURCES} src/main.cpp src/pch.hpp src/pch.cpp include/vkh/spirv-mod.h)
 target_link_libraries(${APPLICATION_NAME} PUBLIC ${LIBS} Vulkan::Vulkan)
 if (MSVC)
 else()
