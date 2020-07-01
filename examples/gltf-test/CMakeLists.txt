@@ -94,10 +94,6 @@ endif()
 #
 set (LIBS)
 
-if(spirv-cross-c-shared) 
-    set (LIBS ${LIBS} spirv-cross-c-shared)
-endif()
-
 # Set libs and include dirs of projects
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
 set (INC_DIR "../../../vkt/include/" "../../../vkt/include/rapidjson"
@@ -154,18 +150,22 @@ endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)
-    set (VPATH)
-    get_filename_component(VPATH ${Vulkan_LIBRARY} DIRECTORY)
-    
+    set (Vulkan_PATH)
+    get_filename_component(Vulkan_PATH ${Vulkan_LIBRARY} DIRECTORY)
+
     if(WIN32)
-        set (LIBS ${LIBS} ${Vulkan_LIBRARY} ${Vulkan_LIBRARIES} 
-            "${VPATH}/glslang.lib" 
-            "${VPATH}/SPIRV.lib" 
-            "${VPATH}/spirv-cross-core.lib"
-            "${VPATH}/spirv-cross-c-shared.lib"
-        )
+        set(LIB_DIR ${LIB_DIR} ${Vulkan_PATH})
+        #set (LIBS ${LIBS} ${Vulkan_LIBRARY} ${Vulkan_LIBRARIES}
+        #    "${VPATH}/glslang.lib"
+        #    "${VPATH}/SPIRV.lib"
+        #    "${VPATH}/spirv-cross-core.lib"
+        #    "${VPATH}/spirv-cross-c-shared.lib"
+        #)
     endif()
 endif()
+
+#
+set (LIBS ${LIBS} spirv-cross-core spirv-cross-c-shared spirv-cross-c-shared glslang SPIRV)
 
 # GLFW 
 if (GLFW_LIBRARIES)
