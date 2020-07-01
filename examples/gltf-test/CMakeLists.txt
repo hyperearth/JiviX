@@ -79,10 +79,11 @@ set (SOURCES_LIST
 
 # Find packages (Linux Prior)
 find_package(GLFW QUIET)
-find_package(Vulkan REQUIRED)
+find_package(Vulkan QUIET)
 find_package(PkgConfig QUIET)
 #find_package(glbinding REQUIRED) # if it is really required in your project
 
+#
 find_package(spirv_cross_c_shared REQUIRED)
 if (spirv_cross_c_shared_FOUND)
         message(STATUS "Found SPIRV-Cross C API! :)")
@@ -90,11 +91,8 @@ else()
         message(STATUS "Could not find SPIRV-Cross C API! :(")
 endif()
 
-set (LIBS spirv-cross-c-shared glslang
-    HLSL
-    OSDependent
-    OGLCompiler
-    SPIRV)
+#
+set (LIBS)
 
 # Set libs and include dirs of projects
 set (LIB_DIR ${PROJECT_SOURCE_DIR} "${DEP_DIR}/lib")
@@ -109,7 +107,8 @@ set (INC_DIR "../../../vkt/include/" "../../../vkt/include/rapidjson"
     "${DEP_DIR}/include/nlohmann/"
     "${DEP_DIR}/src/" 
     "${DEP_DIR}/src/base/"
-    "${DEP_DIR}")
+    "${DEP_DIR}"
+)
 
 # Set definition
 set (DEFINES
@@ -153,7 +152,6 @@ endif()
 if (Vulkan_LIBRARY)
     #set (LIBS ${LIBS} ${Vulkan_LIBRARY}) #Da poshlo ono... 
 endif()
-
 
 # GLFW 
 if (GLFW_LIBRARIES)
@@ -207,7 +205,7 @@ add_executable(${APPLICATION_NAME} ${RSOURCES} src/main.cpp src/pch.hpp src/pch.
 target_link_libraries(${APPLICATION_NAME} PUBLIC ${LIBS} Vulkan::Vulkan)
 if (MSVC)
 else()
-target_precompile_headers(${APPLICATION_NAME} PUBLIC src/pch.hpp)
+    target_precompile_headers(${APPLICATION_NAME} PUBLIC src/pch.hpp)
 endif()
 
 # Add includes to MSVC explorer 
