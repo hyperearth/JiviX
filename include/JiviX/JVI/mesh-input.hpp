@@ -6,13 +6,11 @@
 #include "./context.hpp"
 #include "./bview-set.hpp"
 
-#include <spirv_cross/spirv_cross_c.h>
-//#include <glslang/Include/glslang_c_interface.h>
-#include <glslang/Public/ShaderLang.h>
-#include <SPIRV/GLSL.std.450.h>
-#include <SPIRV/spirv.hpp>
-#include <SPIRV/GlslangToSpv.h>
+//
+#include <spirv/unified1/GLSL.std.450.h>
+#include <spirv/unified1/spirv.hpp>
 
+//
 namespace jvi {
 
     //static spvc_bool g_fail_on_error = SPVC_TRUE;
