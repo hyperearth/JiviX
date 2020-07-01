@@ -97,6 +97,7 @@ namespace jvi {
                     .dstArrayElement = j,
                     .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                    //.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
                 }).offset<VkDescriptorBufferInfo>(0u) = this->bufferViews[j];
                 //}).offset<VkBufferView>(0u) = this->bufferViews[j].createBufferView(VK_FORMAT_R8_UINT);
                 this->bufferViewSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{

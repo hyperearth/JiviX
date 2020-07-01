@@ -19,7 +19,9 @@ struct Attribute {
 #ifdef GEN_QUAD_INDEX
 layout (binding = 1, set = 1)          buffer MeshData { uint8_t data[]; } buffers[]; 
 #else
-layout (binding = 0, set = 1) readonly buffer MeshData { uint8_t data[]; } buffers[]; 
+layout (binding = 0, set = 1) readonly buffer MeshData { uint8_t data[]; } buffers[];
+//layout (binding = 0, set = 1) uniform utextureBuffer buffers[];
+//layout (binding = 0, set = 1)         uniform MeshData { uint8_t data[16777216]; } buffers[]; 
 #endif
 
 // 
