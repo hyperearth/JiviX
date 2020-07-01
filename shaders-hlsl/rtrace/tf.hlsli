@@ -30,11 +30,11 @@ struct MeshInfo {
 struct DrawInfo { uint4 data; };
 
 // 
-#ifdef GEN_QUAD_INDEX
+//#ifdef GEN_QUAD_INDEX
 [[vk::binding(1,0)]] RWByteAddressBuffer buffers[] : register(u0, space0);
-#else
-[[vk::binding(0,0)]]   ByteAddressBuffer buffers[] : register(u0, space1);
-#endif
+//#else
+//[[vk::binding(0,0)]]   ByteAddressBuffer buffers[] : register(u0, space1);
+//#endif
 
 [[vk::binding(2,0)]] RWStructuredBuffer<Binding> bindings : register(u0, space2);
 [[vk::binding(3,0)]] RWStructuredBuffer<Attribute> attributes : register(u0, space3);
@@ -60,12 +60,9 @@ bool hasTangent() {
     return bool(bitfieldExtract(drawInfo.data[3],3,1));
 };
 
-
-
-// System Specified
-uint load_u32(in uint offset, in uint bufferID) {
-    //return pack32(u16float2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
-    return buffers[bufferID].Load(offset);
+// 
+uint load_u32(in uint offset, in uint binding, in uint nodeMeshID) {
+    return buffers[nodeMeshID].Load(int(offset)).x;
 };
 
 // TODO: Add Uint16_t, uint, Float16_t Support

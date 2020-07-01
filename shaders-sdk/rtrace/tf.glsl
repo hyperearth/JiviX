@@ -16,11 +16,11 @@ struct Attribute {
 };
 
 // 
-#ifdef GEN_QUAD_INDEX
+//#ifdef GEN_QUAD_INDEX
 layout (binding = 1, set = 1)  buffer MeshData { uint8_t data[]; } buffers[]; 
-#else
-layout (binding = 0, set = 1) uniform MeshRead { uint8_t data[1048576u]; } buffers[]; 
-#endif
+//#else
+//layout (binding = 0, set = 1) uniform MeshRead { uint8_t data[16777216u]; } buffers[]; 
+//#endif
 
 // 
 layout (binding = 2, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
