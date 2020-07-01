@@ -30,12 +30,15 @@ struct MeshInfo {
 struct DrawInfo { uint4 data; };
 
 // 
-//#ifdef GEN_QUAD_INDEX
-[[vk::binding(1,0)]] RWByteAddressBuffer buffers[] : register(u0, space0);
-//#else
-//[[vk::binding(0,0)]]   ByteAddressBuffer buffers[] : register(u0, space1);
-//#endif
+#ifdef GEN_QUAD_INDEX
+[[vk::binding(1,1)]] RWByteAddressBuffer buffers[] : register(u0, space1);
+//[[vk::binding(1,0)]] RWBuffer<ubyte> buffers[] : register(u0, space1);
+#else
+//[[vk::binding(0,0)]]   ByteAddressBuffer buffers[] : register(u0, space0);
+[[vk::binding(0,1)]] RWBuffer buffers[] : register(t0, space0);
+#endif
 
+// 
 [[vk::binding(2,0)]] RWStructuredBuffer<Binding> bindings : register(u0, space2);
 [[vk::binding(3,0)]] RWStructuredBuffer<Attribute> attributes : register(u0, space3);
 [[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space4);
@@ -61,8 +64,8 @@ bool hasTangent() {
 };
 
 // 
-uint load_u32(in uint offset, in uint binding, in uint nodeMeshID) {
-    return buffers[nodeMeshID].Load(int(offset)).x;
+uint load_u32(in uint offset, in uint binding) {
+    return buffers[binding].Load(int(offset)).x;
 };
 
 // TODO: Add Uint16_t, uint, Float16_t Support
