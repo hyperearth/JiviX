@@ -71,7 +71,7 @@ namespace jvi {
             for (int i = 5; i != unModSource.size(); i += unModSource[i] >> 16) {
                 spv::Op op = spv::Op(unModSource[i] & 0xffff);
                 if (op == spv::Op::OpName) {
-                    names[unModSource[i + 1]] = std::string((const char*)&unModSource[i+2], (unModSource[i] >> 16)*4u);//i, (i + (unModSource[i] >> 16));
+                    names[unModSource[i + 1]] = (const char*)&unModSource[i+2];//i, (i + (unModSource[i] >> 16));
                 };
             };
 
@@ -80,7 +80,7 @@ namespace jvi {
                 spv::Op op = spv::Op(unModSource[i] & 0xffff);
                 if (op == spv::Op::OpDecorate) {
                     int name = unModSource[i + 1];
-                    //if (names[name].find("out_") >= 0)
+                    if (names[name].substr(0,4) == "out_")
                     {
                         if (spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationLocation) {
                             locations[name] = unModSource[i + 3];
@@ -98,18 +98,20 @@ namespace jvi {
                 };
             };
 
-            for (std::pair<int, int> loc : locations)
-            {
-                for (int i = 5; i != modSource.size(); i += modSource[i] >> 16) {
-                    spv::Op op = spv::Op(unModSource[i] & 0xffff);
+            uint32_t I = 0;
+            while (I < 5 && locations.size() > 0) {
+                const auto loc = locations.begin(); bool done = false;
+                for (int i = 5; i < modSource.size(); i += std::max(uint64_t(modSource[i] >> 16), uint64_t(1ull))) {
+                    spv::Op op = spv::Op(modSource[i] & 0xffff);
                     if (op == spv::Op::OpDecorate) {
                         int name = modSource[i + 1];
-                        if (name == loc.first && spv::Decoration(unModSource[i + 2]) == spv::Decoration::DecorationLocation) {
+                        if (names[name].substr(0,4) == "out_" && name == loc->first && spv::Decoration(modSource[i + 2]) == spv::Decoration::DecorationLocation) {
+                            const auto shift = i + (modSource[i] >> 16);
 
                             // Place Stride info
                             if (strides.find(name) == strides.end()) {
-                                modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
-                                    ((spv::Op::OpDecorate << 16u) + 4u),
+                                modSource.insert(modSource.begin() + shift, {
+                                    (spv::Op::OpDecorate | (4u << 16u)),
                                     uint32_t(name),
                                     spv::Decoration::DecorationXfbStride,
                                     80u
@@ -118,8 +120,8 @@ namespace jvi {
 
                             // Place Buffers info
                             if (buffers.find(name) == buffers.end()) {
-                                modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
-                                    ((spv::Op::OpDecorate << 16u) + 4u),
+                                modSource.insert(modSource.begin() + shift, {
+                                    (spv::Op::OpDecorate | (4u << 16u)),
                                     uint32_t(name),
                                     spv::Decoration::DecorationXfbBuffer,
                                     0u
@@ -128,8 +130,8 @@ namespace jvi {
 
                             // Place Offset info
                             if (offsets.find(name) == offsets.end()) {
-                                modSource.insert(modSource.begin() + (modSource[i] >> 16) + i, {
-                                    ((spv::Op::OpDecorate << 16u) + 4u),
+                                modSource.insert(modSource.begin() + shift, {
+                                    (spv::Op::OpDecorate | (4u << 16u)),
                                     uint32_t(name),
                                     spv::Decoration::DecorationOffset,
                                     [=](const int& location){
@@ -141,15 +143,13 @@ namespace jvi {
                                             case 4: return 64u; break;
                                         };
                                         return 0u;
-                                    }(locations[name])
+                                    }(loc->second)
                                 });
                             };
-
-                            //
-                            locations.erase(loc.first); break;
+                            { done = true; break; }; //
                         };
                     };
-                };
+                }; locations.erase(locations.begin()); I++;
             };
 
 
