@@ -29,7 +29,8 @@ namespace jvi {
 
             // 
             this->bufferViewSetLayoutHelper = templ;
-            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
+            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 0u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
+            this->bufferViewSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 1u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .descriptorCount = 256u, .stageFlags = stagef }, incomp);
             vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->bufferViewSetLayoutHelper, nullptr, &this->bufferViewSetLayout[0]));
 
             // 
@@ -91,12 +92,18 @@ namespace jvi {
 
             // 
             for (uint32_t j = 0; j < this->bufferViews.size(); j++) {
-                auto& handle = this->bufferViewSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                this->bufferViewSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
                     .dstBinding = 0u,
                     .dstArrayElement = j,
                     .descriptorCount = 1u,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                }).offset<VkDescriptorBufferInfo>(0u) = this->bufferViews[j];
+                this->bufferViewSetHelper.pushDescription(vkh::VkDescriptorUpdateTemplateEntry{
+                    .dstBinding = 1u,
+                    .dstArrayElement = j,
+                    .descriptorCount = 1u,
                     .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-                }).offset<VkDescriptorBufferInfo>(0u) = this->bufferViews[j];//this->bufferViews[j].createBufferView(VK_FORMAT_R8_UINT);
+                }).offset<VkDescriptorBufferInfo>(0u) = this->bufferViews[j];
             };
 
             // 

@@ -1,6 +1,6 @@
 ; SPIR-V
 ; Version: 1.5
-; Generator: Khronos Glslang Reference Front End; 8
+; Generator: Khronos Glslang Reference Front End; 10
 ; Bound: 224
 ; Schema: 0
                OpCapability Geometry
@@ -8,7 +8,7 @@
                OpCapability RuntimeDescriptorArray
           %1 = OpExtInstImport "GLSL.std.450"
                OpMemoryModel Logical GLSL450
-               OpEntryPoint Geometry %main "main" %drawInfo %gPosition %gTexcoord %_ %gl_in %out_fPosition %out_fTexcoord %out_fTangent %gTangent %out_fNormal %gNormal %out_fBinormal %buffers %__0 %__1
+               OpEntryPoint Geometry %main "main" %drawInfo %gPosition %gTexcoord %_ %gl_in %fPosition %fTexcoord %fTangent %gTangent %fNormal %gNormal %fBinormal %buffers %__0 %__1
                OpExecutionMode %main Triangles
                OpExecutionMode %main Invocations 1
                OpExecutionMode %main OutputTriangleStrip
@@ -63,16 +63,16 @@
                OpMemberName %gl_PerVertex_0 2 "gl_ClipDistance"
                OpMemberName %gl_PerVertex_0 3 "gl_CullDistance"
                OpName %gl_in "gl_in"
-               OpName %out_fPosition "out_fPosition"
-               OpName %out_fTexcoord "out_fTexcoord"
-               OpName %out_fTangent "out_fTangent"
+               OpName %fPosition "fPosition"
+               OpName %fTexcoord "fTexcoord"
+               OpName %fTangent "fTangent"
                OpName %gTangent "gTangent"
-               OpName %out_fNormal "out_fNormal"
+               OpName %fNormal "fNormal"
                OpName %gNormal "gNormal"
                OpName %coef "coef"
                OpName %tangent "tangent"
                OpName %binorml "binorml"
-               OpName %out_fBinormal "out_fBinormal"
+               OpName %fBinormal "fBinormal"
                OpName %MeshData "MeshData"
                OpMemberName %MeshData 0 "data"
                OpName %buffers "buffers"
@@ -103,13 +103,13 @@
                OpMemberDecorate %gl_PerVertex_0 2 BuiltIn ClipDistance
                OpMemberDecorate %gl_PerVertex_0 3 BuiltIn CullDistance
                OpDecorate %gl_PerVertex_0 Block
-               OpDecorate %out_fPosition Location 0
-               OpDecorate %out_fTexcoord Location 1
-               OpDecorate %out_fTangent Location 3
+               OpDecorate %fPosition Location 0
+               OpDecorate %fTexcoord Location 1
+               OpDecorate %fTangent Location 3
                OpDecorate %gTangent Location 3
-               OpDecorate %out_fNormal Location 2
+               OpDecorate %fNormal Location 2
                OpDecorate %gNormal Location 2
-               OpDecorate %out_fBinormal Location 4
+               OpDecorate %fBinormal Location 4
                OpDecorate %_runtimearr_uchar ArrayStride 1
                OpMemberDecorate %MeshData 0 NonWritable
                OpMemberDecorate %MeshData 0 Offset 0
@@ -173,16 +173,16 @@
 %_ptr_Input__arr_gl_PerVertex_0_uint_3 = OpTypePointer Input %_arr_gl_PerVertex_0_uint_3
       %gl_in = OpVariable %_ptr_Input__arr_gl_PerVertex_0_uint_3 Input
 %_ptr_Output_v4float = OpTypePointer Output %v4float
-%out_fPosition = OpVariable %_ptr_Output_v4float Output
-%out_fTexcoord = OpVariable %_ptr_Output_v4float Output
-%out_fTangent = OpVariable %_ptr_Output_v4float Output
+  %fPosition = OpVariable %_ptr_Output_v4float Output
+  %fTexcoord = OpVariable %_ptr_Output_v4float Output
+   %fTangent = OpVariable %_ptr_Output_v4float Output
    %gTangent = OpVariable %_ptr_Input__arr_v4float_uint_3 Input
-%out_fNormal = OpVariable %_ptr_Output_v4float Output
+    %fNormal = OpVariable %_ptr_Output_v4float Output
     %gNormal = OpVariable %_ptr_Input__arr_v4float_uint_3 Input
 %_ptr_Function_float = OpTypePointer Function %float
     %float_1 = OpConstant %float 1
     %float_0 = OpConstant %float 0
-%out_fBinormal = OpVariable %_ptr_Output_v4float Output
+  %fBinormal = OpVariable %_ptr_Output_v4float Output
       %uchar = OpTypeInt 8 0
 %_runtimearr_uchar = OpTypeRuntimeArray %uchar
    %MeshData = OpTypeStruct %_runtimearr_uchar
@@ -259,19 +259,19 @@
         %102 = OpLoad %uint %i
         %103 = OpAccessChain %_ptr_Input_v4float %gPosition %102
         %104 = OpLoad %v4float %103
-               OpStore %out_fPosition %104
+               OpStore %fPosition %104
         %106 = OpLoad %uint %i
         %107 = OpAccessChain %_ptr_Input_v4float %gTexcoord %106
         %108 = OpLoad %v4float %107
-               OpStore %out_fTexcoord %108
+               OpStore %fTexcoord %108
         %111 = OpLoad %uint %i
         %112 = OpAccessChain %_ptr_Input_v4float %gTangent %111
         %113 = OpLoad %v4float %112
-               OpStore %out_fTangent %113
+               OpStore %fTangent %113
         %116 = OpLoad %uint %i
         %117 = OpAccessChain %_ptr_Input_v4float %gNormal %116
         %118 = OpLoad %v4float %117
-               OpStore %out_fNormal %118
+               OpStore %fNormal %118
         %122 = OpAccessChain %_ptr_Function_float %tx1 %uint_0
         %123 = OpLoad %float %122
         %124 = OpAccessChain %_ptr_Function_float %tx2 %uint_1
@@ -323,7 +323,7 @@
         %169 = OpCompositeExtract %float %166 1
         %170 = OpCompositeExtract %float %166 2
         %171 = OpCompositeConstruct %v4float %168 %169 %170 %float_0
-               OpStore %out_fNormal %171
+               OpStore %fNormal %171
                OpBranch %165
         %165 = OpLabel
         %172 = OpFunctionCall %bool %hasTangent_
@@ -332,43 +332,43 @@
                OpBranchConditional %173 %174 %183
         %174 = OpLabel
         %176 = OpLoad %v3float %tangent
-        %177 = OpLoad %v4float %out_fTangent
+        %177 = OpLoad %v4float %fTangent
         %178 = OpVectorShuffle %v4float %177 %176 4 5 6 3
-               OpStore %out_fTangent %178
+               OpStore %fTangent %178
         %180 = OpLoad %v3float %binorml
-        %181 = OpLoad %v4float %out_fBinormal
+        %181 = OpLoad %v4float %fBinormal
         %182 = OpVectorShuffle %v4float %181 %180 4 5 6 3
-               OpStore %out_fBinormal %182
+               OpStore %fBinormal %182
                OpBranch %175
         %183 = OpLabel
-        %184 = OpLoad %v4float %out_fNormal
+        %184 = OpLoad %v4float %fNormal
         %185 = OpVectorShuffle %v3float %184 %184 0 1 2
-        %186 = OpLoad %v4float %out_fTangent
+        %186 = OpLoad %v4float %fTangent
         %187 = OpVectorShuffle %v3float %186 %186 0 1 2
         %188 = OpExtInst %v3float %1 Cross %185 %187
-        %189 = OpLoad %v4float %out_fBinormal
+        %189 = OpLoad %v4float %fBinormal
         %190 = OpVectorShuffle %v4float %189 %188 4 5 6 3
-               OpStore %out_fBinormal %190
+               OpStore %fBinormal %190
                OpBranch %175
         %175 = OpLabel
-        %191 = OpLoad %v4float %out_fNormal
+        %191 = OpLoad %v4float %fNormal
         %192 = OpVectorShuffle %v3float %191 %191 0 1 2
         %193 = OpExtInst %v3float %1 Normalize %192
-        %194 = OpLoad %v4float %out_fNormal
+        %194 = OpLoad %v4float %fNormal
         %195 = OpVectorShuffle %v4float %194 %193 4 5 6 3
-               OpStore %out_fNormal %195
-        %196 = OpLoad %v4float %out_fTangent
+               OpStore %fNormal %195
+        %196 = OpLoad %v4float %fTangent
         %197 = OpVectorShuffle %v3float %196 %196 0 1 2
         %198 = OpExtInst %v3float %1 Normalize %197
-        %199 = OpLoad %v4float %out_fTangent
+        %199 = OpLoad %v4float %fTangent
         %200 = OpVectorShuffle %v4float %199 %198 4 5 6 3
-               OpStore %out_fTangent %200
-        %201 = OpLoad %v4float %out_fBinormal
+               OpStore %fTangent %200
+        %201 = OpLoad %v4float %fBinormal
         %202 = OpVectorShuffle %v3float %201 %201 0 1 2
         %203 = OpExtInst %v3float %1 Normalize %202
-        %204 = OpLoad %v4float %out_fBinormal
+        %204 = OpLoad %v4float %fBinormal
         %205 = OpVectorShuffle %v4float %204 %203 4 5 6 3
-               OpStore %out_fBinormal %205
+               OpStore %fBinormal %205
                OpEmitVertex
                OpBranch %83
          %83 = OpLabel

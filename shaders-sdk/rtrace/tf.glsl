@@ -17,14 +17,14 @@ struct Attribute {
 
 // 
 #ifdef GEN_QUAD_INDEX
-layout (binding = 0, set = 1)          buffer MeshData { uint8_t data[]; } buffers[]; 
+layout (binding = 1, set = 1)  buffer MeshData { uint8_t data[]; } buffers[]; 
 #else
-layout (binding = 0, set = 1) readonly buffer MeshData { uint8_t data[]; } buffers[]; 
+layout (binding = 0, set = 1) uniform MeshRead { uint8_t data[1048576u]; } buffers[]; 
 #endif
 
 // 
-layout (binding = 1, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
-layout (binding = 2, set = 0, scalar) readonly buffer Attributes { Attribute attributes[]; };
+layout (binding = 2, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
+layout (binding = 3, set = 0, scalar) readonly buffer Attributes { Attribute attributes[]; };
 layout (push_constant) uniform pushConstants { uvec4 data; } drawInfo;
 
 // 
@@ -49,6 +49,7 @@ bool hasTangent() {
 
 
 // System Specified
+#ifndef GEN_QUAD_INDEX
 uint8_t load_u8(in uint offset, in uint bufferID) {
     return buffers[nonuniformEXT(bufferID)].data[offset];
 };
@@ -91,6 +92,8 @@ vec4 triangulate(in uvec3 indices, in uint loc, in vec3 barycenter){
     );
     return mc*barycenter;
 };
+#endif
+
 
 mat4x4 regen4(in mat3x4 T) {
     return mat4x4(T[0],T[1],T[2],vec4(0.f.xxx,1.f));

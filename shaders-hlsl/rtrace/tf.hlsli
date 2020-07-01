@@ -30,10 +30,15 @@ struct MeshInfo {
 struct DrawInfo { uint4 data; };
 
 // 
-[[vk::binding(0,0)]] RWByteAddressBuffer buffers[] : register(u0, space0);
-[[vk::binding(1,0)]] RWStructuredBuffer<Binding> bindings : register(u0, space1);
-[[vk::binding(2,0)]] RWStructuredBuffer<Attribute> attributes : register(u0, space2);
-[[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space3);
+#ifdef GEN_QUAD_INDEX
+[[vk::binding(1,0)]] RWByteAddressBuffer buffers[] : register(u0, space0);
+#else
+[[vk::binding(0,0)]]   ByteAddressBuffer buffers[] : register(u0, space1);
+#endif
+
+[[vk::binding(2,0)]] RWStructuredBuffer<Binding> bindings : register(u0, space2);
+[[vk::binding(3,0)]] RWStructuredBuffer<Attribute> attributes : register(u0, space3);
+[[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space4);
 
 // 
 bool hasTransform() {

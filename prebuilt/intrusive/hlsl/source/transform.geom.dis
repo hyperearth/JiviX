@@ -262,5 +262,6 @@
                OpStore %out_var_TANGENT %180
                OpStore %out_var_BINORMAL %183
                OpEmitVertex
+               OpEndPrimitive
                OpReturn
                OpFunctionEnd

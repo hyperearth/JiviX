@@ -128,5 +128,6 @@ void main()
     out_var_TANGENT = vec4(_179.x, _179.y, _179.z, _174.w);
     out_var_BINORMAL = vec4(_182.x, _182.y, _182.z, _173.w);
     EmitVertex();
+    EndPrimitive();
 }
 
