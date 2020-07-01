@@ -98,10 +98,71 @@ struct RTXInstance {
 };
 
 
+//
+float3x4 getMT3x4(in float4x3 data) { return transpose(data); };
+float3x4 getMT3x4(in float3x4 data) { return data; };
+float4x4 getMT4x4(in float4x4 data) { return data; };
+float4x4 getMT4x4(in float3x4 data) { return float4x4(data, float4(0.f,0.f,0.f,1.f)); };
+float4x4 getMT4x4(in float4x3 data) { return float4x4(transpose(data), float4(0.f,0.f,0.f,1.f)); };
+
+// 
+#if defined(HLSL) || !defined(GLSL)
+float uintBitsToFloat(in uint a) { return asfloat(a); };
+uint floatBitsToUint(in float a) { return asuint(a); };
+
+// 
+uint bitfieldExtract(uint val, int off, int size) {
+	// This built-in function is only support in OpenGL 4.0 and ES 3.1
+	// Hopefully the shader compiler will get our meaning and emit the right instruction
+	uint mask = uint((1 << size) - 1);
+	return uint(val >> off) & mask;
+};
+
+// 
+uint packUint2x16(in uint2 up) {
+    return (up.x&0xFFFFu) | ((up.y&0xFFFFu)<<16u);
+};
+
+// 
+uint2 unpackUint2x16(in uint up) {
+    return uint2((up&0xFFFFu), ((up>>16u)&0xFFFFu));
+};
+
+// 
+uint packUnorm2x16(in float2 fp) {
+    return packUint2x16(uint2(fp * 65536.f));
+};
+
+// 
+float2 unpackUnorm2x16(in uint up) {
+    return float2(unpackUint2x16(up)) / 65536.f;
+};
+
+#define SHARED groupshared
+#define STATIC static 
+#define mix lerp
+#else // GLSL-side
+
+#define SHARED shared
+#define STATIC  
+float3 mul(in float3x4 m, in float4 a) { return a * m; };
+float3 mul(in float4x3 m, in float4 a) { return m * a; };
+float3 mul(in float3 a, in float3x4 m) { return m * a; };
+float3 mul(in float3 a, in float4x3 m) { return a * m; };
+float4 mul(in float4x4 m, in float4 a) { return a * m; };
+float4 mul(in float4 a, in float4x4 m) { return m * a; };
+float3 mul(in float3x3 m, in float3 a) { return a * m; };
+float3 mul(in float3 a, in float3x3 m) { return m * a; };
+float asfloat(in uint a) { return uintBitsToFloat(a); };
+uint asuint(in float a) { return floatBitsToUint(a); };
+#endif
+
+// 
 bool hasTransform(in MeshInfo meshInfo){
     return bool(bitfieldExtract(meshInfo.flags,0,1));
 };
 
+// 
 bool hasNormal(in MeshInfo meshInfo){
     return bool(bitfieldExtract(meshInfo.flags,1,1));
 };
@@ -115,11 +176,20 @@ bool hasTangent(in MeshInfo meshInfo){
 };
 
 // color space utils
-const float HDR_GAMMA = 2.2f;
+STATIC const float HDR_GAMMA = 2.2f;
+
+// 
+#ifdef GLSL
 float3 fromLinear(in float3 linearRGB) { return mix(float3(1.055)*pow(linearRGB, float3(1.0/2.4)) - float3(0.055), linearRGB * float3(12.92), lessThan(linearRGB, float3(0.0031308))); }
 float3 toLinear(in float3 sRGB) { return mix(pow((sRGB + float3(0.055))/float3(1.055), float3(2.4)), sRGB/float3(12.92), lessThan(sRGB, float3(0.04045))); }
 float4 fromLinear(in float4 linearRGB) { return float4(fromLinear(linearRGB.xyz), linearRGB.w); }
 float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
+#else
+float3 fromLinear(in float3 linearRGB) { return lerp(float3(1.055f.xxx)*pow(linearRGB, float3((1.0f/2.4f).xxx)) - float3(0.055f.xxx), linearRGB * float3(12.92f.xxx), (linearRGB < float3(0.0031308f.xxx))); }
+float3 toLinear(in float3 sRGB) { return lerp(pow(sRGB + float3(0.055f.xxx)/float3(1.055f.xxx), float3(2.4f.xxx)), sRGB/float3(12.92f.xxx), (sRGB < float3(0.04045f.xxx))); }
+float4 fromLinear(in float4 linearRGB) { return float4(fromLinear(linearRGB.xyz), linearRGB.w); }
+float4 toLinear(in float4 sRGB) { return float4(toLinear(sRGB.xyz), sRGB.w); }
+#endif
 
 // 
 // Vulkan  => DirectX 12
@@ -158,7 +228,7 @@ layout (binding = 9, set = 1, scalar) uniform Matrices {
     //uint2 tdata, rdata; // first for time, second for randoms
     uint2 tdata;
     uint2 rdata;
-};
+} pushed;
 layout (binding = 10, set = 1, scalar) readonly buffer MeshInfoData { MeshInfo meshInfo[]; };
 layout (binding = 11, set = 1, scalar) readonly buffer RTXInstances { RTXInstance rtxInstances[]; };
 
@@ -186,17 +256,99 @@ layout (binding = 22, set = 4) uniform texture2D textures[];
 // 
 layout (push_constant) uniform pushConstants { uint4 data; } drawInfo;
 
+//
+#define textureSample(b, s, c) texture(sampler2D(b, s), c)
+#define textureSample(b, s, c, m) textureLod(sampler2D(b, s), c, m)
+#else
+
+struct Matrices {
+    column_major float4x4 projection;    
+    column_major float4x4 projectionInv; 
+    column_major float3x4 modelview;   
+    column_major float3x4 modelviewInv;
+    column_major float3x4 modelviewPrev;   
+    column_major float3x4 modelviewPrevInv; 
+    uint4 mdata;        // mesh mutation or modification data
+    //uint2 tdata, rdata; // first for time, second for randoms
+    uint2 tdata;
+    uint2 rdata;
+};
+
+struct DrawInfo {
+    uint4 data;
+};
+
+// 
+[[vk::binding(0,0)]] RWByteAddressBuffer mesh0[] : register(u0, space0); 
+//[[vk::binding(0,0)]] RWStructuredBuffer<uint> mesh0[] : register(u0, space0); 
+// layout (binding = 0, set = 0) readonly buffer MeshData { uint8_t data[]; } mesh0[]; // SHOULD TO BE IN FUTURE!
+
+// LSD Mapping (Shadows, Emission, Voxels, Ray-Tracing...)
+[[vk::binding(2,0)]] RWStructuredBuffer<uint> map : register(u0, space2);
+[[vk::binding(3,0)]] RWTexture2D<uint> mapImage[] : register(u0, space3);
+[[vk::binding(4,0)]] Texture2D<float4> mapColor[] : register(t0, space4);
+
+// Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
+[[vk::binding(5,1)]] StructuredBuffer<Binding> bindings[] : register(t0, space5);
+[[vk::binding(6,1)]] StructuredBuffer<Attribute> attributes[] : register(t0, space6);
+
+// 
+//[[vk::binding(7,1)]] StructuredBuffer<Transform3x4> tmatrices[] : register(t0, space7);
+[[vk::binding(7,1)]] StructuredBuffer<float3x4> tmatrices[] : register(t0, space7);
+[[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(t0, space8);
+
+// 
+[[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);
+[[vk::binding(10,1)]] RWStructuredBuffer<MeshInfo> meshInfo : register(u0, space10);
+[[vk::binding(11,1)]] RWStructuredBuffer<RTXInstance> rtxInstances : register(u0, space11);
+
+// 
+#ifdef ENABLE_AS
+[[vk::binding(12,1)]] RaytracingAccelerationStructure Scene : register(t0, space12);
+#endif
+
+// Deferred and Rasterization Set
+[[vk::binding(13,2)]] Texture2D<float4>  frameBuffers[12u] : register(t0, space13); // Pre-resampled buffers
+[[vk::binding(15,2)]] Texture2D<float4> rasterBuffers[ 8u] : register(t0, space15); // Used by rasterization
+[[vk::binding(14,2)]] SamplerState            samplers[4u] : register(t0, space14);
+
+// 
+[[vk::binding(16,3)]] RWTexture2D<float4> writeBuffer[] : register(u0, space16); // Pre-resampled buffers, For EDIT!
+[[vk::binding(17,3)]] RWTexture2D<float4> writeImages[] : register(u0, space17); 
+[[vk::binding(18,3)]] RWTexture2D<float4> writeImagesBack[] : register(u0, space18); 
+
+// 
+[[vk::binding(20,4)]] RWStructuredBuffer<MaterialUnit> materials : register(u0, space20);
+[[vk::binding(21,4)]] Texture2D<float4> background : register(t0, space21);
+[[vk::binding(22,4)]] Texture2D<float4> textures[] : register(t0, space22);
+[[vk::push_constant]] ConstantBuffer<DrawInfo> drawInfo : register(b0, space23);
+
+//
+#define imageLoad(b, c) b[c]
+#define imageStore(b, c, f) (b[c] = f)
+#define texelFetch(b, c) b[c]
+#define texelFetch(b, c, m) b[uint3(c,m)]
+#define textureSample(b, s, c) b.Sample(s, c)
+#define textureSample(b, s, c, m) b.SampleLevel(s, c, m)
+#define nonuniformEXT(a) a
+
 #endif
 
 // 
-highp uint getMeshID(in RTXInstance instance){
+uint getMeshID(in RTXInstance instance){
     return bitfieldExtract(instance.instance_mask, 0, 24); // only hack method support
 };
 
 // System Specified
+#ifdef GLSL
 #define meshID nonuniformEXT(nodeMeshID)
+#else
+#define meshID nodeMeshID
+#endif
+
 
 // System Specified
+#ifdef GLSL
 uint8_t load_u8(in uint offset, in uint binding, in uint nodeMeshID) {
     if (binding == 0u) { return mesh0[nonuniformEXT(meshID)].data[offset]; };
     return uint8_t(0u);
@@ -211,11 +363,24 @@ uint16_t load_u16(in uint offset, in uint binding, in uint nodeMeshID) {
 uint load_u32(in uint offset, in uint binding, in uint nodeMeshID) {
     return pack32(u16float2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
 };
+#else
+// System Specified
+uint load_u32(in uint offset, in uint binding, in uint nodeMeshID) {
+    //return pack32(u16float2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
+    return mesh0[nodeMeshID].Load(int(offset)).x;
+};
+#endif
 
 // TODO: Add Uint16_t, uint, Float16_t Support
 float4 get_float4(in uint idx, in uint loc, in uint nodeMeshID) {
+#ifdef GLSL
     Attribute attrib = attributes[meshID].data[loc];
     Binding  binding = bindings[meshID].data[attrib.binding];
+#else
+    Attribute attrib = attributes[nodeMeshID][loc];
+    Binding  binding = bindings[nodeMeshID][attrib.binding];
+#endif
+
     //Attribute attrib = attributes[loc].data[meshID];
     //Binding  binding = bindings[attrib.binding].data[meshID];
     uint boffset = binding.stride * idx + attrib.offset;
@@ -238,20 +403,20 @@ float4 triangulate(in uint3 indices, in uint loc, in uint nodeMeshID, in float3 
         get_float4(indices[1],loc,nodeMeshID),
         get_float4(indices[2],loc,nodeMeshID)
     );
-    return mc*barycenter;
+    return mul(barycenter, mc);
 };
 
 float4x4 regen4(in float3x4 T) {
     return float4x4(T[0],T[1],T[2],float4(0.f.xxx,1.f));
-}
+};
 
 float3x3 regen3(in float3x4 T) {
     return float3x3(T[0].xyz,T[1].xyz,T[2].xyz);
-}
+};
 
 float4 mul4(in float4 v, in float3x4 M) {
-    return float4(v*M,1.f);
-}
+    return float4(mul(M, v),1.f);
+};
 
 // 
 #define IndexU8 1000265000
@@ -273,16 +438,16 @@ float raySphereIntersect(in float3 r0, in float3 rd, in float3 s0, in float sr) 
 
 // NEXT standard consts in current
 // Ray tracing NEXT capable shader standard development planned begin in 2019 year
-const float PHI = 1.6180339887498948482f;
-const float SFN = 0.00000011920928955078125f, SFO = 1.f+SFN;//1.00000011920928955078125f;
-const float INFINITY = 1e+5f, N_INFINITY = (INFINITY*(1.f-SFN));
-const float PI = 3.1415926535897932384626422832795028841971f;
-const float TWO_PI = 6.2831853071795864769252867665590057683943f;
-const float SQRT_OF_ONE_THIRD = 0.5773502691896257645091487805019574556476f;
-const float E = 2.7182818284590452353602874713526624977572f;
-const float INV_PI = 0.3183098861837907f;
-const float TWO_INV_PI = 0.6366197723675814f;
-const float INV_TWO_PI = 0.15915494309189535f;
+STATIC const float PHI = 1.6180339887498948482f;
+STATIC const float SFN = 0.00000011920928955078125f, SFO = 1.f+SFN;//1.00000011920928955078125f;
+STATIC const float INFINITY = 1e+5f, N_INFINITY = (INFINITY*(1.f-SFN));
+STATIC const float PI = 3.1415926535897932384626422832795028841971f;
+STATIC const float TWO_PI = 6.2831853071795864769252867665590057683943f;
+STATIC const float SQRT_OF_ONE_THIRD = 0.5773502691896257645091487805019574556476f;
+STATIC const float E = 2.7182818284590452353602874713526624977572f;
+STATIC const float INV_PI = 0.3183098861837907f;
+STATIC const float TWO_INV_PI = 0.6366197723675814f;
+STATIC const float INV_TWO_PI = 0.15915494309189535f;
 
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
 uint hash( uint x ) {
@@ -295,12 +460,10 @@ uint hash( uint x ) {
 }
 
 // Compound versions of the hashing algorithm I whipped together.
-uint counter = 0u;
+STATIC uint counter = 0u;
 uint hash( uint2 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y)                         ); }
 uint hash( uint3 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z)             ); }
 uint hash( uint4 v ) { return hash( hash(counter++) ^ v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
-
-
 
 // Construct a float with half-open range [0:1] using low 23 bits.
 // All zeroes yields 0.0, all ones yields the next smallest representable value below 1.0.
@@ -311,12 +474,20 @@ float floatConstruct( uint m ) {
     m &= ieeeMantissa;                     // Keep only mantissa bits (fractional part)
     m |= ieeeOne;                          // Add fractional part to 1.0
 
+#ifdef GLSL
     float  f = uintBitsToFloat( m );       // Range [1:2]
     return fract(f - 1.0);                 // Range [0:1]
+#else
+    float  f = asfloat( m );       // Range [1:2]
+    return frac(f - 1.0);          // Range [0:1]
+#endif
 };
 
+#ifdef GLSL
 highp float2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
-
+#else
+float2 halfConstruct ( in uint  m ) { return frac(f16tof32((m & 0x03FF03FFu) | (0x3C003C00u))-1.f); }
+#endif
 
 
 // Pseudo-random value in half-open range [0:1].
@@ -324,23 +495,37 @@ highp float2 halfConstruct ( in uint  m ) { return fract(unpackHalf2x16((m & 0x0
 //float random( float2  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 //float random( float3  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
 //float random( float4  v ) { return floatConstruct(hash(floatBitsToUint(v))); }
-  #define QLOCK2 (clockRealtime2x32EXT()+clock2x32ARB())
-  uint SCLOCK = 0u;
+#ifdef GLSL
+#define QLOCK2 (clockRealtime2x32EXT()+clock2x32ARB())
+#else
+#define QLOCK2 0u.xx
+#endif
+
+STATIC uint SCLOCK = 0u;
 //#define QLOCK2 uint2(0u,0u)
 
+// 
 float random(               ) {         return floatConstruct(hash(QLOCK2)); }
 float random( inout uint2 s ) { s += 1; return floatConstruct(hash(uint4(QLOCK2,s))); }
 float random( inout uint  s ) { s += 1; return floatConstruct(hash(uint3(QLOCK2,s))); }
 
+// 
 float2 random2(               ) {         return halfConstruct(hash(QLOCK2)); }
 float2 random2( inout uint2 s ) { s += 1; return halfConstruct(hash(uint4(QLOCK2,s))); }
 float2 random2( inout uint  s ) { s += 1; return halfConstruct(hash(uint3(QLOCK2,s))); }
 
-float staticRandom () { SCLOCK += 1; return floatConstruct(hash(uint4(SCLOCK,0u,rdata.xy))); }
-float2  staticRandom2() { SCLOCK += 1; return  halfConstruct(hash(uint4(SCLOCK,0u,rdata.xy))); }
+// 
+float staticRandom () { SCLOCK += 1; return floatConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
+float2  staticRandom2() { SCLOCK += 1; return  halfConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
 
 // 
+#ifdef GLSL
 float2 lcts(in float3 direct) { return float2(fma(atan(direct.z,direct.x),INV_TWO_PI,0.5f),acos(-direct.y)*INV_PI); };
+#else
+float2 lcts(in float3 direct) { return float2(fma(atan2(direct.z,direct.x),INV_TWO_PI,0.5f),acos(-direct.y)*INV_PI); };
+#endif
+
+// 
 float3 dcts(in float2 hr) { 
     hr = fma(hr,float2(TWO_PI,PI),float2(-PI,0.f)); 
     const float up=-cos(hr.y),over=sqrt(fma(up,-up,1.f)); 
@@ -418,6 +603,28 @@ bool3 or(in bool3 a, in bool3 b){
     return bool3(a.x||b.x,a.y||b.y,a.z||b.z);
 };
 
+#if defined(HLSL) || !defined(GLSL)
+
+bool fequal(in float a, in float b){
+    return 
+        a <= b + 0.0001f && 
+        a >= b - 0.0001f;
+};
+
+bool2 fequal(in float2 a, in float2 b){
+    return a <= (b + 0.0001f.xx) && a >= (b - 0.0001f.xx);
+};
+
+bool3 fequal(in float3 a, in float3 b){
+    return a <= (b + 0.0001f.xxx) && a >= (b - 0.0001f.xxx);
+};
+
+bool4 fequal(in float4 a, in float4 b){
+    return a <= (b + 0.0001f.xxxx) && a >= (b - 0.0001f.xxxx);
+};
+
+#else
+
 bool fequal(in float a, in float b){
     return 
         a <= b + 0.0001f && 
@@ -436,6 +643,7 @@ bool3 fequal(in float3 a, in float3 b){
         greaterThanEqual(a, b - 0.0001f));
 };
 
+#endif
 
 
 struct Box { float3 min, max; };
@@ -451,11 +659,11 @@ float2 boxIntersect(in float3 rayOrigin, in float3 rayDir, in float3 boxMin, in 
     //return 0.f.xx;
 };
 
-float3 boxNormal(in float3 point, in float3 boxMin, in float3 boxMax) {
+float3 boxNormal(in float3 mpoint, in float3 boxMin, in float3 boxMax) {
     const float kEpsilon = 0.0001f;
 	float3 center = (boxMax + boxMin) * 0.5;
 	float3 size = (boxMax - boxMin) * 0.5;
-	float3 pc = point - center;
+	float3 pc = mpoint - center;
 	float3 normal = float3(0.0f);
 	normal += float3(sign(pc.x), 0.0f, 0.0f) * step(abs(abs(pc.x) - size.x), kEpsilon);
 	normal += float3(0.0f, sign(pc.y), 0.0f) * step(abs(abs(pc.y) - size.y), kEpsilon);
@@ -475,11 +683,11 @@ float3 divW(in float4 vect) { return vect.xyz/vect.w; };
 float3 divW(in float3 vect) {return vect.xyz; };
 
 float3 world2screen(in float3 origin){
-    return divW(float4(float4(origin,1.f) * modelview, 1.f) * projection);
+    return divW(mul(pushed.projection, float4(mul(pushed.modelview, float4(origin,1.f)), 1.f)));
 };
 
 float3 screen2world(in float3 origin){
-    return float4(divW(float4(origin,1.f) * projectionInv),1.f)*modelviewInv;
+    return mul(pushed.modelviewInv, float4(divW(mul(pushed.projectionInv, float4(origin,1.f))), 1.f));
 };
 
 
@@ -491,7 +699,12 @@ float3 screen2world(in float3 origin){
 //#define BACKSKY_COLOR gSignal.xyz = max(fma(gEnergy.xyz, gSkyColor, gSignal.xyz),0.f.xxx), gEnergy *= 0.f
 
 float4 gSkyShader(in float3 raydir, in float3 origin) {
-    return float4(texture(sampler2D(background, samplers[3u]), flip(lcts(raydir.xyz))).xyz, 1.f);
+//#ifdef GLSL
+//    return float4(texture(sampler2D(background, samplers[3u]), flip(lcts(raydir.xyz))).xyz, 1.f);
+//#else
+//    return background.SampleLevel(samplers[3u], flip(lcts(raydir.xyz)).xy, 0);
+//#endif
+    return float4(textureSample(background, samplers[3u], flip(lcts(raydir.xyz))).xyz, 1.f);
 };
 
 #endif

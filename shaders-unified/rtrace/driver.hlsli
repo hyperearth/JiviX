@@ -1,3 +1,9 @@
+// #
+#ifndef DRIVER_HLSL
+#define DRIVER_HLSL
+
+
+#ifdef GLSL
 #extension GL_EXT_scalar_block_layout           : require
 #extension GL_EXT_shader_realtime_clock         : require
 #extension GL_EXT_samplerless_texture_functions : require
@@ -32,9 +38,12 @@
 
 precision highp float;
 precision highp int;
+#endif
 
 #ifdef TRANSFORM_FEEDBACK
 #include "./tf.hlsli"
 #else
 #include "./index.hlsli"
+#endif
+
 #endif
