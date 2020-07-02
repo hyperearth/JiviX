@@ -1,4 +1,10 @@
+#ifndef STUFF_HLSL
+#define STUFF_HLSL
+
+#include "./global.hlsli"
+
 // 
+#ifdef RAY_TRACE_DEFINED
 void directLight(in XHIT RES, in float4 sphere, in float3 origin, in float3 normal, inout uint2 seed, inout float4 gSignal, inout float4 gEnergy) {
     const float3 lightp = sphere.xyz + randomSphere(seed) * sphere.w; float shdist = distance(lightp.xyz,origin.xyz);
     const float3 lightd = normalize(lightp.xyz - origin.xyz);
@@ -14,3 +20,6 @@ void directLight(in XHIT RES, in float4 sphere, in float3 origin, in float3 norm
         };
     };
 };
+
+#endif
+#endif

@@ -114,6 +114,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 };
 
 // 
+#define RAY_TRACE_DEFINED
 #define LAUNCH_ID gl_LaunchIDEXT.xy
 #include "./stuff.hlsli"
 

@@ -39,11 +39,14 @@
 precision highp float;
 precision highp int;
 #endif
-
-#ifdef TRANSFORM_FEEDBACK
-#include "./tf.hlsli"
-#else
-#include "./index.hlsli"
 #endif
 
+#ifdef TRANSFORM_FEEDBACK
+#ifdef TF_HLSL
+#include "./tf.hlsli"
+#endif
+#else
+#ifndef INDEX_HLSL
+#include "./index.hlsli"
+#endif
 #endif

@@ -2,6 +2,10 @@
 #define GLOBAL_HLSL
 
 // 
+#include "./driver.hlsli"
+#include "./index.hlsli"
+
+// 
 struct RCData {
     uint4 udata;
     float4 fdata;
@@ -118,13 +122,13 @@ XPOL materialize(in XHIT hit, inout XGEO geo) { //
 
     // 
     if (hit.gBarycentric.w < 9999.f) {
-        material. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u]),gTexcoord.xy) : unit.diffuse);
-        material.emissionColor = toLinear(unit.emissionTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u]),gTexcoord.xy) : unit.emission);
-        material. normalsColor = unit. normalsTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u]),gTexcoord.xy) : unit.normals;
-        material.specularColor = unit.specularTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.specularTexture)],samplers[2u]),gTexcoord.xy) : unit.specular;
+        material. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u],gTexcoord.xy) : unit.diffuse);
+        material.emissionColor = toLinear(unit.emissionTexture >= 0 ? textureSample(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u],gTexcoord.xy) : unit.emission);
+        material. normalsColor = unit. normalsTexture >= 0 ? texture(textureSample(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u],gTexcoord.xy) : unit.normals;
+        material.specularColor = unit.specularTexture >= 0 ? texture(textureSample(textures[nonuniformEXT(unit.specularTexture)],samplers[2u],gTexcoord.xy) : unit.specular;
 
         // Mapping
-        material.mapNormal = float4(normalize(float3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz) * normalize(material.normalsColor.xyz * 2.f - 1.f)), 1.f);
+        material.mapNormal = float4(normalize(mul(normalize(material.normalsColor.xyz * 2.f - 1.f), float3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz))), 1.f);
 
         // Use real origin
         material.txcmid = float4(uintBitsToFloat(packUnorm2x16(fract(geo.gTexcoord.xy))), uintBitsToFloat(MatID), 1.f, 0.f); // 

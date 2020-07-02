@@ -159,6 +159,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
 // 
 #define LAUNCH_ID GlobalInvocationID.xy
+#define RAY_TRACE_DEFINED
 #include "./stuff.hlsli"
 #define RES hits[lIdx]
 
