@@ -34,8 +34,6 @@ out gl_PerVertex {
 // 
 struct GS_INPUT
 {
-    float PointSize;
-    float4 Position;
     float4 vColor;
     float4 vSample;
     float4 vNormal;
@@ -43,13 +41,13 @@ struct GS_INPUT
     float4 vSpecular;
     float4 vRescolor;
     float4 vSmooth;
+    float4 Position;
+    float PointSize;
 };
 
 // 
 struct PS_INPUT
 {
-    float PointSize;
-    float4 Position;
     float4 gColor;
     float4 gSample;
     float4 gNormal;
@@ -57,6 +55,8 @@ struct PS_INPUT
     float4 gSpecular;
     float4 gRescolor;
     float4 gSmooth;
+    float4 Position;
+    float PointSize;
 };
 
 #else
@@ -64,8 +64,6 @@ struct PS_INPUT
 // 
 struct GS_INPUT
 {
-    float PointSize  : PSIZE0;
-    float4 Position  : SV_POSITION;
     float4 vColor    : COLOR0;
     float4 vSample   : COLOR1;
     float4 vNormal   : COLOR2;
@@ -73,13 +71,13 @@ struct GS_INPUT
     float4 vSpecular : COLOR4;
     float4 vRescolor : COLOR5;
     float4 vSmooth   : COLOR6;
+    float4 Position  : SV_POSITION;
+    float PointSize  : PSIZE0;
 };
 
 // 
 struct PS_INPUT
 {
-    float PointSize  : PSIZE0;
-    float4 Position  : SV_POSITION;
     float4 gColor    : COLOR0;
     float4 gSample   : COLOR1;
     float4 gNormal   : COLOR2;
@@ -87,6 +85,8 @@ struct PS_INPUT
     float4 gSpecular : COLOR4;
     float4 gRescolor : COLOR5;
     float4 gSmooth   : COLOR6;
+    float4 Position  : SV_POSITION;
+    float PointSize  : PSIZE0;
 };
 
 #endif
@@ -103,6 +103,7 @@ void main(point in GS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStrea
 {
 #ifdef GLSL
     GS_INPUT input[1];
+    input.Position = gl_in[0].gl_Position;
     input.vColor = vColor[0];
     input.vSample = vSample[0];
     input.vNormal = vNormal[0];
@@ -110,13 +111,11 @@ void main(point in GS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStrea
     input.vSpecular = vSpecular[0];
     input.vRescolor = vRescolor[0];
     input.vSmooth = vSmooth[0];
-    input.Position = gl_in[0].gl_Position;
     input.PointSize = gl_in[0].gl_PointSize;
 #endif
 
     PS_INPUT output;
     output.Position = input[0].Position;
-    output.PointSize = input[0].PointSize;
     output.gColor = input[0].vColor;
     output.gSample = input[0].vSample;
     output.gNormal = input[0].vNormal;
@@ -124,10 +123,10 @@ void main(point in GS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStrea
     output.gSpecular = input[0].vSpecular;
     output.gRescolor = input[0].vRescolor;
     output.gSmooth = input[0].vSmooth;
+    output.PointSize = input[0].PointSize;
 
 #ifdef GLSL
     gl_Position = output.Position;
-    gl_PointSize = output.PointSize;
     gColor = output.gColor;
     gSample = output.gSample;
     gNormal = output.gNormal;
@@ -135,6 +134,7 @@ void main(point in GS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStrea
     gSpecular = output.gSpecular;
     gRescolor = output.gRescolor;
     gSmooth = output.gSmooth;
+    gl_PointSize = output.PointSize;
     EmitVertex(), EndPrimitive();
 #else
     OutputStream.Append(output);

@@ -5,6 +5,7 @@
 
 #define TRANSFORM_FEEDBACK
 #include "./driver.hlsli"
+#include "./tf.hlsli"
 
 #ifdef GLSL
 // Left Oriented

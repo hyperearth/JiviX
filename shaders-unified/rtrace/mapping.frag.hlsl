@@ -56,12 +56,12 @@ struct PS_OUTPUT {
 // 
 struct PS_INPUT
 {
-    float PointSize              : PSIZE0;
-    float4 Position              : SV_POSITION;
-               float4 fPosition  : POSITION0;
-               float4 fTexcoord  : TEXCOORD0;     
-               float4 fBarycent  : TEXCOORD1;
+    float4 FragCoord             : SV_POSITION;
+    float4 fPosition             : POSITION0;
+    float4 fTexcoord             : TEXCOORD0;     
+    float4 fBarycent             : TEXCOORD1;
     nointerpolation float4 uData : COLOR0;
+    float PointSize              : PSIZE0;
 };
 
 // 
@@ -92,16 +92,14 @@ struct PS_OUTPUT {
 #ifdef GLSL
 void main()  // TODO: Re-Interpolate for Randomized Center
 #else
-PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID, in float4 FragCoord : SV_Position)  // TODO: Re-Interpolate for Randomized Center
+PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID)  // TODO: Re-Interpolate for Randomized Center
 #endif
 {
 #ifdef GLSL
-    const float4 FragCoord = gl_FragCoord;
     const uint PrimitiveID = gl_PrimitiveID;
-    PS_INPUT input = {gl_PointSize.x, gl_Position, fPosition, fTexcoord, fBarycent, uData};
+    PS_INPUT input = {gl_PointSize.x, gl_FragCoord, fPosition, fTexcoord, fBarycent, uData};
 #endif
 
-    const float2 fragCoord = FragCoord.xy; // + SampleCenter;
     const uint primitiveID = uint(PrimitiveID.x);
     const uint geometryInstanceID = input.uData.x;//uint(gl_InstanceIndex.x);
     const uint nodeMeshID = drawInfo.data.x;
@@ -114,7 +112,7 @@ PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID, in float
 #endif
 
     const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020
-    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textures[unit.diffuseTexture].SampleLevel(samplers[3u], input.fTexcoord.xy, 0) : unit.diffuse);
+    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u],input.fTexcoord.xy) : unit.diffuse);
 
     PS_OUTPUT output;
     output.oPosition  = float4(0.f.xxxx);

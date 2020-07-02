@@ -1,5 +1,8 @@
+#ifdef GLSL
 #version 460 core // #
 #extension GL_GOOGLE_include_directive  : require
+#endif
+
 #include "./driver.hlsli"
 
 #ifdef GLSL
@@ -85,7 +88,11 @@ GS_INPUT main(in VS_INPUT input, in uint InstanceIndex : SV_InstanceID, in uint 
     float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
     float3x4 matra4 = rtxInstances[globalInstanceID].transform;
     if (hasTransform(meshInfo[nodeMeshID])) {
+#ifdef GLSL
         matras = float3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+#else
+        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+#endif
     };
 
     // Native Normal Transform

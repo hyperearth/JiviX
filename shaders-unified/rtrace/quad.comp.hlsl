@@ -7,6 +7,7 @@
 #endif
 
 #include "./driver.hlsli"
+#include "./tf.hlsli"
 
 // store 32 value as by 8 bytes
 #ifdef GLSL
@@ -35,16 +36,16 @@ void main(in uint GlobalInvocationID : SV_DISPATCHTHREADID)
 #ifdef GLSL
     const uint GlobalInvocationID = gl_GlobalInvocationID;
 #endif
-    const uint4 quadIndices = gl_GlobalInvocationID.x*4u + uint4(0u,1u,2u,3u);
+    const uint4 quadIndices = GlobalInvocationID.x*4u + uint4(0u,1u,2u,3u);
     {
         // CW triangle A
-        lStore(int(gl_GlobalInvocationID.x*6+0), quadIndices.x);
-        lStore(int(gl_GlobalInvocationID.x*6+1), quadIndices.y);
-        lStore(int(gl_GlobalInvocationID.x*6+2), quadIndices.z);
+        lStore(int(GlobalInvocationID.x*6+0), quadIndices.x);
+        lStore(int(GlobalInvocationID.x*6+1), quadIndices.y);
+        lStore(int(GlobalInvocationID.x*6+2), quadIndices.z);
 
         // CW triangle B
-        lStore(int(gl_GlobalInvocationID.x*6+3), quadIndices.y);
-        lStore(int(gl_GlobalInvocationID.x*6+4), quadIndices.w);
-        lStore(int(gl_GlobalInvocationID.x*6+5), quadIndices.z);
+        lStore(int(GlobalInvocationID.x*6+3), quadIndices.y);
+        lStore(int(GlobalInvocationID.x*6+4), quadIndices.w);
+        lStore(int(GlobalInvocationID.x*6+5), quadIndices.z);
     };
 };

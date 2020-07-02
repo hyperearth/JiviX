@@ -27,7 +27,7 @@ STATIC CHIT hit; // Yep, HLSL!
 #endif
 
 // For Cache
-XHIT RES;
+STATIC XHIT RES;
 
 // 
 #ifndef GLSL
@@ -66,7 +66,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     XHIT processing, confirmed;
     processing.origin = float4(origin.xyz, 1.f);
     processing.direct = float4(raydir.xyz, 0.f);
-    processing.gIndices = uint4(0u);
+    processing.gIndices = uint4(0u.xxxx);
     processing.gBarycentric = float4(0.f.xxx, maxT);
     confirmed = processing;
 
@@ -115,7 +115,11 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
 // 
 #define RAY_TRACE_DEFINED
+#ifdef GLSL
 #define LAUNCH_ID gl_LaunchIDEXT.xy
+#else
+#define LAUNCH_ID DispatchRaysIndex()
+#endif
 #include "./stuff.hlsli"
 
 // 
@@ -132,11 +136,11 @@ void main() {
     const int2 sizPixel = int2(launchSize);
 
     // WARNING! Quality may critically drop when move! 
-    const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x^1u))&1u);
+    const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (pushed.rdata.x^1u))&1u);
 
     {
         //
-        packed = pack32(u16float2(curPixel)), seed = uint2(packed, rdata.x);
+        packed = packUint2x16(curPixel), seed = uint2(packed, pushed.rdata.x);
         const float2 shift = random2(seed),   pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
         //const float2 shift = 0.5f.xx,       pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
 
@@ -144,8 +148,8 @@ void main() {
         float3 origin = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.001f));
         float3 target = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.999f));
         float3 raydir = normalize(target - origin);
-        float3 normal = float3(0.f);
-        float3 geonrm = float3(0.f);
+        float3 normal = float3(0.f.xxx);
+        float3 geonrm = float3(0.f.xxx);
 
         // Replacement for rasterization
         //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);
@@ -171,11 +175,16 @@ void main() {
         float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
         float3x4 matra4 = rtxInstances[globalInstanceID].transform;
         if (hasTransform(meshInfo[nodeMeshID])) {
+#ifdef GLSL
             matras = float3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+#else
+            matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+#endif
         };
 
         // Initial Position
-        float4 instanceRel = inverse(matras) * inverse(rtxInstances[globalInstanceID].transform) * float4(RPM.origin.xyz,1.f);
+        //float4 instanceRel = inverse(matras) * inverse(rtxInstances[globalInstanceID].transform) * float4(RPM.origin.xyz,1.f);
+        float4 instanceRel = mul(mul(inverse(float4x4(getMT3x4(rtxInstances[globalInstanceID].transform), float4(0.f.xxx,1.f))), inverse(matras)), float4(RPM.origin.xyz,1.f));
 
         // Problem: NOT enough slots for writables
         // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 

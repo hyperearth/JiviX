@@ -70,7 +70,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     XHIT processing, confirmed;
     processing.origin = float4(origin.xyz, 1.f);
     processing.direct = float4(raydir.xyz, 0.f);
-    processing.gIndices = uint4(0u);
+    processing.gIndices = uint4(0u.xxxx);
     processing.gBarycentric = float4(0.f.xxx, maxT);
     confirmed = processing;
 
@@ -118,7 +118,12 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
         // 
         processing = confirmed; lastMax = (maxT - fullLength); lastOrigin = raydir*maxT + sorigin; opaque = false;
         if (!proceed) { // Attemp to fix Broken Ray Query
-            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != RayQueryCommittedIntersectionNoneEXT) {
+#ifdef GLSL
+            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != RayQueryCommittedIntersectionNoneEXT) 
+#else
+            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != COMMITTED_NOTHING) 
+#endif
+            {
                 uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, true); // Mesh ID from Node Mesh List (because indexing)
                 uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, true); // TODO: Using In Ray Tracing (and Query) shaders!
                 uint globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, true);
@@ -179,6 +184,9 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
     const uint3 GlobalInvocationID = gl_GlobalInvocationID;
     const uint3 LocalInvocationID = gl_LocalInvocationID;
     const uint3 WorkGroupID = gl_WorkGroupID;
+    const uint3 WorkGroupSize = gl_WorkGroupSize;
+#else
+    const uint3 WorkGroupSize = uint3(workX, workY, 1u);
 #endif
 
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
@@ -186,7 +194,7 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
 
     // 
     const uint2 locQs = uint2(LocalInvocationID.xy);
-    const uint2 locQ = uint2(locQs.x, (locQs.y<<1u) | ((locQs.x+rdata.x)&1u));
+    const uint2 locQ = uint2(locQs.x, (locQs.y<<1u) | ((locQs.x+pushed.rdata.x)&1u));
     const uint2 lanQ = uint2(WorkGroupID.xy*WorkGroupSize.xy*uint2(1u,2u) + locQ).xy;
     //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
     const uint lIdx = LocalInvocationIndex;
@@ -201,7 +209,8 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
 #endif
 
     // 
-    for (uint Q = 0u; Q < 2u; Q++) {
+    uint Q = 0u;
+    for (Q = 0u; Q < 2u; Q++) {
         const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
         const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
         //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
@@ -212,10 +221,10 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         const int2 sizPixel = int2(launchSize);
 
         // WARNING! Quality may critically drop when move! 
-        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (rdata.x^1u))&1u);
+        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (pushed.rdata.x^1u))&1u);
 
         //
-        packed = pack32(u16float2(curPixel)), seed = uint2(packed, rdata.x);
+        packed = packUint2x16(curPixel), seed = uint2(packed, pushed.rdata.x);
         const float2 shift = random2(seed),   pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
         //const float2 shift = 0.5f.xx,       pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
 
@@ -223,8 +232,8 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         float3 origin = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.001f));
         float3 target = screen2world(float3((float2(pixel)/float2(sizPixel))*2.f-1.f,0.999f));
         float3 raydir = normalize(target - origin);
-        float3 normal = float3(0.f);
-        float3 geonrm = float3(0.f);
+        float3 normal = float3(0.f.xxx);
+        float3 geonrm = float3(0.f.xxx);
 
         // Replacement for rasterization
         //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);
@@ -250,11 +259,15 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
         float3x4 matra4 = rtxInstances[globalInstanceID].transform;
         if (hasTransform(meshInfo[nodeMeshID])) {
+#ifdef GLSL
             matras = float3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+#else
+            matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+#endif
         };
 
         // Initial Position
-        float4 instanceRel = inverse(matras) * inverse(rtxInstances[globalInstanceID].transform) * float4(RPM.origin.xyz,1.f);
+        float4 instanceRel = mul(inverse(rtxInstances[globalInstanceID].transform), mul(inverse(matras), float4(RPM.origin.xyz,1.f)));
 
         // Problem: NOT enough slots for writables
         // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 
@@ -398,7 +411,7 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
 #endif
 
     // 
-    for (uint Q = 0u; Q < 2u; Q++) {
+    for (Q = 0u; Q < 2u; Q++) {
         const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
         const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
         //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;

@@ -32,7 +32,7 @@ function Optimize($Name, $Dir = "", $AddArg = "") {
 }
 
 function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName = $Name) {
-    $ARGS = "$CMPPROF $InDir$Name.hlsl -Fo $OutDir$AltName.spv $CFLAGSV"
+    $ARGS = "$CMPPROF $InDir$Name.hlsl -Fo $OutDir$AltName.dxil $CFLAGSV"
     $process = start-process -NoNewWindow -Filepath "dxc" -ArgumentList "$ARGS $AddArg" -PassThru
     #$ARGS = "$CMPPROF $InDir$Name -o $OutDir$AltName.spv $CFLAGSV"
     #$process = start-process -NoNewWindow -Filepath "glslangValidator" -ArgumentList "$ARGS" -PassThru
@@ -50,8 +50,9 @@ function BuildAllShaders($Pfx = "") {
     #[System.Threading.Thread]::CurrentThread.Priority = 'Highest'
 
     new-item -Name $HRDDIR$RDXO -itemtype directory  -Force | Out-Null
-    
-     BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5"
+
+
+    BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5"
     #BuildCompute "rasterize.geom"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T gs_6_5"
      BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T vs_6_5"
     

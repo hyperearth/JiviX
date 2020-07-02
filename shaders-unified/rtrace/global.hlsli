@@ -69,7 +69,11 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
     float3x4 matra4 = rtxInstances[globalInstanceID].transform;
     if (hasTransform(meshInfo[nodeMeshID])) {
+#ifdef GLSL
         matras = float3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+#else
+        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+#endif
     };
 
     // Native Normal Transform
@@ -87,9 +91,9 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     geometry.gBinormal  = float4(triangulate(idx3, 4u, nodeMeshID,baryCoord).xyz,0.f);
 
     // 
-    geometry.gNormal.xyz *= normalTransform * normInTransform;
-    geometry.gTangent.xyz *= normalTransform * normInTransform;
-    geometry.gBinormal.xyz *= normalTransform * normInTransform;
+    geometry.gNormal.xyz = mul(mul(normInTransform, normalTransform), geometry.gNormal.xyz);
+    geometry.gTangent.xyz = mul(mul(normInTransform, normalTransform), geometry.gTangent.xyz);
+    geometry.gBinormal.xyz = mul(mul(normInTransform, normalTransform), geometry.gBinormal.xyz);
 
     //
     geometry.gNormal.xyz = normalize(geometry.gNormal.xyz);
@@ -102,7 +106,13 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
 
 // 
 XPOL materialize(in XHIT hit, inout XGEO geo) { // 
+
+#ifdef GLSL
 #define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
+#else
+#define MatID materialID[nodeMeshID][geometryInstanceID]
+#endif
+
     XPOL material;
     material. diffuseColor = float4(0.f.xxx, 1.f.x);
     material.emissionColor = gSkyShader(hit.direct.xyz, hit.origin.xyz);
@@ -124,8 +134,8 @@ XPOL materialize(in XHIT hit, inout XGEO geo) { //
     if (hit.gBarycentric.w < 9999.f) {
         material. diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u],gTexcoord.xy) : unit.diffuse);
         material.emissionColor = toLinear(unit.emissionTexture >= 0 ? textureSample(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u],gTexcoord.xy) : unit.emission);
-        material. normalsColor = unit. normalsTexture >= 0 ? texture(textureSample(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u],gTexcoord.xy) : unit.normals;
-        material.specularColor = unit.specularTexture >= 0 ? texture(textureSample(textures[nonuniformEXT(unit.specularTexture)],samplers[2u],gTexcoord.xy) : unit.specular;
+        material. normalsColor = unit. normalsTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u],gTexcoord.xy) : unit.normals;
+        material.specularColor = unit.specularTexture >= 0 ? textureSample(textures[nonuniformEXT(unit.specularTexture)],samplers[2u],gTexcoord.xy) : unit.specular;
 
         // Mapping
         material.mapNormal = float4(normalize(mul(normalize(material.normalsColor.xyz * 2.f - 1.f), float3x3(geo.gTangent.xyz, geo.gBinormal.xyz, geo.gNormal.xyz))), 1.f);
@@ -151,7 +161,7 @@ XHIT rasterize(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     XHIT processing, confirmed;
     processing.origin.xyz = origin.xyz;
     processing.direct.xyz = raydir.xyz;
-    processing.gIndices = uint4(0u);
+    processing.gIndices = uint4(0u.xxxx);
     processing.gBarycentric = float4(0.f.xxx, lastMax);
     confirmed = processing;
     

@@ -119,7 +119,7 @@ float4 get_float4(in uint idx, in uint loc) {
     //Attribute attrib = attributes[loc].data[meshID];
     //Binding  binding = bindings[attrib.binding].data[meshID];
     uint boffset = binding.stride * idx + attrib.offset;
-    float4 vec = float4(0.f);
+    float4 vec = float4(0.f.xxxx);
     
     // 
     //if (binding.stride >  0u) vec = float4(0.f,0.f,1.f,0.f);

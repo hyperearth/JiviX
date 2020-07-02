@@ -40,13 +40,13 @@ PSOutput main(in PSInput input)
     input.position = gl_FragCoord;
     input.vcoord = vcoord;
 #endif
-    const int2 size = int(textureSize(frameBuffers[BW_RENDERED], 0)), samplep = int2(input.position.x, input.position.y);
+    const int2 size = int2(textureSize(frameBuffers[BW_RENDERED], 0)), samplep = int2(input.position.x, input.position.y);
 
     // Final Result Rendering
     PSOutput output;
     output.uFragColor = 0.f.xxxx;
     //output.uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, output.uFragColor, output.uFragColor, output.uFragColor, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, output.uFragColor);// = imageLoad(writeImages[BW_RENDERED], samplep);
-    output.uFragColor = texture(sampler2D(frameBuffers[BW_RENDERED],samplers[1u]), vcoord);
+    output.uFragColor = textureSample(frameBuffers[BW_RENDERED], samplers[1u], input.vcoord);
 
 #ifdef GLSL
     uFragColor = output.uFragColor;

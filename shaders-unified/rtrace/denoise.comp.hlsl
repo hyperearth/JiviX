@@ -102,10 +102,13 @@ void main(uint3 DTid : SV_DispatchThreadID) // TODO: explicit sampling
 
 #ifdef GLSL
 const uint3 DTid = gl_GlobalInvocationID.xyz;
+const uint3 GlobalInvocationID = gl_GlobalInvocationID.xyz;
+#else
+const uint3 GlobalInvocationID = DTid;
 #endif
 
     // 
-    const int2 size = imageSize(writeImages[IW_INDIRECT]), samplep = int2(gl_GlobalInvocationID.xy);
+    const int2 size = imageSize(writeImages[IW_INDIRECT]), samplep = int2(GlobalInvocationID.xy);
     const  float4 dataflat = getData(samplep);
     const uint4 datapass = floatBitsToUint(dataflat);
     const  float4 position = getPosition(samplep);
@@ -116,10 +119,10 @@ const uint3 DTid = gl_GlobalInvocationID.xyz;
 
     // 
     const MaterialUnit unit = materials[datapass.y];
-          float4 diffused = toLinear(unit. diffuseTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u]),texcoord.xy) : unit.diffuse);
-          float4 emission = toLinear(unit.emissionTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u]),texcoord.xy) : unit.emission);
-          float4 normaled = unit. normalsTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u]),texcoord.xy) : unit.normals;
-          float4 specular = unit.specularTexture >= 0 ? texture(sampler2D(textures[nonuniformEXT(unit.specularTexture)],samplers[2u]),texcoord.xy) : unit.specular;
+          float4 diffused = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u],texcoord.xy) : unit.diffuse);
+          float4 emission = toLinear(unit.emissionTexture >= 0 ? textureSample(textures[nonuniformEXT(unit.emissionTexture)],samplers[2u],texcoord.xy) : unit.emission);
+          float4 normaled = unit. normalsTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. normalsTexture)],samplers[2u],texcoord.xy) : unit.normals;
+          float4 specular = unit.specularTexture >= 0 ? textureSample(textures[nonuniformEXT(unit.specularTexture)],samplers[2u],texcoord.xy) : unit.specular;
           float4 dtexdata = diffused;
 
     // experimental (unused for alpha transparency)
@@ -127,8 +130,8 @@ const uint3 DTid = gl_GlobalInvocationID.xyz;
     //if (diffused.w < 0.99f) { diffused.xyz = 1.f.xxx; };
 
     // 
-    const float3 camera = float4(position.xyz,1.f)*modelview;
-    const float3 raydir = (modelview * normalize(camera.xyz)).xyz;
+    const float3 camera = mul(getMT3x4(pushed.modelview), float4(position.xyz,1.f));
+    const float3 raydir = mul(normalize(camera.xyz), getMT3x4(pushed.modelview)).xyz;
     const float3 origin = getPosition(samplep).xyz;
     const float3 normal = getNormal(samplep).xyz;
 

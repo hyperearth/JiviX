@@ -1,5 +1,8 @@
+#ifdef GLSL
 #version 460 core // #
 #extension GL_GOOGLE_include_directive  : require
+#endif
+
 #include "./driver.hlsli"
 
 // 
@@ -28,8 +31,8 @@ struct GS_INPUT
     float4 vSpecular;
     float4 vRescolor;
     float4 vSmooth;
-    float PointSize;
     float4 Position;
+    float PointSize;
 };
 #else
 // 
@@ -42,8 +45,8 @@ struct GS_INPUT
     float4 vSpecular : COLOR4;
     float4 vRescolor : COLOR5;
     float4 vSmooth   : COLOR6;
+    float4 Position  : SV_POSITION;
     float PointSize  : PSIZE0;
-    float4 Position  : SV_Position;
 };
 #endif
 
@@ -82,7 +85,11 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
     float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
     float3x4 matra4 = rtxInstances[globalInstanceID].transform;
     if (hasTransform(meshInfo[nodeMeshID])) {
+#ifdef GLSL
         matras = float3x4(instances[nodeMeshID].transform[geometryInstanceID]);
+#else
+        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
+#endif
     };
 
     // TODO: MESH USE TRANSFORMS!
@@ -110,14 +117,14 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
     };
 
 #ifdef GLSL
-    gl_Position = output.Position;
-    gl_PointSize = output.PointSize;
     vColor = output.vColor;
     vSpecular = output.vSpecular;
     vSample = output.vSample;
     vNormal = output.vNormal;
     vSmooth = output.vSmooth;
     vPosition = output.vPosition;
+    gl_Position = output.Position;
+    gl_PointSize = output.PointSize;
 #else
     return output;
 #endif

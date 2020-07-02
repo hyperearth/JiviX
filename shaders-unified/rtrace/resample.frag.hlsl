@@ -32,8 +32,8 @@ struct PS_INPUT
     float4 gSpecular;
     float4 gRescolor;
     float4 gSmooth;
-    float PointSize;
     float4 FragCoord;
+    float PointSize;
 };
 
 // 
@@ -55,8 +55,8 @@ struct PS_INPUT
     float4 gSpecular : COLOR4;
     float4 gRescolor : COLOR5;
     float4 gSmooth   : COLOR6;
-    float PointSize  : PSIZE0;
     float4 FragCoord : SV_Position;
+    float PointSize  : PSIZE0;
 };
 
 // 
@@ -80,7 +80,7 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
     for (int i=0;i<9;i++) {
         const float2 offt = shift[i];
 
-        float4 worldspos = float4(texture(sampler2D(frameBuffers[BW_POSITION], samplers[0u]), float2(i2fxm+offt), 0).xyz,1.f);
+        float4 worldspos = float4(textureLodSample(frameBuffers[BW_POSITION], samplers[0u], float2(i2fxm+offt), 0).xyz,1.f);
         float4 almostpos = float4(world2screen(worldspos.xyz),1.f);
         //almostpos.y *= -1.f;
 
@@ -88,8 +88,8 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
             //abs(screenSample.z-almostpos.z) < 0.0001f && 
             (screenSample.z-almostpos.z) < 0.0001f && // Reserved for FOG 
             length(almostpos.xy-screenSample.xy) < 4.f && 
-            dot(gNormal.xyz,    texture(sampler2D(frameBuffers[BW_GEONORML], samplers[0u]),  float2(i2fxm+offt), 0).xyz) >=0.5f && 
-                             texelFetch(sampler2D(frameBuffers[BW_MATERIAL], samplers[0u]), int2(i2fxm+offt), 0).z > 0.f &&
+            dot(gNormal.xyz, textureLodSample(frameBuffers[BW_GEONORML], samplers[0u],  float2(i2fxm+offt), 0).xyz) >=0.5f && 
+                                   texelFetch(frameBuffers[BW_MATERIAL], int2(i2fxm+offt), 0).z > 0.f &&
             distance(wPosition.xyz,worldspos.xyz) < 0.05f || 
             false//(i == 4 && texelFetch(frameBuffers[BW_INDIRECT], int2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
         ) { return true; };
@@ -126,12 +126,12 @@ PS_OUTPUT main(in PS_INPUT input)
     const int2 f2fx  = int2(input.FragCoord.xy);
     const int2 size  = int2(textureSize(frameBuffers[BW_POSITION], 0));
     const int2 i2fx  = int2(f2fx.x,size.y-f2fx.y-1);
-    const float2 i2fxm = gl_FragCoord.xy; //float2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
+    const float2 i2fxm = input.FragCoord.xy; //float2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 
     // 
     PS_OUTPUT output;
-    if (checkCorrect(input.gNormal, input.wPosition, float4(gSample.xyz,1.f), i2fxm)) {
-        output.oDiffused = gColor;
+    if (checkCorrect(input.gNormal, input.wPosition, float4(input.gSample.xyz,1.f), i2fxm)) {
+        output.oDiffused = input.gColor;
         output.oSpecular = float4(input.gSpecular.xyz,input.gSpecular.w*0.5f); // TODO: Make New Reflection Sampling
         output.oSmoothed = input.gSmooth;
     } else { discard; };

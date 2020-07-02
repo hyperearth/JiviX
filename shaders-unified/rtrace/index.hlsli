@@ -143,6 +143,7 @@ float2 unpackUnorm2x16(in uint up) {
 #define SHARED groupshared
 #define STATIC static 
 #define mix lerp
+#define fract frac
 #else // GLSL-side
 
 #define SHARED shared
@@ -157,6 +158,10 @@ float3 mul(in float3x3 m, in float3 a) { return a * m; };
 float3 mul(in float3 a, in float3x3 m) { return m * a; };
 float asfloat(in uint a) { return uintBitsToFloat(a); };
 uint asuint(in float a) { return floatBitsToUint(a); };
+
+uint packUint2x16(in highp uint2 up) {
+    return pack32(u16vec2(up));
+};
 #endif
 
 // 
@@ -328,19 +333,22 @@ struct DrawInfo {
 
 //
 #define imageLoad(b, c) b[c]
-#define imageStore(b, c, f) (b[c] = f)
-#define texelFetch(b, c) b[c]
-#define texelFetch(b, c, m) b[uint3(c,m)]
+//#define imageStore(b, c, f) (b[c] = f)
+//#define texelFetch(b, c) b[c]
+#define texelFetch(b, c, m) b[c]//b.Load(c,uint(m))
 #define textureSample(b, s, c) b.Sample(s, c)
 //#define textureSample(b, s, c, m) b.SampleLevel(s, c, m)
 #define textureLodSample(b, s, c, m) b.SampleLevel(s, c, m)
 #define nonuniformEXT(a) a
 
+void imageStore(in RWTexture2D<float4> b, in int2 c, in float4 f) { b[c] = f; };
+void imageStore(in RWTexture3D<float4> b, in int3 c, in float4 f) { b[c] = f; };
+
 // 
-uint2 imageSize(in RWTexture2D tex) { uint2 size = uint2(0,0); return tex.GetDimensions(size.x, size.y); return size; };
-uint3 imageSize(in RWTexture3D tex) { uint3 size = uint3(0,0,0); return tex.GetDimensions(size.x, size.y, size.z); return size; };
-uint2 textureSize(in Texture2D tex, in int lod) { uint2 size = uint2(0,0); return tex.GetDimensions(size.x, size.y); return size; };
-uint3 textureSize(in Texture3D tex, in int lod) { uint3 size = uint3(0,0,0); return tex.GetDimensions(size.x, size.y, size.z); return size; };
+uint2 imageSize(in RWTexture2D<float4> tex) { uint2 size = uint2(0,0); tex.GetDimensions(size.x, size.y); return size; };
+uint3 imageSize(in RWTexture3D<float4> tex) { uint3 size = uint3(0,0,0); tex.GetDimensions(size.x, size.y, size.z); return size; };
+uint2 textureSize(in Texture2D<float4> tex, in int lod) { uint2 size = uint2(0,0); tex.GetDimensions(size.x, size.y); return size; };
+uint3 textureSize(in Texture3D<float4> tex, in int lod) { uint3 size = uint3(0,0,0); tex.GetDimensions(size.x, size.y, size.z); return size; };
 //uint2 textureSize(in Texture2D tex, in int lod) { uint2 size = uint2(0,0); return tex.GetDimensions(uint(lod), size.x, size.y); return size; };
 //uint3 textureSize(in Texture3D tex, in int lod) { uint3 size = uint3(0,0,0); return tex.GetDimensions(uint(lod), size.x, size.y, size.z); return size; };
 #endif
@@ -395,7 +403,7 @@ float4 get_float4(in uint idx, in uint loc, in uint nodeMeshID) {
     //Attribute attrib = attributes[loc].data[meshID];
     //Binding  binding = bindings[attrib.binding].data[meshID];
     uint boffset = binding.stride * idx + attrib.offset;
-    float4 vec = float4(0.f);
+    float4 vec = float4(0.f.xxxx);
     
     // 
     //if (binding.stride >  0u) vec = float4(0.f,0.f,1.f,0.f);
@@ -527,6 +535,13 @@ float2 random2( inout uint  s ) { s += 1; return halfConstruct(hash(uint3(QLOCK2
 // 
 float  staticRandom () { SCLOCK += 1; return floatConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
 float2 staticRandom2() { SCLOCK += 1; return  halfConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
+
+#ifndef GLSL
+float  fma(in float  a, in float  b, in float  c) { return a*b + c; };
+float2 fma(in float2 a, in float2 b, in float2 c) { return a*b + c; };
+float3 fma(in float3 a, in float3 b, in float3 c) { return a*b + c; };
+float4 fma(in float4 a, in float4 b, in float4 c) { return a*b + c; };
+#endif
 
 // 
 #ifdef GLSL
@@ -666,10 +681,10 @@ float2 boxIntersect(in float3 rayOrigin, in float3 rayDir, in float3 boxMin, in 
 
 float3 boxNormal(in float3 mpoint, in float3 boxMin, in float3 boxMax) {
     const float kEpsilon = 0.0001f;
-	float3 center = (boxMax + boxMin) * 0.5;
-	float3 size = (boxMax - boxMin) * 0.5;
+	float3 center = (boxMax + boxMin) * 0.5f;
+	float3 size = (boxMax - boxMin) * 0.5f;
 	float3 pc = mpoint - center;
-	float3 normal = float3(0.0f);
+	float3 normal = float3(0.0f.xxx);
 	normal += float3(sign(pc.x), 0.0f, 0.0f) * step(abs(abs(pc.x) - size.x), kEpsilon);
 	normal += float3(0.0f, sign(pc.y), 0.0f) * step(abs(abs(pc.y) - size.y), kEpsilon);
 	normal += float3(0.0f, 0.0f, sign(pc.z)) * step(abs(abs(pc.z) - size.z), kEpsilon);

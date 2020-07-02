@@ -7,6 +7,7 @@
 // 
 #define TRANSFORM_FEEDBACK
 #include "./driver.hlsli"
+#include "./tf.hlsli"
 
 #ifdef GLSL
 // 
@@ -61,11 +62,12 @@ struct GS_INPUT {
 
 // 
 struct TS_OUTPUT {
-    float4 fPosition : POSITION;
-    float4 fTexcoord : TEXCOORD;
-    float4 fNormal   : NORMAL;
-    float4 fTangent  : TANGENT;
-    float4 fBinormal : BINORMAL;
+    float4 fPosition;
+    float4 fTexcoord;
+    float4 fNormal;
+    float4 fTangent;
+    float4 fBinormal;
+    float4 Position;
 };
 
 #else
@@ -87,6 +89,7 @@ struct TS_OUTPUT {
     float4 fNormal   : NORMAL;
     float4 fTangent  : TANGENT;
     float4 fBinormal : BINORMAL;
+    //float4 Position  : SV_POSITION;
 };
 #endif
 
