@@ -130,7 +130,13 @@ float4x4 getMT4x4(in float4x3 data) { return getMT4x4(transpose(data)); };
 // 
 #if defined(HLSL) || !defined(GLSL)
 float uintBitsToFloat(in uint a) { return asfloat(a); };
+float2 uintBitsToFloat(in uint2 a) { return asfloat(a); };
+float3 uintBitsToFloat(in uint3 a) { return asfloat(a); };
+float4 uintBitsToFloat(in uint4 a) { return asfloat(a); };
 uint floatBitsToUint(in float a) { return asuint(a); };
+uint2 floatBitsToUint(in float2 a) { return asuint(a); };
+uint3 floatBitsToUint(in float3 a) { return asuint(a); };
+uint4 floatBitsToUint(in float4 a) { return asuint(a); };
 
 // 
 uint bitfieldExtract(uint val, int off, int size) {

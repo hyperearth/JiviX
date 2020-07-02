@@ -49,7 +49,7 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
             int2 map = coord+int2(x-(maxc>>1),y-(maxc>>1));
             float4 nsample = getNormal(map), psample = float4(world2screen(getPosition(map).xyz), 1.f);
 
-            if (dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f || (x == (maxc>>1) && y == (maxc>>1)) || centerc.w <= 0.0001f && sampled.w <= 0.0001f) {
+            if ((dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f) || (x == (maxc>>1) && y == (maxc>>1)) || (centerc.w <= 0.0001f && sampled.w <= 0.0001f)) {
                 float4 samp = 0.f.xxxx; float simp = 1.f;
                 if (type == 0) { samp = getIndirect   (map); simp = samp.w; };
                 if (type == 1) { samp = getPReflection(map); simp = samp.w; };

@@ -107,7 +107,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 // 
 #define RAY_TRACE_DEFINED
 #ifdef GLSL
-#define LAUNCH_ID gl_LaunchIDEXT.xy
+#define LAUNCH_ID gl_LaunchIDEXT
 #else
 #define LAUNCH_ID DispatchRaysIndex()
 #endif
@@ -119,7 +119,7 @@ void main() {
     const float4 sphere = float4(float3(16.f,128.f,16.f), 8.f);
     const float3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
 
-    const uint2 lanQ = LAUNCH_ID;//gl_LaunchIDEXT.xy;//gl_GlobalInvocationID.xy;
+    const uint2 lanQ = LAUNCH_ID.xy;//gl_LaunchIDEXT.xy;//gl_GlobalInvocationID.xy;
     launchSize = imageSize(writeImages[IW_POSITION]);
 
     // 
