@@ -1,6 +1,4 @@
 #ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
 #endif
 
@@ -43,18 +41,11 @@ void traceRayEXT(in uint flags, in uint mask, in uint a, in uint stride, in uint
 };
 #else
 void traceRayEXT(in uint flags, in lowp uint mask, in uint a, in uint stride, in uint b, in float3 origin, in float minT, in float3 direct, in float maxT) {
-    RayDesc desc;
-    desc.Origin = origin;
-    desc.TMin = minT;
-    desc.Direction = direct;
-    desc.TMax = maxT;
-
-    // 
     traceRayEXT(Scene, flags, mask, a, stride, b, origin, minT, direct, maxT, 0);
 };
 
-#define RAY_FLAG_FORCE_OPAQUE RayFlagsOpaqueEXT
-#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES RayFlagsCullBackFacingTrianglesEXT
+#define RAY_FLAG_FORCE_OPAQUE gl_RayFlagsOpaqueEXT
+#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES gl_RayFlagsCullBackFacingTrianglesEXT
 
 #endif
 
@@ -184,7 +175,7 @@ void main() {
 
         // Initial Position
         //float4 instanceRel = inverse(matras) * inverse(rtxInstances[globalInstanceID].transform) * float4(RPM.origin.xyz,1.f);
-        float4 instanceRel = mul(mul(inverse(float4x4(getMT3x4(rtxInstances[globalInstanceID].transform), float4(0.f.xxx,1.f))), inverse(matras)), float4(RPM.origin.xyz,1.f));
+        float4 instanceRel = mul(inverse(getMT4x4(rtxInstances[globalInstanceID].transform)), mul(inverse(matras), float4(RPM.origin.xyz,1.f)));
 
         // Problem: NOT enough slots for writables
         // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 

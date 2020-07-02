@@ -24,7 +24,7 @@ function Pause ($Message = "Press any key to continue . . . ") {
 }
 
 function Optimize($Name, $Dir = "", $AddArg = "") {
-    $ARGS = "$$Dir$Name.spv -Fo $Dir$Name.spv $AddArg OPTFLAGS"
+    $ARGS = "$$Dir$Name.spv -Fo $Dir$Name.dxil $AddArg OPTFLAGS"
     #$process = start-process -NoNewWindow -Filepath "spirv-opt" -ArgumentList "$ARGS" -PassThru
     #$process.PriorityClass = 'BelowNormal'
     $process.WaitForExit()
@@ -32,7 +32,7 @@ function Optimize($Name, $Dir = "", $AddArg = "") {
 }
 
 function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName = $Name) {
-    $ARGS = "$CMPPROF $InDir$Name.hlsl -Fo $OutDir$AltName.dxil $CFLAGSV"
+    $ARGS = "$CMPPROF $InDir$Name.hlsl -Fo $OutDir$AltName.spv $CFLAGSV"
     $process = start-process -NoNewWindow -Filepath "dxc" -ArgumentList "$ARGS $AddArg" -PassThru
     #$ARGS = "$CMPPROF $InDir$Name -o $OutDir$AltName.spv $CFLAGSV"
     #$process = start-process -NoNewWindow -Filepath "glslangValidator" -ArgumentList "$ARGS" -PassThru
@@ -50,9 +50,8 @@ function BuildAllShaders($Pfx = "") {
     #[System.Threading.Thread]::CurrentThread.Priority = 'Highest'
 
     new-item -Name $HRDDIR$RDXO -itemtype directory  -Force | Out-Null
-
-
-    BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5"
+    
+     BuildCompute "rasterize.frag"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5"
     #BuildCompute "rasterize.geom"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T gs_6_5"
      BuildCompute "rasterize.vert"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T vs_6_5"
     
@@ -74,16 +73,16 @@ function BuildAllShaders($Pfx = "") {
      BuildCompute "transform.geom"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T gs_6_5"
      BuildCompute "transform.vert"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T vs_6_5"
 
-    #
-     BuildCompute "mapping.frag"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5 -DCONSERVATIVE"
-     BuildCompute "mapping.geom"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T gs_6_5 -DCONSERVATIVE"
-     BuildCompute "mapping.vert"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T vs_6_5 -DCONSERVATIVE"
-
     # 
      BuildCompute "raytrace.rgen"      "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
      BuildCompute "raytrace.rchit"     "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
      BuildCompute "raytrace.rmiss"     "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
      BuildCompute "raytrace.comp"      "$INDIR$RNDX" "$HRDDIR$RTPU" "-T cs_6_5"
+
+    #
+     BuildCompute "mapping.vert"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T vs_6_5 -DCONSERVATIVE"
+     BuildCompute "mapping.frag"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T ps_6_5 -DCONSERVATIVE"
+     BuildCompute "mapping.geom"       "$INDIR$RNDX" "$HRDDIR$RTPU" "-T gs_6_5 -DCONSERVATIVE"
 
     # optimize built shaders
     OptimizeMainline $RNDX

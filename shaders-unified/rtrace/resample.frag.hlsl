@@ -1,6 +1,4 @@
 #ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
 #extension GL_EXT_ray_tracing           : require
 #extension GL_EXT_ray_query             : require
 #endif
@@ -39,9 +37,9 @@ struct PS_INPUT
 // 
 struct PS_OUTPUT
 {
-    float4 oDiffused : SV_TARGET0;
-    float4 oSmoothed : SV_TARGET1;
-    float4 oSpecular : SV_TARGET2;
+    float4 oDiffused;
+    float4 oSmoothed;
+    float4 oSpecular;
 };
 
 #else
@@ -107,41 +105,41 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
 #ifdef GLSL
 void main() // Currently NO possible to compare
 #else
-PS_OUTPUT main(in PS_INPUT input)
+PS_OUTPUT main(in PS_INPUT inp)
 #endif
 {
 #ifdef GLSL
-    PS_INPUT input;
-    input.gColor = gColor;
-    input.gSample = gSample;
-    input.gNormal = gNormal;
-    input.wPosition = wPosition;
-    input.gSpecular = gSpecular;
-    input.gRescolor = gRescolor;
-    input.gSmooth = gSmooth;
-    input.FragCoord = gl_FragCoord;
+    PS_INPUT inp;
+    inp.gColor = gColor;
+    inp.gSample = gSample;
+    inp.gNormal = gNormal;
+    inp.wPosition = wPosition;
+    inp.gSpecular = gSpecular;
+    inp.gRescolor = gRescolor;
+    inp.gSmooth = gSmooth;
+    inp.FragCoord = gl_FragCoord;
 #endif
 
     // 
-    const int2 f2fx  = int2(input.FragCoord.xy);
+    const int2 f2fx  = int2(inp.FragCoord.xy);
     const int2 size  = int2(textureSize(frameBuffers[BW_POSITION], 0));
     const int2 i2fx  = int2(f2fx.x,size.y-f2fx.y-1);
-    const float2 i2fxm = input.FragCoord.xy; //float2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
+    const float2 i2fxm = inp.FragCoord.xy; //float2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 
     // 
-    PS_OUTPUT output;
-    if (checkCorrect(input.gNormal, input.wPosition, float4(input.gSample.xyz,1.f), i2fxm)) {
-        output.oDiffused = input.gColor;
-        output.oSpecular = float4(input.gSpecular.xyz,input.gSpecular.w*0.5f); // TODO: Make New Reflection Sampling
-        output.oSmoothed = input.gSmooth;
+    PS_OUTPUT outp;
+    if (checkCorrect(inp.gNormal, inp.wPosition, float4(inp.gSample.xyz,1.f), i2fxm)) {
+        outp.oDiffused = inp.gColor;
+        outp.oSpecular = float4(inp.gSpecular.xyz,inp.gSpecular.w*0.5f); // TODO: Make New Reflection Sampling
+        outp.oSmoothed = inp.gSmooth;
     } else { discard; };
 
     // 
 #ifdef GLSL
-    oDiffused = output.oDiffused;
-    oSpecular = output.oSpecular;
-    oSmoothed = output.oSmoothed;
+    oDiffused = outp.oDiffused;
+    oSpecular = outp.oSpecular;
+    oSmoothed = outp.oSmoothed;
 #else
-    return output;
+    return outp;
 #endif
 };

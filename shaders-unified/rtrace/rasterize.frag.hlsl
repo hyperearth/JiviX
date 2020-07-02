@@ -1,23 +1,27 @@
 #ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
 #extension GL_EXT_ray_query            : require
 #extension GL_ARB_post_depth_coverage  : require
 
 #ifdef AMD_SOLUTION
 #extension GL_AMD_shader_explicit_vertex_parameter : require
-#define BARYCOORD float3(1.f-BaryCoordSmoothAMD.x-BaryCoordSmoothAMD.y,BaryCoordSmoothAMD)
+#define BARYCOORD float3(1.f-gl_BaryCoordSmoothAMD.x-gl_BaryCoordSmoothAMD.y,gl_BaryCoordSmoothAMD)
 #else
 #extension GL_NV_fragment_shader_barycentric : require
-#define BARYCOORD BaryCoordNV
+#define BARYCOORD gl_BaryCoordNV
 #endif
 
+#endif
 
 // 
+#include "./driver.hlsli"
+#include "./global.hlsli"
+
+// 
+#ifdef GLSL
 struct PS_INPUT
 {
-    float4 Position;
+    float4 FragCoord;
     float4 fPosition;
     float4 fTexcoord;     
     float4 fBarycent;
@@ -71,10 +75,6 @@ struct PS_OUTPUT {
 #endif
 
 // 
-#include "./driver.hlsli"
-#include "./global.hlsli"
-
-// 
 //layout ( early_fragment_tests ) in; // Reduce Lag Rate! (but transparency may broken!)
 // Прозрачность с новой прошивкой починим! @RED21
 
@@ -87,7 +87,7 @@ struct PS_OUTPUT {
 #ifdef GLSL 
 void main() 
 #else
-PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID, float3 BaryWeights : SV_Barycentrics)
+PS_OUTPUT main(in PS_INPUT inp, in uint PrimitiveID : SV_PrimitiveID, float3 BaryWeights : SV_Barycentrics)
 #endif
 {   // TODO: Re-Interpolate for Randomized Center
 #ifdef GLSL
@@ -95,10 +95,10 @@ PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID, float3 B
     const float4 FragCoord = gl_FragCoord;
     const float3 BaryWeights = BARYCOORD;
 
-    PS_INPUT input = { gl_PointSize, gl_FragCoord, fPosition, fTexcoord, fBarycent, uData };
+    PS_INPUT inp = { gl_FragCoord, fPosition, fTexcoord, fBarycent, uData, 0.f };
 #endif
 
-    const uint geometryInstanceID = input.uData.x;//uint(InstanceIndex.x);
+    const uint geometryInstanceID = floatBitsToUint(inp.uData.x);//uint(InstanceIndex.x);
     const uint nodeMeshID = drawInfo.data.x;
     const uint globalInstanceID = drawInfo.data.z;
 
@@ -110,39 +110,39 @@ PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID, float3 B
 #endif
 
     const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020
-    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)], samplers[2u], input.fTexcoord.xy) : unit.diffuse);
+    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)], samplers[2u], inp.fTexcoord.xy) : unit.diffuse);
 
     // 
-    PS_OUTPUT output;
-    output.oPosition  = float4(0.f.xxxx);
-    output.oMaterial  = float4(0.f.xxxx);
-    output.oGeoIndice = float4(0.f.xxxx);
-    output.FragDepth  = 1.1f;
+    PS_OUTPUT outp;
+    outp.oPosition  = float4(0.f.xxxx);
+    outp.oMaterial  = float4(0.f.xxxx);
+    outp.oGeoIndice = float4(0.f.xxxx);
+    outp.FragDepth  = 1.1f;
 
     // 
     XHIT processing;
     if (diffuseColor.w > 0.0001f) { // Only When Opaque!
         processing.gIndices = uint4(geometryInstanceID, globalInstanceID, PrimitiveID, 0u); // already nodeMeshID used by instance
-        processing.origin   = float4(input.fPosition.xyz, 1.f);
+        processing.origin   = float4(inp.fPosition.xyz, 1.f);
 
         // 
-        output.oPosition = processing.origin; // Save texcoord for Parallax Mapping with alpha channel
-        output.oMaterial = uintBitsToFloat(uint4(0u, 0u, 0u, floatBitsToUint(1.f)));
-        output.oGeoIndice = uintBitsToFloat(uint4(globalInstanceID, geometryInstanceID, PrimitiveID, floatBitsToUint(1.f)));
-        output.oBarycent = float4(max(BaryWeights, 0.0001f.xxx), 1.f);
-        output.FragDepth = input.FragCoord.z;
+        outp.oPosition = processing.origin; // Save texcoord for Parallax Mapping with alpha channel
+        outp.oMaterial = uintBitsToFloat(uint4(0u, 0u, 0u, floatBitsToUint(1.f)));
+        outp.oGeoIndice = uintBitsToFloat(uint4(globalInstanceID, geometryInstanceID, PrimitiveID, floatBitsToUint(1.f)));
+        outp.oBarycent = float4(max(BaryWeights, 0.0001f.xxx), 1.f);
+        outp.FragDepth = inp.FragCoord.z;
     };
 
 #ifdef GLSL
     {
-        oPosition = output.oPosition;
-        oMaterial = output.oMaterial;
-        oGeoIndice = output.oGeoIndice;
-        oBarycent = output.oBarycent;
-        gl_FragDepth = output.FragDepth;
+        oPosition = outp.oPosition;
+        oMaterial = outp.oMaterial;
+        oGeoIndice = outp.oGeoIndice;
+        oBarycent = outp.oBarycent;
+        gl_FragDepth = outp.FragDepth;
     };
 #else
-    return output;
+    return outp;
 #endif
 
 };

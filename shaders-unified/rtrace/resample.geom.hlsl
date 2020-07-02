@@ -1,9 +1,3 @@
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
-#endif
-
-// 
 #include "./driver.hlsli"
 
 // 
@@ -98,46 +92,46 @@ layout (points, max_vertices = 1) out;
 void main()
 #else
 [maxvertexcount(1)]
-void main(point in GS_INPUT input[1], inout TriangleStream<PS_INPUT> OutputStream)
+void main(point in GS_INPUT inp[1], inout TriangleStream<PS_INPUT> OutputStream)
 #endif
 {
 #ifdef GLSL
-    GS_INPUT input[1];
-    input.Position = gl_in[0].gl_Position;
-    input.vColor = vColor[0];
-    input.vSample = vSample[0];
-    input.vNormal = vNormal[0];
-    input.vPosition = vPosition[0];
-    input.vSpecular = vSpecular[0];
-    input.vRescolor = vRescolor[0];
-    input.vSmooth = vSmooth[0];
-    input.PointSize = gl_in[0].gl_PointSize;
+    GS_INPUT inp[1];
+    inp[0].Position = gl_in[0].gl_Position;
+    inp[0].vColor = vColor[0];
+    inp[0].vSample = vSample[0];
+    inp[0].vNormal = vNormal[0];
+    inp[0].vPosition = vPosition[0];
+    inp[0].vSpecular = vSpecular[0];
+    inp[0].vRescolor = vRescolor[0];
+    inp[0].vSmooth = vSmooth[0];
+    inp[0].PointSize = gl_in[0].gl_PointSize;
 #endif
 
-    PS_INPUT output;
-    output.Position = input[0].Position;
-    output.gColor = input[0].vColor;
-    output.gSample = input[0].vSample;
-    output.gNormal = input[0].vNormal;
-    output.wPosition = input[0].vPosition;
-    output.gSpecular = input[0].vSpecular;
-    output.gRescolor = input[0].vRescolor;
-    output.gSmooth = input[0].vSmooth;
-    output.PointSize = input[0].PointSize;
+    PS_INPUT outp;
+    outp.Position = inp[0].Position;
+    outp.gColor = inp[0].vColor;
+    outp.gSample = inp[0].vSample;
+    outp.gNormal = inp[0].vNormal;
+    outp.wPosition = inp[0].vPosition;
+    outp.gSpecular = inp[0].vSpecular;
+    outp.gRescolor = inp[0].vRescolor;
+    outp.gSmooth = inp[0].vSmooth;
+    outp.PointSize = inp[0].PointSize;
 
 #ifdef GLSL
-    gl_Position = output.Position;
-    gColor = output.gColor;
-    gSample = output.gSample;
-    gNormal = output.gNormal;
-    wPosition = output.wPosition;
-    gSpecular = output.gSpecular;
-    gRescolor = output.gRescolor;
-    gSmooth = output.gSmooth;
-    gl_PointSize = output.PointSize;
+    gl_Position = outp.Position;
+    gColor = outp.gColor;
+    gSample = outp.gSample;
+    gNormal = outp.gNormal;
+    wPosition = outp.wPosition;
+    gSpecular = outp.gSpecular;
+    gRescolor = outp.gRescolor;
+    gSmooth = outp.gSmooth;
+    gl_PointSize = outp.PointSize;
     EmitVertex(), EndPrimitive();
 #else
-    OutputStream.Append(output);
+    OutputStream.Append(outp);
     OutputStream.RestartStrip();
 #endif
 };

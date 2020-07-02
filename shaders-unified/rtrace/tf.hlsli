@@ -1,6 +1,44 @@
 #ifndef TF_HLSL
 #define TF_HLSL
 
+
+//
+#ifdef GLSL
+#define float2 vec2 
+#define float3 vec3
+#define float4 vec4
+#define uint2 uvec2 
+#define uint3 uvec3
+#define uint4 uvec4
+#define int2 ivec2 
+#define int3 ivec3
+#define int4 ivec4
+#define bool2 bvec2 
+#define bool3 bvec3
+#define bool4 bvec4
+
+#define float2x2 mat2x2 
+#define float3x3 mat3x3
+#define float4x4 mat4x4
+#define float3x4 mat3x4
+#define float4x3 mat4x3
+
+float3 mul(in float3 a, in float3x3 m) { return m * a; };
+float3 mul(in float3x3 m, in float3 a) { return a * m; };
+
+float4 mul(in float4 a, in float4x4 m) { return m * a; };
+float4 mul(in float4x4 m, in float4 a) { return a * m; };
+
+float4 mul(in float3 a, in float3x4 m) { return m * a; };
+float4 mul(in float3 a, in float4x3 m) { return a * m; };
+
+float4 mul(in float3x4 m, in float3 a) { return m * a; };
+float3 mul(in float3x4 m, in float4 a) { return a * m; };
+
+float3 mul(in float4x3 m, in float4 a) { return m * a; };
+float4 mul(in float4x3 m, in float3 a) { return a * m; };
+#endif
+
 struct Binding {
     //uint binding;
     uint bufvsd;
@@ -49,12 +87,14 @@ layout (push_constant) uniform pushConstants { uint4 data; } drawInfo;
 
 #endif
 
+#ifndef GLSL
 uint bitfieldExtract(uint val, int off, int size) {
 	// This built-in function is only support in OpenGL 4.0 and ES 3.1
 	// Hopefully the shader compiler will get our meaning and emit the right instruction
 	uint mask = uint((1 << size) - 1);
 	return uint(val >> off) & mask;
 };
+#endif
 
 // 
 bool hasTransform() {
@@ -76,7 +116,6 @@ bool hasTangent() {
     return bool(bitfieldExtract(drawInfo.data[3],3,1));
 };
 
-
 // System Specified
 #ifndef GEN_QUAD_INDEX
 #ifdef GLSL
@@ -86,12 +125,12 @@ uint8_t load_u8(in uint offset, in uint bufferID) {
 
 // System Specified
 uint16_t load_u16(in uint offset, in uint bufferID) {
-    return pack16(u8float2(load_u8(offset,bufferID),load_u8(offset+1u,bufferID)));
+    return pack16(u8vec2(load_u8(offset,bufferID),load_u8(offset+1u,bufferID)));
 };
 
 // System Specified
 uint load_u32(in uint offset, in uint bufferID) {
-    return pack32(u16float2(load_u16(offset,bufferID),load_u16(offset+2u,bufferID)));
+    return pack32(u16vec2(load_u16(offset,bufferID),load_u16(offset+2u,bufferID)));
 };
 #else
 

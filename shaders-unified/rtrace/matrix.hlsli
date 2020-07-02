@@ -1,5 +1,5 @@
-#ifndef __MATRIX_INCLUDED__
-#define __MATRIX_INCLUDED__
+#ifndef MATRIX_INCLUDED
+#define MATRIX_INCLUDED
 #ifndef GLSL
 
 #define IDENTITY_MATRIX float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)

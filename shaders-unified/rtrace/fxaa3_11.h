@@ -326,7 +326,7 @@ A. Or use FXAA_GREEN_AS_LUMA.
 #ifndef FXAA_CONSOLE_PS3_EDGE_SHARPNESS
     //
     // Consoles the sharpness of edges on PS3 only.
-    // Non-PS3 tuning is done with shader input.
+    // Non-PS3 tuning is done with shader inp.
     //
     // Due to the PS3 being ALU bound,
     // there are only two safe values here: 4 and 8.
@@ -350,7 +350,7 @@ A. Or use FXAA_GREEN_AS_LUMA.
 #ifndef FXAA_CONSOLE_PS3_EDGE_THRESHOLD
     //
     // Only effects PS3.
-    // Non-PS3 tuning is done with shader input.
+    // Non-PS3 tuning is done with shader inp.
     //
     // The minimum amount of local contrast required to apply algorithm.
     // The console setting has a different mapping than the quality setting.

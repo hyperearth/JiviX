@@ -1,6 +1,6 @@
 #!/snap/bin/pwsh-preview
 # -Vd are REQUIRED!
-$CFLAGSV="-Vi -Vd -Zpr -O0" #
+$CFLAGSV="-fvk-use-dx-layout -Vi -Vd -Zpr -O3" #
 #$CFLAGSV="--source-entrypoint main -e main --target-env spirv1.5 -V -d -t --aml --nsf"
 
 $VNDR="hlsl"

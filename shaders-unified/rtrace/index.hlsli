@@ -41,7 +41,27 @@
 #define RS_BARYCENT 3
 //#define RS_DIFFUSED 4
 
+//
+#ifdef GLSL
+#define float2 vec2 
+#define float3 vec3
+#define float4 vec4
+#define uint2 uvec2 
+#define uint3 uvec3
+#define uint4 uvec4
+#define int2 ivec2 
+#define int3 ivec3
+#define int4 ivec4
+#define bool2 bvec2 
+#define bool3 bvec3
+#define bool4 bvec4
 
+#define float2x2 mat2x2 
+#define float3x3 mat3x3
+#define float4x4 mat4x4
+#define float3x4 mat3x4
+#define float4x3 mat4x3
+#endif
 
 // TODO: Materials
 struct RayPayloadData {
@@ -104,8 +124,8 @@ struct RTXInstance {
 float3x4 getMT3x4(in float4x3 data) { return transpose(data); };
 float3x4 getMT3x4(in float3x4 data) { return data; };
 float4x4 getMT4x4(in float4x4 data) { return data; };
-float4x4 getMT4x4(in float3x4 data) { return float4x4(data, float4(0.f,0.f,0.f,1.f)); };
-float4x4 getMT4x4(in float4x3 data) { return float4x4(transpose(data), float4(0.f,0.f,0.f,1.f)); };
+float4x4 getMT4x4(in float3x4 data) { return float4x4(data[0], data[1], data[2], float4(0.f,0.f,0.f,1.f)); };
+float4x4 getMT4x4(in float4x3 data) { return getMT4x4(transpose(data)); };
 
 // 
 #if defined(HLSL) || !defined(GLSL)
@@ -148,14 +168,22 @@ float2 unpackUnorm2x16(in uint up) {
 
 #define SHARED shared
 #define STATIC  
-float3 mul(in float3x4 m, in float4 a) { return a * m; };
-float3 mul(in float4x3 m, in float4 a) { return m * a; };
-float3 mul(in float3 a, in float3x4 m) { return m * a; };
-float3 mul(in float3 a, in float4x3 m) { return a * m; };
-float4 mul(in float4x4 m, in float4 a) { return a * m; };
-float4 mul(in float4 a, in float4x4 m) { return m * a; };
-float3 mul(in float3x3 m, in float3 a) { return a * m; };
 float3 mul(in float3 a, in float3x3 m) { return m * a; };
+float3 mul(in float3x3 m, in float3 a) { return a * m; };
+
+float4 mul(in float4 a, in float4x4 m) { return m * a; };
+float4 mul(in float4x4 m, in float4 a) { return a * m; };
+
+float4 mul(in float3 a, in float3x4 m) { return m * a; };
+float4 mul(in float3 a, in float4x3 m) { return a * m; };
+
+float4 mul(in float3x4 m, in float3 a) { return m * a; };
+float3 mul(in float3x4 m, in float4 a) { return a * m; };
+
+float3 mul(in float4x3 m, in float4 a) { return m * a; };
+float4 mul(in float4x3 m, in float3 a) { return a * m; };
+
+
 float asfloat(in uint a) { return uintBitsToFloat(a); };
 uint asuint(in float a) { return floatBitsToUint(a); };
 

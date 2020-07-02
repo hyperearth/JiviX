@@ -1,6 +1,5 @@
 #ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
+// #
 #extension GL_EXT_ray_tracing          : require
 #extension GL_EXT_ray_query            : require
 #extension GL_ARB_post_depth_coverage  : require
@@ -35,12 +34,12 @@ layout (location = RS_POSITION) out float4 oPosition;
 // 
 struct PS_INPUT
 {
-    float PointSize;
     float4 Position;
     float4 fPosition;
     float4 fTexcoord;     
     float4 fBarycent;
     float4 uData;
+    float PointSize;
 };
 
 // 
@@ -92,16 +91,15 @@ struct PS_OUTPUT {
 #ifdef GLSL
 void main()  // TODO: Re-Interpolate for Randomized Center
 #else
-PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID)  // TODO: Re-Interpolate for Randomized Center
+PS_OUTPUT main(in PS_INPUT inp, in uint PrimitiveID : SV_PrimitiveID)  // TODO: Re-Interpolate for Randomized Center
 #endif
 {
 #ifdef GLSL
     const uint PrimitiveID = gl_PrimitiveID;
-    PS_INPUT input = {gl_PointSize.x, gl_FragCoord, fPosition, fTexcoord, fBarycent, uData};
+    PS_INPUT inp = {gl_FragCoord, fPosition, fTexcoord, fBarycent, uData, 0.f};
 #endif
 
-    const uint primitiveID = uint(PrimitiveID.x);
-    const uint geometryInstanceID = input.uData.x;//uint(gl_InstanceIndex.x);
+    const uint geometryInstanceID = floatBitsToUint(inp.uData.x);//uint(gl_InstanceIndex.x);
     const uint nodeMeshID = drawInfo.data.x;
     const uint globalInstanceID = drawInfo.data.z;
 
@@ -112,21 +110,21 @@ PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID)  // TODO
 #endif
 
     const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020
-    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u],input.fTexcoord.xy) : unit.diffuse);
+    const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u],inp.fTexcoord.xy) : unit.diffuse);
 
-    PS_OUTPUT output;
-    output.oPosition  = float4(0.f.xxxx);
-    output.oMaterial  = float4(0.f.xxxx);
-    output.oGeoIndice = float4(0.f.xxxx);
-    output.FragDepth = 1.f;
+    PS_OUTPUT outp;
+    outp.oPosition  = float4(0.f.xxxx);
+    outp.oMaterial  = float4(0.f.xxxx);
+    outp.oGeoIndice = float4(0.f.xxxx);
+    outp.FragDepth = 1.f;
 
 #if defined(HLSL) || !defined(GLSL)
-    return output;
+    return outp;
 #else
-    oPosition = output.oPosition;
-    oMaterial = output.oMaterial;
-    oGeoIndice = output.oGeoIndice;
-    gl_FragDepth = output.FragDepth;
+    oPosition = outp.oPosition;
+    oMaterial = outp.oMaterial;
+    oGeoIndice = outp.oGeoIndice;
+    gl_FragDepth = outp.FragDepth;
 #endif
 
 };

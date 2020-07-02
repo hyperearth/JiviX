@@ -1,6 +1,4 @@
 #ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
 #extension GL_EXT_ray_query            : require
 #endif
@@ -54,8 +52,8 @@ void rayQueryInitializeEXT(in RayQuery<RAY_FLAG_CULL_BACK_FACING_TRIANGLES> rayQ
     rayQuery.TraceRayInline(Scene, flags, mask, desc);
 };
 #else
-#define RAY_FLAG_FORCE_OPAQUE RayFlagsOpaqueEXT
-#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES RayFlagsCullBackFacingTrianglesEXT
+#define RAY_FLAG_FORCE_OPAQUE gl_RayFlagsOpaqueEXT
+#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES gl_RayFlagsCullBackFacingTrianglesEXT
 
 void rayQueryInitializeEXT(in rayQueryEXT rayQuery, in uint flags, in lowp uint mask, in float3 origin, in float minT, in float3 direct, in float maxT) {
     rayQueryInitializeEXT(rayQuery, Scene, flags, mask, origin, minT, direct, maxT);
@@ -119,7 +117,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
         processing = confirmed; lastMax = (maxT - fullLength); lastOrigin = raydir*maxT + sorigin; opaque = false;
         if (!proceed) { // Attemp to fix Broken Ray Query
 #ifdef GLSL
-            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != RayQueryCommittedIntersectionNoneEXT) 
+            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionNoneEXT) 
 #else
             if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != COMMITTED_NOTHING) 
 #endif

@@ -91,9 +91,9 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     geometry.gBinormal  = float4(triangulate(idx3, 4u, nodeMeshID,baryCoord).xyz,0.f);
 
     // 
-    geometry.gNormal.xyz = mul(mul(normInTransform, normalTransform), geometry.gNormal.xyz);
-    geometry.gTangent.xyz = mul(mul(normInTransform, normalTransform), geometry.gTangent.xyz);
-    geometry.gBinormal.xyz = mul(mul(normInTransform, normalTransform), geometry.gBinormal.xyz);
+    geometry.gNormal.xyz = mul(normInTransform, mul(normalTransform, geometry.gNormal.xyz));
+    geometry.gTangent.xyz = mul(normInTransform, mul(normalTransform, geometry.gTangent.xyz));
+    geometry.gBinormal.xyz = mul(normInTransform, mul(normalTransform, geometry.gBinormal.xyz));
 
     //
     geometry.gNormal.xyz = normalize(geometry.gNormal.xyz);

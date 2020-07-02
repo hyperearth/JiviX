@@ -1,6 +1,4 @@
 #ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
 #extension GL_EXT_ray_query             : require
 #endif
 
@@ -10,24 +8,6 @@
 #include "./tf.hlsli"
 
 #ifdef GLSL
-// 
-struct GS_INPUT {
-    float4 gPosition;
-    float4 gTexcoord;
-    float4 gNormal;
-    float4 gTangent;
-    float4 Position;
-    float PointSize;
-};
-
-// 
-struct TS_OUTPUT {
-    float4 fPosition;
-    float4 fTexcoord;
-    float4 fNormal;
-    float4 fTangent;
-    float4 fBinormal;
-};
 
 // 
 layout (location = 0) in float4 gPosition[];
@@ -101,28 +81,28 @@ layout (triangle_strip, max_vertices = 3) out;
 void main() 
 #else
 [maxvertexcount(3)]
-void main(in triangle GS_INPUT input[3], inout TriangleStream<TS_OUTPUT> OutputStream) 
+void main(in triangle GS_INPUT inp[3], inout TriangleStream<TS_OUTPUT> OutputStream) 
 #endif
 {
 #ifdef GLSL
-    GL_INPUT input[3];
+    GS_INPUT inp[3];
     [[unroll]] for (uint i=0u;i<3u;i++) {
-        input[i].gPosition = gPosition[i];
-        input[i].gTexcoord = gTexcoord[i];
-        input[i].gNormal = gNormal[i];
-        input[i].gTangent = gTangent[i];
-        input[i].Position = gl_in[i].gl_Position;
-        input[i].PointSize = gl_in[i].gl_PointSize;
+        inp[i].gPosition = gPosition[i];
+        inp[i].gTexcoord = gTexcoord[i];
+        inp[i].gNormal = gNormal[i];
+        inp[i].gTangent = gTangent[i];
+        inp[i].Position = gl_in[i].gl_Position;
+        inp[i].PointSize = gl_in[i].gl_PointSize;
     };
 #endif
 
-    const float4 dp1 = input[1].gPosition - input[0].gPosition, dp2 = input[2].gPosition - input[0].gPosition;
-    const float4 tx1 = input[1].gTexcoord - input[0].gTexcoord, tx2 = input[2].gTexcoord - input[0].gTexcoord;
+    const float4 dp1 = inp[1].gPosition - inp[0].gPosition, dp2 = inp[2].gPosition - inp[0].gPosition;
+    const float4 tx1 = inp[1].gTexcoord - inp[0].gTexcoord, tx2 = inp[2].gTexcoord - inp[0].gTexcoord;
     const float3 normal = normalize(cross(dp1.xyz, dp2.xyz));
     //const float2 size  = textureSize(frameBuffers[IW_POSITION], 0);
     //const float2 pixelShift = (staticRandom2() - 0.5f) / size;
 
-    TS_OUTPUT output;
+    TS_OUTPUT outp;
 #ifdef GLSL
     [[unroll]] for (uint i=0u;i<3u;i++) 
 #else
@@ -132,41 +112,41 @@ void main(in triangle GS_INPUT input[3], inout TriangleStream<TS_OUTPUT> OutputS
         //gl_Position = gl_in[i].gl_Position;
 
         // 
-        output.fPosition = input[i].gPosition;
-        output.fTexcoord = input[i].gTexcoord; // TODO: move texcoord by sample position for anti-aliased
-        output.fTangent = input[i].gTangent;
-        output.fNormal = input[i].gNormal;
+        outp.fPosition = inp[i].gPosition;
+        outp.fTexcoord = inp[i].gTexcoord; // TODO: move texcoord by sample position for anti-aliased
+        outp.fTangent = inp[i].gTangent;
+        outp.fNormal = inp[i].gNormal;
 
         // 
         const float coef = 1.f / (tx1.x * tx2.y - tx2.x * tx1.y);
         const float3 tangent = (dp1.xyz * tx2.yyy - dp2.xyz * tx1.yyy) * coef;
         const float3 binorml = (dp1.xyz * tx2.xxx - dp2.xyz * tx1.xxx) * coef;
-        if (!hasNormal()) { output.fNormal  = float4(normal, 0.f); };
+        if (!hasNormal()) { outp.fNormal  = float4(normal, 0.f); };
 
         // 
         if (!hasTangent()) { 
-            output.fTangent .xyz = tangent; //- dot(fNormal.xyz,tangent.xyz)*fNormal.xyz;
-            output.fBinormal.xyz = binorml; //- dot(fNormal.xyz,binorml.xyz)*fNormal.xyz;
+            outp.fTangent .xyz = tangent; //- dot(fNormal.xyz,tangent.xyz)*fNormal.xyz;
+            outp.fBinormal.xyz = binorml; //- dot(fNormal.xyz,binorml.xyz)*fNormal.xyz;
         } else {
-            output.fBinormal.xyz = cross(output.fNormal.xyz, output.fTangent.xyz);
-            //output.fBinormal.xyz = fBinormal.xyz - dot(fNormal.xyz,fBinormal.xyz)*fNormal.xyz;
+            outp.fBinormal.xyz = cross(outp.fNormal.xyz, outp.fTangent.xyz);
+            //outp.fBinormal.xyz = fBinormal.xyz - dot(fNormal.xyz,fBinormal.xyz)*fNormal.xyz;
         };
 
         // 
-        output.fNormal.xyz = normalize(output.fNormal.xyz);
-        output.fTangent.xyz = normalize(output.fTangent.xyz);
-        output.fBinormal.xyz = normalize(output.fBinormal.xyz);
+        outp.fNormal.xyz = normalize(outp.fNormal.xyz);
+        outp.fTangent.xyz = normalize(outp.fTangent.xyz);
+        outp.fBinormal.xyz = normalize(outp.fBinormal.xyz);
 #ifdef GLSL
         {   // HARD Operation...
-            fPosition = output.fPosition;
-            fTexcoord = output.fTexcoord;
-            fNormal = output.fNormal;
-            fTangent = output.fTangent;
-            fBinormal = output.fBinormal;
+            fPosition = outp.fPosition;
+            fTexcoord = outp.fTexcoord;
+            fNormal = outp.fNormal;
+            fTangent = outp.fTangent;
+            fBinormal = outp.fBinormal;
             EmitVertex();
         };
 #else
-        OutputStream.Append(output);
+        OutputStream.Append(outp);
 #endif
     };
 

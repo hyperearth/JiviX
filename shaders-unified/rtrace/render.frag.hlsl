@@ -1,8 +1,3 @@
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive          : require
-#endif
-
 #include "./driver.hlsli"
 
 //#define FXAA_PC 1
@@ -13,6 +8,19 @@
 #ifdef GLSL
 layout ( location = 0 ) out float4 uFragColor;
 layout ( location = 0 ) in float2 vcoord;
+
+struct PSInput
+{
+    float4 position;
+    float2 vcoord;
+};
+
+//
+struct PSOutput 
+{
+    float4 uFragColor;
+};
+
 #else
 // 
 struct PSInput
@@ -32,25 +40,25 @@ struct PSOutput
 #ifdef GLSL
 void main() 
 #else
-PSOutput main(in PSInput input)
+PSOutput main(in PSInput inp)
 #endif
 { // TODO: explicit sampling 
 #ifdef GLSL
-    PSInput input;
-    input.position = gl_FragCoord;
-    input.vcoord = vcoord;
+    PSInput inp;
+    inp.position = gl_FragCoord;
+    inp.vcoord = vcoord;
 #endif
-    const int2 size = int2(textureSize(frameBuffers[BW_RENDERED], 0)), samplep = int2(input.position.x, input.position.y);
+    const int2 size = int2(textureSize(frameBuffers[BW_RENDERED], 0)), samplep = int2(inp.position.x, inp.position.y);
 
     // Final Result Rendering
-    PSOutput output;
-    output.uFragColor = 0.f.xxxx;
-    //output.uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, output.uFragColor, output.uFragColor, output.uFragColor, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, output.uFragColor);// = imageLoad(writeImages[BW_RENDERED], samplep);
-    output.uFragColor = textureSample(frameBuffers[BW_RENDERED], samplers[1u], input.vcoord);
+    PSOutput outp;
+    outp.uFragColor = 0.f.xxxx;
+    //outp.uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, outp.uFragColor, outp.uFragColor, outp.uFragColor, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, outp.uFragColor);// = imageLoad(writeImages[BW_RENDERED], samplep);
+    outp.uFragColor = textureSample(frameBuffers[BW_RENDERED], samplers[1u], inp.vcoord);
 
 #ifdef GLSL
-    uFragColor = output.uFragColor;
+    uFragColor = outp.uFragColor;
 #else
-    return output;
+    return outp;
 #endif
 };

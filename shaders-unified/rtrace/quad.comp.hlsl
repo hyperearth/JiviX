@@ -1,18 +1,13 @@
 #define GEN_QUAD_INDEX
 #define TRANSFORM_FEEDBACK
 
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
-#endif
-
 #include "./driver.hlsli"
 #include "./tf.hlsli"
 
 // store 32 value as by 8 bytes
 #ifdef GLSL
 void lStore(in int loc, in uint val) {
-    const u8float4 cor = unpack8(val);
+    const u8vec4 cor = unpack8(val);
     buffers[drawInfo.data[2]].data[loc * 4 + 0] = cor.x;
     buffers[drawInfo.data[2]].data[loc * 4 + 1] = cor.y;
     buffers[drawInfo.data[2]].data[loc * 4 + 2] = cor.z;
@@ -34,7 +29,7 @@ void main(in uint GlobalInvocationID : SV_DISPATCHTHREADID)
 #endif
 {
 #ifdef GLSL
-    const uint GlobalInvocationID = gl_GlobalInvocationID;
+    const uint3 GlobalInvocationID = gl_GlobalInvocationID;
 #endif
     const uint4 quadIndices = GlobalInvocationID.x*4u + uint4(0u,1u,2u,3u);
     {

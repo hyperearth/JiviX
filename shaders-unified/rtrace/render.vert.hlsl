@@ -1,8 +1,3 @@
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive          : require
-#endif
-
 #include "./driver.hlsli"
 
 // 
@@ -32,13 +27,16 @@ void main()
 PSInput main(in uint InstanceIndex : SV_InstanceID, in uint VertexIndex : SV_VertexID)
 #endif
 {
-    PSInput output;
-    output.position = float4(cpositions[VertexIndex].xy, 0.0f, 1.0f);
-    output.vcoord = tcoords[VertexIndex].xy;
 #ifdef GLSL
-    gl_Position = output.position;
-    vcoord = output.vcoord;
+    const uint VertexIndex = gl_VertexIndex;
+#endif
+    PSInput outp;
+    outp.position = float4(cpositions[VertexIndex].xy, 0.0f, 1.0f);
+    outp.vcoord = tcoords[VertexIndex].xy;
+#ifdef GLSL
+    gl_Position = outp.position;
+    vcoord = outp.vcoord;
 #else
-    return output;
+    return outp;
 #endif
 };

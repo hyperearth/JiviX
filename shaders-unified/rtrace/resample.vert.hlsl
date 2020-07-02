@@ -1,8 +1,3 @@
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
-#endif
-
 #include "./driver.hlsli"
 
 // 
@@ -24,13 +19,13 @@ out gl_PerVertex {
 // 
 struct GS_INPUT
 {
-    float4 vColor;
-    float4 vSample;
-    float4 vNormal;
-    float4 vPosition;
-    float4 vSpecular;
-    float4 vRescolor;
-    float4 vSmooth;
+    float4 gColor;
+    float4 gSample;
+    float4 gNormal;
+    float4 wPosition;
+    float4 gSpecular;
+    float4 gRescolor;
+    float4 gSmooth;
     float4 Position;
     float PointSize;
 };
@@ -38,13 +33,13 @@ struct GS_INPUT
 // 
 struct GS_INPUT
 {
-    float4 vColor    : COLOR0;
-    float4 vSample   : COLOR1;
-    float4 vNormal   : COLOR2;
-    float4 vPosition : COLOR3;
-    float4 vSpecular : COLOR4;
-    float4 vRescolor : COLOR5;
-    float4 vSmooth   : COLOR6;
+    float4 gColor    : COLOR0;
+    float4 gSample   : COLOR1;
+    float4 gNormal   : COLOR2;
+    float4 wPosition : COLOR3;
+    float4 gSpecular : COLOR4;
+    float4 gRescolor : COLOR5;
+    float4 gSmooth : COLOR6;
     float4 Position  : SV_POSITION;
     float PointSize  : PSIZE0;
 };
@@ -97,35 +92,35 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
 #endif
 
-    GS_INPUT output;
-    output.PointSize = 0, output.vColor = 0.f.xxxx, output.vNormal.xxxx, output.vPosition = 0.f.xxxx;
+    GS_INPUT outp;
+    outp.PointSize = 0, outp.gColor = 0.f.xxxx, outp.gNormal.xxxx, outp.wPosition = 0.f.xxxx;
     if (diffcolor.w > 0.f && imageLoad(writeImages[IW_MATERIAL],f2fx).z > 0.f && imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)],f2fx).w > 0.01f) { // set into current 
 
         // Due real-time geometry, needs to transform!
         positions.xyz = mul4(mul4(float4(positions.xyz, 1.f), matras), matra4).xyz;
 
         //
-        output.PointSize = 1.f;
-        output.Position = float4(world2screen(positions.xyz),1.f), output.PointSize = 1.f;
-        output.Position.y *= -1.f;
-        output.vColor = clamp(diffcolor, 0.001f, 10000000.f);
-        output.vSpecular = float4(speccolor.xyz,1.f);
-        output.vSample = float4(output.Position.xyz,1.f);
-        output.vNormal = float4(normaling.xyz,1.f);
-        output.vSmooth = smoothedc;
-        output.vPosition = positions;
+        outp.PointSize = 1.f;
+        outp.Position = float4(world2screen(positions.xyz),1.f), outp.PointSize = 1.f;
+        outp.Position.y *= -1.f;
+        outp.gColor = clamp(diffcolor, 0.001f, 10000000.f);
+        outp.gSpecular = float4(speccolor.xyz,1.f);
+        outp.gSample = float4(outp.Position.xyz,1.f);
+        outp.gNormal = float4(normaling.xyz,1.f);
+        outp.gSmooth = smoothedc;
+        outp.wPosition = positions;
     };
 
 #ifdef GLSL
-    vColor = output.vColor;
-    vSpecular = output.vSpecular;
-    vSample = output.vSample;
-    vNormal = output.vNormal;
-    vSmooth = output.vSmooth;
-    vPosition = output.vPosition;
-    gl_Position = output.Position;
-    gl_PointSize = output.PointSize;
+    gColor = outp.gColor;
+    gSpecular = outp.gSpecular;
+    gSample = outp.gSample;
+    gNormal = outp.gNormal;
+    gSmooth = outp.gSmooth;
+    wPosition = outp.wPosition;
+    gl_Position = outp.Position;
+    gl_PointSize = outp.PointSize;
 #else
-    return output;
+    return outp;
 #endif
 };

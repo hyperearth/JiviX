@@ -1,8 +1,3 @@
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
-#endif
-
 #include "./driver.hlsli"
 
 #ifdef GLSL
@@ -71,14 +66,14 @@ const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.
 #ifdef GLSL
 void main() 
 #else
-PS_INPUT main(in VS_INPUT input, in uint InstanceIndex : SV_InstanceID, in uint VertexIndex : SV_VertexID)
+PS_INPUT main(in VS_INPUT inp, in uint InstanceIndex : SV_InstanceID, in uint VertexIndex : SV_VertexID)
 #endif
 {
 #ifdef GLSL
     const uint InstanceIndex = gl_InstanceIndex;
     const uint VertexIndex = gl_VertexIndex;
 
-    VS_INPUT input = {iPosition, iTexcoord, iNormals, iTangent, iBinormal};
+    VS_INPUT inp = {iPosition, iTexcoord, iNormals, iTangent, iBinormal};
 #endif
 
     // Full Instance ID of Node (BY GEOMETRY INSTATNCE!!)
@@ -104,23 +99,23 @@ PS_INPUT main(in VS_INPUT input, in uint InstanceIndex : SV_InstanceID, in uint 
     const float3x3 normInTransform = inverse(transpose(regen3(matra4))); // Instance ID (Node)
 
     // Just Remap Into... 
-    PS_INPUT output;
-    output.fTexcoord = float4(input.iTexcoord.xy, 0.f.xx);
-    output.fPosition = mul4(mul4(float4(input.iPosition.xyz, 1.f), matras), matra4); // CORRECT
-    output.fBarycent = float4(0.f.xxx, 0.f);
-    output.uData = uint4(InstanceIndex, 0u.xxx);
-    output.Position = mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), output.fPosition), 1.f));
-    output.Position.y *= -1.f;
+    PS_INPUT outp;
+    outp.fTexcoord = float4(inp.iTexcoord.xy, 0.f.xx);
+    outp.fPosition = mul4(mul4(float4(inp.iPosition.xyz, 1.f), matras), matra4); // CORRECT
+    outp.fBarycent = float4(0.f.xxx, 0.f);
+    outp.uData = uint4(InstanceIndex, 0u.xxx);
+    outp.Position = mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), outp.fPosition), 1.f));
+    outp.Position.y *= -1.f;
     
 #ifdef GLSL
     {
-        gl_Position = output.Position;
-        fTexcoord = output.fTexcoord;
-        fPosition = output.fPosition;
-        fBarycent = output.fBarycent;
-        uData = output.uData;
+        gl_Position = outp.Position;
+        fTexcoord = outp.fTexcoord;
+        fPosition = outp.fPosition;
+        fBarycent = outp.fBarycent;
+        uData = floatBitsToUint(outp.uData);
     };
 #else
-    return output;
+    return outp;
 #endif
 };

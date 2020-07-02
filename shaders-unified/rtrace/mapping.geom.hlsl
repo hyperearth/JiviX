@@ -1,8 +1,3 @@
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
-#endif
-
 #include "./driver.hlsli"
 
 // Right Oriented
@@ -37,12 +32,12 @@ struct GS_INPUT
 // 
 struct PS_INPUT
 {
-    float PointSize;
     float4 Position;
     float4 fPosition;
     float4 fTexcoord;
     float4 fBarycent;
     uint4 uData;
+    float PointSize;
 };
 
 #else 
@@ -60,12 +55,12 @@ struct GS_INPUT
 // 
 struct PS_INPUT
 {
-    float PointSize              : PSIZE0;
     float4 Position              : SV_POSITION;
                float4 fPosition  : POSITION0;
                float4 fTexcoord  : TEXCOORD0;
                float4 fBarycent  : TEXCOORD1;
     nointerpolation uint4 uData  : COLOR0;
+    float PointSize              : PSIZE0;
 };
 
 #endif
@@ -80,42 +75,47 @@ layout (triangle_strip, max_vertices = 3) out;
 void main()  // Just Remap Into... 
 #else
 [maxvertexcount(3)]
-void main(triangle GS_INPUT input[3], inout TriangleStream<PS_INPUT> OutputStream)  // Just Remap Into... 
+void main(triangle GS_INPUT inp[3], inout TriangleStream<PS_INPUT> OutputStream)  // Just Remap Into... 
 #endif
 {
 
 #ifdef GLSL
-    GL_INPUT input[3];
+    GS_INPUT inp[3];
     [[unroll]] for (uint i=0u;i<3u;i++) {
-        input[i].iTexcoord = iTexcoord[i];
-        input[i].iPosition = iPosition[i];
-        input[i].iBarycent = iBarycent[i];
-        input[i].inData = inData[i];
-        input[i].Position = gl_in[i].gl_Position;
-        input[i].PointSize = 0.f;
+        inp[i].iTexcoord = iTexcoord[i];
+        inp[i].iPosition = iPosition[i];
+        inp[i].iBarycent = iBarycent[i];
+        inp[i].inData = inData[i];
+        inp[i].Position = gl_in[i].gl_Position;
+        //inp[i].PointSize = 0.f;
     };
 #endif
 
-    PS_INPUT output;
-    [unroll] for (uint i=0u;i<3u;i++) {
-        output.Position = mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), input[i].iPosition), 1.f));
-        //output.PointSize = 1;
-        output.fTexcoord = input[i].iTexcoord;
-        output.fPosition = input[i].iPosition; // CORRECT
-        output.fBarycent = input[i].iBarycent;
-        output.uData = input[i].inData;
+    PS_INPUT outp;
+#ifdef GLSL
+    [[unroll]] for (uint i=0u;i<3u;i++) 
+#else
+    [unroll] for (uint i=0u;i<3u;i++) 
+#endif
+    {
+        outp.Position = mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), inp[i].iPosition), 1.f));
+        //outp.PointSize = 1;
+        outp.fTexcoord = inp[i].iTexcoord;
+        outp.fPosition = inp[i].iPosition; // CORRECT
+        outp.fBarycent = inp[i].iBarycent;
+        outp.uData = inp[i].inData;
 
 #ifdef GLSL
         {   // HARD Operation...
-            fTexcoord = output.fTexcoord;
-            fPosition = output.fPosition; // CORRECT
-            fBarycent = output.fBarycent;
-            uData = output.uData;
-            gl_Position = output.Position;
+            fTexcoord = outp.fTexcoord;
+            fPosition = outp.fPosition; // CORRECT
+            fBarycent = outp.fBarycent;
+            uData = outp.uData;
+            gl_Position = outp.Position;
             EmitVertex();
         };
 #else
-        OutputStream.Append(output);
+        OutputStream.Append(outp);
 #endif
     };
 

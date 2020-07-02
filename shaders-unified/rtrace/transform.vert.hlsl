@@ -1,8 +1,3 @@
-#ifdef GLSL
-#version 460 core // #
-#extension GL_GOOGLE_include_directive  : require
-#endif
-
 #define TRANSFORM_FEEDBACK
 #include "./driver.hlsli"
 #include "./tf.hlsli"
@@ -26,6 +21,27 @@ out gl_PerVertex {   // some subset of these members will be used
     float4 gl_Position;
     float gl_PointSize;
 };
+
+struct VS_INPUT 
+{
+    float3 iPosition;
+    float2 iTexcoord;
+    float3 iNormals;
+    float4 iTangent;
+    float4 iBinormal;
+    float4 iColor;
+};
+
+// 
+struct GS_INPUT {
+    float4 gPosition;
+    float4 gTexcoord;
+    float4 gNormal;
+    float4 gTangent;
+    float4 Position;
+    float PointSize;
+};
+
 #else
 
 struct VS_INPUT 
@@ -73,31 +89,32 @@ GS_INPUT main(in VS_INPUT input, in uint VertexIndex : SV_VERTEXID)
     const float4 iNormals  = get_float4(idx, 2u);
     const float4 iTangent  = get_float4(idx, 3u);
     const float4 iBinormal = get_float4(idx, 4u);
+    const float4 iColor    = float4(0.f.xxxx);
 
     // HuLuSuL traditional (needs correct support for GLTF)
-    //const float4 iPosition = float4(input.iPosition,1.f);//get_float4(idx, 0u);
-    //const float4 iTexcoord = float4(input.iTexcoord,0.f.xx);//get_float4(idx, 1u);
-    //const float4 iNormals  = float4(input.iNormals,0.f);//get_float4(idx, 2u);
-    //const float4 iTangent  = input.iTangent;//get_float4(idx, 3u);
-    //const float4 iBinormal = input.iBinormal;//get_float4(idx, 4u);
+    //const float4 iPosition = float4(inp.iPosition,1.f);//get_float4(idx, 0u);
+    //const float4 iTexcoord = float4(inp.iTexcoord,0.f.xx);//get_float4(idx, 1u);
+    //const float4 iNormals  = float4(inp.iNormals,0.f);//get_float4(idx, 2u);
+    //const float4 iTangent  = inp.iTangent;//get_float4(idx, 3u);
+    //const float4 iBinormal = inp.iBinormal;//get_float4(idx, 4u);
 
     // 
-    GS_INPUT output;
-    output.gTexcoord.xy = iTexcoord.xy;
-    output.gPosition = float4(iPosition.xyz,1.f);
-    output.gNormal = float4(iNormals.xyz,asfloat(packUnorm4x8(input.iColor))); // Do NOT interpolate W for Fragment Shader, because needs `unpackUnorm4x8(floatBitsToUint())`
-    output.gTangent = float4(iTangent.xyz,0.f);
-    output.Position = float4(iPosition.xyz,1.f);
+    GS_INPUT outp;
+    outp.gTexcoord.xy = iTexcoord.xy;
+    outp.gPosition = float4(iPosition.xyz,1.f);
+    outp.gNormal = float4(iNormals.xyz,uintBitsToFloat(packUnorm4x8(iColor))); // Do NOT interpolate W for Fragment Shader, because needs `unpackUnorm4x8(floatBitsToUint())`
+    outp.gTangent = float4(iTangent.xyz,0.f);
+    outp.Position = float4(iPosition.xyz,1.f);
 
     // 
 #ifdef GLSL
-    gPosition = output.gPosition;
-    gTexcoord = output.gTexcoord;
-    gNormal = output.gNormal;
-    gTangent = output.gTangent;
-    gl_Position = output.Position;
+    gPosition = outp.gPosition;
+    gTexcoord = outp.gTexcoord;
+    gNormal = outp.gNormal;
+    gTangent = outp.gTangent;
+    gl_Position = outp.Position;
 #else
-    return output;
+    return outp;
 #endif
 
 };
