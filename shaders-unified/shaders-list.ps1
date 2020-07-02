@@ -1,1 +1,1 @@
-dxc-dxil/shaders-list.ps1
+/home/helixd/JiviX/shaders-unified/glslang-glsl/shaders-list.ps1

@@ -62,7 +62,6 @@ struct DrawInfo { uint4 data; };
 layout (binding = 1, set = 1)  buffer MeshData { uint8_t data[]; } buffers[]; 
 //#else
 //layout (binding = 0, set = 1) uniform MeshRead { uint8_t data[1048576u]; } buffers[]; 
-#endif
 
 // 
 layout (binding = 2, set = 0, scalar) readonly buffer Bindings   { Binding   bindings[]; };
