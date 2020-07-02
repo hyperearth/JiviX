@@ -75,15 +75,15 @@ Date:[29.06.2020]:[helix.d@IMN]
 - Forced to be opaque objects
 - Too big workgroup size
 - Wrong shaders (needs HLSL)
-- Needs DirectX 12 Ultimate ([DeViX](https://github.com/helixd2s/DeViX-Overview))
+- Needs DirectX 12 Ultimate ([LaVaX](https://github.com/helixd2s/LaVaX-Overview))
 
 
 ### TODO Lists (Black Edition)
 
 - [x] Fallback to ray-tracing shaders
-- [x] HLSL shaders (for [DeViX](https://github.com/helixd2s/DeViX-Overview)), NOT tested
-- [ ] Refactor for DirectX 12 Ultimate compatibility (for [DeViX](https://github.com/helixd2s/DeViX-Overview))
-- [ ] Support for [DeViX](https://github.com/helixd2s/DeViX-Overview)
+- [x] HLSL shaders (for [LaVaX](https://github.com/helixd2s/LaVaX-Overview)), NOT tested
+- [ ] Refactor for DirectX 12 Ultimate compatibility (for [LaVaX](https://github.com/helixd2s/LaVaX-Overview))
+- [ ] Support for [LaVaX](https://github.com/helixd2s/LaVaX-Overview)
 - [ ] Using Volk instead of XVK
 - [ ] Using VKT-4 
 
