@@ -2,7 +2,7 @@
 
 $CFLAGSV="--source-entrypoint main -e main --target-env spirv1.5 -V -d -t --aml --nsf -DGLSL"
 
-$VNDR="glsl"
+$VNDR="shaders"
 . "./shaders-list.ps1"
 
 BuildAllShaders "" 
