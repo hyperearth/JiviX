@@ -47,7 +47,7 @@ struct TS_OUTPUT {
     float4 fNormal;
     float4 fTangent;
     float4 fBinormal;
-    float4 Position;
+    //float4 Position;
 };
 
 #else

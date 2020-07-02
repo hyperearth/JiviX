@@ -144,8 +144,8 @@ void store_u32(in uint offset, in uint bufferID, in uint value) {
 
 // 
 uint load_u32(in uint offset, in uint bufferID) {
-    uint v8x4 = buffers[bufferID].Load(int(offset)).x;
-    store_u32(offset, bufferID, v8x4);
+    const uint v8x4 = buffers[bufferID].Load(offset).x;
+    //store_u32(offset, bufferID, v8x4);
     return v8x4;
 };
 

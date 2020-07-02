@@ -97,7 +97,6 @@ void main(point in GS_INPUT inp[1], inout TriangleStream<PS_INPUT> OutputStream)
 {
 #ifdef GLSL
     GS_INPUT inp[1];
-    inp[0].Position = gl_in[0].gl_Position;
     inp[0].vColor = vColor[0];
     inp[0].vSample = vSample[0];
     inp[0].vNormal = vNormal[0];
@@ -105,11 +104,11 @@ void main(point in GS_INPUT inp[1], inout TriangleStream<PS_INPUT> OutputStream)
     inp[0].vSpecular = vSpecular[0];
     inp[0].vRescolor = vRescolor[0];
     inp[0].vSmooth = vSmooth[0];
+    inp[0].Position = gl_in[0].gl_Position;
     inp[0].PointSize = gl_in[0].gl_PointSize;
 #endif
 
     PS_INPUT outp;
-    outp.Position = inp[0].Position;
     outp.gColor = inp[0].vColor;
     outp.gSample = inp[0].vSample;
     outp.gNormal = inp[0].vNormal;
@@ -117,10 +116,10 @@ void main(point in GS_INPUT inp[1], inout TriangleStream<PS_INPUT> OutputStream)
     outp.gSpecular = inp[0].vSpecular;
     outp.gRescolor = inp[0].vRescolor;
     outp.gSmooth = inp[0].vSmooth;
+    outp.Position = inp[0].Position;
     outp.PointSize = inp[0].PointSize;
 
 #ifdef GLSL
-    gl_Position = outp.Position;
     gColor = outp.gColor;
     gSample = outp.gSample;
     gNormal = outp.gNormal;
@@ -128,6 +127,7 @@ void main(point in GS_INPUT inp[1], inout TriangleStream<PS_INPUT> OutputStream)
     gSpecular = outp.gSpecular;
     gRescolor = outp.gRescolor;
     gSmooth = outp.gSmooth;
+    gl_Position = outp.Position;
     gl_PointSize = outp.PointSize;
     EmitVertex(), EndPrimitive();
 #else
