@@ -3,6 +3,7 @@
 #include "./driver.hlsli"
 
 // 
+#ifdef GLSL
 layout (location = 0) out float4 gColor;
 layout (location = 1) out float4 gSample;
 layout (location = 2) out float4 gNormal;
@@ -18,10 +19,48 @@ out gl_PerVertex {
 };
 
 // 
-void main() {
+struct GS_INPUT
+{
+    float4 vColor;
+    float4 vSample;
+    float4 vNormal;
+    float4 vPosition;
+    float4 vSpecular;
+    float4 vRescolor;
+    float4 vSmooth;
+    float PointSize;
+    float4 Position;
+};
+#else
+// 
+struct GS_INPUT
+{
+    float4 vColor    : COLOR0;
+    float4 vSample   : COLOR1;
+    float4 vNormal   : COLOR2;
+    float4 vPosition : COLOR3;
+    float4 vSpecular : COLOR4;
+    float4 vRescolor : COLOR5;
+    float4 vSmooth   : COLOR6;
+    float PointSize  : PSIZE0;
+    float4 Position  : SV_Position;
+};
+#endif
+
+// 
+#ifdef GLSL
+void main() 
+#else
+GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INSTANCEID) 
+#endif
+{
+#ifdef GLSL
+    const uint VertexIndex = gl_VertexIndex, InstanceIndex = gl_InstanceIndex;
+#endif
+
     //const uint idx = gl_VertexIndex;
-    const int2 size = imageSize(writeImages[0]  );
-    const int2 f2fx = int2(gl_VertexIndex, gl_InstanceIndex);
+    const int2 size = imageSize(writeImages[0]);
+    const int2 f2fx = int2(VertexIndex, InstanceIndex);
     const int2 i2fx = int2(size.x,size.y-f2fx.y-1);
 
     // FROM PREVIOUS FRAME!!
@@ -47,20 +86,39 @@ void main() {
     };
 
     // TODO: MESH USE TRANSFORMS!
+#ifdef GLSL
     gl_PointSize = 0, gColor = 0.f.xxxx, gNormal.xxxx, wPosition = 0.f.xxxx;
+#endif
+
+    GS_INPUT output;
+    output.PointSize = 0, output.vColor = 0.f.xxxx, output.vNormal.xxxx, output.vPosition = 0.f.xxxx;
     if (diffcolor.w > 0.f && imageLoad(writeImages[IW_MATERIAL],f2fx).z > 0.f && imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)],f2fx).w > 0.01f) { // set into current 
 
         // Due real-time geometry, needs to transform!
-        positions.xyz = mul4(mul4(float4(positions.xyz, 1.f), matras), rtxInstances[globalInstanceID].transform).xyz;
+        positions.xyz = mul4(mul4(float4(positions.xyz, 1.f), matras), matra4).xyz;
 
         //
-        gl_Position = float4(world2screen(positions.xyz),1.f), gl_PointSize = 1.f;
-        gl_Position.y *= -1.f;
-        gColor = clamp(diffcolor, 0.001f, 10000000.f);
-        gSpecular = float4(speccolor.xyz,1.f);
-        gSample = float4(gl_Position.xyz,1.f);
-        gNormal = float4(normaling.xyz,1.f);
-        gSmooth = smoothedc;
-        wPosition = positions;
+        output.PointSize = 1.f;
+        output.Position = float4(world2screen(positions.xyz),1.f), output.PointSize = 1.f;
+        output.Position.y *= -1.f;
+        output.vColor = clamp(diffcolor, 0.001f, 10000000.f);
+        output.vSpecular = float4(speccolor.xyz,1.f);
+        output.vSample = float4(output.Position.xyz,1.f);
+        output.vNormal = float4(normaling.xyz,1.f);
+        output.vSmooth = smoothedc;
+        output.vPosition = positions;
     };
+
+#ifdef GLSL
+    gl_Position = output.Position;
+    gl_PointSize = output.PointSize;
+    vColor = output.vColor;
+    vSpecular = output.vSpecular;
+    vSample = output.vSample;
+    vNormal = output.vNormal;
+    vSmooth = output.vSmooth;
+    vPosition = output.vPosition;
+#else
+    return output;
+#endif
 };

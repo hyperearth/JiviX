@@ -1,12 +1,15 @@
-#version 460 core // #
-#extension GL_GOOGLE_include_directive : require
 #define GEN_QUAD_INDEX
 #define TRANSFORM_FEEDBACK
+
+#ifdef GLSL
+#version 460 core // #
+#extension GL_GOOGLE_include_directive : require
+#endif
+
 #include "./driver.hlsli"
 
-layout (local_size_x = 256u) in; 
-
 // store 32 value as by 8 bytes
+#ifdef GLSL
 void lStore(in int loc, in uint val) {
     const u8float4 cor = unpack8(val);
     buffers[drawInfo.data[2]].data[loc * 4 + 0] = cor.x;
@@ -14,9 +17,21 @@ void lStore(in int loc, in uint val) {
     buffers[drawInfo.data[2]].data[loc * 4 + 2] = cor.z;
     buffers[drawInfo.data[2]].data[loc * 4 + 3] = cor.w;
 };
+#else
+void lStore(in int loc, in uint val) {
+    buffers[drawInfo.data[2]].Store(loc, val);
+};
+#endif
 
 // THIS SHADER FOR Minecraft Compatibility
+#ifdef GLSL
+layout (local_size_x = 256u) in;
 void main(){
+    const uint GlobalInvocationID = gl_GlobalInvocationID;
+#else
+[numthreads(256, 1, 1)]
+void main(in uint GlobalInvocationID : SV_DISPATCHTHREADID)
+#endif
     const uint4 quadIndices = gl_GlobalInvocationID.x*4u + uint4(0u,1u,2u,3u);
 
     {

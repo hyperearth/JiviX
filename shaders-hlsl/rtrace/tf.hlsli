@@ -115,6 +115,11 @@ float4 mul4(in float4 v, in float3x4 M) {
     return float4(mul(M,v),1.f);
 };
 
+uint packUnorm4x8(in float4 color) {
+    uint4 colors = uint4(color*255.f)&0xFFu.xxxx;
+    return ((colors.x>>0)|(colors.y<<8)|(colors.z<<16)|(colors.w<<24));
+};
+
 
 #define IndexU8 1000265000
 #define IndexU16 0

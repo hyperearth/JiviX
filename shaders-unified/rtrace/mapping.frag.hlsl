@@ -93,22 +93,19 @@ struct PS_OUTPUT {
 // - Voxelization (like MC)
 
 #ifdef GLSL
-void main() { // TODO: Re-Interpolate for Randomized Center
+void main()  // TODO: Re-Interpolate for Randomized Center
 #else
-PS_OUTPUT main(in PS_INPUT input, in uint gl_PrimitiveID : SV_PrimitiveID, in float4 FragCoord : SV_Position) { // TODO: Re-Interpolate for Randomized Center
+PS_OUTPUT main(in PS_INPUT input, in uint PrimitiveID : SV_PrimitiveID, in float4 FragCoord : SV_Position)  // TODO: Re-Interpolate for Randomized Center
 #endif
-    const float2 fragCoord = gl_FragCoord.xy; // + SampleCenter;
-    const uint primitiveID = uint(gl_PrimitiveID.x);
-    const uint geometryInstanceID = uData.x;//uint(gl_InstanceIndex.x);
-    const uint nodeMeshID = drawInfo.data.x;
-    const uint globalInstanceID = drawInfo.data.z;
-
+{
 #ifdef GLSL
+    const float4 FragCoord = gl_FragCoord;
+    const uint PrimitiveID = gl_PrimitiveID;
     PS_INPUT input = {gl_PointSize.x, gl_Position, fPosition, fTexcoord, fBarycent, uData};
 #endif
 
     const float2 fragCoord = FragCoord.xy; // + SampleCenter;
-    const uint primitiveID = uint(gl_PrimitiveID.x);
+    const uint primitiveID = uint(PrimitiveID.x);
     const uint geometryInstanceID = input.uData.x;//uint(gl_InstanceIndex.x);
     const uint nodeMeshID = drawInfo.data.x;
     const uint globalInstanceID = drawInfo.data.z;

@@ -12,4 +12,4 @@ layout ( location = 0 ) out float2 vcoord;
 void main() {
     gl_Position = float4(cpositions[gl_VertexIndex].xy, 0.0f, 1.0f);
     vcoord = tcoords[gl_VertexIndex].xy;
-}
+};

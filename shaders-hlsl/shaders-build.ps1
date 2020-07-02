@@ -1,1 +1,1 @@
-dxc/shaders-build.ps1
+../shaders-unified/dxc-spirv/shaders-build.ps1

@@ -2,6 +2,7 @@
 #extension GL_GOOGLE_include_directive  : require
 #include "./driver.hlsli"
 
+#ifdef GLSL
 // Left Oriented
 layout (location = 0) in float3 iPosition;
 layout (location = 1) in float2 iTexcoord;
@@ -14,6 +15,28 @@ layout (location = 0) out float4 fPosition;
 layout (location = 1) out float4 fTexcoord;
 layout (location = 2) out float4 fBarycent;
 layout (location = 3) flat out uint4 uData;
+
+#else
+// 
+struct VS_INPUT 
+{
+    float3 iPosition : LOCATION0;
+    float2 iTexcoord : LOCATION1;
+    float3 iNormals  : LOCATION2;
+    float4 iTangent  : LOCATION3;
+    float4 iBinormal : LOCATION4;
+};
+
+// 
+struct GS_INPUT
+{
+    float4 Position              : SV_POSITION;
+    float4 fPosition             : POSITION0;
+    float4 fTexcoord             : TEXCOORD0;
+    float4 fBarycent             : TEXCOORD1;
+    nointerpolation uint4 uData  : COLOR0;
+};
+#endif
 
 // 
 const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.f,1.f) };

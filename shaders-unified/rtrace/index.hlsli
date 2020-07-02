@@ -258,7 +258,8 @@ layout (push_constant) uniform pushConstants { uint4 data; } drawInfo;
 
 //
 #define textureSample(b, s, c) texture(sampler2D(b, s), c)
-#define textureSample(b, s, c, m) textureLod(sampler2D(b, s), c, m)
+#define textureLodSample(b, s, c, m) textureLod(sampler2D(b, s), c, m)
+//#define textureSample(b, s, c, m) textureLod(sampler2D(b, s), c, m)
 #else
 
 struct Matrices {
@@ -329,9 +330,17 @@ struct DrawInfo {
 #define texelFetch(b, c) b[c]
 #define texelFetch(b, c, m) b[uint3(c,m)]
 #define textureSample(b, s, c) b.Sample(s, c)
-#define textureSample(b, s, c, m) b.SampleLevel(s, c, m)
+//#define textureSample(b, s, c, m) b.SampleLevel(s, c, m)
+#define textureLodSample(b, s, c, m) b.SampleLevel(s, c, m)
 #define nonuniformEXT(a) a
 
+// 
+uint2 imageSize(in RWTexture2D tex) { uint2 size = uint2(0,0); return tex.GetDimensions(size.x, size.y); return size; };
+uint3 imageSize(in RWTexture3D tex) { uint3 size = uint3(0,0,0); return tex.GetDimensions(size.x, size.y, size.z); return size; };
+uint2 textureSize(in Texture2D tex, in int lod) { uint2 size = uint2(0,0); return tex.GetDimensions(size.x, size.y); return size; };
+uint3 textureSize(in Texture3D tex, in int lod) { uint3 size = uint3(0,0,0); return tex.GetDimensions(size.x, size.y, size.z); return size; };
+//uint2 textureSize(in Texture2D tex, in int lod) { uint2 size = uint2(0,0); return tex.GetDimensions(uint(lod), size.x, size.y); return size; };
+//uint3 textureSize(in Texture3D tex, in int lod) { uint3 size = uint3(0,0,0); return tex.GetDimensions(uint(lod), size.x, size.y, size.z); return size; };
 #endif
 
 // 
@@ -356,12 +365,12 @@ uint8_t load_u8(in uint offset, in uint binding, in uint nodeMeshID) {
 
 // System Specified
 uint16_t load_u16(in uint offset, in uint binding, in uint nodeMeshID) {
-    return pack16(u8float2(load_u8(offset,binding,nodeMeshID),load_u8(offset+1u,binding,nodeMeshID)));
+    return pack16(u8vec2(load_u8(offset,binding,nodeMeshID),load_u8(offset+1u,binding,nodeMeshID)));
 };
 
 // System Specified
 uint load_u32(in uint offset, in uint binding, in uint nodeMeshID) {
-    return pack32(u16float2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
+    return pack32(u16vec2(load_u16(offset,binding,nodeMeshID),load_u16(offset+2u,binding,nodeMeshID)));
 };
 #else
 // System Specified
@@ -515,8 +524,8 @@ float2 random2( inout uint2 s ) { s += 1; return halfConstruct(hash(uint4(QLOCK2
 float2 random2( inout uint  s ) { s += 1; return halfConstruct(hash(uint3(QLOCK2,s))); }
 
 // 
-float staticRandom () { SCLOCK += 1; return floatConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
-float2  staticRandom2() { SCLOCK += 1; return  halfConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
+float  staticRandom () { SCLOCK += 1; return floatConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
+float2 staticRandom2() { SCLOCK += 1; return  halfConstruct(hash(uint4(SCLOCK,0u, pushed.rdata.xy))); }
 
 // 
 #ifdef GLSL
@@ -603,13 +612,14 @@ bool3 or(in bool3 a, in bool3 b){
     return bool3(a.x||b.x,a.y||b.y,a.z||b.z);
 };
 
-#if defined(HLSL) || !defined(GLSL)
-
 bool fequal(in float a, in float b){
     return 
         a <= b + 0.0001f && 
         a >= b - 0.0001f;
 };
+
+
+#if defined(HLSL) || !defined(GLSL)
 
 bool2 fequal(in float2 a, in float2 b){
     return a <= (b + 0.0001f.xx) && a >= (b - 0.0001f.xx);
@@ -625,19 +635,13 @@ bool4 fequal(in float4 a, in float4 b){
 
 #else
 
-bool fequal(in float a, in float b){
-    return 
-        a <= b + 0.0001f && 
-        a >= b - 0.0001f;
-};
-
-bool4 fequal(in float4 a, in float4 b){
+bool3 fequal(in float3 a, in float3 b){
     return and(
         lessThanEqual(a, b + 0.0001f),
         greaterThanEqual(a, b - 0.0001f));
 };
 
-bool3 fequal(in float3 a, in float3 b){
+bool4 fequal(in float4 a, in float4 b){
     return and(
         lessThanEqual(a, b + 0.0001f),
         greaterThanEqual(a, b - 0.0001f));

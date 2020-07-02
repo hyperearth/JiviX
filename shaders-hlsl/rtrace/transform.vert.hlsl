@@ -21,13 +21,9 @@ struct GS_INPUT {
     float PointSize  : PSIZE;
 };
 
-uint packUnorm4x8(in float4 color) {
-    uint4 colors = uint4(color*255.f)&0xFFu.xxxx;
-    return ((colors.x>>0)|(colors.y<<8)|(colors.z<<16)|(colors.w<<24));
-};
-
 // Should to able used by OpenGL
-GS_INPUT main(in VS_INPUT input, in uint VertexIndex : SV_VERTEXID) { // Cross-Lake
+GS_INPUT main(in VS_INPUT input, in uint VertexIndex : SV_VERTEXID) 
+{ // Cross-Lake
     const int IdxType = int(drawInfo.data[1])-1;
     uint idx = VertexIndex; // Default Index of Vertice
     //if (IdxType == IndexU8 ) { idx = load_u8 (idx*1u, 0u, true); };
