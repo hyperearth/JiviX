@@ -32,7 +32,7 @@ function Optimize($Name, $Dir = "", $AddArg = "") {
 }
 
 function BuildCompute($Name, $InDir = "", $OutDir = "", $AddArg = "", $AltName = $Name) {
-    $ARGS = "$CMPPROF $InDir$Name.hlsl -Fo $OutDir$AltName.spv $CFLAGSV"
+    $ARGS = "$CMPPROF $InDir$Name.hlsl -Fo $OutDir$AltName.dxil $CFLAGSV"
     $process = start-process -NoNewWindow -Filepath "dxc" -ArgumentList "$ARGS $AddArg" -PassThru
     #$ARGS = "$CMPPROF $InDir$Name -o $OutDir$AltName.spv $CFLAGSV"
     #$process = start-process -NoNewWindow -Filepath "glslangValidator" -ArgumentList "$ARGS" -PassThru

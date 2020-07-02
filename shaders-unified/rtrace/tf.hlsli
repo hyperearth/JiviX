@@ -58,10 +58,10 @@ struct DrawInfo { uint4 data; };
 
 // 
 #ifdef GLSL
-#ifdef GEN_QUAD_INDEX
+//#ifdef GEN_QUAD_INDEX
 layout (binding = 1, set = 1)  buffer MeshData { uint8_t data[]; } buffers[]; 
-#else
-layout (binding = 0, set = 1) uniform MeshRead { uint8_t data[1048576u]; } buffers[]; 
+//#else
+//layout (binding = 0, set = 1) uniform MeshRead { uint8_t data[1048576u]; } buffers[]; 
 #endif
 
 // 
