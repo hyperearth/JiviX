@@ -26,14 +26,16 @@ void lStore(in int loc, in uint val) {
 // THIS SHADER FOR Minecraft Compatibility
 #ifdef GLSL
 layout (local_size_x = 256u) in;
-void main(){
-    const uint GlobalInvocationID = gl_GlobalInvocationID;
+void main()
 #else
 [numthreads(256, 1, 1)]
 void main(in uint GlobalInvocationID : SV_DISPATCHTHREADID)
 #endif
+{
+#ifdef GLSL
+    const uint GlobalInvocationID = gl_GlobalInvocationID;
+#endif
     const uint4 quadIndices = gl_GlobalInvocationID.x*4u + uint4(0u,1u,2u,3u);
-
     {
         // CW triangle A
         lStore(int(gl_GlobalInvocationID.x*6+0), quadIndices.x);

@@ -55,6 +55,7 @@ void main() { // TODO: Re-Interpolate for Randomized Center
     oGeoIndice = float4(0.f.xxxx);
     gl_FragDepth = 1.1f;
 
+    // 
     XHIT processing;
     if (diffuseColor.w > 0.0001f) { // Only When Opaque!
         processing.gIndices = uint4(geometryInstanceID, globalInstanceID, primitiveID, 0u); // already nodeMeshID used by instance

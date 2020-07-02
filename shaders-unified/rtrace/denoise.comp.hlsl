@@ -1,11 +1,12 @@
+#ifdef GLSL
 #version 460 core // #
 #extension GL_GOOGLE_include_directive          : require
+#endif
 #include "./driver.hlsli"
 
 // 
 //layout ( location = 0 ) in float2 vcoord;
 //layout ( location = 0 ) out float4 uFragColor;
-layout (local_size_x = 32u, local_size_y = 24u) in; 
 
 // Not Reprojected by Previous Frame
 float4 getPosition   (in int2 map) { const int2 size = imageSize(writeBuffer[BW_POSITION]); return imageLoad(writeBuffer[BW_POSITION],int2(map.x,map.y)); };
@@ -90,7 +91,20 @@ float fixedTranparency(in int2 samplep) {
 
 
 // TODO: Use Texcoord and Material ID's instead of Color, PBR-Map, Emission,  (due, needs only two or one buffers)
-void main() { // TODO: explicit sampling 
+#ifdef GLSL
+layout (local_size_x = 32u, local_size_y = 24u) in; 
+void main()  // TODO: explicit sampling 
+#else
+[numthreads(32, 24, 1)]
+void main(uint3 DTid : SV_DispatchThreadID) // TODO: explicit sampling 
+#endif
+{
+
+#ifdef GLSL
+const uint3 DTid = gl_GlobalInvocationID.xyz;
+#endif
+
+    // 
     const int2 size = imageSize(writeImages[IW_INDIRECT]), samplep = int2(gl_GlobalInvocationID.xy);
     const  float4 dataflat = getData(samplep);
     const uint4 datapass = floatBitsToUint(dataflat);

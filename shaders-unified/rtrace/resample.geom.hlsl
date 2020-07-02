@@ -1,5 +1,9 @@
+#ifdef GLSL
 #version 460 core // #
 #extension GL_GOOGLE_include_directive  : require
+#endif
+
+// 
 #include "./driver.hlsli"
 
 // 
@@ -21,7 +25,8 @@ layout (location = 4) out float4 gSpecular;
 layout (location = 5) out float4 gRescolor;
 layout (location = 6) out float4 gSmooth;
 
-out gl_PerVertex {   // some subset of these members will be used
+// some subset of these members will be used
+out gl_PerVertex {
     float4 gl_Position;
     float gl_PointSize;
 };

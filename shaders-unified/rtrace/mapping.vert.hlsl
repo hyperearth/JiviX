@@ -16,6 +16,26 @@ layout (location = 1) out float4 fTexcoord;
 layout (location = 2) out float4 fBarycent;
 layout (location = 3) flat out uint4 uData;
 
+//
+struct VS_INPUT 
+{
+    float3 iPosition;
+    float2 iTexcoord;
+    float3 iNormals;
+    float4 iTangent;
+    float4 iBinormal;
+};
+
+// 
+struct GS_INPUT
+{
+    float4 Position;
+    float4 fPosition;
+    float4 fTexcoord;
+    float4 fBarycent;
+     uint4 uData;
+};
+
 #else
 // 
 struct VS_INPUT 
@@ -39,8 +59,21 @@ struct GS_INPUT
 #endif
 
 // 
-const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.f,1.f) };
-void main() {
+STATIC const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.f,1.f) };
+
+// 
+#ifdef GLSL
+void main()
+#else
+GS_INPUT main(in VS_INPUT input, in uint InstanceIndex : SV_InstanceID, in uint VertexIndex : SV_VertexID)
+#endif
+{
+
+#ifdef GLSL
+    const uint InstanceIndex = gl_InstanceIndex, VertexIndex = gl_VertexIndex; 
+    VS_INPUT input = { iPosition, iTexcoord, iNormals, iTangent, iBinormal };
+#endif
+    
     // Full Instance ID of Node (BY GEOMETRY INSTATNCE!!)
     //const uint primitiveID = uint(gl_PrimitiveIndex.x);
     const uint geometryInstanceID = uint(gl_InstanceIndex.x);
@@ -60,11 +93,21 @@ void main() {
     const float3x3 normInTransform = inverse(transpose(regen3(matra4))); // Instance ID (Node)
 
     // Just Remap Into... 
-      fTexcoord = float4(iTexcoord.xy, 0.f.xx);
-      fPosition = mul4(mul4(float4(iPosition.xyz, 1.f), matras), matra4); // CORRECT
-      fBarycent = float4(bary[idx%3u], 0.f);
-      uData = uint4(gl_InstanceIndex, 0u.xxx);
+    GS_INPUT output;
+    output.fTexcoord = float4(iTexcoord.xy, 0.f.xx);
+    output.fPosition = mul4(mul4(float4(iPosition.xyz, 1.f), matras), matra4); // CORRECT
+    output.fBarycent = float4(bary[idx%3u], 0.f);
+    output.uData = uint4(gl_InstanceIndex, 0u.xxx);
+    output.Position = float4(fPosition * modelview, 1.f) * projection;
 
     // 
-    gl_Position = float4(fPosition * modelview, 1.f) * projection;
+#ifdef GLSL
+    fTexcoord = output.fTexcoord;
+    fPosition = output.fPosition;
+    fBarycent = output.fBarycent;
+    uData = output.uData;
+    gl_Position = output.Position;
+#else
+    return output;
+#endif
 };

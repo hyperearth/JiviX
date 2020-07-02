@@ -15,13 +15,10 @@
 #endif
 
 #include "./driver.hlsli"
-#include "./global.hlsli"
 
 // 
 //layout ( early_fragment_tests ) in; // Reduce Lag Rate! (but transparency may broken!)
 // Прозрачность с новой прошивкой починим! @RED21
-
-
 
 // 
 #ifdef GLSL

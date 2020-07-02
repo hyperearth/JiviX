@@ -432,7 +432,6 @@ float4 mul4(in float4 v, in float3x4 M) {
 #define IndexU16 0
 #define IndexU32 1
 
-
 // 
 float raySphereIntersect(in float3 r0, in float3 rd, in float3 s0, in float sr) {
     float a = dot(rd, rd);
