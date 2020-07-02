@@ -90,12 +90,11 @@ namespace jvi {
             almac.memUsage = VMA_MEMORY_USAGE_GPU_ONLY;
             almac.glMemory = almac.glID = 0u;
 
-            // 
+            //
             for (uint32_t i = 0; i < this->bindings.size(); i++) {
+                const VkDeviceSize usize = (i == 0 ? MaxPrimitiveCount : 1u) * (i == 0 ? MaxStride : DEFAULT_STRIDE) * 3u;
                 auto vertexUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 };
-                this->bindings[i] = vkt::Vector<VertexData>(std::make_shared<vkt::BufferAllocation>(vkh::VkBufferCreateInfo{
-                    .size = (i == 0 ? MaxPrimitiveCount : 1u) * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,.usage = vertexUsage,
-                }, almac));
+                this->bindings[i] = vkt::Vector<VertexData>(std::make_shared<vkt::BufferAllocation>(vkh::VkBufferCreateInfo{ .size = usize, .usage = vertexUsage, }, almac), VkDeviceSize(0ull), usize, VkDeviceSize(1ull));
 
                 // For OpenGL!
 #ifdef ENABLE_OPENGL_INTEROP
@@ -141,11 +140,11 @@ namespace jvi {
 
             // Generate Default Layout
             this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 0, .stride = static_cast<uint32_t>(MaxStride) });
-            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 0u });  // Positions
-            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 16u }); // Texcoords
-            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 32u }); // Normals
-            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 48u }); // Tangents
-            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = 64u }); // BiNormals
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 0u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(VertexData, fPosition) });  // Positions
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 1u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(VertexData, fTexcoord) }); // Texcoords
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(VertexData, fNormal) }); // Normals
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 3u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(VertexData, fTangent) }); // Tangents
+            this->setAttribute(vkh::VkVertexInputAttributeDescription{ .location = 4u, .format = VK_FORMAT_R32G32B32A32_SFLOAT, .offset = offsetof(VertexData, fBinormal) }); // BiNormals
 
             // FOR QUADS RESERVED!
             //this->setBinding(vkh::VkVertexInputBindingDescription{ .binding = 1, .stride = sizeof(glm::vec4) });
@@ -680,6 +679,7 @@ namespace jvi {
             const auto renderArea = vkh::VkRect2D{ vkh::VkOffset2D{0, 0}, vkh::VkExtent2D{mapWidth, mapHeight} };
             const auto viewport = vkh::VkViewport{ 0.0f, 0.0f, static_cast<float>(renderArea.extent.width), static_cast<float>(renderArea.extent.height), 0.f, 1.f };
 
+            //
             vkh::VkClearValue defValues[2] = { {}, {} };
             defValues[0].color = vkh::VkClearColorValue{}; defValues[0].color.float32 = glm::vec4(0.f, 0.f, 0.f, 0.f);
             defValues[1].depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
