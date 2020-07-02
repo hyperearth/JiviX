@@ -67,7 +67,7 @@ struct PS_OUTPUT
 #endif
 
 // 
-const float2 shift[9] = {
+STATIC const float2 shift[9] = {
     float2(-1.f,-1.f),float2(0.f,-1.f),float2(1.f,-1.f),
     float2(-1.f, 0.f),float2(0.f, 0.f),float2(1.f, 0.f),
     float2(-1.f, 1.f),float2(0.f, 1.f),float2(1.f, 1.f)

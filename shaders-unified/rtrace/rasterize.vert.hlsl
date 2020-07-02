@@ -62,7 +62,7 @@ struct PS_INPUT
 
 
 // 
-const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.f,1.f) };
+STATIC const float3 bary[3] = { float3(1.f,0.f,0.f), float3(0.f,1.f,0.f), float3(0.f,0.f,1.f) };
 #ifdef GLSL
 void main() 
 #else
