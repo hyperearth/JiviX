@@ -81,7 +81,7 @@ Date:[29.06.2020]:[helix.d@IMN]
 ### TODO Lists (Black Edition)
 
 - [x] Fallback to ray-tracing shaders
-- [x] HLSL shaders (for [LaVaX](https://github.com/helixd2s/LaVaX-Overview)), NOT tested
+- [x] Unified shaders (for [LaVaX](https://github.com/helixd2s/LaVaX-Overview)), NOT tested
 - [ ] Refactor for DirectX 12 Ultimate compatibility (for [LaVaX](https://github.com/helixd2s/LaVaX-Overview))
 - [ ] Support for [LaVaX](https://github.com/helixd2s/LaVaX-Overview)
 - [ ] Using Volk instead of XVK
