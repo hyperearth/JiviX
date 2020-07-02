@@ -24,6 +24,7 @@ namespace jvi {
     class MeshBinding;
     class BufferViewSet;
 
+    // 
 #define uPTR(NAME) vkt::uni_ptr<NAME>
 #ifdef NATIVE_SHARED_PTR
 //#define uPTR(NAME) std::shared_ptr<NAME>
@@ -33,6 +34,16 @@ namespace jvi {
 #define uTHIS this
 #endif
 
+    // 
+    struct VertexData {
+        glm::vec4 fPosition = glm::vec4(0.f);
+        glm::vec4 fTexcoord = glm::vec4(0.f);
+        glm::vec4 fNormal = glm::vec4(0.f);
+        glm::vec4 fTangent = glm::vec4(0.f);
+        glm::vec4 fBinormal = glm::vec4(0.f);
+    };
+
+    // 
     struct MeshInfo {
         //uint32_t materialID = 0u;
         uint32_t geometryCount = 0u;
@@ -49,6 +60,7 @@ namespace jvi {
             hasTangent : 1;
     };
 
+    //
     struct CommandOptions {
         uint32_t
             eEnableCopyMeta: 1,
@@ -61,7 +73,8 @@ namespace jvi {
             eEnableDenoise : 1;
     };
 
-    constexpr uint32_t DEFAULT_STRIDE = 80u;
+    // 
+    constexpr uint32_t DEFAULT_STRIDE = sizeof(VertexData);
     constexpr uint32_t MAX_VERT_COUNT = 65536u;
     constexpr uint32_t MAX_PRIM_COUNT = 65536u * 3u;
 

@@ -42,11 +42,11 @@ namespace jvi {
 
             //
             std::unordered_map<int, vkh::SOSemantic> semantics = {};
-            semantics[0] = vkh::SOSemantic{ .buffer = 0u, .offset = 0u, .stride = DEFAULT_STRIDE };
-            semantics[1] = vkh::SOSemantic{ .buffer = 0u, .offset = 16u, .stride = DEFAULT_STRIDE };
-            semantics[2] = vkh::SOSemantic{ .buffer = 0u, .offset = 32u, .stride = DEFAULT_STRIDE };
-            semantics[3] = vkh::SOSemantic{ .buffer = 0u, .offset = 48u, .stride = DEFAULT_STRIDE };
-            semantics[4] = vkh::SOSemantic{ .buffer = 0u, .offset = 64u, .stride = DEFAULT_STRIDE };
+            semantics[0] = vkh::SOSemantic{ .buffer = 0u, .offset = offsetof(VertexData, fPosition), .stride = DEFAULT_STRIDE };
+            semantics[1] = vkh::SOSemantic{ .buffer = 0u, .offset = offsetof(VertexData, fTexcoord), .stride = DEFAULT_STRIDE };
+            semantics[2] = vkh::SOSemantic{ .buffer = 0u, .offset = offsetof(VertexData, fNormal),   .stride = DEFAULT_STRIDE };
+            semantics[3] = vkh::SOSemantic{ .buffer = 0u, .offset = offsetof(VertexData, fTangent),  .stride = DEFAULT_STRIDE };
+            semantics[4] = vkh::SOSemantic{ .buffer = 0u, .offset = offsetof(VertexData, fBinormal), .stride = DEFAULT_STRIDE };
 
             //
             auto unModSource = vkt::readBinary(std::string("./shaders/transform.geom.spv"));

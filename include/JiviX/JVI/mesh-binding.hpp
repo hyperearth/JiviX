@@ -93,7 +93,7 @@ namespace jvi {
             // 
             for (uint32_t i = 0; i < this->bindings.size(); i++) {
                 auto vertexUsage = vkh::VkBufferUsageFlags{.eTransferSrc = 1, .eTransferDst = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1, .eSharedDeviceAddress = 1 };
-                this->bindings[i] = vkt::Vector<uint8_t>(std::make_shared<vkt::BufferAllocation>(vkh::VkBufferCreateInfo{
+                this->bindings[i] = vkt::Vector<VertexData>(std::make_shared<vkt::BufferAllocation>(vkh::VkBufferCreateInfo{
                     .size = (i == 0 ? MaxPrimitiveCount : 1u) * (i == 0 ? MaxStride : sizeof(glm::vec4)) * 3u,.usage = vertexUsage,
                 }, almac));
 
@@ -178,7 +178,7 @@ namespace jvi {
         public: virtual uPTR(MeshBinding) setDriver(const std::shared_ptr<Driver>& driver) { return this->setDriver(vkt::uni_ptr<Driver>(driver)); };
 
         // 
-        public: virtual vkt::Vector<uint8_t>& getBindingBuffer(const uintptr_t& i = 0u) {
+        public: virtual vkt::Vector<VertexData>& getBindingBuffer(const uintptr_t& i = 0u) {
             return this->bindings[i];
         };
 
@@ -188,7 +188,7 @@ namespace jvi {
         };
 
         // 
-        public: virtual const vkt::Vector<uint8_t>& getBindingBuffer(const uintptr_t& i = 0u) const {
+        public: virtual const vkt::Vector<VertexData>& getBindingBuffer(const uintptr_t& i = 0u) const {
             return this->bindings[i];
         };
 
@@ -830,7 +830,7 @@ namespace jvi {
         uint32_t primitiveCount = 0u, mapCount = 0u, fullGeometryCount = 0u;
 
         // 
-        std::array<vkt::Vector<uint8_t>, 2> bindings = {};
+        std::array<vkt::Vector<VertexData>, 2> bindings = {};
 #ifdef ENABLE_OPENGL_INTEROP
         std::array<std::pair<GLuint, GLuint>, 2> bindingsOGL = {};
 #endif
