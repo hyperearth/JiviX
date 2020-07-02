@@ -8,7 +8,7 @@ struct RCData {
 };
 
 // BUT DEFAULT OVERRIDEN!
-int2 launchSize = int2(1600, 1200);
+STATIC int2 launchSize = int2(1600, 1200);
 
 // 
 struct XPOL {
@@ -37,8 +37,8 @@ struct CHIT {
 };
 
 // 
-uint packed = 0u;
-uint2 seed = uint2(0u.xx);
+STATIC uint packed = 0u;
+STATIC uint2 seed = uint2(0u.xx);
 
 // RESERVED FOR OTHER OPERATIONS
 float3 refractive(in float3 dir) {

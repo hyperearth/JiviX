@@ -1,3 +1,4 @@
+#ifdef GLSL
 #version 460 core // #
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
@@ -11,7 +12,9 @@
 #extension GL_NV_fragment_shader_barycentric : require
 #define BARYCOORD gl_BaryCoordNV
 #endif
+#endif
 
+// 
 #include "./driver.hlsli"
 #include "./global.hlsli"
 

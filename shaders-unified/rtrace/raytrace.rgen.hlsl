@@ -1,6 +1,8 @@
+#ifdef GLSL
 #version 460 core // #
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
+#endif
 
 #ifndef ENABLE_AS
 #define ENABLE_AS
@@ -18,10 +20,43 @@
 
 // 
 //layout (local_size_x = 32u, local_size_y = 24u) in;
+#ifdef GLSL
 layout ( location = 0u ) rayPayloadEXT CHIT hit;
+#else
+STATIC CHIT hit; // Yep, HLSL!
+#endif
 
 // For Cache
 XHIT RES;
+
+// 
+#ifndef GLSL
+void traceRayEXT(in uint flags, in uint mask, in uint a, in uint stride, in uint b, in float3 origin, in float minT, in float3 direct, in float maxT) {
+    RayDesc desc;
+    desc.Origin = origin;
+    desc.TMin = minT;
+    desc.Direction = direct;
+    desc.TMax = maxT;
+
+    // 
+    TraceRay(Scene, flags, mask, a, stride, b, desc, hit);
+};
+#else
+void traceRayEXT(in uint flags, in lowp uint mask, in uint a, in uint stride, in uint b, in float3 origin, in float minT, in float3 direct, in float maxT) {
+    RayDesc desc;
+    desc.Origin = origin;
+    desc.TMin = minT;
+    desc.Direction = direct;
+    desc.TMax = maxT;
+
+    // 
+    traceRayEXT(Scene, flags, mask, a, stride, b, origin, minT, direct, maxT, 0);
+};
+
+#define RAY_FLAG_FORCE_OPAQUE RayFlagsOpaqueEXT
+#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES RayFlagsCullBackFacingTrianglesEXT
+
+#endif
 
 // Ray Query Broken In Latest Driver... 
 XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT, bool scatterTransparency, float threshold) {
@@ -39,8 +74,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     bool restart = true, opaque = false;
     while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
         float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
-        traceRayEXT (Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
-            0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax, 0);
+        traceRayEXT(RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax);
 
         // 
         const float3 baryCoord = hit.gBarycentric.xyz;

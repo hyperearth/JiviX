@@ -1,7 +1,9 @@
+#ifdef GLSL
 #version 460 core // #
 #extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_ray_tracing          : require
 #extension GL_EXT_ray_query            : require
+#endif
 
 #ifndef ENABLE_AS
 #define ENABLE_AS
@@ -17,14 +19,48 @@
 //#define TOP_LAYERED // Has reflection problems
 
 // TODO: X-Based Optimization
-const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
-layout ( local_size_x = workX, local_size_y = workY ) in; 
+//const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
+#define workX 64
+#define workY 8
 
 // 
-shared XHIT hits[workX*workY];
+SHARED XHIT hits[workX*workY];
 
 // Needs 1000$ for fix BROKEN ray query...
-const uint MAX_ITERATION = 0u;
+STATIC const uint MAX_ITERATION = 0u;
+
+
+#ifndef GLSL
+#define rayQueryGetIntersectionInstanceCustomIndexEXT(q, B) (B?q.CommittedInstanceID():q.CandidateInstanceID())
+#define rayQueryGetIntersectionGeometryIndexEXT(q, B) (B?q.CommittedGeometryIndex():q.CandidateGeometryIndex())
+#define rayQueryGetIntersectionInstanceIdEXT(q, B) (B?q.CommittedInstanceIndex():q.CandidateInstanceIndex())
+#define rayQueryGetIntersectionBarycentricsEXT(q, B) (B?q.CommittedTriangleBarycentrics():q.CandidateTriangleBarycentrics())
+#define rayQueryGetIntersectionPrimitiveIndexEXT(q, B) (B?q.CommittedPrimitiveIndex():q.CandidatePrimitiveIndex())
+#define rayQueryGetIntersectionTEXT(q, B) (B?q.CommittedRayT():q.CandidateTriangleRayT())
+#define rayQueryProceedEXT(q) q.Proceed()
+#define rayQueryGetIntersectionTypeEXT(q, B) (B?q.CommittedStatus():COMMITTED_NOTHING)
+#define rayQueryConfirmIntersectionEXT(q) q.CommitNonOpaqueTriangleHit()
+#define rayQueryTerminateEXT(q) q.Abort()
+
+// 
+void rayQueryInitializeEXT(in RayQuery<RAY_FLAG_CULL_BACK_FACING_TRIANGLES> rayQuery, in uint flags, in uint mask, in float3 origin, in float minT, in float3 direct, in float maxT) {
+    RayDesc desc;
+    desc.Origin = origin;
+    desc.TMin = minT;
+    desc.Direction = direct;
+    desc.TMax = maxT;
+
+    // 
+    rayQuery.TraceRayInline(Scene, flags, mask, desc);
+};
+#else
+#define RAY_FLAG_FORCE_OPAQUE RayFlagsOpaqueEXT
+#define RAY_FLAG_CULL_BACK_FACING_TRIANGLES RayFlagsCullBackFacingTrianglesEXT
+
+void rayQueryInitializeEXT(in rayQueryEXT rayQuery, in uint flags, in lowp uint mask, in float3 origin, in float minT, in float3 direct, in float maxT) {
+    rayQueryInitializeEXT(rayQuery, Scene, flags, mask, origin, minT, direct, maxT);
+};
+#endif
 
 // Ray Query Broken In Latest Driver... 
 XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT, bool scatterTransparency, float threshold) {
@@ -41,9 +77,15 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
     // 
     bool restart = true, opaque = false;
     while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
-        rayQueryEXT rayQuery; float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
-        rayQueryInitializeEXT(rayQuery, Scene, gl_RayFlagsOpaqueEXT|gl_RayFlagsCullNoOpaqueEXT|gl_RayFlagsCullBackFacingTrianglesEXT,
-            0xFF, lastOrigin, 0.001f, raydir, lastMax);
+        float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin;
+
+#ifdef GLSL
+        rayQueryEXT rayQuery;
+#else
+        RayQuery<RAY_FLAG_CULL_BACK_FACING_TRIANGLES> rayQuery;
+#endif
+
+        rayQueryInitializeEXT(rayQuery, RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, lastOrigin, lastMin, raydir, lastMax);
 
         // BROKEN `rayQueryProceedEXT`
         bool proceed = false;
@@ -53,7 +95,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
             uint globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, false);
             float2 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, false);
             uint primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, false); 
-            float3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false);
+            //float3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, false);
             float tHit = rayQueryGetIntersectionTEXT(rayQuery, false);
 
             // 
@@ -76,13 +118,13 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
         // 
         processing = confirmed; lastMax = (maxT - fullLength); lastOrigin = raydir*maxT + sorigin; opaque = false;
         if (!proceed) { // Attemp to fix Broken Ray Query
-            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionNoneEXT) {
+            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != RayQueryCommittedIntersectionNoneEXT) {
                 uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, true); // Mesh ID from Node Mesh List (because indexing)
                 uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, true); // TODO: Using In Ray Tracing (and Query) shaders!
                 uint globalInstanceID = rayQueryGetIntersectionInstanceIdEXT(rayQuery, true);
                 float2 baryCoord = rayQueryGetIntersectionBarycentricsEXT(rayQuery, true);
                 uint primitiveID = rayQueryGetIntersectionPrimitiveIndexEXT(rayQuery, true); 
-                float3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true);
+                //float3 origin = rayQueryGetIntersectionObjectRayOriginEXT(rayQuery, true);
                 float tHit = rayQueryGetIntersectionTEXT(rayQuery, true);
 
                 // 
@@ -116,33 +158,53 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 };
 
 // 
-#define LAUNCH_ID gl_GlobalInvocationID.xy
+#define LAUNCH_ID GlobalInvocationID.xy
 #include "./stuff.hlsli"
 #define RES hits[lIdx]
 
 // 14.06.2020
 // Fully Refresh Ray Cast Shaders
-void main() {
+#ifdef GLSL
+layout ( local_size_x = workX, local_size_y = workY ) in; 
+void main()
+#else
+[numthreads(32, 24, 1)]
+void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupThreadID, uint3 WorkGroupID : SV_GroupID) // TODO: explicit sampling 
+#endif
+{
+
+#ifdef GLSL
+    const uint LocalInvocationIndex = gl_LocalInvocationIndex;
+    const uint3 GlobalInvocationID = gl_GlobalInvocationID;
+    const uint3 LocalInvocationID = gl_LocalInvocationID;
+    const uint3 WorkGroupID = gl_WorkGroupID;
+#endif
+
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const float4 sphere = float4(float3(16.f,128.f,16.f), 8.f);
 
     // 
-    const uint2 locQs = uint2(gl_LocalInvocationID.xy);
+    const uint2 locQs = uint2(LocalInvocationID.xy);
     const uint2 locQ = uint2(locQs.x, (locQs.y<<1u) | ((locQs.x+rdata.x)&1u));
-    const uint2 lanQ = uint2(gl_WorkGroupID.xy*gl_WorkGroupSize.xy*uint2(1u,2u) + locQ).xy;
-    //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
-    const uint lIdx = gl_LocalInvocationIndex;
+    const uint2 lanQ = uint2(WorkGroupID.xy*WorkGroupSize.xy*uint2(1u,2u) + locQ).xy;
+    //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
+    const uint lIdx = LocalInvocationIndex;
 
     // 
     launchSize = imageSize(writeImages[IW_POSITION]);
+
+#ifdef GLSL
     groupMemoryBarrier(); barrier();
+#else
+    GroupMemoryBarrierWithGroupSync();
+#endif
 
     // 
     for (uint Q = 0u; Q < 2u; Q++) {
-        const uint2 locQ = uint2(locQs.x, Q*gl_WorkGroupSize.y + locQs.y);
-        const uint2 lanQ = uint2(gl_WorkGroupID.xy*uint2(gl_WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
-        //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
-        const uint lIdx = (locQ.y >> 1u) * gl_WorkGroupSize.x + locQ.x;
+        const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
+        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
+        //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;
         
         // 
         const int2 curPixel = int2(lanQ), invPixel = int2(curPixel.x,curPixel.y);
@@ -222,7 +284,11 @@ void main() {
     };
 
     // 
+#ifdef GLSL
     groupMemoryBarrier(); barrier();
+#else
+    GroupMemoryBarrierWithGroupSync();
+#endif
 
     // BROKEN
 #ifdef RAY_TRACE
@@ -324,14 +390,18 @@ void main() {
 #endif
 
     // 
+#ifdef GLSL
     groupMemoryBarrier(); barrier();
+#else
+    GroupMemoryBarrierWithGroupSync();
+#endif
 
     // 
     for (uint Q = 0u; Q < 2u; Q++) {
-        const uint2 locQ = uint2(locQs.x, Q*gl_WorkGroupSize.y + locQs.y);
-        const uint2 lanQ = uint2(gl_WorkGroupID.xy*uint2(gl_WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
-        //const uint lIdx = locQ.y * gl_WorkGroupSize.x + locQ.x;
-        const uint lIdx = (locQ.y >> 1u) * gl_WorkGroupSize.x + locQ.x;
+        const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
+        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
+        //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
+        const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;
 
         // 
         float4 gposition = float4(RES.origin.xyz, RES.gBarycentric.w);
@@ -345,6 +415,5 @@ void main() {
         imageStore(writeBuffer[nonuniformEXT(BW_REFLECLR)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_REFLECLR)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_TRANSPAR)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_ADAPTIVE)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_ADAPTIVE)], int2(lanQ)));
-    }
+    };
 };
-

@@ -35,8 +35,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
         // 
         CHIT hit = { float4(0, 0, 0, 0), uint4(0, 0, 0, 0) };
-        TraceRay(Scene, RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
-            0xFFu, 0u, 1u, 0u, desc, hit);
+        TraceRay(Scene, RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFFu, 0u, 1u, 0u, desc, hit);
 
         // 
         const bool isSkybox = dot(hit.gBarycentric.xyz.yz,1.f.xx)<=0.f; //uintBitsToFloat(datapass.z) <= 0.99f;
