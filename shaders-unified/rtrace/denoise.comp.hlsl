@@ -78,10 +78,12 @@ float fixedTranparency(in int2 samplep) {
     float xt = getTransparent(samplep + int2(1, 0)).w;
     float yt = getTransparent(samplep + int2(0, 1)).w;
 
+#ifndef HIGH_QUALITY_TRANSPARENCY
     if (fixedt < 0.0001f) { 
         if (xt > 0.0001f && yt > 0.0001f) { fixedt = .5f*(xt+ yt); } else 
                                           { fixedt =  max(xt, yt); };
     };
+#endif
     return fixedt;
 };
 

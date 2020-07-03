@@ -226,8 +226,11 @@ void main() {
             if (!(MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f)) { continue; }; // useless tracing mode
 
             // still needs shading, except surface transparency
-            //if (  MAT.diffuseColor.w > 0.99f  && I == 2 && !checker ) { break; }; // Low Quality
-              if (  MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // High Quality
+#ifdef HIGH_QUALITY_TRANSPARENCY
+            if ( MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // High Quality
+#else
+            if ( (MAT.diffuseColor.w > 0.99f || !checker) && I == 2 ) { break; }; // Low Quality
+#endif
 
             // 
             float3x3 TBN = float3x3(GEO.gTangent.xyz, GEO.gBinormal.xyz, GEO.gNormal.xyz);
@@ -304,8 +307,7 @@ void main() {
             { gSignal.xyz = clamp(gSignal.xyz,0.f.xxx,16.f.xxx); };
             if (I == 0) { imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], int2(lanQ), float4(gSignal.xyz, 1.f)); };
             if (I == 1) { imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), 1.f)); };
-            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), (hasSkybox?1.f:2.f))); }; // alpha channel reserved, zero always opaque type
-        
+            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), (hasSkybox?1.f:2.f))); };
         };
         imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], int2(lanQ), adaptiveData); // For Adaptive Denoise
     };
