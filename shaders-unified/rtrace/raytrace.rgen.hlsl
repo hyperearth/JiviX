@@ -224,7 +224,10 @@ void main() {
 
             // 
             if (!(MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f)) { continue; }; // useless tracing mode
-            if (  MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // still needs shading, except surface transparency
+
+            // still needs shading, except surface transparency
+            //if (  MAT.diffuseColor.w > 0.99f  && I == 2 && !checker ) { break; }; // Low Quality
+              if (  MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // High Quality
 
             // 
             float3x3 TBN = float3x3(GEO.gTangent.xyz, GEO.gBinormal.xyz, GEO.gNormal.xyz);
