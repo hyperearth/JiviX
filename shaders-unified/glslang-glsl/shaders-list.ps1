@@ -78,6 +78,7 @@ function BuildAllShaders($Pfx = "") {
     BuildCompute "raytrace.comp"        "$INDIR$RNDX" "$HRDDIR$RTPU"
     BuildCompute "raytrace.rgen"        "$INDIR$RNDX" "$HRDDIR$RTPU"
     BuildCompute "raytrace.rchit"       "$INDIR$RNDX" "$HRDDIR$RTPU"
+    BuildCompute "raytrace.rahit"       "$INDIR$RNDX" "$HRDDIR$RTPU"
     BuildCompute "raytrace.rmiss"       "$INDIR$RNDX" "$HRDDIR$RTPU"
 
     # optimize built shaders

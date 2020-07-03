@@ -81,6 +81,7 @@ function BuildAllShaders($Pfx = "") {
     # 
      BuildCompute "raytrace.rgen"      "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
      BuildCompute "raytrace.rchit"     "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
+     BuildCompute "raytrace.rahit"     "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
      BuildCompute "raytrace.rmiss"     "$INDIR$RNDX" "$HRDDIR$RTPU" "-T lib_6_5"
      BuildCompute "raytrace.comp"      "$INDIR$RNDX" "$HRDDIR$RTPU" "-T cs_6_5"
 

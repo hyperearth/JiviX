@@ -47,6 +47,7 @@ namespace jvi {
             this->raytraceStages = {
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/raytrace.rgen.spv")), VK_SHADER_STAGE_RAYGEN_BIT_KHR),
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/raytrace.rchit.spv")), VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR),
+                vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/raytrace.rahit.spv")), VK_SHADER_STAGE_ANY_HIT_BIT_KHR),
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/raytrace.rmiss.spv")), VK_SHADER_STAGE_MISS_BIT_KHR)
             };
 

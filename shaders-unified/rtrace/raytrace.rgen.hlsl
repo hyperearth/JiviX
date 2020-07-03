@@ -131,7 +131,7 @@ void main() {
 
     {
         //
-        packed = packUint2x16(curPixel), seed = uint2(packed, pushed.rdata.x);
+        packed = packUint2x16(curPixel),       seed = uint2(packed, pushed.rdata.x);
         const float2 shift = random2(seed),   pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
         //const float2 shift = 0.5f.xx,       pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
 
