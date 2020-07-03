@@ -932,6 +932,7 @@ namespace jvi {
 
          // Initialize Input
          this->createRasterizePipeline()->createDescriptorSet();
+         this->descriptorSetInitialized = false;
 
          // 
          if (!HasCommand || ignoreIndirection) {

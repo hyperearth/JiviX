@@ -70,7 +70,7 @@ struct GS_INPUT {
 #ifdef GLSL
 void main() 
 #else
-GS_INPUT main(in VS_INPUT input, in uint VertexIndex : SV_VERTEXID) 
+GS_INPUT main(in VS_INPUT inp, in uint VertexIndex : SV_VERTEXID) 
 #endif
 { // Cross-Lake
 #ifdef GLSL
@@ -88,8 +88,20 @@ GS_INPUT main(in VS_INPUT input, in uint VertexIndex : SV_VERTEXID)
     const float4 iTexcoord = get_float4(idx, 1u);
     const float4 iNormals  = get_float4(idx, 2u);
     const float4 iTangent  = get_float4(idx, 3u);
-    const float4 iBinormal = get_float4(idx, 4u);
+    //const float4 iBinormal = get_float4(idx, 4u);
     const float4 iColor    = float4(0.f.xxxx);
+    const float4 iBinormal = float4(0.f.xxxx);
+
+#ifdef GLSL
+    VS_INPUT inp;
+    inp.iPosition = iPosition.xyz;
+    inp.iTexcoord = iTexcoord.xy;
+    inp.iNormals = iNormals.xyz;
+    inp.iTangent = iTangent;
+    inp.iBinormal = iBinormal;
+    inp.iColor = iColor;
+#endif
+
 
     // HuLuSuL traditional (needs correct support for GLTF)
     //const float4 iPosition = float4(inp.iPosition,1.f);//get_float4(idx, 0u);
