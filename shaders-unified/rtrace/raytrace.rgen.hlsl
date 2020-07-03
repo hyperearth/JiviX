@@ -211,14 +211,18 @@ void main() {
     float4 adaptiveData = 10000.f.xxxx;
     XGEO GEO = interpolate(RES);
     XPOL MAT = materialize(RES, GEO);
-    if ( checker && (MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f) ) { // 
+    if ( (MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f) ) { // 
               float4 origin = float4(RES.origin.xyz-RES.gBarycentric.w*RES.direct.xyz, 1.f);
         const float4 bspher = float4(origin.xyz,10000.f);
         const float inIOR = 1.f, outIOR = 1.6666f;
 
         // 
         const uint MAX_ITERATION = 3u;
-        for (uint I=0;I<MAX_ITERATION;I++) {
+        //for (uint I=0;I<MAX_ITERATION;I++) {
+        for (uint m=0;m<2;m++) {
+            const uint I = m == 1u ? 2u : (checker ? 0u : 1u);
+
+            // 
             if (!(MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f)) { continue; }; // useless tracing mode
             if (  MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // still needs shading, except surface transparency
 
