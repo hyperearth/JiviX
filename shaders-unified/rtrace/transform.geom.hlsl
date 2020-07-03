@@ -17,11 +17,18 @@ layout (location = 3) in float4 gTangent[];
 //layout (location = 4) flat in int4 gIndexes;
 
 // TODO: Align by `TS_OUTPUT` structure
-layout (location = 0, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 0 ) out float4 fPosition;
-layout (location = 1, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 16) out float4 fTexcoord;
-layout (location = 2, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 32) out float4 fNormal;
-layout (location = 3, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 48) out float4 fTangent;
-layout (location = 4, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 64) out float4 fBinormal;
+//layout (location = 0, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 0 ) out float4 fPosition;
+//layout (location = 1, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 16) out float4 fTexcoord;
+//layout (location = 2, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 32) out float4 fNormal;
+//layout (location = 3, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 48) out float4 fTangent;
+//layout (location = 4, xfb_buffer = 0, xfb_stride = 80, xfb_offset = 64) out float4 fBinormal;
+
+// Use Native SPIR-V mod
+layout (location = 0) out float4 fPosition;
+layout (location = 1) out float4 fTexcoord;
+layout (location = 2) out float4 fNormal;
+layout (location = 3) out float4 fTangent;
+layout (location = 4) out float4 fBinormal;
 //layout (location = 5) flat out uint4 uData;
 
 //
