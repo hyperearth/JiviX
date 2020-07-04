@@ -69,7 +69,7 @@ Date:[29.06.2020]:[helix.d@IMN]
 - [ ] Immersive Portals mod support (Minecraft, In-Future)
 
 
-# WHY Ray Query doesn't working?
+### WHY Ray Query doesn't working?
 
 - Broken support by NVIDIA
 - Forced to be opaque objects
