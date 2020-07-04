@@ -67,7 +67,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
     // 
     bool restart = true, opaque = false;
-    while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
+    while((R++) < 4u && restart) { restart = false; // restart needs for transparency (after every resolve)
         float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
         traceRayEXT(RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax);
 
@@ -95,7 +95,8 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
             forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
 
             // confirm that hit 
-            if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+            //if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+            if (hit.gBarycentric.w > 9999.f || material.diffuseColor.w > 0.99f) { opaque = true; };
         };
 
         // 
