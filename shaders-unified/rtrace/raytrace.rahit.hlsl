@@ -43,10 +43,7 @@ void main(inout CHIT hit, in MyAttributes attr)
     XPOL material = materialize(xhit, geometry);
 
     // confirm that hit 
-    if (!(material.diffuseColor.w > random(seed))) { // Only When Opaque!
+    if (material.diffuseColor.w <= random(seed)) { // Only When Opaque!
         ignoreIntersectionEXT();
-    } else {
-        hit.gIndices = xhit.gIndices;
-        hit.gBarycentric = xhit.gBarycentric;
     };
 };
