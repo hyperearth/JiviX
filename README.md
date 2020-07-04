@@ -78,19 +78,14 @@ Date:[29.06.2020]:[helix.d@IMN]
 - Needs DirectX 12 Ultimate ([LaVaX](https://github.com/helixd2s/LaVaX-Overview))
 
 
-### TODO Lists (Black Edition)
+### TODO Lists (Black Edition and Gen-4)
 
 - [x] Fallback to ray-tracing shaders
 - [x] Unified shaders (for [LaVaX](https://github.com/helixd2s/LaVaX-Overview)), tested only GLSL
 - [ ] Refactor for DirectX 12 Ultimate compatibility (for [LaVaX](https://github.com/helixd2s/LaVaX-Overview))
 - [ ] Support for [LaVaX](https://github.com/helixd2s/LaVaX-Overview)
-- [ ] Using Volk instead of XVK
-- [ ] Using VKT-4 
-
-
-### TODO Lists (Gen-4 or Beyond)
-
-- [ ] RDNA-2 support (Vulkan-only)
+- [ ] Using Volk instead of XVK (VKT-4 )
+- [ ] RDNA-2 support
 - [ ] HLSL shaders (Shader Model 6.5 and higher)
 - [ ] Variable shading rate (faster ray-tracing, currently 1/2 only)
 - [ ] Anti-aliasing and advanced denoise (already reserved for make)
@@ -102,9 +97,8 @@ Date:[29.06.2020]:[helix.d@IMN]
 
 ### DirectX 12 Ultimate? (Gen-5?)
 
-- [ ] Portability
 - [ ] Multi-Threading
-- [ ] RDNA-2 support 
+- [ ] Advanced Portability
 - [ ] Advanced Hardware Acceleration
 
 
