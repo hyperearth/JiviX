@@ -37,10 +37,14 @@ void traceRayEXT(in uint flags, in uint mask, in uint a, in uint stride, in uint
     desc.TMax = maxT;
 
     // 
+    hit.gIndices = uint4(0u.xxx, 0u);
+    hit.gBarycentric = float4(float3(0.f.xxx), 10000.f);
     TraceRay(Scene, flags, mask, a, stride, b, desc, hit);
 };
 #else
 void traceRayEXT(in uint flags, in lowp uint mask, in uint a, in uint stride, in uint b, in float3 origin, in float minT, in float3 direct, in float maxT) {
+    hit.gIndices = uint4(0u.xxx, 0u);
+    hit.gBarycentric = float4(float3(0.f.xxx), 10000.f);
     traceRayEXT(Scene, flags, mask, a, stride, b, origin, minT, direct, maxT, 0);
 };
 

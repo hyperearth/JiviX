@@ -24,6 +24,23 @@ void main()
 void main(inout CHIT hit, in MyAttributes attr) 
 #endif
 {
-    hit.gIndices = uint4(InstanceIndex(), GeometryIndex(), PrimitiveIndex(), 0u);
-    hit.gBarycentric = float4(max(float3(1.f-baryCoord.x-baryCoord.y, baryCoord.xy), 0.0001f.xxx), RayTCurrent());
+    XHIT xhit;
+    xhit.gIndices = uint4(InstanceIndex(), GeometryIndex(), PrimitiveIndex(), 0u);
+    xhit.gBarycentric = float4(max(float3(1.f-baryCoord.x-baryCoord.y, baryCoord.xy), 0.0001f.xxx), RayTCurrent());
+#ifdef GLSL
+    xhit.origin = float4(gl_WorldRayOriginEXT.xyz, 1.f);
+    xhit.direct = float4(gl_WorldRayDirectionEXT.xyz, 0.f);
+#endif
+
+    uvec2 seed = uvec2(pushed.rdata.x, packUnorm4x8(fract(vec4(xhit.origin.xyz*0.1f, 1.f))));
+
+    // Interpolate In Ray-Tracing
+    XGEO geometry = interpolate(xhit);
+    XPOL material = materialize(xhit, geometry);
+
+    // confirm that hit 
+    if (material.diffuseColor.w > random(seed)) {
+        hit.gIndices = xhit.gIndices;
+        hit.gBarycentric = xhit.gBarycentric;
+    };
 };
