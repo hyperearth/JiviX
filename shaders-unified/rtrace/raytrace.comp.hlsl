@@ -74,7 +74,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
     // 
     bool restart = true, opaque = false;
-    while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
+    while((R++) < 1u && restart) { restart = false; // restart needs for transparency (after every resolve)
         float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin;
 
 #ifdef GLSL
@@ -83,7 +83,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
         RayQuery<RAY_FLAG_CULL_BACK_FACING_TRIANGLES> rayQuery;
 #endif
 
-        rayQueryInitializeEXT(rayQuery, RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, lastOrigin, lastMin, raydir, lastMax);
+        rayQueryInitializeEXT(rayQuery, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFF, lastOrigin, lastMin, raydir, lastMax);
 
         // BROKEN `rayQueryProceedEXT`
         bool proceed = false;

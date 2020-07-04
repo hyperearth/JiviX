@@ -457,8 +457,8 @@ namespace jvi {
                 this->deferredDescriptorSetLayoutHelper = templ;
                 this->materialDescriptorSetLayoutHelper = templ;
 
-                // 
-                auto pipusage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
+                //
+                auto pipusage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eAnyHit = 1, .eClosestHit = 1, .eMiss = 1 };
                 auto indexedf = vkh::VkDescriptorBindingFlags{ .eUpdateAfterBind = 1, .eUpdateUnusedWhilePending = 1, .ePartiallyBound = 1 };
 
                 // Raw Data
@@ -510,8 +510,7 @@ namespace jvi {
                 vkh::handleVk(this->driver->getDeviceDispatch()->CreateDescriptorSetLayout(this->materialDescriptorSetLayoutHelper, nullptr, &this->materialDescriptorSetLayout));
 
                 //
-                const auto pstage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
-                std::vector<vkh::VkPushConstantRange> ranges = { vkh::VkPushConstantRange{.stageFlags = pstage, .offset = 0u, .size = 16u } };
+                std::vector<vkh::VkPushConstantRange> ranges = { vkh::VkPushConstantRange{.stageFlags = (this->cStages = pipusage), .offset = 0u, .size = 16u } };
                 std::vector<VkDescriptorSetLayout> layouts = { meshDataDescriptorSetLayout, bindingsDescriptorSetLayout, deferredDescriptorSetLayout, samplingDescriptorSetLayout, materialDescriptorSetLayout };
 
                 // 
@@ -692,6 +691,7 @@ namespace jvi {
         VkFramebuffer smpFlip1Framebuffer = VK_NULL_HANDLE;
         VkFramebuffer deferredFramebuffer = VK_NULL_HANDLE;
         VkFramebuffer rasteredFramebuffer = VK_NULL_HANDLE;
+        vkh::VkShaderStageFlags cStages = {};
 
         // 
         vkt::Vector<Matrices> uniformGPUData = {};

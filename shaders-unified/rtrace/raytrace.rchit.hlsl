@@ -27,6 +27,7 @@ void main(inout CHIT hit, in MyAttributes attr)
     XHIT xhit;
     xhit.gIndices = uint4(InstanceIndex(), GeometryIndex(), PrimitiveIndex(), 0u);
     xhit.gBarycentric = float4(max(float3(1.f-baryCoord.x-baryCoord.y, baryCoord.xy), 0.0001f.xxx), RayTCurrent());
+    /*
 #ifdef GLSL
     xhit.origin = float4(gl_WorldRayOriginEXT.xyz, 1.f);
     xhit.direct = float4(gl_WorldRayDirectionEXT.xyz, 0.f);
@@ -37,10 +38,13 @@ void main(inout CHIT hit, in MyAttributes attr)
     // Interpolate In Ray-Tracing
     XGEO geometry = interpolate(xhit);
     XPOL material = materialize(xhit, geometry);
+*/
 
     // confirm that hit 
+//#ifdef OPAQUE
     //if (material.diffuseColor.w > random(seed)) {
         hit.gIndices = xhit.gIndices;
         hit.gBarycentric = xhit.gBarycentric;
     //};
+//#endif
 };
