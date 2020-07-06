@@ -48,6 +48,7 @@ void traceRayEXT(in uint flags, in lowp uint mask, in uint a, in uint stride, in
     traceRayEXT(Scene, flags, mask, a, stride, b, origin, minT, direct, maxT, 0);
 };
 
+#define RAY_FLAG_FORCE_NON_OPAQUE gl_RayFlagsNoOpaqueEXT
 #define RAY_FLAG_FORCE_OPAQUE gl_RayFlagsOpaqueEXT
 #define RAY_FLAG_CULL_BACK_FACING_TRIANGLES gl_RayFlagsCullBackFacingTrianglesEXT
 
@@ -67,9 +68,16 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
     // 
     bool restart = true, opaque = false;
-    while((R++) < 16 && restart) { restart = false; // restart needs for transparency (after every resolve)
+    while((R++) < 1u && restart) { restart = false; // restart needs for transparency (after every resolve)
         float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin; 
-        traceRayEXT(RAY_FLAG_FORCE_OPAQUE|RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax);
+        
+#ifdef OPAQUE
+        const uint flags = RAY_FLAG_CULL_BACK_FACING_TRIANGLES|RAY_FLAG_FORCE_OPAQUE;
+#else
+        const uint flags = RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
+#endif
+        traceRayEXT(flags, 0xFFu, 0u, 1u, 0u, lastOrigin, 0.001f, raydir, lastMax);
+
 
         // 
         const float3 baryCoord = hit.gBarycentric.xyz;
@@ -95,7 +103,10 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
             forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
 
             // confirm that hit 
-            if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+            //if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+            //if (hit.gBarycentric.w > 9999.f || material.diffuseColor.w > 0.99f) { opaque = true; };
+            //if (hit.gBarycentric.w > 9999.f || material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+            if (hit.gBarycentric.w > 9999.f || material.diffuseColor.w > 0.001f) { opaque = true; };
         };
 
         // 

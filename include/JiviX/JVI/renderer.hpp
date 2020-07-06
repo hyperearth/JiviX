@@ -202,11 +202,10 @@ namespace jvi {
             this->context->descriptorSets[3] = this->context->smpFlip1DescriptorSet;
 
             //
-            auto pstage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
             this->driver->getDeviceDispatch()->CmdBeginRenderPass(cmdBuf, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
             this->driver->getDeviceDispatch()->CmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, this->resamplingState);
             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-            this->driver->getDeviceDispatch()->CmdPushConstants(cmdBuf, this->context->unifiedPipelineLayout, pstage, 0u, sizeof(meshData), &meshData);
+            this->driver->getDeviceDispatch()->CmdPushConstants(cmdBuf, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meshData), &meshData);
             this->driver->getDeviceDispatch()->CmdSetViewport(cmdBuf, 0u, 1u, viewport);
             this->driver->getDeviceDispatch()->CmdSetScissor(cmdBuf, 0u, 1u, renderArea);
             this->driver->getDeviceDispatch()->CmdDraw(cmdBuf, renderArea.extent.width, renderArea.extent.height, 0u, 0u);
@@ -316,7 +315,7 @@ namespace jvi {
                 // SLOW! (But Currently Working...)
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->raytraceTypeState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 }, 0u, sizeof(glm::uvec4), & vect0);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(glm::uvec4), & vect0);
                 this->driver->getDeviceDispatch()->CmdTraceRaysKHR(currentCmd, this->rgenSbtBuffer.getRegion(), this->rmissSbtBuffer.getRegion(), this->rchitSbtBuffer.getRegion(), vkh::VkStridedBufferRegionKHR{}, renderArea.extent.width, renderArea.extent.height, 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };
@@ -330,19 +329,18 @@ namespace jvi {
             //
             if (parameters->eEnableDenoise) {
                 const auto vect0 = glm::uvec4(0u);
-                auto pstages = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
 
                 // Denoise diffuse data
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->denoiseState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, pstages, 0u, sizeof(glm::uvec4), &vect0);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(glm::uvec4), &vect0);
                 this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
 
                 // Denoise reflection data
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->reflectState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, pstages, 0u, sizeof(glm::uvec4), &vect0);
+                this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(glm::uvec4), &vect0);
                 this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 32u), vkt::tiled(renderArea.extent.height, 24u), 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
             };

@@ -163,12 +163,11 @@ namespace jvi {
                 // 
                 const auto originalCt = this->currentUnitCount;
                 const uint32_t ucount = vkt::tiled(uint64_t(originalCt), uint64_t(1024ull));
-                auto pstage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
 
                 // 
                 this->driver->getDeviceDispatch()->CmdBindPipeline(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->quadGenerator);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_COMPUTE, this->transformPipelineLayout, 0u, this->descriptorSet.size(), this->descriptorSet.data(), 0u, nullptr);
-                this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, pstage, 0u, sizeof(glm::uvec4), &meta);
+                this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, this->context->cStages, 0u, sizeof(glm::uvec4), &meta);
                 this->driver->getDeviceDispatch()->CmdDispatch(buildCommand, ucount, 1u, 1u);
                 vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 

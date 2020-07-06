@@ -28,6 +28,7 @@ void main(inout CHIT hit, in MyAttributes attr)
     //hit.gIndices = uint4(InstanceIndex(), GeometryIndex(), PrimitiveIndex(), 0u);
     //hit.gBarycentric = float4(max(float3(1.f-baryCoord.x-baryCoord.y, baryCoord.xy), 0.0001f.xxx), RayTCurrent());
 
+#ifndef OPAQUE
     XHIT xhit;
     xhit.gIndices = uint4(InstanceIndex(), GeometryIndex(), PrimitiveIndex(), 0u);
     xhit.gBarycentric = float4(max(float3(1.f-baryCoord.x-baryCoord.y, baryCoord.xy), 0.0001f.xxx), RayTCurrent());
@@ -43,10 +44,11 @@ void main(inout CHIT hit, in MyAttributes attr)
     XPOL material = materialize(xhit, geometry);
 
     // confirm that hit 
-    if (!(material.diffuseColor.w > random(seed))) { // Only When Opaque!
+    if (material.diffuseColor.w <= random(seed)) { // Only When Opaque!
         ignoreIntersectionEXT();
-    } else {
-        hit.gIndices = xhit.gIndices;
-        hit.gBarycentric = xhit.gBarycentric;
-    };
+    }; //else {
+        //hit.gIndices = xhit.gIndices;
+        //hit.gBarycentric = xhit.gBarycentric;
+    //};
+#endif
 };

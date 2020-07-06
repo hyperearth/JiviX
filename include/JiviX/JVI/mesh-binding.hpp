@@ -113,7 +113,7 @@ namespace jvi {
             this->bdHeadInfo.geometryArrayOfPointers = true; // MARK TRUE FOR INDIRECT BUILDING!!
 
             // FOR BUILD! FULL GEOMETRY INFO! // originally, it should to be array (like as old version of LancER)
-            auto buildGeometryFlags = vkh::VkGeometryFlagsKHR{.eOpaque = 1, .eNoDuplicateAnyHitInvocation = 1 };
+            auto buildGeometryFlags = vkh::VkGeometryFlagsKHR{ .eNoDuplicateAnyHitInvocation = 1 };
             this->buildGTemp = vkh::VkAccelerationStructureGeometryKHR{ .flags = buildGeometryFlags }; // Optimize Tracing
             this->buildGTemp = vkh::VkAccelerationStructureGeometryTrianglesDataKHR{
                 .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT, 
@@ -121,7 +121,7 @@ namespace jvi {
                 .indexType = VK_INDEX_TYPE_NONE_KHR,
             };
 
-            // FOR CREATE! 
+            // FOR CREATE!
             this->bottomDataCreate.resize(GeometryInitial.size()); uintptr_t I = 0ull;
             for (auto& BC : this->bottomDataCreate) {
                 BC.geometryType = this->buildGTemp.geometryType;
@@ -298,7 +298,7 @@ namespace jvi {
                 const auto& bindingBuffer = this->bindings[bindingID];
 
                 //
-                auto bflags = vkh::VkGeometryFlagsKHR{ .eOpaque = 1 };
+                auto bflags = vkh::VkGeometryFlagsKHR{ .eNoDuplicateAnyHitInvocation = 1 };
                 this->offsetTemp.primitiveOffset = bindingBuffer.offset() + attribute->offset; // !!WARNING!!
                 this->buildGTemp.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
                 this->buildGTemp.geometry.triangles.vertexFormat = attribute->format;
@@ -709,8 +709,7 @@ namespace jvi {
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
-                    const auto stage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
-                    this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, stage, 0u, sizeof(meta), & meta);
+                    this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), & meta);
                     this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->mapRenderPass, .framebuffer = framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
                     this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, this->instances[i], this->offsetInfo[c].firstVertex, f);
                     this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
@@ -793,8 +792,7 @@ namespace jvi {
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
-                    auto stage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1};
-                    this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, stage, 0u, sizeof(meta), & meta);
+                    this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), & meta);
                     this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
                     this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, this->instances[i], this->offsetInfo[c].firstVertex, f);
                     this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
@@ -1015,7 +1013,6 @@ namespace jvi {
              this->meta.geometryCount = mGeometryCount;
 
              //
-             auto stage = vkh::VkShaderStageFlags{.eVertex = 1, .eGeometry = 1, .eFragment = 1, .eCompute = 1, .eRaygen = 1, .eClosestHit = 1, .eMiss = 1 };
              this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 1u, &gBuffer.buffer(), &mOffset, &mSize);
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
              this->driver->getDeviceDispatch()->CmdSetViewport(buildCommand, 0u, 1u, viewport);
@@ -1026,7 +1023,7 @@ namespace jvi {
              this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
              this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(buildCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
              //this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
-             this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, stage, 0u, sizeof(meta), & meta);
+             this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, this->context->cStages, 0u, sizeof(meta), & meta);
 
              // 
              if (this->indexType != VK_INDEX_TYPE_NONE_KHR) {
