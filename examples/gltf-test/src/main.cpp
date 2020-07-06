@@ -503,7 +503,7 @@ int main() {
     // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
     auto imageUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
     auto bufferUsage = vkh::VkBufferUsageFlags{ .eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 };
-    auto uploadUsage = vkh::VkBufferUsageFlags{ .eTransferSrc = 1, .eUniformTexelBuffer = 1, .eStorageTexelBuffer = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1 };
+    auto uploadUsage = vkh::VkBufferUsageFlags{ .eTransferSrc = 1, .eUniformTexelBuffer = 1, .eStorageTexelBuffer = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1,  };
 
     //
     auto bflgs = vkh::VkBufferUsageFlags{};
