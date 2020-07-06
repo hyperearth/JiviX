@@ -962,14 +962,11 @@ namespace jvi {
              // 
              uintptr_t I = 0u, J = 0u;
              for (auto& B : this->bindings) {
-                 const uintptr_t j = J++;
-                 if (this->bvs->get(B).has()) {
-                     const uintptr_t i = I++;
-                     buffers[i] = this->bvs->get(B).buffer();
-                     offsets[i] = this->bvs->get(B).offset();
-                     strides[i] = this->vertexInputBindingDescriptions[j].stride;
-                     sizes[i] = this->bvs->get(B).range();
-                 };
+                    const uintptr_t i = I++;
+                    buffers[i] = this->bvs->get(B).buffer();
+                    offsets[i] = this->bvs->get(B).offset();
+                    strides[i] = this->vertexInputBindingDescriptions[i].stride;
+                    sizes[i] = (this->bvs->get(B).range() / strides[i]) * strides[i];
              };
 
              // 
