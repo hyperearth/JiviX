@@ -803,7 +803,7 @@ int main() {
                     auto  stride = attribute.ByteStride(model.bufferViews[attribute.bufferView]);
 
                     // 
-                    auto  type = VK_FORMAT_R32G32B32_SFLOAT;
+                    auto type = VK_FORMAT_R32G32B32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_VEC4) type = VK_FORMAT_R32G32B32A32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_VEC3) type = VK_FORMAT_R32G32B32_SFLOAT;
                     if (attribute.type == TINYGLTF_TYPE_VEC2) type = VK_FORMAT_R32G32_SFLOAT;

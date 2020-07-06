@@ -322,7 +322,7 @@ namespace jvi {
         //template<class T = uint8_t>
         //inline uPTR(MeshInput) setIndexData(const vkt::Vector<T>& rawIndices = {}) { return this->setIndexData(rawIndices); };
 
-        // 
+        //
         public: virtual uPTR(MeshInput) createRasterizePipeline() {
             if (this->transformState) {
                 return uTHIS; // TODO: Optional Un-Protect

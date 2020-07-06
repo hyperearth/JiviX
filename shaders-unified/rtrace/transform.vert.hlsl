@@ -4,9 +4,9 @@
 
 #ifdef GLSL
 // Left Oriented
-layout (location = 0) in float3 iPosition;
-layout (location = 1) in float2 iTexcoord;
-layout (location = 2) in float3 iNormals;
+layout (location = 0) in float4 iPosition;
+layout (location = 1) in float4 iTexcoord;
+layout (location = 2) in float4 iNormals;
 layout (location = 3) in float4 iTangent;
 layout (location = 4) in float4 iColor; // Will used by Minecraft
 //layout (location = 4) in float4 fBinormal;
@@ -24,9 +24,9 @@ out gl_PerVertex {   // some subset of these members will be used
 
 struct VS_INPUT 
 {
-    float3 iPosition;
-    float2 iTexcoord;
-    float3 iNormals;
+    float4 iPosition;
+    float4 iTexcoord;
+    float4 iNormals;
     float4 iTangent;
     float4 iBinormal;
     float4 iColor;
@@ -95,9 +95,9 @@ GS_INPUT main(in VS_INPUT inp, in uint VertexIndex : SV_VERTEXID)
 
 #ifdef GLSL
     VS_INPUT inp;
-    inp.iPosition = iPosition.xyz;
-    inp.iTexcoord = iTexcoord.xy;
-    inp.iNormals = iNormals.xyz;
+    inp.iPosition = float4(iPosition.xyz, 1.f);
+    inp.iTexcoord = float4(iTexcoord.xy, 0.f.xx);
+    inp.iNormals = float4(iNormals.xyz, 0.f.xx);
     inp.iTangent = iTangent;
     inp.iBinormal = float4(0.f.xxx,0.f);//iBinormal;
     inp.iColor = iColor;
@@ -105,14 +105,13 @@ GS_INPUT main(in VS_INPUT inp, in uint VertexIndex : SV_VERTEXID)
 
     // HuLuSuL traditional (needs correct support for GLTF)
     /*
-    const float4 iPosition = float4(inp.iPosition, 1.f);
-    const float4 iTexcoord = float4(inp.iTexcoord, 0.f.xx);
-    const float4 iNormals  = float4(inp.iNormals, 0.f);
+    const float4 iPosition = float4(inp.iPosition.xyz, 1.f);
+    const float4 iTexcoord = float4(inp.iTexcoord.xy, 0.f.xx);
+    const float4 iNormals  = float4(inp.iNormals.xyz, 0.f);
     const float4 iTangent  = inp.iTangent;
     const float4 iBinormal = inp.iBinormal;
     const float4 iColor    = inp.iColor;
     */
-
     //
     const float4 iPosition = get_float4(idx, 0u);
     const float4 iTexcoord = get_float4(idx, 1u);
