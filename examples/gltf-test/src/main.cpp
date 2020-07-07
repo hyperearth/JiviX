@@ -501,14 +501,15 @@ int main() {
 
 
     // BUT FOR NOW REQUIRED GPU BUFFERS! NOT JUST COPY DATA!
-    auto imageUsage = vkh::VkImageUsageFlags{ .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
-    auto bufferUsage = vkh::VkBufferUsageFlags{ .eTransferSrc = 1, .eStorageTexelBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 };
-    auto uploadUsage = vkh::VkBufferUsageFlags{ .eTransferSrc = 1, .eUniformTexelBuffer = 1, .eStorageTexelBuffer = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1,  };
+    const auto  imageUsage  =  vkh::VkImageUsageFlags{ .eTransferSrc = 1, .eTransferDst = 1, .eSampled = 1, .eStorage = 1, .eColorAttachment = 1 };
+    const auto  bufferUsage = vkh::VkBufferUsageFlags{ .eTransferSrc = 1, .eTransferDst = 1, .eUniformTexelBuffer = 1, .eStorageTexelBuffer = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eIndexBuffer = 1, .eVertexBuffer = 1, .eTransformFeedbackBuffer = 1 };
+    const auto& uploadUsage = bufferUsage;
 
     //
     auto bflgs = vkh::VkBufferUsageFlags{};
     vkt::unlock32(bflgs) = 0u;
 
+    // 
     for (uint32_t i = 0; i < model.buffers.size(); i++) {
         cpuBuffers.push_back(vkt::Vector<>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{
             .size = vkt::tiled(uint64_t(model.buffers[i].data.size()), uint64_t(4ull)) * uint64_t(4ull), .usage = bufferUsage,
