@@ -19,10 +19,10 @@
 // TODO: X-Based Optimization
 //const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
 #define workX 64
-#define workY 8
+#define workY 12
 
 // 
-SHARED XHIT hits[workX*workY];
+SHARED XHIT hits[(workX*workY)>>1];
 
 // Needs 1000$ for fix BROKEN ray query...
 STATIC const uint MAX_ITERATION = 0u;
@@ -54,6 +54,7 @@ void rayQueryInitializeEXT(in RayQuery<RAY_FLAG_CULL_BACK_FACING_TRIANGLES> rayQ
 #else
 #define RAY_FLAG_FORCE_OPAQUE gl_RayFlagsOpaqueEXT
 #define RAY_FLAG_CULL_BACK_FACING_TRIANGLES gl_RayFlagsCullBackFacingTrianglesEXT
+#define COMMITTED_NOTHING gl_RayQueryCommittedIntersectionNoneEXT
 
 void rayQueryInitializeEXT(in rayQueryEXT rayQuery, in uint flags, in lowp uint mask, in float3 origin, in float minT, in float3 direct, in float maxT) {
     rayQueryInitializeEXT(rayQuery, Scene, flags, mask, origin, minT, direct, maxT);
@@ -116,11 +117,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
         // 
         processing = confirmed; lastMax = (maxT - fullLength); lastOrigin = raydir*maxT + sorigin; opaque = false;
         if (!proceed) { // Attemp to fix Broken Ray Query
-#ifdef GLSL
-            if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != gl_RayQueryCommittedIntersectionNoneEXT) 
-#else
             if (rayQueryGetIntersectionTypeEXT(rayQuery, true) != COMMITTED_NOTHING) 
-#endif
             {
                 uint nodeMeshID = rayQueryGetIntersectionInstanceCustomIndexEXT(rayQuery, true); // Mesh ID from Node Mesh List (because indexing)
                 uint geometryInstanceID = rayQueryGetIntersectionGeometryIndexEXT(rayQuery, true); // TODO: Using In Ray Tracing (and Query) shaders!
@@ -144,7 +141,8 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
                     forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
 
                     // confirm that hit 
-                    if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+                    //if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
+                    if (processing.gBarycentric.w > 9999.f || material.diffuseColor.w > 0.001f) { opaque = true; };
                 };
             } else { fullLength = maxT; };
         };
@@ -176,6 +174,7 @@ void main()
 void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupThreadID, uint3 WorkGroupID : SV_GroupID) // TODO: explicit sampling 
 #endif
 {
+    const uint2 mult = uint2(1u,1u);
 
 #ifdef GLSL
     const uint LocalInvocationIndex = gl_LocalInvocationIndex;
@@ -192,10 +191,17 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
 
     // 
     const uint2 locQs = uint2(LocalInvocationID.xy);
-    const uint2 locQ = uint2(locQs.x, (locQs.y<<1u) | ((locQs.x+pushed.rdata.x)&1u));
-    const uint2 lanQ = uint2(WorkGroupID.xy*WorkGroupSize.xy*uint2(1u,2u) + locQ).xy;
-    //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
-    const uint lIdx = LocalInvocationIndex;
+    //const uint2 locQ = uint2(locQs.x, (locQs.y<<1u) | ((locQs.x+pushed.rdata.x)&1u));
+    //const uint2 lanQ = uint2(WorkGroupID.xy*WorkGroupSize.xy*mult + locQ).xy;
+
+    const uint2 locQ = uint2(locQs.x, locQs.y);
+    const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*mult) + locQ).xy;
+    const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;//LocalInvocationIndex;
+
+    // 
+    const int2 curPixel = int2(lanQ), invPixel = int2(curPixel.x,curPixel.y);
+    const int2 sizPixel = int2(launchSize);
+    const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (pushed.rdata.x^1u))&1u);
 
     // 
     launchSize = imageSize(writeImages[IW_POSITION]);
@@ -207,13 +213,16 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
 #endif
 
     // 
-    uint Q = 0u;
-    for (Q = 0u; Q < 2u; Q++) {
-        const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
-        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
-        //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
+    uint Q = 0u; 
+    //if (LocalInvocationID.y < (WorkGroupSize >> 1u)) 
+    //for (Q = 0u; Q < 2u; Q++)
+        //const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
+    {
+        const uint2 locQ = uint2(locQs.x, locQs.y);
+        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*mult) + locQ).xy;
         const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;
-        
+        //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
+
         // 
         const int2 curPixel = int2(lanQ), invPixel = int2(curPixel.x,curPixel.y);
         const int2 sizPixel = int2(launchSize);
@@ -308,14 +317,15 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
     XPOL MAT = materialize(RES, GEO);
     float4 adaptiveData = 10000.f.xxxx;
     if ( (MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f) ) { // 
-        
               float4 origin = float4(RES.origin.xyz-RES.gBarycentric.w*RES.direct.xyz, 1.f);
         const float4 bspher = float4(origin.xyz,10000.f);
         const float inIOR = 1.f, outIOR = 1.6666f;
 
         // 
         const uint MAX_ITERATION = 3u;
-        for (uint I=0;I<MAX_ITERATION;I++) {
+        //for (uint I=0;I<MAX_ITERATION;I++) {
+        for (uint m=0;m<2;m++) {
+            const uint I = m == 1u ? 2u : (checker ? 0u : 1u);
             if (!(MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f)) { continue; }; // useless tracing mode
             if (  MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // still needs shading, except surface transparency
 
@@ -394,8 +404,7 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
             { gSignal.xyz = clamp(gSignal.xyz,0.f.xxx,16.f.xxx); };
             if (I == 0) { imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], int2(lanQ), float4(gSignal.xyz, 1.f)); };
             if (I == 1) { imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), 1.f)); };
-            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), (hasSkybox?1.f:2.f))); }; // alpha channel reserved, zero always opaque type
-        
+            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), (hasSkybox?1.f:2.f))); };        
         };
         imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], int2(lanQ), adaptiveData); // For Adaptive Denoise
     };
@@ -409,9 +418,12 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
 #endif
 
     // 
-    for (Q = 0u; Q < 2u; Q++) {
-        const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
-        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*uint2(1u,2u)) + locQ).xy;
+    //if (LocalInvocationID.y < (WorkGroupSize >> 1u))
+    //for (Q = 0u; Q < 2u; Q++) 
+    {
+        //const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
+        const uint2 locQ = uint2(locQs.x, locQs.y);
+        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*mult) + locQ).xy;
         //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
         const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;
 
