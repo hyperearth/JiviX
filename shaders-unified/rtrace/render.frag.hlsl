@@ -54,7 +54,8 @@ PSOutput main(in PSInput inp)
     PSOutput outp;
     outp.uFragColor = 0.f.xxxx;
     //outp.uFragColor = FxaaPixelShader(vcoord, zero, renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], renderBuffers[BW_RENDERED], size, outp.uFragColor, outp.uFragColor, outp.uFragColor, 0.75, 0.166, 0.0833, 8.0, 0.125, 0.05, outp.uFragColor);// = imageLoad(writeImages[BW_RENDERED], samplep);
-    outp.uFragColor = textureSample(frameBuffers[BW_RENDERED], samplers[1u], inp.vcoord);
+    //outp.uFragColor = textureSample(frameBuffers[BW_RENDERED], samplers[1u], inp.vcoord);
+    outp.uFragColor = fromLinear(textureSample(frameBuffers[BW_RENDERED], samplers[1u], inp.vcoord));
 
 #ifdef GLSL
     uFragColor = outp.uFragColor;
