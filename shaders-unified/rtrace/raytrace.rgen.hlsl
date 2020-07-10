@@ -159,8 +159,7 @@ void main() {
 
         // Replacement for rasterization
         //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);
-          XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);
-        if (checker) { RES = RPM; };
+          XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f); RES = RPM;
 
         // TODO: Optimize Fetching and Interpolation 
         XGEO GEO = interpolate(RPM);

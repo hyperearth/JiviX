@@ -22,10 +22,10 @@
 #define workY 12
 
 // 
-SHARED XHIT hits[(workX*workY)>>1];
+SHARED XHIT hits[workX*workY];
 
 // Needs 1000$ for fix BROKEN ray query...
-STATIC const uint MAX_ITERATION = 12u;
+STATIC const uint MAX_ITERATION = 32u;
 
 
 #ifndef GLSL
@@ -162,7 +162,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 #define LAUNCH_ID GlobalInvocationID.xy
 #define RAY_TRACE_DEFINED
 #include "./stuff.hlsli"
-#define RES hits[lIdx]
+#define RES hits[LocalInvocationIndex]
 
 // 14.06.2020
 // Fully Refresh Ray Cast Shaders
@@ -174,64 +174,29 @@ void main()
 void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupThreadID, uint3 WorkGroupID : SV_GroupID) // TODO: explicit sampling 
 #endif
 {
-    const uint2 mult = uint2(1u,1u);
-
 #ifdef GLSL
-    const uint LocalInvocationIndex = gl_LocalInvocationIndex;
     const uint3 GlobalInvocationID = gl_GlobalInvocationID;
     const uint3 LocalInvocationID = gl_LocalInvocationID;
-    const uint3 WorkGroupID = gl_WorkGroupID;
-    const uint3 WorkGroupSize = gl_WorkGroupSize;
-#else
-    const uint3 WorkGroupSize = uint3(workX, workY, 1u);
+    const uint LocalInvocationIndex = gl_LocalInvocationIndex;
 #endif
 
     const Box box = { -1.f.xxx, 1.f.xxx }; // TODO: Change Coordinate
     const float4 sphere = float4(float3(16.f,128.f,16.f), 8.f);
+    const float3 lightc = 32.f*4096.f.xxx/(sphere.w*sphere.w);
 
-    // 
-    const uint2 locQs = uint2(LocalInvocationID.xy);
-    //const uint2 locQ = uint2(locQs.x, (locQs.y<<1u) | ((locQs.x+pushed.rdata.x)&1u));
-    //const uint2 lanQ = uint2(WorkGroupID.xy*WorkGroupSize.xy*mult + locQ).xy;
-
-    const uint2 locQ = uint2(locQs.x, locQs.y);
-    const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*mult) + locQ).xy;
-    const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;//LocalInvocationIndex;
+    const uint2 lanQ = LAUNCH_ID.xy;//gl_LaunchIDEXT.xy;//gl_GlobalInvocationID.xy;
+    launchSize = imageSize(writeImages[IW_POSITION]);
 
     // 
     const int2 curPixel = int2(lanQ), invPixel = int2(curPixel.x,curPixel.y);
     const int2 sizPixel = int2(launchSize);
+
+    // WARNING! Quality may critically drop when move! 
     const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (pushed.rdata.x^1u))&1u);
 
-    // 
-    launchSize = imageSize(writeImages[IW_POSITION]);
-
-#ifdef GLSL
-    groupMemoryBarrier(); barrier();
-#else
-    GroupMemoryBarrierWithGroupSync();
-#endif
-
-    // 
-    uint Q = 0u; 
-    //if (LocalInvocationID.y < (WorkGroupSize >> 1u)) 
-    //for (Q = 0u; Q < 2u; Q++)
-        //const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
     {
-        const uint2 locQ = uint2(locQs.x, locQs.y);
-        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*mult) + locQ).xy;
-        const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;
-        //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
-
-        // 
-        const int2 curPixel = int2(lanQ), invPixel = int2(curPixel.x,curPixel.y);
-        const int2 sizPixel = int2(launchSize);
-
-        // WARNING! Quality may critically drop when move! 
-        const bool checker = bool(((curPixel.x ^ curPixel.y) ^ (pushed.rdata.x^1u))&1u);
-
         //
-        packed = packUint2x16(curPixel), seed = uint2(packed, pushed.rdata.x);
+        packed = packUint2x16(curPixel),       seed = uint2(packed, pushed.rdata.x);
         const float2 shift = random2(seed),   pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
         //const float2 shift = 0.5f.xx,       pixel = float2(invPixel)+(shift*2.f-1.f)*0.25f+0.5f;
 
@@ -244,8 +209,7 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
 
         // Replacement for rasterization
         //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);
-          XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);
-        if (checker) { RES = RPM; };
+          XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f); RES = RPM;
 
         // TODO: Optimize Fetching and Interpolation 
         XGEO GEO = interpolate(RPM);
@@ -261,7 +225,7 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         // By Geometry Data
         const uint globalInstanceID = RPM.gIndices.y, geometryInstanceID = RPM.gIndices.x;
         const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
-        
+            
         // By Geometry Data
         float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
         float3x4 matra4 = rtxInstances[globalInstanceID].transform;
@@ -274,7 +238,8 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         };
 
         // Initial Position
-        float4 instanceRel = mul(inverse(rtxInstances[globalInstanceID].transform), mul(inverse(matras), float4(RPM.origin.xyz,1.f)));
+        //float4 instanceRel = inverse(matras) * inverse(rtxInstances[globalInstanceID].transform) * float4(RPM.origin.xyz,1.f);
+        float4 instanceRel = mul(inverse(getMT4x4(rtxInstances[globalInstanceID].transform)), mul(inverse(matras), float4(RPM.origin.xyz,1.f)));
 
         // Problem: NOT enough slots for writables
         // Solution: DON'T use for rasterization after 7th slot, maximize up to 12u slots... 
@@ -304,18 +269,18 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         imageStore(writeImages[nonuniformEXT(IW_SMOOTHED)], int2(lanQ), float4(diffused));
     };
 
-    // 
 #ifdef GLSL
     groupMemoryBarrier(); barrier();
 #else
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    // BROKEN
+    //
 #ifdef RAY_TRACE
+    
+    float4 adaptiveData = 10000.f.xxxx;
     XGEO GEO = interpolate(RES);
     XPOL MAT = materialize(RES, GEO);
-    float4 adaptiveData = 10000.f.xxxx;
     if ( (MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f) ) { // 
               float4 origin = float4(RES.origin.xyz-RES.gBarycentric.w*RES.direct.xyz, 1.f);
         const float4 bspher = float4(origin.xyz,10000.f);
@@ -326,8 +291,16 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         //for (uint I=0;I<MAX_ITERATION;I++) {
         for (uint m=0;m<2;m++) {
             const uint I = m == 1u ? 2u : (checker ? 0u : 1u);
+
+            // 
             if (!(MAT.diffuseColor.w > 0.001f && RES.gBarycentric.w < 9999.f)) { continue; }; // useless tracing mode
-            if (  MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // still needs shading, except surface transparency
+
+            // still needs shading, except surface transparency
+#ifdef HIGH_QUALITY_TRANSPARENCY
+            if ( MAT.diffuseColor.w > 0.99f  && I == 2 ) { break; }; // High Quality
+#else
+            if ( (MAT.diffuseColor.w > 0.99f || !checker) && I == 2 ) { break; }; // Low Quality
+#endif
 
             // 
             float3x3 TBN = float3x3(GEO.gTangent.xyz, GEO.gBinormal.xyz, GEO.gNormal.xyz);
@@ -404,30 +377,19 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
             { gSignal.xyz = clamp(gSignal.xyz,0.f.xxx,16.f.xxx); };
             if (I == 0) { imageStore(writeImages[nonuniformEXT(IW_INDIRECT)], int2(lanQ), float4(gSignal.xyz, 1.f)); };
             if (I == 1) { imageStore(writeImages[nonuniformEXT(IW_REFLECLR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), 1.f)); };
-            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), (hasSkybox?1.f:2.f))); };        
+            if (I == 2) { imageStore(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ), float4(clamp(gSignal.xyz, 0.f.xxx, 2.f.xxx), (hasSkybox?1.f:2.f))); };
         };
         imageStore(writeImages[nonuniformEXT(IW_ADAPTIVE)], int2(lanQ), adaptiveData); // For Adaptive Denoise
     };
 #endif
 
-    // 
 #ifdef GLSL
     groupMemoryBarrier(); barrier();
 #else
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    // 
-    //if (LocalInvocationID.y < (WorkGroupSize >> 1u))
-    //for (Q = 0u; Q < 2u; Q++) 
-    {
-        //const uint2 locQ = uint2(locQs.x, Q*WorkGroupSize.y + locQs.y);
-        const uint2 locQ = uint2(locQs.x, locQs.y);
-        const uint2 lanQ = uint2(WorkGroupID.xy*uint2(WorkGroupSize.xy*mult) + locQ).xy;
-        //const uint lIdx = locQ.y * WorkGroupSize.x + locQ.x;
-        const uint lIdx = (locQ.y >> 1u) * WorkGroupSize.x + locQ.x;
-
-        // 
+    {   // 
         float4 gposition = float4(RES.origin.xyz, RES.gBarycentric.w);
 
         // Used By Reprojection (comparsion)
@@ -440,4 +402,5 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         imageStore(writeBuffer[nonuniformEXT(BW_TRANSPAR)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_TRANSPAR)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_ADAPTIVE)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_ADAPTIVE)], int2(lanQ)));
     };
+
 };
