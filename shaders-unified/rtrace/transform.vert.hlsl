@@ -111,15 +111,13 @@ GS_INPUT main(in VS_INPUT inp, in uint VertexIndex : SV_VERTEXID)
     const float4 iBinormal = inp.iBinormal;
     const float4 iColor    = inp.iColor;
     
-    /*
-    //
+    /*//
     const float4 iPosition = get_float4(idx, 0u);
     const float4 iTexcoord = get_float4(idx, 1u);
     const float4 iNormals  = get_float4(idx, 2u);
     const float4 iTangent  = get_float4(idx, 3u);
     const float4 iBinormal = float4(0.f.xxx,0.f);
-    const float4 iColor    = float4(0.f.xxx,0.f);
-*/
+    const float4 iColor    = float4(0.f.xxx,0.f);*/
 
     // 
     GS_INPUT outp;

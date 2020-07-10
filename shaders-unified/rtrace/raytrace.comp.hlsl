@@ -25,7 +25,7 @@
 SHARED XHIT hits[workX*workY];
 
 // Needs 1000$ for fix BROKEN ray query...
-STATIC const uint MAX_ITERATION = 32u;
+STATIC const uint MAX_ITERATION = 16u;
 
 
 #ifndef GLSL
@@ -75,7 +75,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
 
     // 
     bool restart = true, opaque = false;
-    while((R++) < 1u && restart) { restart = false; // restart needs for transparency (after every resolve)
+    while((R++) < 4u && restart) { restart = false; // restart needs for transparency (after every resolve)
         float lastMax = (maxT - fullLength); float3 lastOrigin = forigin;//raydir * fullLength + sorigin;
 
 #ifdef GLSL
@@ -98,18 +98,19 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
             float tHit = rayQueryGetIntersectionTEXT(rayQuery, false);
 
             // 
-            if (tHit < lastMax) { lastOrigin = raydir*(lastMax = tHit) + forigin;
-                processing.gIndices = uint4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
-                processing.gBarycentric.xyz = float3(1.f-baryCoord.x-baryCoord.y,baryCoord);
-                processing.origin = float4(raydir*(processing.gBarycentric.w = (fullLength + tHit)) + sorigin, 1.f);
+            {   //lastOrigin = raydir*(lastMax = tHit) + forigin;
+                XHIT hit = processing;
+                hit.gIndices = uint4(globalInstanceID, geometryInstanceID, primitiveID, 0u);
+                hit.gBarycentric.xyz = float3(1.f-baryCoord.x-baryCoord.y,baryCoord);
+                hit.origin = float4(raydir*(hit.gBarycentric.w = (fullLength + tHit)) + sorigin, 1.f);
 
                 // Interpolate In Ray-Tracing
-                XGEO geometry = interpolate(processing);
-                XPOL material = materialize(processing, geometry);
+                XGEO geometry = interpolate(hit);
+                XPOL material = materialize(hit, geometry);
 
                 // confirm that hit 
                 if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { // Only When Opaque!
-                    opaque = true; rayQueryConfirmIntersectionEXT(rayQuery); // override processing hit
+                    rayQueryConfirmIntersectionEXT(rayQuery); // override hit hit
                 };
             };
         };
