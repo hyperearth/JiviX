@@ -523,16 +523,14 @@ namespace jvi {
                 .clearValue = clearValues[8u]
             });
 
+            // Vulkan API REQUIRE Rectangle, as minimum ONE!
+            VkClearRect crect = { .rect = renderArea, .baseArrayLayer = 0u, .layerCount = 1u };
+
+            // Problematic to Remap DX12 `ClearRenderTargetView` in Vulkan API version 
             // Clear By Attachments (Not Working, don't know why...)
             this->driver->getDeviceDispatch()->CmdBeginRenderPass(currentCmd, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
-            this->driver->getDeviceDispatch()->CmdClearAttachments(currentCmd, clearAttachments.size(), clearAttachments.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdClearAttachments(currentCmd, clearAttachments.size(), clearAttachments.data(), 1u, &crect);
             this->driver->getDeviceDispatch()->CmdEndRenderPass(currentCmd);
-
-            // Still Can't Remap DX12 `ClearRenderTargetView` in Vulkan API version 
-            this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->context->depthImage, this->context->depthImage.getImageLayout(), clearValues[8u].depthStencil, 1u, this->context->depthImage.getImageSubresourceRange());
-            for (uint32_t i = 0; i < 8u; i++) {
-               this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), clearValues[i].color, 1u, this->context->rastersImages[i].getImageSubresourceRange());
-            };
 
             // As Optimal Layout
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
