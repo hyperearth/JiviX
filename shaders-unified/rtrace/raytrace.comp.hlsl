@@ -18,8 +18,8 @@
 
 // TODO: X-Based Optimization
 //const uint workX = 64u, workY = 12u; // Optimal Work Size for RTX 2070
-#define workX 64
-#define workY 12
+#define workX 32
+#define workY 24
 
 // 
 SHARED XHIT hits[workX*workY];
