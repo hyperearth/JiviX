@@ -479,6 +479,10 @@ namespace jvi {
             defValues[1].depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
 
             // 
+            const auto& viewport = reinterpret_cast<vkh::VkViewport&>(this->context->refViewport());
+            const auto& renderArea = reinterpret_cast<vkh::VkRect2D&>(this->context->refScissor());
+
+            // 
             const auto clearValues = std::vector<vkh::VkClearValue>{
                  defValues[0],
                  defValues[0],
@@ -503,10 +507,31 @@ namespace jvi {
                 })
             });
 
+            
             // 
+            std::vector<VkClearAttachment> clearAttachments = {};
+            for (uint32_t i = 0; i < 8u; i++) {
+                clearAttachments.push_back(VkClearAttachment{
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .colorAttachment = i,
+                    .clearValue = clearValues[i]
+                });
+            };
+            clearAttachments.push_back(VkClearAttachment{
+                .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
+                .colorAttachment = 8u,
+                .clearValue = clearValues[8u]
+            });
+
+            // Clear By Attachments (Not Working, don't know why...)
+            this->driver->getDeviceDispatch()->CmdBeginRenderPass(currentCmd, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
+            this->driver->getDeviceDispatch()->CmdClearAttachments(currentCmd, clearAttachments.size(), clearAttachments.data(), 0u, nullptr);
+            this->driver->getDeviceDispatch()->CmdEndRenderPass(currentCmd);
+
+            // Still Can't Remap DX12 `ClearRenderTargetView` in Vulkan API version 
             this->driver->getDeviceDispatch()->CmdClearDepthStencilImage(currentCmd, this->context->depthImage, this->context->depthImage.getImageLayout(), clearValues[8u].depthStencil, 1u, this->context->depthImage.getImageSubresourceRange());
             for (uint32_t i = 0; i < 8u; i++) {
-                this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), clearValues[i].color, 1u, this->context->rastersImages[i].getImageSubresourceRange());
+               this->driver->getDeviceDispatch()->CmdClearColorImage(currentCmd, this->context->rastersImages[i], this->context->rastersImages[i].getImageLayout(), clearValues[i].color, 1u, this->context->rastersImages[i].getImageSubresourceRange());
             };
 
             // As Optimal Layout
@@ -530,6 +555,7 @@ namespace jvi {
                 Mesh->createRasterizeCommand(currentCmd, glm::uvec4(I = this->rawInstances[i].instanceId, 0u, i, 0u), true);
             };
             vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
+            //this->driver->getDeviceDispatch()->CmdEndRenderPass(currentCmd);
 
             // 
             return uTHIS;

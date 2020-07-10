@@ -777,7 +777,6 @@ namespace jvi {
                  defValues[1]
             };
 
-
             // covergence
             //vkt::debugLabel(rasterCommand, "Begin rasterization...", this->driver->getDispatch());
             this->driver->getDeviceDispatch()->CmdBindPipeline(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, conservative ? this->covergenceState : this->rasterizationState);
@@ -1019,7 +1018,6 @@ namespace jvi {
              this->driver->getDeviceDispatch()->CmdBindDescriptorSets(buildCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->transformPipelineLayout, 0u, this->descriptorSet.size(), this->descriptorSet.data(), 0u, nullptr);
              this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data(), sizes.data(), strides.data());
              this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(buildCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-             //this->driver->getDeviceDispatch()->CmdBindVertexBuffers(buildCommand, 0u, buffers.size(), buffers.data(), offsets.data());
              this->driver->getDeviceDispatch()->CmdPushConstants(buildCommand, this->transformPipelineLayout, this->context->cStages, 0u, sizeof(meta), & meta);
 
              // 
