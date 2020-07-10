@@ -34,6 +34,7 @@ Planned to beat world record as most perfect and most long-time development prod
 - Replacement Of  : Project "Satellite" ("engine", 2017)
 - Shaders Version : v2.0
 - SH&T of Шindows : R.I.P. for Visual Studio 2019 Clang-CL support... (also, broken C++20 support by MSVC)
+- Thank You!      : https://developer.nvidia.com/vulkan-driver (for 451.74 version with fixes...) 
 
 Date:[29.06.2020]:[helix.d@IMN]
 ```

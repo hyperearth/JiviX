@@ -305,14 +305,14 @@ namespace jvi {
                 const auto vect0 = glm::uvec4(0u);
                 this->context->descriptorSets[3] = this->context->smpFlip0DescriptorSet;
 
-                // MUCH FASTER, BUT BROKEN! (Ray Query)
+                // MUCH FASTER, BUT DISABLED! (Ray Query)
                 //this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->raytraceState);
                 //this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_COMPUTE, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
                 //this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, pstage, 0u, sizeof(glm::uvec4), &vect0);
                 //this->driver->getDeviceDispatch()->CmdDispatch(currentCmd, vkt::tiled(renderArea.extent.width, 64u), vkt::tiled(renderArea.extent.height, 12u), 1u);
                 //vkt::commandBarrier(this->driver->getDeviceDispatch(), currentCmd);
 
-                // SLOW! (But Currently Working...)
+                // FAST! (But Currently Working...)
                 this->driver->getDeviceDispatch()->CmdBindPipeline(currentCmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->raytraceTypeState);
                 this->driver->getDeviceDispatch()->CmdBindDescriptorSets(currentCmd, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
                 this->driver->getDeviceDispatch()->CmdPushConstants(currentCmd, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(glm::uvec4), & vect0);

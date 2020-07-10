@@ -25,7 +25,7 @@
 SHARED XHIT hits[(workX*workY)>>1];
 
 // Needs 1000$ for fix BROKEN ray query...
-STATIC const uint MAX_ITERATION = 0u;
+STATIC const uint MAX_ITERATION = 12u;
 
 
 #ifndef GLSL
