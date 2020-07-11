@@ -77,8 +77,8 @@ GS_INPUT main(in VS_INPUT inp, in uint VertexIndex : SV_VERTEXID)
     const uint VertexIndex = gl_VertexIndex;
 #endif
 
-    const int IdxType = int(drawInfo.data.y)-1;
-    const uint idx = VertexIndex; // Default Index of Vertice
+    //const int IdxType = int(drawInfo.data.y)-1;
+    //const uint idx = VertexIndex; // Default Index of Vertice
     //if (IdxType == IndexU8 ) { idx = load_u8 (idx*1u, 0u, true); };
     //if (IdxType == IndexU16) { idx = load_u16(idx*2u, 0u, true); };
     //if (IdxType == IndexU32) { idx = load_u32(idx*4u, 0u, true); };

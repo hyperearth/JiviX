@@ -364,7 +364,7 @@ namespace jvi {
                 this->primitiveCount += uPCount;
 
                 // copy as template, use as triangle...
-                auto offsetp = this->offsetTemp;
+                auto offsetp = this->offsetTemp; offsetp.firstVertex = 0;
                 {
                     const auto mOffset = (offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE);
                     this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = i * sizeof(uint32_t), .size = sizeof(uint32_t) });
@@ -383,7 +383,7 @@ namespace jvi {
                     };
                     { // convert info first vertex
                         this->offsetInfo[c].firstVertex = this->primitiveOffset[c] / DEFAULT_STRIDE;
-                        this->offsetInfo[c].primitiveOffset = 0u;
+                        //this->offsetInfo[c].primitiveOffset = 0u;
                         this->offsetInfo[c].primitiveCount = uPCount; //+ (this->offsetInfo[c].firstVertex / 3ull);
                     };
                     this->offsetPtr[c] = &this->offsetInfo[c]; c++;
@@ -984,10 +984,10 @@ namespace jvi {
              const auto gBuffer = binding->getBindingBuffer();
              const VkDeviceSize mGeometryCount = offsetHelp->z;//this->getIndexCount() / 3u;
              const VkDeviceSize mOffset = gOffset + gBuffer.offset(); // Broken Counters?
-             const VkDeviceSize mRanges = gBuffer.range() - gOffset;
+             const VkDeviceSize mRanges = std::min((mGeometryCount * VkDeviceSize(DEFAULT_STRIDE) * 3ull) + gOffset, gBuffer.range() - gBuffer.offset());
 
-             //
-             this->meta.primitiveCount = this->meta.geometryCount = mGeometryCount;
+             // 
+             this->meta.primitiveCount = this->meta.geometryCount = 0u;
              this->meta.indexType = int32_t(this->indexType) + 1;
 
              // 
