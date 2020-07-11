@@ -383,7 +383,7 @@ namespace jvi {
                     };
                     { // convert info first vertex
                         this->offsetInfo[c].firstVertex = this->primitiveOffset[c] / DEFAULT_STRIDE;
-                        //this->offsetInfo[c].primitiveOffset = 0u;
+                        this->offsetInfo[c].primitiveOffset = 0u;
                         this->offsetInfo[c].primitiveCount = uPCount; //+ (this->offsetInfo[c].firstVertex / 3ull);
                     };
                     this->offsetPtr[c] = &this->offsetInfo[c]; c++;
@@ -767,7 +767,30 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
             this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
             this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
-            uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
+
+
+            //
+            size_t primitiveCount = 0u;
+            uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) {
+                primitiveCount += this->offsetInfo[c++].primitiveCount * 3u;
+            };
+
+            /*{   // 
+                const auto meta = glm::uvec4(meshData.x, 0, meshData.z, 0u);
+                const auto size = sizes;//this->offsetInfo[c].primitiveCount * 3ull * strides;
+                const auto offset = offsets; //+ VkDeviceSize(this->primitiveOffset[c]);
+
+                // 
+                this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(rasterCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+                this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, 1u, &buffers, &offset, &size, &strides);
+                this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), &meta);
+                this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
+                this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, primitiveCount, this->instances[0], this->offsetInfo[0].firstVertex, 0); // Required Instances
+                this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
+            };*/
+
+            // 
+            f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
                 const auto size = sizes;//this->offsetInfo[c].primitiveCount * 3ull * strides;
                 const auto offset = offsets; //+ VkDeviceSize(this->primitiveOffset[c]);
