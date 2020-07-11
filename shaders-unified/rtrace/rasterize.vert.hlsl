@@ -81,7 +81,6 @@ PS_INPUT main(in VS_INPUT inp, in uint InstanceIndex : SV_InstanceID, in uint Ve
     const uint geometryInstanceID = uint(InstanceIndex.x);
     const uint nodeMeshID = drawInfo.data.x;
     const uint globalInstanceID = drawInfo.data.z;
-    const uint idx = uint(VertexIndex.x);
 
     // By Geometry Data
     float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
