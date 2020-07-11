@@ -83,6 +83,15 @@ find_package(Vulkan REQUIRED)
 find_package(PkgConfig QUIET)
 #find_package(glbinding REQUIRED) # if it is really required in your project
 
+#
+find_package(spirv_cross_c_shared QUIET)
+if (spirv_cross_c_shared_FOUND)
+        message(STATUS "Found SPIRV-Cross C API! :)")
+else()
+        message(STATUS "Could not find SPIRV-Cross C API! :(")
+endif()
+
+
 set (LIBS )
 
 # Set libs and include dirs of projects
@@ -140,9 +149,21 @@ endif()
 
 # Vulkan Library 
 if (Vulkan_LIBRARY)
-    #set (LIBS ${LIBS} ${Vulkan_LIBRARY}) #Da poshlo ono... 
+    set (Vulkan_PATH)
+    get_filename_component(Vulkan_PATH ${Vulkan_LIBRARY} DIRECTORY)
+
+    if(WIN32)
+        set(LIB_DIR ${LIB_DIR} ${Vulkan_PATH})
+        #set (LIBS ${LIBS} ${Vulkan_LIBRARY} ${Vulkan_LIBRARIES}
+        #    "${VPATH}/glslang.lib"
+        #    "${VPATH}/SPIRV.lib"
+        #    "${VPATH}/spirv-cross-core.lib"
+        #    "${VPATH}/spirv-cross-c-shared.lib"
+        #)
+    endif()
 endif()
 
+set (LIBS ${LIBS} spirv-cross-core spirv-cross-c-shared spirv-cross-c-shared glslang SPIRV)
 
 # GLFW 
 if (GLFW_LIBRARIES)
@@ -192,7 +213,7 @@ file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 # Compute test 
 set (APPLICATION_NAME test-app)
 add_definitions(${DEFINES})
-add_executable(${APPLICATION_NAME} ${RSOURCES} src/physics.cpp src/pch.cpp src/pch.hpp)
+add_executable(${APPLICATION_NAME} ${RSOURCES} src/main.cpp src/pch.cpp src/pch.hpp)
 target_link_libraries(${APPLICATION_NAME} PUBLIC ${LIBS} Vulkan::Vulkan)
 
 # 

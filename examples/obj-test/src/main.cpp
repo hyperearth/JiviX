@@ -1,5 +1,6 @@
 // #
 #include "./pch.hpp"
+#include <tinyobjloader/tiny_obj_loader.h>
 
 //
 struct Active {
@@ -493,14 +494,16 @@ int main() {
         std::vector<vkt::ImageRegion> images = {};
 
         {   //
-            images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{  // experimental: callify
-                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                    .extent = vkh::VkExtent3D{uint32_t(width),uint32_t(height),1u},
-                    .usage = imageUsage,
-            }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{
-                    .format = VK_FORMAT_R32G32B32A32_SFLOAT,
-                    .subresourceRange = apres
-            }));
+            images.push_back(vkt::ImageRegion(std::make_shared<vkt::VmaImageAllocation>(fw.getAllocator(), vkh::VkImageCreateInfo{}.also([&](vkh::VkImageCreateInfo* it){  // experimental: callify
+                it->format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                it->extent = vkh::VkExtent3D{ uint32_t(width),uint32_t(height),1u },
+                it->usage = imageUsage;
+                return it;
+            }), vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }), vkh::VkImageViewCreateInfo{}.also([&](vkh::VkImageViewCreateInfo* it){
+                it->format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                it->subresourceRange = apres;
+                return it;
+            })));
 
             //
             auto image = images.back();
@@ -602,11 +605,33 @@ int main() {
             mInput->addAttribute(vkh::VkVertexInputAttributeDescription{ .location = 2, .format = VK_FORMAT_R32G32_SFLOAT, .offset = offsetof(VertexUnit, normal) });
 
             // material support NOT added...
-            //mBinding.addMeshInput(mInput, shapes[s].mesh.material_ids[f]);
-            mBinding.addMeshInput(mInput, 0u);
+            mBinding.addMeshInput(mInput, shapes[s].mesh.material_ids[f]);
         };
     };
 
+    // Material (TODO: Textures, Needs Loader and Storage)
+    for (uint32_t i = 0; i < materials.size(); i++) {
+        const auto& mat = materials[i]; jvi::MaterialUnit mdk = {};
+        mdk.diffuseTexture = -1;
+        mdk.normalsTexture = -1;
+        mdk.specularTexture = -1;
+        mdk.emissionTexture = -1;
+        mdk.specular = glm::vec4(1.f, mat.roughness, mat.metallic, 0.f);
+        mdk.normals = glm::vec4(0.5f, 0.5f, 1.0f, 1.f);
+        mdk.emission = glm::vec4(mat.emission[0], mat.emission[1], mat.emission[2], 0.f);
+        mdk.diffuse = glm::vec4(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2], 1.f);
+        material->pushMaterial(mdk);
+    };
+
+    // 
+    glm::mat3x4 transform = glm::mat3x4(1.f);
+    node->pushInstance(vkh::VsGeometryInstance{
+        .transform = transform,
+        .instanceId = uint32_t(0u), // MeshID
+        .mask = 0xff,
+        .instanceOffset = 0u,
+        .flags = VK_GEOMETRY_INSTANCE_TRIANGLE_CULL_DISABLE_BIT_NV,
+    });
 
 
 
@@ -680,7 +705,10 @@ int main() {
         //fw->getDeviceDispatch()->SignalSemaphore(vkh::VkSemaphoreSignalInfo{.semaphore = framebuffers[n_semaphore].semaphore, .value = 1u});
 
         { // submit rendering (and wait presentation in device)
-            std::vector<vkh::VkClearValue> clearValues = {vkh::VkClearValue{.color = vkh::VkClearColorValue{glm::vec4(0.f, 0.f, 0.f, 0.f)}}, vkh::VkClearValue{.depthStencil = vkh::VkClearDepthStencilValue{1.0f, 0} } };
+            vkh::VkClearValue clearValues[2] = { {}, {} };
+            clearValues[0].color = vkh::VkClearColorValue{}; clearValues[0].color.float32 = glm::vec4(0.f, 0.f, 0.f, 0.f);
+            clearValues[1].depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
+
             Shared::TimeCallback(double(context->registerTime()->setModelView(glm::mat4x4(cameraController->handle().project()))->drawTime()));
 
             // Create render submission
@@ -732,7 +760,7 @@ int main() {
 
                 //
                 decltype(auto) descriptorSets = context->getDescriptorSets();
-                fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->applicationWindow.renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data()}, VK_SUBPASS_CONTENTS_INLINE);
+                fw->getDeviceDispatch()->CmdBeginRenderPass(commandBuffer, vkh::VkRenderPassBeginInfo{.renderPass = fw->applicationWindow.renderPass, .framebuffer = framebuffers[currentBuffer].frameBuffer, .renderArea = renderArea, .clearValueCount = 2u, .pClearValues = reinterpret_cast<vkh::VkClearValue*>(&clearValues[0]) }, VK_SUBPASS_CONTENTS_INLINE);
                 fw->getDeviceDispatch()->CmdSetViewport(commandBuffer, 0u, 1u, viewport);
                 fw->getDeviceDispatch()->CmdSetScissor(commandBuffer, 0u, 1u, renderArea);
                 fw->getDeviceDispatch()->CmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, finalPipeline);
