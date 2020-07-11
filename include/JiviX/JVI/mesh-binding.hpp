@@ -366,23 +366,24 @@ namespace jvi {
                 // copy as template, use as triangle...
                 auto offsetp = this->offsetTemp;
                 {
+                    const auto mOffset = (offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE);
                     this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = i * sizeof(uint32_t), .size = sizeof(uint32_t) });
                     this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, this->counterData.buffer(), this->counterData.offset(), sizeof(glm::uvec4), &counterValue); // Trying... 
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier In 
-                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, (offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE), (offsetp.primitiveCount = uPCount), 0u), buildCommand); };
+                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, mOffset, offsetp.primitiveCount = uPCount, 0u), buildCommand); };
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier Out
                 };
 
                 // 
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     this->offsetInfo[c] = offsetp;
+                    this->primitiveOffset[c] = offsetp.primitiveOffset;
                     if (this->rawMeshInfo[0u].hasTransform) { // Polcovnic
                         this->offsetInfo[c].transformOffset = this->transformStride * c;
                     };
-                    this->primitiveOffset[c] = offsetp.primitiveOffset;
                     { // convert info first vertex
                         this->offsetInfo[c].primitiveOffset = 0u;
-                        this->offsetInfo[c].firstVertex = offsetp.primitiveOffset / DEFAULT_STRIDE;
+                        this->offsetInfo[c].firstVertex = this->primitiveOffset[c] / DEFAULT_STRIDE;
                     };
                     this->offsetPtr[c] = &this->offsetInfo[c]; c++;
                 };
@@ -768,11 +769,12 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
-                const auto size = this->offsetInfo[c].primitiveCount * 3ull * strides;
+                const auto size = sizes;//this->offsetInfo[c].primitiveCount * 3ull * strides;
+                const auto offset = offsets; //+ VkDeviceSize(this->primitiveOffset[c]);
 
                 // 
                 this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(rasterCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-                this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, 1u, &buffers, &offsets, &size, &strides);
+                this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, 1u, &buffers, &offset, &size, &strides);
                 this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), &meta);
                 this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
                 this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, this->instances[i], this->offsetInfo[c].firstVertex, f); // Required Instances
@@ -970,7 +972,7 @@ namespace jvi {
              };
 
              // 
-             this->meta.primitiveCount = uint32_t(this->currentUnitCount) / 3u;
+             this->meta.primitiveCount = uint32_t(offsetHelp->z);
              this->meta.indexType = int32_t(this->indexType) + 1;
 
              // 
@@ -980,13 +982,14 @@ namespace jvi {
              vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
              // 
+             const auto gOffset = offsetHelp->y;
              const auto gBuffer = binding->getBindingBuffer();
-             const VkDeviceSize mGeometryCount = offsetHelp->z;
-             const VkDeviceSize mOffset = offsetHelp->y + gBuffer.offset(); // Broken Counters?
-             const VkDeviceSize mSize = std::min(gBuffer.size() - mOffset, mGeometryCount * 3u * DEFAULT_STRIDE);
+             const VkDeviceSize mGeometryCount = offsetHelp->z;//this->getIndexCount() / 3u;
+             const VkDeviceSize mOffset = gOffset + gBuffer.offset(); // Broken Counters?
+             const VkDeviceSize mRanges = gBuffer.range() - gOffset;
 
              //
-             this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 1u, &gBuffer.buffer(), &mOffset, &mSize);
+             this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 1u, &gBuffer.buffer(), &mOffset, &mRanges);
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
              this->driver->getDeviceDispatch()->CmdSetViewport(buildCommand, 0u, 1u, viewport);
              this->driver->getDeviceDispatch()->CmdSetScissor(buildCommand, 0u, 1u, renderArea);

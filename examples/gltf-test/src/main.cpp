@@ -458,14 +458,14 @@ int main() {
     tinygltf::TinyGLTF loader = {};
 
     // 
-    //const float unitScale = 1.f;
-    //const float unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "CornellBox.gltf");
+    const float unitScale = 1.f;
+    const float unitHeight = -0.f;
+    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "CornellBox.gltf");
 
     //
-    const float unitScale = 100.f;
-    const float unitHeight = -0.f;
-    const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
+    //const float unitScale = 100.f;
+    //const float unitHeight = -0.f;
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "BoomBoxWithAxes.gltf");
 
     //
     //const float unitScale = 1.f;
