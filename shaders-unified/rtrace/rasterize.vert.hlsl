@@ -12,7 +12,7 @@ layout (location = 4) in float4 iBinormal;
 layout (location = 0) out float4 fPosition;
 layout (location = 1) out float4 fTexcoord;
 layout (location = 2) out float4 fBarycent;
-layout (location = 3) flat out uint4 uData;
+layout (location = 3) flat out float4 uData;
 
 // 
 struct VS_INPUT 
@@ -102,7 +102,7 @@ PS_INPUT main(in VS_INPUT inp, in uint InstanceIndex : SV_InstanceID, in uint Ve
     outp.fTexcoord = float4(inp.iTexcoord.xy, 0.f.xx);
     outp.fPosition = mul4(mul4(float4(inp.iPosition.xyz, 1.f), matras), matra4); // CORRECT
     outp.fBarycent = float4(0.f.xxx, 0.f);
-    outp.uData = uint4(InstanceIndex, 0u.xxx);
+    outp.uData = uintBitsToFloat(uint4(InstanceIndex, 0u.xxx));
     outp.Position = mul(getMT4x4(pushed.projection), float4(mul(getMT3x4(pushed.modelview), outp.fPosition), 1.f));
     outp.Position.y *= -1.f;
     
@@ -112,7 +112,7 @@ PS_INPUT main(in VS_INPUT inp, in uint InstanceIndex : SV_InstanceID, in uint Ve
         fTexcoord = outp.fTexcoord;
         fPosition = outp.fPosition;
         fBarycent = outp.fBarycent;
-        uData = floatBitsToUint(outp.uData);
+        uData = outp.uData;
     };
 #else
     return outp;

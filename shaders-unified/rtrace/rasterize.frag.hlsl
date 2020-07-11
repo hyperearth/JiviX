@@ -42,7 +42,7 @@ struct PS_OUTPUT {
 layout (location = 0) in float4 fPosition;
 layout (location = 1) in float4 fTexcoord;
 layout (location = 2) in float4 fBarycent;
-layout (location = 3) flat in uint4 uData;
+layout (location = 3) flat in float4 uData;
 
 // 
 layout (location = RS_MATERIAL) out float4 oMaterial;

@@ -382,8 +382,9 @@ namespace jvi {
                         this->offsetInfo[c].transformOffset = this->transformStride * c;
                     };
                     { // convert info first vertex
-                        this->offsetInfo[c].primitiveOffset = 0u;
                         this->offsetInfo[c].firstVertex = this->primitiveOffset[c] / DEFAULT_STRIDE;
+                        this->offsetInfo[c].primitiveOffset = 0u;
+                        this->offsetInfo[c].primitiveCount = uPCount; //+ (this->offsetInfo[c].firstVertex / 3ull);
                     };
                     this->offsetPtr[c] = &this->offsetInfo[c]; c++;
                 };
@@ -971,9 +972,6 @@ namespace jvi {
                   defValues[1]
              };
 
-             // 
-             this->meta.primitiveCount = uint32_t(offsetHelp->z);
-             this->meta.indexType = int32_t(this->indexType) + 1;
 
              // 
              //vkt::debugLabel(buildCommand, "Begin building geometry data...", this->driver->getDispatch());
@@ -989,6 +987,10 @@ namespace jvi {
              const VkDeviceSize mRanges = gBuffer.range() - gOffset;
 
              //
+             this->meta.primitiveCount = this->meta.geometryCount = mGeometryCount;
+             this->meta.indexType = int32_t(this->indexType) + 1;
+
+             // 
              this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 1u, &gBuffer.buffer(), &mOffset, &mRanges);
              this->driver->getDeviceDispatch()->CmdBeginRenderPass(buildCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->smpFlip0Framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
              this->driver->getDeviceDispatch()->CmdSetViewport(buildCommand, 0u, 1u, viewport);
@@ -1003,9 +1005,9 @@ namespace jvi {
              // 
              if (this->indexType != VK_INDEX_TYPE_NONE_KHR) {
                  this->driver->getDeviceDispatch()->CmdBindIndexBuffer(buildCommand, this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
-                 this->driver->getDeviceDispatch()->CmdDrawIndexed(buildCommand, (this->meta.geometryCount = mGeometryCount) * 3u, 1u, 0u, 0u, 0u);
+                 this->driver->getDeviceDispatch()->CmdDrawIndexed(buildCommand, mGeometryCount * 3u, 1u, 0u, 0u, 0u);
              } else {
-                 this->driver->getDeviceDispatch()->CmdDraw(buildCommand, (this->meta.geometryCount = mGeometryCount) * 3u, 1u, 0u, 0u);
+                 this->driver->getDeviceDispatch()->CmdDraw(buildCommand, mGeometryCount * 3u, 1u, 0u, 0u);
              };
 
              //
