@@ -103,10 +103,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
             forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
 
             // confirm that hit 
-            //if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
-            //if (hit.gBarycentric.w > 9999.f || material.diffuseColor.w > 0.99f) { opaque = true; };
-            //if (hit.gBarycentric.w > 9999.f || material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
-            if (hit.gBarycentric.w > 9999.f || material.diffuseColor.w > 0.001f) { opaque = true; };
+            if (hit.gBarycentric.w <= 9999.f && material.diffuseColor.w > 0.001f) { opaque = true; };
         };
 
         // 
@@ -159,7 +156,7 @@ void main() {
 
         // Replacement for rasterization
         //XHIT RPM = traceRays(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f);
-          XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f); RES = RPM;
+        XHIT RPM = rasterize(    origin.xyz,           (raydir), normal, 10000.f, FAST_BW_TRANSPARENT, 0.001f); RES = RPM;
 
         // TODO: Optimize Fetching and Interpolation 
         XGEO GEO = interpolate(RPM);

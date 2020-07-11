@@ -142,8 +142,7 @@ XHIT traceRays(in float3 origin, in float3 raydir, in float3 normal, float maxT,
                     forigin += faceforward(geometry.gNormal.xyz, -raydir.xyz, geometry.gNormal.xyz) * lastMin + raydir.xyz * lastMin;
 
                     // confirm that hit 
-                    //if (material.diffuseColor.w > (scatterTransparency ? random(seed) : threshold)) { opaque = true; };
-                    if (processing.gBarycentric.w > 9999.f || material.diffuseColor.w > 0.001f) { opaque = true; };
+                    if (processing.gBarycentric.w <= 9999.f && material.diffuseColor.w > 0.001f) { opaque = true; };
                 };
             } else { fullLength = maxT; };
         };

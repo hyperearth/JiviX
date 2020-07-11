@@ -775,7 +775,7 @@ namespace jvi {
                 this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, 1u, &buffers, &offsets, &size, &strides);
                 this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), &meta);
                 this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
-                this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, f+this->instances[i], this->offsetInfo[c].firstVertex, f); // Required Instances
+                this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, this->instances[i], this->offsetInfo[c].firstVertex, f); // Required Instances
                 this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
 
                 // Ray tracing doesn't support local instancing (only manual)
