@@ -575,26 +575,27 @@ int main() {
         jvx::MeshBinding mBinding(context, vertexCountAll[s], primitiveCountPer[s]);
         meshes.push_back(mBinding->setIndexCount(vertexCountAll[s])->sharedPtr());
 
-        size_t index_offset = 0; // Loop over faces(polygon)
+        // 
+        size_t indexOffset = 0; // Loop over faces(polygon)
         for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) { //
             jvx::MeshInput mInput(context); inputs.push_back(mInput);
 
             //
             auto verticeCount = shapes[s].mesh.num_face_vertices[f];
             for (size_t v = 0; v < verticeCount; v++) { //
-                tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                tinyobj::index_t idx = shapes[s].mesh.indices[indexOffset + v];
                 tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0], vy = attrib.vertices[3*idx.vertex_index+1], vz = attrib.vertices[3*idx.vertex_index+2];
                 tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0], ny = attrib.normals[3*idx.normal_index+1], nz = attrib.normals[3*idx.normal_index+2];
                 tinyobj::real_t tx = attrib.texcoords[2*idx.texcoord_index+0], ty = attrib.texcoords[2*idx.texcoord_index+1];
 
                 //
-                buffersViews.back()[index_offset+v].vertex = glm::vec4(vx,vy,vz,1.f);
-                buffersViews.back()[index_offset+v].normal = glm::vec4(nx,ny,nz,0.f);
-                buffersViews.back()[index_offset+v].texcoord = glm::vec4(tx,ty,0.f,0.f);
+                buffersViews.back()[indexOffset +v].vertex = glm::vec4(vx,vy,vz,1.f);
+                buffersViews.back()[indexOffset +v].normal = glm::vec4(nx,ny,nz,0.f);
+                buffersViews.back()[indexOffset +v].texcoord = glm::vec4(tx,ty,0.f,0.f);
             };
-            index_offset += verticeCount;
 
-            //
+            // 
+            indexOffset += verticeCount;
             buffersViews.push_back(vkt::Vector<VertexUnit>(std::make_shared<vkt::VmaBufferAllocation>(fw->getAllocator(), vkh::VkBufferCreateInfo{ .size = verticeCount * sizeof(VertexUnit), .usage = bufferUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU })));
 
             //
