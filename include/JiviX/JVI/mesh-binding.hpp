@@ -1006,7 +1006,7 @@ namespace jvi {
              const auto gBuffer = binding->getBindingBuffer();
              const VkDeviceSize mGeometryCount = offsetHelp->z;//this->getIndexCount() / 3u;
              const VkDeviceSize mOffset = gOffset + gBuffer.offset(); // Broken Counters?
-             const VkDeviceSize mRanges = std::min((mGeometryCount * VkDeviceSize(DEFAULT_STRIDE) * 3ull) + gOffset, gBuffer.range() - gBuffer.offset());
+             const VkDeviceSize mRanges = std::min((mGeometryCount * VkDeviceSize(DEFAULT_STRIDE) * 3ull) + gOffset, gBuffer.range());
 
              // 
              this->meta.primitiveCount = this->meta.geometryCount = 0u;
