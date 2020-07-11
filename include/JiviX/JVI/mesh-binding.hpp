@@ -351,39 +351,38 @@ namespace jvi {
             if (this->fullGeometryCount > this->offsetInfo.size()) {
                 this->offsetInfo.resize(this->fullGeometryCount);
                 this->offsetPtr.resize(this->fullGeometryCount);
+                this->primitiveOffset.resize(this->fullGeometryCount);
             };
-
 
             // We Collect Counter Buffer Results for future usage...
             this->rawMeshInfo[0].geometryCount = this->fullGeometryCount;
             uint32_t f = 0, i = 0, c = 0; for (auto& I : this->inputs) { // Quads needs to format...
+
+                // Needs Un-Use Input Geometry Count?!
                 const auto uOffset = this->primitiveCount * 3u;
-                if (I.has()) { I->formatQuads(uTHIS, glm::u64vec4(uOffset, uOffset * DEFAULT_STRIDE, this->fullGeometryCount, 0u), buildCommand); };
+                const auto uPCount = I.has() ? vkt::tiled(uint64_t(I->getIndexCount()), uint64_t(3ull)) : vkt::tiled(uint64_t(this->ranges[i]), uint64_t(1ull)); // TODO: De-Facto primitive count...
+                this->primitiveCount += uPCount;
 
                 // copy as template, use as triangle...
                 auto offsetp = this->offsetTemp;
                 {
-                    //offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE; //+ this->bindings[0u].offset();
-                    offsetp.primitiveCount = I.has() ? vkt::tiled(uint64_t(I->getIndexCount()), uint64_t(3ull)) : vkt::tiled(uint64_t(this->ranges[i]), uint64_t(1ull)); // TODO: De-Facto primitive count...
-                    offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE;
-                    //offsetp.firstVertex = uOffset;
                     this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = i * sizeof(uint32_t), .size = sizeof(uint32_t) });
                     this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, this->counterData.buffer(), this->counterData.offset(), sizeof(glm::uvec4), &counterValue); // Trying... 
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier In 
-                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, offsetp.primitiveOffset, this->fullGeometryCount, 0u), buildCommand); };
+                    if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, (offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE), (offsetp.primitiveCount = uPCount), 0u), buildCommand); };
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier Out
                 };
-
-                // Needs Un-Use Input Geometry Count?!
-                //if (I.has()) { 
-                    this->primitiveCount += offsetp.primitiveCount; 
-                //};
 
                 // 
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     this->offsetInfo[c] = offsetp;
                     if (this->rawMeshInfo[0u].hasTransform) { // Polcovnic
                         this->offsetInfo[c].transformOffset = this->transformStride * c;
+                    };
+                    this->primitiveOffset[c] = offsetp.primitiveOffset;
+                    { // convert info first vertex
+                        this->offsetInfo[c].primitiveOffset = 0u;
+                        this->offsetInfo[c].firstVertex = offsetp.primitiveOffset / DEFAULT_STRIDE;
                     };
                     this->offsetPtr[c] = &this->offsetInfo[c]; c++;
                 };
@@ -404,11 +403,6 @@ namespace jvi {
             return uTHIS;
         };
 
-        // TODO: Fix Quads support with Indices
-        /*virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)){
-            return this->buildAccelerationStructure(VkCommandBuffer(buildCommand), meshData);
-        };*/
-
         // 
         protected: virtual uPTR(MeshBinding) buildAccelerationStructure(const VkCommandBuffer& buildCommand = {}, const vkt::uni_arg<glm::uvec4>& meshData = glm::uvec4(0u)) {
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS; // Map BROKEN in here!
@@ -425,6 +419,7 @@ namespace jvi {
                 this->buildGPtr.resize(this->fullGeometryCount);
                 this->offsetInfo.resize(this->fullGeometryCount);
                 this->offsetPtr.resize(this->fullGeometryCount);
+                this->primitiveOffset.resize(this->fullGeometryCount);
             };
 
             // 
@@ -701,20 +696,20 @@ namespace jvi {
 
             // covergence
             //vkt::debugLabel(rasterCommand, "Begin rasterization...", this->driver->getDispatch());
-            this->driver->getDeviceDispatch()->CmdBindPipeline(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mapState);
-            this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
-            this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
-            this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
-            this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
+            //this->driver->getDeviceDispatch()->CmdBindPipeline(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mapState);
+            //this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
+            //this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
+            //this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
+            //this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
 
             // TODO: Mapping Shaders On Using (Currently, UNUSED!)
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
-                    this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), & meta);
-                    this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->mapRenderPass, .framebuffer = framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
+                    //this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), & meta);
+                    //this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->mapRenderPass, .framebuffer = framebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
                     //this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, this->instances[i], this->offsetInfo[c].firstVertex, f);
-                    this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
+                    //this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
                     //vkt::commandBarrier(this->driver->getDeviceDispatch(), rasterCommand);
 
                     // 
@@ -734,33 +729,13 @@ namespace jvi {
         // Create Secondary Command With Pipeline
         protected: virtual uPTR(MeshBinding) createRasterizeCommand(const VkCommandBuffer& rasterCommand = {}, const glm::uvec4& meshData = glm::uvec4(0u), const bool& conservative = false) { // UNIT ONLY!
             if (this->fullGeometryCount <= 0u || this->mapCount <= 0u) return uTHIS;
-            //if (this->fullGeometryCount <= 0u) return uTHIS;
 
             // 
             if (!this->rasterizationState) {
                 this->createRasterizePipeline();
             };
 
-            //
-            //std::vector<VkBuffer> buffers(this->bindings.size());
-            //std::vector<VkDeviceSize> offsets(this->bindings.size());
-            //std::vector<VkDeviceSize> strides(this->bindings.size());
-            //std::vector<VkDeviceSize> sizes(this->bindings.size());
-
             // 
-            uintptr_t I = 0u;
-            /*
-            for (auto& B : this->bindings) {
-                if (B.has()) {
-                    const uintptr_t i = I++;
-                    buffers[i] = this->bindings[i].buffer();
-                    offsets[i] = this->bindings[i].offset();
-                    strides[i] = DEFAULT_STRIDE;
-                    sizes[i] = this->bindings[i].range();
-                };
-            };
-            */
-
             const auto strides = VkDeviceSize(DEFAULT_STRIDE);
             const auto offsets = this->bindings[0u].offset();
             const auto buffers = this->bindings[0u].buffer();
@@ -787,27 +762,20 @@ namespace jvi {
             };
 
             // covergence
-            //vkt::debugLabel(rasterCommand, "Begin rasterization...", this->driver->getDispatch());
             this->driver->getDeviceDispatch()->CmdBindPipeline(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, conservative ? this->covergenceState : this->rasterizationState);
             this->driver->getDeviceDispatch()->CmdBindDescriptorSets(rasterCommand, VK_PIPELINE_BIND_POINT_GRAPHICS, this->context->unifiedPipelineLayout, 0u, this->context->descriptorSets.size(), this->context->descriptorSets.data(), 0u, nullptr);
             this->driver->getDeviceDispatch()->CmdSetViewport(rasterCommand, 0u, 1u, viewport);
             this->driver->getDeviceDispatch()->CmdSetScissor(rasterCommand, 0u, 1u, renderArea);
-
-
-            //this->driver->getDeviceDispatch()->CmdBindVertexBuffers(rasterCommand, 0u, buffers.size(), buffers.data(), offsets.data());
-
-            // 
             uint32_t f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
-                const auto offset = offsets + this->offsetInfo[c].primitiveOffset;//this->offsetInfo[c].firstVertex * strides;
-                const auto size = this->offsetInfo[c].primitiveCount * 3u * strides;
+                const auto size = this->offsetInfo[c].primitiveCount * 3ull * strides;
 
                 // 
                 this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(rasterCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-                this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, 1u, &buffers, &offset, &size, &strides);
+                this->driver->getDeviceDispatch()->CmdBindVertexBuffers2EXT(rasterCommand, 0u, 1u, &buffers, &offsets, &size, &strides);
                 this->driver->getDeviceDispatch()->CmdPushConstants(rasterCommand, this->context->unifiedPipelineLayout, this->context->cStages, 0u, sizeof(meta), &meta);
                 this->driver->getDeviceDispatch()->CmdBeginRenderPass(rasterCommand, vkh::VkRenderPassBeginInfo{ .renderPass = this->context->refRenderPass(), .framebuffer = this->context->rasteredFramebuffer, .renderArea = renderArea, .clearValueCount = static_cast<uint32_t>(clearValues.size()), .pClearValues = clearValues.data() }, VK_SUBPASS_CONTENTS_INLINE);
-                this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, f+this->instances[i], 0u, f); // Required Instances
+                this->driver->getDeviceDispatch()->CmdDraw(rasterCommand, this->offsetInfo[c].primitiveCount * 3u, f+this->instances[i], this->offsetInfo[c].firstVertex, f); // Required Instances
                 this->driver->getDeviceDispatch()->CmdEndRenderPass(rasterCommand);
 
                 // Ray tracing doesn't support local instancing (only manual)
@@ -818,9 +786,6 @@ namespace jvi {
                 };
                 f += this->instances[i++];
             };
-
-
-            //vkt::debugLabel(rasterCommand, "End rasterization...", this->driver->getDispatch());
 
             // 
             return uTHIS;
@@ -887,8 +852,9 @@ namespace jvi {
         // CAN BE MULTIPLE! (single element of array, array of array[0])
         //vkt::Vector<uint64_t>                                         offsetIndirectPtr {};
         //vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetIndirect {};
-        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = { {} };
-        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>  offsetPtr = { {} };
+        std::vector<VkDeviceSize>                                     primitiveOffset = {};
+        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = {};
+        std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>  offsetPtr = {};
         vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 
 
         // But used only one, due transform feedback shaders used... 
@@ -1015,13 +981,9 @@ namespace jvi {
 
              // 
              const auto gBuffer = binding->getBindingBuffer();
-             const VkDeviceSize gOffset = offsetHelp->y; // Broken Counters?
-             const VkDeviceSize mOffset = gOffset + gBuffer.offset();
-             const VkDeviceSize mSize = std::min(gBuffer.size() - gOffset, this->currentUnitCount * DEFAULT_STRIDE);
              const VkDeviceSize mGeometryCount = offsetHelp->z;
-
-             // 
-             this->meta.geometryCount = mGeometryCount;
+             const VkDeviceSize mOffset = offsetHelp->y + gBuffer.offset(); // Broken Counters?
+             const VkDeviceSize mSize = std::min(gBuffer.size() - mOffset, mGeometryCount * 3u * DEFAULT_STRIDE);
 
              //
              this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 1u, &gBuffer.buffer(), &mOffset, &mSize);
@@ -1037,21 +999,17 @@ namespace jvi {
 
              // 
              if (this->indexType != VK_INDEX_TYPE_NONE_KHR) {
-                 const uintptr_t voffset = 0u;
                  this->driver->getDeviceDispatch()->CmdBindIndexBuffer(buildCommand, this->bvs->get(*this->indexData).buffer(), this->bvs->get(*this->indexData).offset() + this->indexOffset, this->indexType);
-                 this->driver->getDeviceDispatch()->CmdDrawIndexed(buildCommand, this->currentUnitCount, 1u, 0u, voffset, 0u);
+                 this->driver->getDeviceDispatch()->CmdDrawIndexed(buildCommand, (this->meta.geometryCount = mGeometryCount) * 3u, 1u, 0u, 0u, 0u);
              } else {
-                 this->driver->getDeviceDispatch()->CmdDraw(buildCommand, this->currentUnitCount, 1u, 0u, 0u);
+                 this->driver->getDeviceDispatch()->CmdDraw(buildCommand, (this->meta.geometryCount = mGeometryCount) * 3u, 1u, 0u, 0u);
              };
 
              //
+             this->descriptorUpdated = false;
              this->driver->getDeviceDispatch()->CmdEndTransformFeedbackEXT(buildCommand, 0u, 1u, &binding->counterData.buffer(), &binding->counterData.offset());
              this->driver->getDeviceDispatch()->CmdEndRenderPass(buildCommand);
-             //this->driver->getDeviceDispatch()->CmdBindTransformFeedbackBuffersEXT(buildCommand, 0u, 0u, nullptr, nullptr, nullptr);
-
-             //vkt::debugLabel(*buildCommand, "Ending building geometry data...", this->driver->getDispatch());
              vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // dont transform feedback
-             this->descriptorUpdated = false;
          };
 
          if (DirectCommand) {
