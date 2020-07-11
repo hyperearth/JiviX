@@ -606,7 +606,6 @@ namespace jvi {
 
             // TODO: Add to main package
             // Enable Conservative Rasterization For Fix Some Antialiasing Issues
-            VkPipelineRasterizationConservativeStateCreateInfoEXT conserv = {};
             conserv.conservativeRasterizationMode = VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT;
 
             // 
@@ -840,7 +839,7 @@ namespace jvi {
 
         // 
         vkh::VsGraphicsPipelineCreateInfoConstruction pipelineInfo = {};
-
+        VkPipelineRasterizationConservativeStateCreateInfoEXT conserv = {};
 
         // FOR CREATE (Acceleration Structure)
         vkh::VkAccelerationStructureCreateInfoKHR                          bottomCreate = {}; // CREATE SINGLE!
