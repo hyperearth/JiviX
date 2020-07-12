@@ -254,9 +254,10 @@ layout (binding = 5, set = 1, scalar) uniform Bindings   { Binding   data[8u]; }
 layout (binding = 6, set = 1, scalar) uniform Attributes { Attribute data[8u]; } attributes[];
 
 // 
-  layout (binding = 7, set = 1, scalar) uniform InstanceTransform { float3x4 transform[16u]; } instances[];
-  layout (binding = 8, set = 1, scalar) uniform MeshMaterial { uint materialID[16u]; } geomMTs[];
-//layout (binding = 9, set = 1, scalar) uniform InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
+  layout (binding = 7 , set = 1, scalar) buffer InstanceTransform { float3x4 transform[64u]; } instances[];
+  layout (binding = 8 , set = 1, scalar) buffer MeshMaterial { uint materialID[64u]; } geomMTs[];
+  layout (binding = 13, set = 1, scalar) buffer MeshOffsets { uint offsets[64u]; } geoOFs[]; // TODO: SUPPORT FOR HLSL
+//layout (binding = 9 , set = 1, scalar) buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
 
 layout (binding = 9, set = 1, scalar) uniform Matrices {
     layout(column_major) float4x4 projection;    

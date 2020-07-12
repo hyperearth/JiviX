@@ -50,6 +50,8 @@ namespace jvi {
             this->gpuAttributes = vkt::Vector<vkh::VkVertexInputAttributeDescription>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(vkh::VkVertexInputAttributeDescription) * 8u, .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
             this->rawMaterialIDs = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * GeometryInitial.size() * 64u, .usage = hostUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
             this->gpuMaterialIDs = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * GeometryInitial.size() * 64u, .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
+            this->primitiveOffset = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * GeometryInitial.size() * 64u, .usage = hostUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
+            this->primitiveOffsetGPU = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * GeometryInitial.size() * 64u, .usage = gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
 
             // 
             this->counterData = vkt::Vector<glm::uvec4>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = sizeof(uint32_t) * 4u, .usage = upstreamUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
@@ -326,6 +328,7 @@ namespace jvi {
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawBindings, this->gpuBindings, 1u, vkh::VkBufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawInstanceMap, this->gpuInstanceMap, 1u, vkh::VkBufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawMaterialIDs, this->gpuMaterialIDs, 1u, vkh::VkBufferCopy{ this->rawMaterialIDs.offset(), this->gpuMaterialIDs.offset(), this->gpuMaterialIDs.range() });
+            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->primitiveOffset, this->primitiveOffsetGPU, 1u, vkh::VkBufferCopy{ this->primitiveOffset.offset(), this->primitiveOffsetGPU.offset(), this->primitiveOffsetGPU.range() });
             this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &vect0);
             if (this->inputs.size() > 0) { for (auto& I : this->inputs) if (I.has()) { I->copyMeta(buildCommand); }; };
             return uTHIS;
@@ -351,7 +354,7 @@ namespace jvi {
             if (this->fullGeometryCount > this->offsetInfo.size()) {
                 this->offsetInfo.resize(this->fullGeometryCount);
                 this->offsetPtr.resize(this->fullGeometryCount);
-                this->primitiveOffset.resize(this->fullGeometryCount);
+                //this->primitiveOffset.resize(this->fullGeometryCount);
             };
 
             // We Collect Counter Buffer Results for future usage...
@@ -382,8 +385,8 @@ namespace jvi {
                         this->offsetInfo[c].transformOffset = this->transformStride * c;
                     };
                     { // convert info first vertex
-                        this->offsetInfo[c].firstVertex = this->primitiveOffset[c] / DEFAULT_STRIDE;
-                        this->offsetInfo[c].primitiveOffset = 0u;
+                        //this->offsetInfo[c].firstVertex = this->primitiveOffset[c] / DEFAULT_STRIDE;
+                        //this->offsetInfo[c].primitiveOffset = 0u;
                         this->offsetInfo[c].primitiveCount = uPCount; //+ (this->offsetInfo[c].firstVertex / 3ull);
                     };
                     this->offsetPtr[c] = &this->offsetInfo[c]; c++;
@@ -421,7 +424,7 @@ namespace jvi {
                 this->buildGPtr.resize(this->fullGeometryCount);
                 this->offsetInfo.resize(this->fullGeometryCount);
                 this->offsetPtr.resize(this->fullGeometryCount);
-                this->primitiveOffset.resize(this->fullGeometryCount);
+                //this->primitiveOffset.resize(this->fullGeometryCount);
             };
 
             // 
@@ -792,8 +795,8 @@ namespace jvi {
             // 
             f = 0, i = 0, c = 0;  for (auto& I : this->inputs) { // Quads needs to format...
                 const auto meta = glm::uvec4(meshData.x, f, meshData.z, 0u);
-                const auto size = sizes;//this->offsetInfo[c].primitiveCount * 3ull * strides;
-                const auto offset = offsets; //+ VkDeviceSize(this->primitiveOffset[c]);
+                const auto size = this->offsetInfo[c].primitiveCount * 3ull * strides;
+                const auto offset = offsets + VkDeviceSize(this->primitiveOffset[c]);
 
                 // 
                 this->driver->getDeviceDispatch()->CmdSetPrimitiveTopologyEXT(rasterCommand, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
@@ -877,7 +880,8 @@ namespace jvi {
         // CAN BE MULTIPLE! (single element of array, array of array[0])
         //vkt::Vector<uint64_t>                                         offsetIndirectPtr {};
         //vkt::Vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetIndirect {};
-        std::vector<VkDeviceSize>                                     primitiveOffset = {};
+        vkt::Vector<uint32_t>                                         primitiveOffsetGPU = {};
+        vkt::Vector<uint32_t>                                         primitiveOffset = {};
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR>   offsetInfo = {};
         std::vector<vkh::VkAccelerationStructureBuildOffsetInfoKHR*>  offsetPtr = {};
         vkh::VkAccelerationStructureBuildOffsetInfoKHR                offsetTemp = {}; // INSTANCE TEMPLATE, CAN'T BE ARRAY! 

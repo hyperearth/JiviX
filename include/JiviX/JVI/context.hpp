@@ -478,14 +478,15 @@ namespace jvi {
                 // BETA: Ray Query Requirements
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 5u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 6u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 7u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
-                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 7u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 8u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER           , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
 
                 //
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 9u, .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER             , .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 10u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER            , .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 11u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER            , .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
                 this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 12u, .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, .descriptorCount = 1u, .stageFlags = pipusage }, indexedf);
+                this->bindingsDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 13u, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER            , .descriptorCount = 64u, .stageFlags = pipusage }, indexedf);
 
                 // 
                 this->deferredDescriptorSetLayoutHelper.pushBinding(vkh::VkDescriptorSetLayoutBinding{ .binding = 14u, .descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER, .descriptorCount = 4u, .stageFlags = pipusage }, indexedf);
