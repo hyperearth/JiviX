@@ -534,6 +534,7 @@ int main() {
 
             //
             material->setBackgroundImage(image);
+            material->pushSampledImage(image.getDescriptor());
         };
     };
 
@@ -584,14 +585,9 @@ int main() {
             auto verticeCount = shapes[s].mesh.num_face_vertices[f];
             for (size_t v = 0; v < verticeCount; v++) { //
                 tinyobj::index_t idx = shapes[s].mesh.indices[indexOffset + v];
-                tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0], vy = attrib.vertices[3*idx.vertex_index+1], vz = attrib.vertices[3*idx.vertex_index+2];
-                tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0], ny = attrib.normals[3*idx.normal_index+1], nz = attrib.normals[3*idx.normal_index+2];
-                tinyobj::real_t tx = attrib.texcoords[2*idx.texcoord_index+0], ty = attrib.texcoords[2*idx.texcoord_index+1];
-
-                //
-                buffersViews.back()[indexOffset +v].vertex = glm::vec4(vx,vy,vz,1.f);
-                buffersViews.back()[indexOffset +v].normal = glm::vec4(nx,ny,nz,0.f);
-                buffersViews.back()[indexOffset +v].texcoord = glm::vec4(tx,ty,0.f,0.f);
+                buffersViews.back()[indexOffset +v].vertex = glm::vec4(attrib.vertices[3 * idx.vertex_index + 0], attrib.vertices[3 * idx.vertex_index + 1], attrib.vertices[3 * idx.vertex_index + 2],1.f);
+                buffersViews.back()[indexOffset +v].normal = glm::vec4(attrib.normals[3 * idx.normal_index + 0], attrib.normals[3 * idx.normal_index + 1], attrib.normals[3 * idx.normal_index + 2], 0.f);
+                buffersViews.back()[indexOffset +v].texcoord = glm::vec4(attrib.texcoords[2 * idx.texcoord_index + 0], attrib.texcoords[2 * idx.texcoord_index + 1], 0.f, 0.f);
             };
 
             // 
@@ -608,6 +604,9 @@ int main() {
             // material support NOT added...
             mBinding.addMeshInput(mInput, shapes[s].mesh.material_ids[f]);
         };
+
+        //
+        node->pushMesh(mBinding);
     };
 
     // Material (TODO: Textures, Needs Loader and Storage)
