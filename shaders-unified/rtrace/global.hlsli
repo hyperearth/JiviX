@@ -65,16 +65,17 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
     const float3 baryCoord = hit.gBarycentric.xyz;
 
+    GeometryNode node;
+#ifdef GLSL
+        node = geometryNodes[nonuniformEXT(nodeMeshID)].data[geometryInstanceID];
+#else
+        node = geometryNodes[nonuniformEXT(nodeMeshID)][geometryInstanceID];
+#endif
+
     // By Geometry Data
     float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
     float3x4 matra4 = rtxInstances[globalInstanceID].transform;
-    if (hasTransform(meshInfo[nodeMeshID])) {
-#ifdef GLSL
-        matras = float3x4(instances[nodeMeshID].transform[geometryInstanceID]);
-#else
-        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
-#endif
-    };
+    if (hasTransform(meshInfo[nodeMeshID])) { matras = node.transform; };
 
     // Native Normal Transform
     const float3x3 normalTransform = inverse(transpose(regen3(matras)));
@@ -84,7 +85,7 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     XGEO geometry;
 
     // 
-    uint ofIdx = geoOFs[globalInstanceID].offsets[geometryInstanceID]/80;
+    uint ofIdx = node.offset/80;
     uint3 idx3 = uint3(primitiveID*3u+0u+ofIdx,primitiveID*3u+1u+ofIdx,primitiveID*3u+2u+ofIdx);
     geometry.gTexcoord  = float4(triangulate(idx3, 1u, nodeMeshID, baryCoord).xyz,0.f);
     geometry.gNormal    = float4(triangulate(idx3, 2u, nodeMeshID, baryCoord).xyz,0.f);
@@ -107,12 +108,7 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
 
 // 
 XPOL materialize(in XHIT hit, inout XGEO geo) { // 
-
-#ifdef GLSL
-#define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
-#else
-#define MatID materialID[nodeMeshID][geometryInstanceID]
-#endif
+#define MatID node.material
 
     XPOL material;
     material. diffuseColor = float4(0.f.xxx, 1.f.x);
@@ -127,6 +123,14 @@ XPOL materialize(in XHIT hit, inout XGEO geo) { //
     const uint globalInstanceID = hit.gIndices.x;
     const uint primitiveID = hit.gIndices.z;
     const uint nodeMeshID = getMeshID(rtxInstances[globalInstanceID]);
+
+    GeometryNode node;
+#ifdef GLSL
+        node = geometryNodes[nonuniformEXT(nodeMeshID)].data[geometryInstanceID];
+#else
+        node = geometryNodes[nonuniformEXT(nodeMeshID)][geometryInstanceID];
+#endif
+
     const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020
     const float2 gTexcoord = geo.gTexcoord.xy;
     //const float3 gNormal = geo.gNormal.xyz;

@@ -103,11 +103,13 @@ PS_OUTPUT main(in PS_INPUT inp, in uint PrimitiveID : SV_PrimitiveID)  // TODO: 
     const uint nodeMeshID = drawInfo.data.x;
     const uint globalInstanceID = drawInfo.data.z;
 
+    GeometryNode node;
 #ifdef GLSL
-#define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
+    node = geometryNodes[nonuniformEXT(nodeMeshID)].data[geometryInstanceID];
 #else
-#define MatID materialID[nodeMeshID][geometryInstanceID]
+    node = geometryNodes[nonuniformEXT(nodeMeshID)][geometryInstanceID];
 #endif
+#define MatID node.material
 
     const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020
     const float4 diffuseColor = toLinear(unit. diffuseTexture >= 0 ? textureSample(textures[nonuniformEXT(unit. diffuseTexture)],samplers[2u],inp.fTexcoord.xy) : unit.diffuse);

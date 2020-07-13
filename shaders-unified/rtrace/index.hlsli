@@ -119,6 +119,12 @@ struct RTXInstance {
     uint2 handle;
 };
 
+struct GeometryNode {
+    float3x4 transform;
+    uint offset;
+    uint material;
+};
+
 
 //
 float3x4 getMT3x4(in float4x3 data) { return transpose(data); };
@@ -252,12 +258,7 @@ layout (binding = 4, set = 0)                  uniform texture2D mapColor[];
 // Bindings Set (Binding 2 is Acceleration Structure, may implemented in Inline Version)
 layout (binding = 5, set = 1, scalar) uniform Bindings   { Binding   data[8u]; } bindings  [];
 layout (binding = 6, set = 1, scalar) uniform Attributes { Attribute data[8u]; } attributes[];
-
-// 
-  layout (binding = 7 , set = 1, scalar) buffer InstanceTransform { float3x4 transform[64u]; } instances[];
-  layout (binding = 8 , set = 1, scalar) buffer MeshMaterial { uint materialID[64u]; } geomMTs[];
-  layout (binding = 13, set = 1, scalar) buffer MeshOffsets { uint offsets[64u]; } geoOFs[]; // TODO: SUPPORT FOR HLSL
-//layout (binding = 9 , set = 1, scalar) buffer InstanceMaps { uint instanceID[]; } meshIDs[]; // uint globalInstanceID = meshID[meshID].instanceID[instanceID]
+layout (binding = 8 , set = 1, scalar) readonly buffer GeometryNodes { GeometryNode data[]; } geometryNodes[];
 
 layout (binding = 9, set = 1, scalar) uniform Matrices {
     layout(column_major) float4x4 projection;    
@@ -337,8 +338,7 @@ struct DrawInfo {
 
 // 
 //[[vk::binding(7,1)]] StructuredBuffer<Transform3x4> tmatrices[] : register(t0, space7);
-[[vk::binding(7,1)]] StructuredBuffer<float3x4> tmatrices[] : register(t0, space7);
-[[vk::binding(8,1)]] StructuredBuffer<uint> materialID[] : register(t0, space8);
+[[vk::binding(8,1)]] StructuredBuffer<GeometryNode> geometryNodes[] : register(t0, space8);
 
 // 
 [[vk::binding(9,1)]] ConstantBuffer<Matrices> pushed : register(b0, space9);

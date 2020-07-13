@@ -34,6 +34,13 @@ namespace jvi {
 #define uTHIS this
 #endif
 
+    //
+    struct GeometryNode {
+        glm::mat3x4 transform;
+        glm::uint offset;
+        glm::uint material;
+    };
+
     // 
     struct VertexData {
         glm::vec4 fPosition = glm::vec4(0.f);

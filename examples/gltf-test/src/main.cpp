@@ -489,11 +489,8 @@ int main() {
 
     // Every mesh will have transform buffer per internal instances
     std::vector<jvx::MeshBinding> meshes = {};
-    std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
-
-    // Transform Data Buffer
-    //std::vector<vkt::Vector<mat4_t>> gpuInstancedTransformPerMesh = {};
-    std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
+    //std::vector<std::vector<mat4_t>> instancedTransformPerMesh = {}; // Run Out, Run Over
+    //std::vector<vkt::Vector<mat4_t>> cpuInstancedTransformPerMesh = {};
 
     // GLTF Data Buffer
     std::vector<vkt::Vector<uint8_t>> cpuBuffers = {};
@@ -768,7 +765,7 @@ int main() {
             const VkDeviceSize PrimitiveCount = std::max(vkt::tiled(uint64_t(vertexCount), uint64_t(3ull)), uint64_t(1ull)); //vkt::tiled(vertexCount << (uintptr_t(ctype) * 0u), 3ull);
 
             // 
-            auto& mesh = mBinding; instancedTransformPerMesh.push_back({});
+            auto& mesh = mBinding; //instancedTransformPerMesh.push_back({});
 
             // 
             jvx::MeshInput mInput(context);
@@ -829,7 +826,7 @@ int main() {
                 mInput->setIndexCount(attribute.count)->setIndexOffset(attribute.byteOffset);
             };
 
-            // 
+            // TODO: Add Transform
             mBinding->addMeshInput(mInput->sharedPtr(), primitive.material);
         };
 

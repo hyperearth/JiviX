@@ -102,11 +102,15 @@ PS_OUTPUT main(in PS_INPUT inp, in uint PrimitiveID : SV_PrimitiveID, float3 Bar
     const uint nodeMeshID = drawInfo.data.x;
     const uint globalInstanceID = drawInfo.data.z;
 
-
+    GeometryNode node;
 #ifdef GLSL
-#define MatID geomMTs[nonuniformEXT(nodeMeshID)].materialID[geometryInstanceID]
+    node = geometryNodes[nonuniformEXT(nodeMeshID)].data[geometryInstanceID];
 #else
-#define MatID materialID[nodeMeshID][geometryInstanceID]
+    node = geometryNodes[nonuniformEXT(nodeMeshID)][geometryInstanceID];
+#endif
+
+#ifndef MatID
+#define MatID node.material
 #endif
 
     const MaterialUnit unit = materials[MatID]; // NEW! 20.04.2020

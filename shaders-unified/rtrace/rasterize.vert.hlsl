@@ -82,15 +82,18 @@ PS_INPUT main(in VS_INPUT inp, in uint InstanceIndex : SV_InstanceID, in uint Ve
     const uint nodeMeshID = drawInfo.data.x;
     const uint globalInstanceID = drawInfo.data.z;
 
+    GeometryNode node;
+#ifdef GLSL
+    node = geometryNodes[nonuniformEXT(nodeMeshID)].data[geometryInstanceID];
+#else
+    node = geometryNodes[nonuniformEXT(nodeMeshID)][geometryInstanceID];
+#endif
+
     // By Geometry Data
     float3x4 matras = float3x4(float4(1.f,0.f.xxx),float4(0.f,1.f,0.f.xx),float4(0.f.xx,1.f,0.f));
     float3x4 matra4 = float3x4(rtxInstances[globalInstanceID].transform);
     if (hasTransform(meshInfo[nodeMeshID])) {
-#ifdef GLSL
-        matras = float3x4(instances[nodeMeshID].transform[geometryInstanceID]);
-#else
-        matras = float3x4(tmatrices[nodeMeshID][geometryInstanceID]);
-#endif
+        matras = node.transform;
     };
 
     // Native Normal Transform
