@@ -371,7 +371,7 @@ namespace jvi {
                 {
                     const auto mOffset = (offsetp.primitiveOffset = uOffset * DEFAULT_STRIDE);
                     this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->counterData.buffer(), this->offsetCounterData.buffer(), 1u, vkh::VkBufferCopy{ .dstOffset = i * sizeof(uint32_t), .size = sizeof(uint32_t) });
-                    this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, this->counterData.buffer(), this->counterData.offset(), sizeof(glm::uvec4), &counterValue); // Trying... 
+                    //this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, this->counterData.buffer(), this->counterData.offset(), sizeof(glm::uvec4), &counterValue); // Trying... 
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier In 
                     if (I.has()) { I->buildGeometry(uTHIS, glm::u64vec4(uOffset, mOffset, offsetp.primitiveCount = uPCount, 0u), buildCommand); };
                     vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand); // TODO: Transform Feedback Counter Barrier Out
@@ -1006,11 +1006,11 @@ namespace jvi {
              vkt::commandBarrier(this->driver->getDeviceDispatch(), buildCommand);
 
              // 
-             const auto gOffset = offsetHelp->y;
+             const auto gOffset = 0u;//offsetHelp->y;
              const auto gBuffer = binding->getBindingBuffer();
              const VkDeviceSize mGeometryCount = offsetHelp->z;//this->getIndexCount() / 3u;
-             const VkDeviceSize mOffset = gOffset + gBuffer.offset(); // Broken Counters?
-             const VkDeviceSize mRanges = std::min((mGeometryCount * VkDeviceSize(DEFAULT_STRIDE) * 3ull) + gOffset, gBuffer.range());
+             const VkDeviceSize mOffset = gBuffer.offset() + gOffset; // Broken Counters?
+             const VkDeviceSize mRanges = gBuffer.range();//std::min((mGeometryCount * VkDeviceSize(DEFAULT_STRIDE) * 3ull) + gOffset, gBuffer.range());
 
              // 
              this->meta.primitiveCount = this->meta.geometryCount = 0u;
