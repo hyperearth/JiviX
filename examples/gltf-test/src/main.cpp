@@ -459,7 +459,7 @@ int main() {
 
     // 
     //const float unitScale = 1.f, unitHeight = -0.f;
-    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "CornellBox.gltf");
+    //const bool ret = loader.LoadASCIIFromFile(&model, &err, &wrn, "head.gltf");
 
     //
     const float unitScale = 100.f, unitHeight = -0.f;
