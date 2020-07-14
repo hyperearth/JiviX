@@ -398,7 +398,8 @@ void main(uint LocalInvocationIndex : SV_GroupIndex, uint3 GlobalInvocationID : 
         // Used By Reprojection (comparsion)
         imageStore(writeBuffer[nonuniformEXT(BW_INDIRECT)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_INDIRECT)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_POSITION)], int2(lanQ), gposition); // Stay The Same...
-        imageStore(writeBuffer[nonuniformEXT(BW_GEONORML)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_GEONORML)], int2(lanQ)));
+        imageStore(writeBuffer[nonuniformEXT(BW_MAPNORML)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_GEONORML)], int2(lanQ)));
+        imageStore(writeBuffer[nonuniformEXT(BW_GEONORML)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_MAPNORML)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_SMOOTHED)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_SMOOTHED)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_MATERIAL)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_MATERIAL)], int2(lanQ)));
         imageStore(writeBuffer[nonuniformEXT(BW_REFLECLR)], int2(lanQ), imageLoad(writeImages[nonuniformEXT(IW_REFLECLR)], int2(lanQ)));

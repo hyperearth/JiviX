@@ -64,7 +64,7 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
     // FROM PREVIOUS FRAME!!
           float4 positions = imageLoad(writeImages[IW_POSITION],f2fx);
     const float4 diffcolor = imageLoad(writeImages[IW_INDIRECT],f2fx);
-    const float4 normaling = imageLoad(writeImages[IW_GEONORML],f2fx);
+    const float4 normaling = imageLoad(writeImages[IW_MAPNORML],f2fx);
     const float4 speccolor = imageLoad(writeImages[IW_REFLECLR],f2fx);
     const float4 smoothedc = imageLoad(writeImages[IW_SMOOTHED],f2fx);
 

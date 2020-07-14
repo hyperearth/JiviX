@@ -28,7 +28,7 @@
 #define BW_MATERIAL 4  // Texcoord, Material ID, Skybox Mask
 #define BW_GEONORML 5  // Geometry Normal
 #define BW_ADAPTIVE 6  // Final Rendering Result
-#define BW_RESERVED 7
+#define BW_MAPNORML 7
 #define BW_RENDERED 8  
 #define BW_GROUNDPS 9  // Deep Layer!!
 #define BW_POSITION 10 // Position Data

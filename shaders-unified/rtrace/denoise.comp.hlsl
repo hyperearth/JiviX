@@ -27,14 +27,14 @@ void setReflection (in int2 map, in float4 color) { const int2 size = imageSize(
 int2 mapc(in int2 map) {
     const int2 size = imageSize(writeImages[IW_REFLECLR]);
     return int2(map.x, map.y);
-}
+};
 
 bool skyboxPixel(in int2 samplep) {
     const  float4 dataflat = getData(samplep);
     const uint4 datapass = floatBitsToUint(dataflat);
     const float2 texcoord = unpackUnorm2x16(datapass.x);
     return uintBitsToFloat(datapass.z) <= 0.f;
-}
+};
 
 // 
 float4 getDenoised(in int2 coord, in int type, in uint maxc) {
