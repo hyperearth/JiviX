@@ -85,8 +85,7 @@ XGEO interpolate(in XHIT hit) { // By Geometry Data
     XGEO geometry;
 
     // 
-    uint ofIdx = node.offset/80;
-    uint3 idx3 = uint3(primitiveID*3u+0u+ofIdx,primitiveID*3u+1u+ofIdx,primitiveID*3u+2u+ofIdx);
+    uint3 idx3 = uint3(primitiveID*3u+0u+node.offset,primitiveID*3u+1u+node.offset,primitiveID*3u+2u+node.offset);
     geometry.gTexcoord  = float4(triangulate(idx3, 1u, nodeMeshID, baryCoord).xyz,0.f);
     geometry.gNormal    = float4(triangulate(idx3, 2u, nodeMeshID, baryCoord).xyz,0.f);
     geometry.gTangent   = float4(triangulate(idx3, 3u, nodeMeshID, baryCoord).xyz,0.f);

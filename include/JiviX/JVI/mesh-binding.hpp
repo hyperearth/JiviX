@@ -374,12 +374,12 @@ namespace jvi {
                 // 
                 for (uint32_t j = 0; j < this->instances[i]; j++) {
                     this->offsetInfo[c] = offsetp;
-                    this->rawTransformData[c].offset = offsetp.primitiveOffset;
+                    this->rawTransformData[c].offset = offsetp.primitiveOffset / DEFAULT_STRIDE;
                     if (this->rawMeshInfo[0u].hasTransform) { // Polcovnic
                         this->offsetInfo[c].transformOffset = this->transformStride * c;
                     };
                     { // convert info first vertex
-                        this->offsetInfo[c].firstVertex = this->rawTransformData[c].offset / DEFAULT_STRIDE;
+                        this->offsetInfo[c].firstVertex = this->rawTransformData[c].offset;
                         this->offsetInfo[c].primitiveOffset = 0u;
                         this->offsetInfo[c].primitiveCount = uPCount;
                     };
