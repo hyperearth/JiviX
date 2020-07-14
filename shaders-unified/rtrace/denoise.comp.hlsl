@@ -42,7 +42,7 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
     float3 centerOrigin = world2screen(getPosition(coord).xyz);
 
     float4 sampled = 0.f.xxxx; int scount = 0;
-    float4 centerc = getIndirect(coord);
+    float4 centerc = imageLoad(writeImagesBack[IW_INDIRECT], mapc(coord));//getIndirect(coord);
 
     for (uint x=0;x<maxc;x++) {
         for (uint y=0;y<maxc;y++) {
@@ -62,11 +62,9 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
         };
     };
 
-    //if (reflection) {
-    //    sampled.xyz /= sampled.w;
-    //    sampled.w = getPReflection(coord).w;
-    //};
-
+    if (type == 0) {
+        sampled += float4(centerc.xyz, max(centerc.w, 1.f));
+    };
     sampled.w = max(sampled.w, 1.f);
     return sampled;
 };
@@ -185,10 +183,10 @@ const uint3 GlobalInvocationID = DTid;
     };
 
     // Will very actual after adaptive denoise... 
-    //if (!isSkybox && getTransparent(samplep).w > 0.f) {
-    //    float scount = max(imageLoad(writeImages[IW_INDIRECT], mapc(samplep)).w, 1.f);
-    //    imageStore(writeImagesBack[IW_INDIRECT], mapc(samplep), float4(diffused.xyz*scount, scount));
-    //};
+    if (!isSkybox && getTransparent(samplep).w > 0.f) {
+        float scount = max(imageLoad(writeImages[IW_INDIRECT], mapc(samplep)).w, 1.f);
+        imageStore(writeImagesBack[IW_INDIRECT], mapc(samplep), float4(diffused.xyz*scount, scount));
+    };
 #else
     imageStore(writeBuffer[BW_RENDERED],     (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
     imageStore(writeBuffer[BW_RENDERED],     (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f));

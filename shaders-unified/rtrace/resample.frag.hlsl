@@ -87,12 +87,12 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
 
         if (
             //abs(screenSample.z-almostpos.z) < 0.0001f && 
-            (screenSample.z-almostpos.z) < 0.0001f && // Reserved for FOG 
+            (screenSample.z-almostpos.z) < 0.0002f && // Reserved for FOG 
             length(almostpos.xy-screenSample.xy) < 4.f && 
             //dot(gNormal.xyz, texelFetch(frameBuffers[BW_MAPNORML], int2(i2fxm+offt), 0).xyz) >=0.5f && 
             dot(gNormal.xyz, textureLodSample(frameBuffers[BW_MAPNORML], samplers[0u], float2(i2fxm+offt), 0).xyz) >=0.5f && 
                              texelFetch(frameBuffers[BW_MATERIAL], int2(i2fxm+offt), 0).z > 0.f &&
-            distance(wPosition.xyz,worldspos.xyz) < 0.05f || 
+            distance(wPosition.xyz,worldspos.xyz) < 0.01f || 
             false//(i == 4 && texelFetch(frameBuffers[BW_INDIRECT], int2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
         ) { return true; };
     };
