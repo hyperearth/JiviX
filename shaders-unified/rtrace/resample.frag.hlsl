@@ -80,13 +80,15 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
     for (int i=0;i<1;i++) {
         const float2 offt = shift[i];
 
+        // 
         float4 worldspos = float4(textureLodSample(frameBuffers[BW_POSITION], samplers[0u], float2(i2fxm+offt), 0).xyz, 1.f);
         float3 screenpos = world2screen(worldspos.xyz);
         float3 screensmp = world2screen(wPosition.xyz);
 
+        // 
         if (
             abs(screenpos.z - screensmp.z) < 0.0001f && 
-            dot(gNormal.xyz, textureLodSample(frameBuffers[BW_MAPNORML], samplers[0u], float2(i2fxm+offt), 0).xyz) >= 0.6f && 
+            dot(gNormal.xyz, textureLodSample(frameBuffers[BW_MAPNORML], samplers[0u], float2(i2fxm+offt), 0).xyz) > 0.5f && 
             texelFetch(frameBuffers[BW_MATERIAL], int2(i2fxm+offt), 0).z > 0.f &&
             distance(wPosition.xyz,worldspos.xyz) < 0.1f &&
             true
