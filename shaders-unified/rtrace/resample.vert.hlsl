@@ -105,13 +105,12 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
         //
         outp.gColor = clamp(diffcolor, 0.001f, 10000000.f);
         outp.gSpecular = float4(speccolor.xyz,1.f);
-        outp.gSample = float4(outp.Position.xyz,1.f);
+        outp.gSample = float4(positions.xyz,1.f);
         outp.gNormal = float4(normaling.xyz,1.f);
         outp.gSmooth = smoothedc;
         outp.wPosition = positions;
         outp.Position = float4(world2screen(positions.xyz),1.f), outp.PointSize = 1.f;
         outp.Position.y *= -1.f;
-        outp.PointSize = 1.f;
     };
 
 #ifdef GLSL

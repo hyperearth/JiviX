@@ -78,7 +78,7 @@ GS_INPUT main(in VS_INPUT inp, in uint VertexIndex : SV_VERTEXID)
 #endif
 
     //const int IdxType = int(drawInfo.data.y)-1;
-    //const uint idx = VertexIndex; // Default Index of Vertice
+    const uint idx = VertexIndex; // Default Index of Vertice
     //if (IdxType == IndexU8 ) { idx = load_u8 (idx*1u, 0u, true); };
     //if (IdxType == IndexU16) { idx = load_u16(idx*2u, 0u, true); };
     //if (IdxType == IndexU32) { idx = load_u32(idx*4u, 0u, true); };
@@ -104,20 +104,22 @@ GS_INPUT main(in VS_INPUT inp, in uint VertexIndex : SV_VERTEXID)
 #endif
 
     // HuLuSuL traditional (needs correct support for GLTF)
+    /*
     const float4 iPosition = float4(inp.iPosition.xyz, 1.f);
     const float4 iTexcoord = float4(inp.iTexcoord.xy, 0.f.xx);
     const float4 iNormals  = float4(inp.iNormals.xyz, 0.f);
     const float4 iTangent  = inp.iTangent;
     const float4 iBinormal = inp.iBinormal;
     const float4 iColor    = inp.iColor;
+    */
     
-    /*//
+    //
     const float4 iPosition = get_float4(idx, 0u);
     const float4 iTexcoord = get_float4(idx, 1u);
     const float4 iNormals  = get_float4(idx, 2u);
     const float4 iTangent  = get_float4(idx, 3u);
     const float4 iBinormal = float4(0.f.xxx,0.f);
-    const float4 iColor    = float4(0.f.xxx,0.f);*/
+    const float4 iColor    = float4(0.f.xxx,0.f);
 
     // 
     GS_INPUT outp;
