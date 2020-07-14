@@ -80,20 +80,16 @@ bool checkCorrect(in float4 gNormal, in float4 wPosition, in float4 screenSample
     for (int i=0;i<1;i++) {
         const float2 offt = shift[i];
 
-        float4 worldspos = float4(textureLodSample(frameBuffers[BW_POSITION], samplers[0u], float2(i2fxm+offt), 0).xyz,1.f);
-        //float4 worldspos = float4(texelFetch(frameBuffers[BW_POSITION], int2(i2fxm+offt), 0).xyz,1.f);
-        float4 almostpos = float4(world2screen(worldspos.xyz),1.f);
-        //almostpos.y *= -1.f;
+        float4 worldspos = float4(textureLodSample(frameBuffers[BW_POSITION], samplers[0u], float2(i2fxm+offt), 0).xyz, 1.f);
+        float3 screenpos = world2screen(worldspos.xyz);
+        float3 screensmp = world2screen(wPosition.xyz);
 
         if (
-            //abs(screenSample.z-almostpos.z) < 0.0001f && 
-            (screenSample.z-almostpos.z) < 0.0002f && // Reserved for FOG 
-            length(almostpos.xy-screenSample.xy) < 4.f && 
-            //dot(gNormal.xyz, texelFetch(frameBuffers[BW_MAPNORML], int2(i2fxm+offt), 0).xyz) >=0.5f && 
-            dot(gNormal.xyz, textureLodSample(frameBuffers[BW_MAPNORML], samplers[0u], float2(i2fxm+offt), 0).xyz) >=0.5f && 
-                             texelFetch(frameBuffers[BW_MATERIAL], int2(i2fxm+offt), 0).z > 0.f &&
-            distance(wPosition.xyz,worldspos.xyz) < 0.01f || 
-            false//(i == 4 && texelFetch(frameBuffers[BW_INDIRECT], int2(i2fxm+offt), 0).w <= 0.01f) // Prefer use center texel for filling
+            abs(screenpos.z - screensmp.z) < 0.0001f && 
+            dot(gNormal.xyz, textureLodSample(frameBuffers[BW_MAPNORML], samplers[0u], float2(i2fxm+offt), 0).xyz) >= 0.6f && 
+            texelFetch(frameBuffers[BW_MATERIAL], int2(i2fxm+offt), 0).z > 0.f &&
+            distance(wPosition.xyz,worldspos.xyz) < 0.1f &&
+            true
         ) { return true; };
     };
     return false;
@@ -127,7 +123,7 @@ PS_OUTPUT main(in PS_INPUT inp)
     // 
     const int2 f2fx  = int2(inp.FragCoord.xy);
     const int2 size  = int2(textureSize(frameBuffers[BW_POSITION], 0));
-    const int2 i2fx  = int2(f2fx.x,size.y-f2fx.y-1);
+    const int2 i2fx  = int2(f2fx.x,f2fx.y);
     const float2 i2fxm = inp.FragCoord.xy; //float2(gl_FragCoord.x,float(size.y)-gl_FragCoord.y);
 
     // 

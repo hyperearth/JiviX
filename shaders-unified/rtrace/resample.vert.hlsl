@@ -110,7 +110,6 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
         outp.gSmooth = smoothedc;
         outp.wPosition = positions;
         outp.Position = float4(world2screen(positions.xyz),1.f), outp.PointSize = 1.f;
-        outp.Position.y *= -1.f;
     };
 
 #ifdef GLSL
@@ -121,6 +120,7 @@ GS_INPUT main(in uint VertexIndex : SV_VERTEXID, in uint InstanceIndex : SV_INST
     gSmooth = outp.gSmooth;
     wPosition = outp.wPosition;
     gl_Position = outp.Position;
+    gl_Position.y *= -1.f;
     gl_PointSize = outp.PointSize;
 #else
     return outp;

@@ -745,6 +745,14 @@ float3 screen2world(in float3 origin){
     return mul(pushed.modelviewInv, float4(divW(mul(pushed.projectionInv, float4(origin,1.f))), 1.f));
 };
 
+float3 world2screen(in float4 origin){
+    return divW(mul(pushed.projection, float4(mul(pushed.modelview, origin), 1.f)));
+};
+
+float3 screen2world(in float4 origin){
+    return mul(pushed.modelviewInv, float4(divW(mul(pushed.projectionInv, origin)), 1.f));
+};
+
 
 // Some Settings
 //const float3 gSkyColor = float3(0.9f,0.98,0.999f); // TODO: Use 1.f and texture shading (include from rasterization)
