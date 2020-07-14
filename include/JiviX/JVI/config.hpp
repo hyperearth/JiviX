@@ -36,9 +36,9 @@ namespace jvi {
 
     //
     struct GeometryNode {
-        glm::mat3x4 transform;
-        glm::uint offset;
-        glm::uint material;
+        glm::mat3x4 transform = glm::mat3x4(1.f);
+        glm::uint offset = 0u; // i.e. first vertex
+        glm::uint material = 0u;
     };
 
     // 

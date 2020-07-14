@@ -59,10 +59,6 @@ namespace jvi {
             //this->gpuMeshInfo = vkt::Vector<MeshInfo>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = {.eTransferDst = 1, .eUniformBuffer = 1, .eStorageBuffer = 1, .eRayTracing = 1 } }, VMA_MEMORY_USAGE_GPU_ONLY);
             this->rawMeshInfo = vkt::Vector<MeshInfo>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = 16u, .usage = hostUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
 
-            // Internal Instance Map Per Global Node
-            this->rawInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = uint64_t(std::max(static_cast<uint64_t>(GeometryInitial.size()), uint64_t(64ull)) * sizeof(uint32_t)), .usage = hostUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_CPU_TO_GPU }));
-            this->gpuInstanceMap = vkt::Vector<uint32_t>(std::make_shared<vkt::VmaBufferAllocation>(this->driver->getAllocator(), vkh::VkBufferCreateInfo{ .size = uint64_t(std::max(static_cast<uint64_t>(GeometryInitial.size()), uint64_t(64ull)) * sizeof(uint32_t)), .usage =  gpuUsage }, vkt::VmaMemoryInfo{ .memUsage = VMA_MEMORY_USAGE_GPU_ONLY }));
-
             // for faster code, pre-initialize
             this->stages = {
                 vkt::makePipelineStageInfo(this->driver->getDeviceDispatch(), vkt::readBinary(std::string("./shaders/rasterize.vert.spv")), VK_SHADER_STAGE_VERTEX_BIT),
@@ -242,9 +238,7 @@ namespace jvi {
 
         // 
         protected: virtual uPTR(MeshBinding) linkWithInstance(const uint32_t& mapID = 0u) {
-            if (this->mapCount < this->rawInstanceMap.size() && this->fullGeometryCount > 0u) {
-                this->rawInstanceMap[this->mapCount++] = mapID;
-            };
+            if (this->fullGeometryCount > 0u) { this->mapCount++; };
             return uTHIS;
         };
 
@@ -321,7 +315,6 @@ namespace jvi {
             const auto vect0 = glm::uvec4(0u);
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawAttributes, this->gpuAttributes, 1u, vkh::VkBufferCopy{ this->rawAttributes.offset(), this->gpuAttributes.offset(), this->gpuAttributes.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawBindings, this->gpuBindings, 1u, vkh::VkBufferCopy{ this->rawBindings.offset(), this->gpuBindings.offset(), this->gpuBindings.range() });
-            this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawInstanceMap, this->gpuInstanceMap, 1u, vkh::VkBufferCopy{ this->rawInstanceMap.offset(), this->gpuInstanceMap.offset(), this->gpuInstanceMap.range() });
             this->driver->getDeviceDispatch()->CmdCopyBuffer(buildCommand, this->rawTransformData, this->gpuTransformData, 1u, vkh::VkBufferCopy{ this->rawTransformData.offset(), this->gpuTransformData.offset(), this->gpuTransformData.range() });
             this->driver->getDeviceDispatch()->CmdUpdateBuffer(buildCommand, counterData.buffer(), counterData.offset(), sizeof(glm::uvec4), &vect0);
             if (this->inputs.size() > 0) { for (auto& I : this->inputs) if (I.has()) { I->copyMeta(buildCommand); }; };
@@ -454,61 +447,61 @@ namespace jvi {
         };
 
         // 
-        public: virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const glm::mat3x4& transform, const uint32_t& materialID = 0u, const VkDeviceSize& instanceCount = 1u) {
+        public: virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const uint32_t& materialID = 0u, const glm::mat3x4& transform = glm::mat3x4(1.f), const VkDeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back({}); // Correct! 
             this->ranges.push_back(primitiveCount);
             this->instances.push_back(instanceCount);
-            for (uint32_t i = 0; i < instanceCount; i++) { this->rawTransformData[this->fullGeometryCount + uintptr_t(i)].material = materialID; }; // TODO: Material ID per instance
-            this->fullGeometryCount += instanceCount;
-            return uTHIS;
-        };
-
-        // 
-        public: virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const uint32_t& materialID = 0u, const VkDeviceSize& instanceCount = 1u) {
-            uintptr_t ID = this->inputs.size();
-            this->inputs.push_back({}); // Correct! 
-            this->ranges.push_back(primitiveCount);
-            this->instances.push_back(instanceCount);
-            for (uint32_t i = 0; i < instanceCount; i++) { this->rawTransformData[this->fullGeometryCount + uintptr_t(i)].material = materialID; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < instanceCount; i++) { 
+                this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].material = materialID;
+                this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].transform = transform;
+            };
             this->fullGeometryCount += instanceCount;
             return uTHIS;
         };
 
         // Instanced, but with vector of materials
-        public: virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const std::vector<uint32_t>& materialIDs) {
+        public: virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const std::vector<uint32_t>& materialIDs, const std::vector<glm::mat3x4>& transforms = {}) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back({}); // Correct! 
             this->ranges.push_back(primitiveCount);
             this->instances.push_back(materialIDs.size());
-            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawTransformData[this->fullGeometryCount + uintptr_t(i)].material = materialIDs[i]; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < materialIDs.size(); i++) {
+                this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].material = materialIDs[i];
+                if (i < transforms.size()) {
+                    this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].transform = transforms[i];
+                };
+            };
             this->fullGeometryCount += materialIDs.size();
             return uTHIS;
         };
 
         // 
-        public: virtual uPTR(MeshBinding) addRangeInput(const VkDeviceSize& primitiveCount, const std::vector<int32_t>& materialIDs) {
-            return this->addRangeInput(primitiveCount, vkt::vector_cast<uint32_t>(materialIDs));
-        };
-
-        // 
-        public: virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const VkDeviceSize& instanceCount = 1u) {
+        public: virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const uint32_t& materialID = 0u, const glm::mat3x4& transform = glm::mat3x4(1.f), const VkDeviceSize& instanceCount = 1u) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
             this->ranges.push_back(vkt::tiled(uint64_t(input->getIndexCount()), uint64_t(3ull)));
             this->instances.push_back(instanceCount);
-            for (uint32_t i = 0; i < instanceCount; i++) { this->rawTransformData[this->fullGeometryCount + uintptr_t(i)].material = materialID; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < instanceCount; i++) { 
+                this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].material = materialID;
+                this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].transform = transform;
+            };
             this->fullGeometryCount += instanceCount;
             return uTHIS;
         };
 
         // Instanced, but with vector of materials
-        public: virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs) {
+        public: virtual uPTR(MeshBinding) addMeshInput(const vkt::uni_ptr<MeshInput>& input, const std::vector<uint32_t>& materialIDs, const std::vector<glm::mat3x4>& transforms = {}) {
             uintptr_t ID = this->inputs.size();
             this->inputs.push_back(input); // Correct! 
             this->ranges.push_back(vkt::tiled(uint64_t(input->getIndexCount()), uint64_t(3ull)));
             this->instances.push_back(materialIDs.size());
-            for (uint32_t i = 0; i < materialIDs.size(); i++) { this->rawTransformData[this->fullGeometryCount + uintptr_t(i)].material = materialIDs[i]; }; // TODO: Material ID per instance
+            for (uint32_t i = 0; i < materialIDs.size(); i++) {
+                this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].material = materialIDs[i];
+                if (i < transforms.size()) {
+                    this->rawTransformData[uintptr_t(i) + this->fullGeometryCount].transform = transforms[i];
+                };
+            }; // TODO: Material ID per instance
             this->fullGeometryCount += materialIDs.size();
             return uTHIS;
         };
@@ -891,10 +884,6 @@ namespace jvi {
 
         // 
         vkt::Vector<MeshInfo> rawMeshInfo = {};
-
-        // 
-        vkt::Vector<uint32_t> rawInstanceMap = {};
-        vkt::Vector<uint32_t> gpuInstanceMap = {};
 
         // 
         VkAccelerationStructureKHR accelerationStructure = VK_NULL_HANDLE;
