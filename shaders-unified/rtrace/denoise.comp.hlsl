@@ -16,8 +16,11 @@ float4 getColor      (in int2 map) { const int2 size = imageSize(writeBuffer[BW_
 
 // With Resampling
 float4 getSmoothed   (in int2 map) { const int2 size = imageSize(writeImages[IW_SMOOTHED]); return imageLoad(writeImages[IW_SMOOTHED],int2(map.x,map.y)); };
-float4 getIndirect   (in int2 map) { const int2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],int2(map.x,map.y)); };
 float4 getPReflection(in int2 map) { const int2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],int2(map.x,map.y)); };
+float4 getFIndirect  (in int2 map) { const int2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],int2(map.x,map.y)); };
+
+//float4 getIndirect   (in int2 map) { const int2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],int2(map.x,map.y)); }; // Player of Latest Sample
+float4 getIndirect  (in int2 map) { const int2 size = imageSize(writeImages[IW_INDIRECT]); return imageLoad(writeImages[IW_INDIRECT],int2(map.x,map.y)); };
 
 // 
 void setColor      (in int2 map, in float4 color) { const int2 size = imageSize(writeBuffer[BW_INDIRECT]); imageStore(writeBuffer[BW_INDIRECT],int2(map.x,map.y),color); };
@@ -42,14 +45,14 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
     float3 centerOrigin = world2screen(getPosition(coord).xyz);
 
     float4 sampled = 0.f.xxxx; int scount = 0;
-    float4 centerc = imageLoad(writeImagesBack[IW_INDIRECT], mapc(coord));//getIndirect(coord);
+    float4 centerc = getFIndirect(coord); // Get Full Sampled and Previous Frame
+    float4 samplep = max(centerc - getIndirect(coord), 0.f.xxxx);
 
     for (uint x=0;x<maxc;x++) {
         for (uint y=0;y<maxc;y++) {
             int2 map = coord+int2(x-(maxc>>1),y-(maxc>>1));
             float4 nsample = getNormal(map), psample = float4(world2screen(getPosition(map).xyz), 1.f);
-
-            if ((dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f) || (x == (maxc>>1) && y == (maxc>>1)) || (centerc.w <= 0.0001f && sampled.w <= 0.0001f)) {
+            if ((dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f) || (x == (maxc>>1) && y == (maxc>>1)) || (centerc.w <= 0.0001f && scount <= 0)) {
                 float4 samp = 0.f.xxxx; float simp = 1.f;
                 if (type == 0) { samp = getIndirect   (map); simp = samp.w; };
                 if (type == 1) { samp = getPReflection(map); simp = samp.w; };
@@ -57,14 +60,13 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
 
                 // 
                 samp.xyz = clamp(samp.xyz/max(samp.w,0.5f), 0.f.xxx, type == 2 ? 2.f.xxx : 16.f.xxx)*samp.w; samp.w = simp;
-                sampled += samp;
+                sampled += samp; if (simp > 0.f) { scount++; };
             };
         };
     };
 
-    if (type == 0) {
-        sampled += float4(centerc.xyz, max(centerc.w, 1.f));
-    };
+    sampled /= max(float(scount), 1.f);
+    if (type == 0) { sampled += max(samplep - 0.0001f, 0.f.xxxx); };
     sampled.w = max(sampled.w, 1.f);
     return sampled;
 };
