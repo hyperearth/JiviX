@@ -152,7 +152,7 @@ const uint3 GlobalInvocationID = DTid;
     if (specular.y > 0.3333f) denDepth = 5;
     if (specular.y > 0.6666f) denDepth = 7;
     if (specular.y > 0.9999f) denDepth = 9;
-    float4 reflects = getDenoised(samplep, 1, denDepth);
+    float4 reflects = getPReflection(samplep);//getDenoised(samplep, 1, denDepth);
     float4 coloring = float4(0.f.xxxx);
 #endif
 
