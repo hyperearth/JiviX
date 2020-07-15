@@ -10,8 +10,8 @@ float4 getNormal     (in int2 map) { const int2 size = imageSize(writeImages[IW_
 float4 getData       (in int2 map) { const int2 size = imageSize(writeImages[IW_MATERIAL]); return imageLoad(writeImages[IW_MATERIAL],int2(map.x,map.y)); };
 
 // For current frame only
-//float4 getReflection (in int2 map) { const int2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],int2(map.x,map.y)); };
-float4 getReflection (in int2 map) { const int2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],int2(map.x,map.y)); };
+float4 getReflection (in int2 map) { const int2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],int2(map.x,map.y)); };
+//float4 getReflection (in int2 map) { const int2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],int2(map.x,map.y)); };
 float4 getTransparent(in int2 map) { const int2 size = imageSize(writeBuffer[BW_TRANSPAR]); return imageLoad(writeBuffer[BW_TRANSPAR],int2(map.x,map.y)); };
 float4 getColor      (in int2 map) { const int2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],int2(map.x,map.y)); };
 
@@ -68,7 +68,6 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
 
     // 
     sampled /= max(float(scount), 1.f);
-    //if (type == 1) { sampled.w += 1.f; }; 
     if (type == 0) { sampled += samplep; };
     sampled.w = max(sampled.w, 1.f);
     return sampled;
@@ -181,7 +180,7 @@ const uint3 GlobalInvocationID = DTid;
 
 #ifndef LATE_STAGE
       // Reflection Still Required
-      imageStore(writeImages[IW_REFLECLR], (samplep), reflects = float4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
+      imageStore(writeImages[IW_REFLECLR], (samplep), reflects = float4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (0.5f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
       imageStore(writeBuffer[BW_RENDERED], (samplep), float4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
     //imageStore(writeBuffer[BW_RENDERED], (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 
