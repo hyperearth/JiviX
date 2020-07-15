@@ -132,7 +132,7 @@ PS_OUTPUT main(in PS_INPUT inp)
     PS_OUTPUT outp;
     if (checkCorrect(inp.gNormal, inp.wPosition, float4(inp.gSample.xyz,1.f), i2fxm)) {
         outp.oDiffused = inp.gColor;
-        outp.oSpecular = float4(inp.gSpecular.xyz,inp.gSpecular.w*0.5f); // TODO: Make New Reflection Sampling
+        outp.oSpecular = float4(inp.gSpecular.xyz,1.f); // TODO: Make New Reflection Sampling
         outp.oSmoothed = inp.gSmooth;
     } else { discard; };
 

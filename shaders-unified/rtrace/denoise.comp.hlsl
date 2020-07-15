@@ -10,7 +10,8 @@ float4 getNormal     (in int2 map) { const int2 size = imageSize(writeImages[IW_
 float4 getData       (in int2 map) { const int2 size = imageSize(writeImages[IW_MATERIAL]); return imageLoad(writeImages[IW_MATERIAL],int2(map.x,map.y)); };
 
 // For current frame only
-float4 getReflection (in int2 map) { const int2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],int2(map.x,map.y)); };
+//float4 getReflection (in int2 map) { const int2 size = imageSize(writeBuffer[BW_REFLECLR]); return imageLoad(writeBuffer[BW_REFLECLR],int2(map.x,map.y)); };
+float4 getReflection (in int2 map) { const int2 size = imageSize(writeImages[IW_REFLECLR]); return imageLoad(writeImages[IW_REFLECLR],int2(map.x,map.y)); };
 float4 getTransparent(in int2 map) { const int2 size = imageSize(writeBuffer[BW_TRANSPAR]); return imageLoad(writeBuffer[BW_TRANSPAR],int2(map.x,map.y)); };
 float4 getColor      (in int2 map) { const int2 size = imageSize(writeBuffer[BW_INDIRECT]); return imageLoad(writeBuffer[BW_INDIRECT],int2(map.x,map.y)); };
 
@@ -67,6 +68,7 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
 
     // 
     sampled /= max(float(scount), 1.f);
+    //if (type == 1) { sampled.w += 1.f; }; 
     if (type == 0) { sampled += samplep; };
     sampled.w = max(sampled.w, 1.f);
     return sampled;
@@ -159,6 +161,8 @@ const uint3 GlobalInvocationID = DTid;
     if (coloring.w <= 0.f) { coloring = float4(0.f.xxx,1.f); };
     coloring = max(coloring, 0.f.xxxx);
     reflects = max(reflects, 0.f.xxxx);
+    reflects /= max(reflects.w, 1.f);
+    
 
     // 
     const float inIOR = 1.f, outIOR = 1.6666f;
@@ -166,8 +170,8 @@ const uint3 GlobalInvocationID = DTid;
 
     // Currently NOT denoised! (impolated with previous frame)
     float4 currentReflection = getReflection(samplep), previousReflection = getPReflection(samplep);
-    previousReflection = (previousReflection/max(previousReflection.w,1.f));
-     currentReflection = ( currentReflection/max( currentReflection.w,1.f));
+    previousReflection /= max(previousReflection.w,1.f);
+     currentReflection /= max( currentReflection.w,1.f);
 
     // 
     float4 transpar = getDenoised(samplep, 2, 3);
@@ -176,13 +180,14 @@ const uint3 GlobalInvocationID = DTid;
     float alpha = clamp((transpar.w * (1.f-diffused.w)) * (isSkybox ? 0.f : 1.f), 0.f, 1.f);
 
 #ifndef LATE_STAGE
-    imageStore(writeImages[IW_REFLECLR], mapc(samplep), reflects = float4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), float4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
-    //imageStore(writeBuffer[BW_RENDERED],   (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+      // Reflection Still Required
+      imageStore(writeImages[IW_REFLECLR], (samplep), reflects = float4(clamp(mix(previousReflection.xyz/max(previousReflection.w,1.f), currentReflection.xyz/max(currentReflection.w,1.f), (1.f-specular.y*0.5f)), 0.f.xxx, 1.f.xxx), 1.f)); // Smoothed Reflections
+      imageStore(writeBuffer[BW_RENDERED], (samplep), float4((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz)+max(emission.xyz,0.f.xxx),1.f));
+    //imageStore(writeBuffer[BW_RENDERED], (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 
     // Copy Into Back-Side
     [[unroll]] for (uint I=0;I<12u;I++) {
-        imageStore(writeImagesBack[I], mapc(samplep), imageLoad(writeImages[I], mapc(samplep)));
+        imageStore(writeImagesBack[I], (samplep), imageLoad(writeImages[I], mapc(samplep)));
     };
 
     // Will very actual after adaptive denoise... 
@@ -191,9 +196,9 @@ const uint3 GlobalInvocationID = DTid;
         imageStore(writeImagesBack[IW_INDIRECT], mapc(samplep), float4(diffused.xyz*scount, scount));
     };
 #else
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
-    imageStore(writeBuffer[BW_RENDERED],     (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
-    //imageStore(writeBuffer[BW_RENDERED],   (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
+      imageStore(writeBuffer[BW_RENDERED], (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, transpar.xyz/max(transpar.w,0.5f), alpha), 0.f.xxx, 1.f.xxx), 1.f));
+      imageStore(writeBuffer[BW_RENDERED], (samplep), float4(clamp(mix(imageLoad(writeBuffer[BW_RENDERED], samplep).xyz, reflects.xyz/max(reflects.w,0.5f), frefl), 0.f.xxx, 1.f.xxx), 1.f));
+    //imageStore(writeBuffer[BW_RENDERED], (samplep), float4(mix((coloring.xyz/max(coloring.w,1.f))*(diffused.xyz/max(diffused.w,1.f))+max(emission.xyz,0.f.xxx),(reflects.xyz/max(reflects.w,1.f)),frefl),1.f));
 #endif
 
 };
