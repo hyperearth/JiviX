@@ -58,6 +58,7 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
             if (type == 0) { samp = getIndirect   (map); simp = samp.w; };
             if (type == 1) { samp = getPReflection(map); simp = samp.w; };
             if (type == 2) { samp = getTransparent(map); simp = samp.w; };
+            if (type == 3) { samp = getReflection (map); simp = samp.w; };
             if ((dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f) || (x == 0 && y == 0 && samp.w > 0.f) || (centerc.w <= 0.0001f && scount <= 0)) {
                 samp.xyz = clamp(samp.xyz/max(samp.w,0.5f), 0.f.xxx, type == 2 ? 2.f.xxx : 16.f.xxx)*samp.w; samp.w = simp;
                 sampled += samp; if (simp > 0.f) { scount++; };
@@ -143,11 +144,11 @@ const uint3 GlobalInvocationID = DTid;
     if (isSkybox) { diffused.xyz = 0.f.xxx, emission.xyz = gSkyShader(raydir.xyz, origin.xyz).xyz; };
     
     // 
+    int denDepth = 3;
 #ifndef LATE_STAGE
     float4 reflects = float4(0.f.xxxx);
     float4 coloring = getDenoised(samplep, 0, 9);
 #else // 
-    int denDepth = 3;
     if (specular.y > 0.3333f) denDepth = 5;
     if (specular.y > 0.6666f) denDepth = 7;
     if (specular.y > 0.9999f) denDepth = 9;
@@ -168,7 +169,7 @@ const uint3 GlobalInvocationID = DTid;
     const float frefl = mix(clamp(pow(1.0f + dot(raydir.xyz, normal.xyz), outIOR/inIOR), 0.f, 1.f) * 0.3333f, 1.f, specular.z) * (isSkybox ? 0.f : 1.f);
 
     // Currently NOT denoised! (impolated with previous frame)
-    float4 currentReflection = getReflection(samplep), previousReflection = getPReflection(samplep);
+    float4 currentReflection = getDenoised(samplep, 3, denDepth), previousReflection = getDenoised(samplep, 1, denDepth);
     previousReflection /= max(previousReflection.w,1.f);
      currentReflection /= max( currentReflection.w,1.f);
 
