@@ -48,26 +48,26 @@ float4 getDenoised(in int2 coord, in int type, in uint maxc) {
     float4 centerc = getFIndirect(coord); // Get Full Sampled and Previous Frame
     float4 samplep = max(centerc - getIndirect(coord) - 0.0001f, 0.f.xxxx);
 
-    for (uint x=0;x<maxc;x++) {
-        for (uint y=0;y<maxc;y++) {
-            int2 map = coord+int2(x-(maxc>>1),y-(maxc>>1));
+    for (uint x=0;x<2;x++) {
+        for (uint y=0;y<2;y++) {
+            int2 map = coord+int2(x,y);
             float4 nsample = getNormal(map), psample = float4(world2screen(getPosition(map).xyz), 1.f);
-            if ((dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f) || (x == (maxc>>1) && y == (maxc>>1)) || (centerc.w <= 0.0001f && scount <= 0)) {
-                float4 samp = 0.f.xxxx; float simp = 1.f;
-                if (type == 0) { samp = getIndirect   (map); simp = samp.w; };
-                if (type == 1) { samp = getPReflection(map); simp = samp.w; };
-                if (type == 2) { samp = getTransparent(map); simp = samp.w; };
 
-                // 
+            float4 samp = 0.f.xxxx; float simp = 1.f;
+            if (type == 0) { samp = getIndirect   (map); simp = samp.w; };
+            if (type == 1) { samp = getPReflection(map); simp = samp.w; };
+            if (type == 2) { samp = getTransparent(map); simp = samp.w; };
+            if ((dot(nsample.xyz,centerNormal.xyz) >= 0.5f && distance(psample.xyz,centerOrigin.xyz) < 0.01f && abs(centerOrigin.z-psample.z) < 0.005f) || (x == 0 && y == 0 && samp.w > 0.f) || (centerc.w <= 0.0001f && scount <= 0)) {
                 samp.xyz = clamp(samp.xyz/max(samp.w,0.5f), 0.f.xxx, type == 2 ? 2.f.xxx : 16.f.xxx)*samp.w; samp.w = simp;
                 sampled += samp; if (simp > 0.f) { scount++; };
+                break;
             };
         };
     };
 
+    // 
     sampled /= max(float(scount), 1.f);
-    //if (type == 0) { sampled += samplep; };
-
+    if (type == 0) { sampled += samplep; };
     sampled.w = max(sampled.w, 1.f);
     return sampled;
 };
