@@ -6,6 +6,25 @@ Real-Time oriented Vulkan API rendering and computing library...
 Writing for C++20 prior...
 Planned to beat world record as most perfect and most long-time development product...
 
+## Project Reset...
+
+A new project "[ValerA](https://github.com/helixd2s/ValerA)" is in development, a more classic tracing by our standards, and will be more efficiently supported in GPU Ampere ...
+
+
+### Planned Features: 
+
+- Fully refactored and rewrited code (and shorter)
+- More performance and, probably, multi-threading
+- Lower-Level API (than JiviX)
+- Object and Data oriented
+- Partial modularity and faster compilation
+- No CMAKE, more direct compilation
+- Multiple compute shaders rendering (include Ray Query)
+- More and efficient ray-tracing 
+- DirectX 12 Ultimate support and HLSL (under consideration)
+- RDNA-2 support
+- ...
+
 
 ## Additional Links
 
@@ -38,6 +57,7 @@ Planned to beat world record as most perfect and most long-time development prod
 
 Date:[29.06.2020]:[helix.d@IMN]
 ```
+
 
 ### Visual Studio 2019 RIP... NO possible to resolve that problem... 
 
